@@ -31,6 +31,7 @@ import br.com.cds.mobile.geradores.filters.PrefixoTabelaFilter;
 import br.com.cds.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
+import br.com.cds.mobile.geradores.json.CodeModelJsonSerializacaoFactory;
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
@@ -73,6 +74,7 @@ public class GeradorDeBeans {
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm);
+		CodeModelJsonSerializacaoFactory jsonFactory = new CodeModelJsonSerializacaoFactory(jcm);
 
 		Map<String, JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
@@ -84,6 +86,8 @@ public class GeradorDeBeans {
 				if(p!=null)
 					jbf.gerarPropriedade(classeGerada,p);
 			}
+			jbf.gerarMetodoClone(classeGerada, javaBeanSchema);
+			jsonFactory.gerarMetodosDeSerializacaoJson(classeGerada, javaBeanSchema);
 			classesMap.put(javaBeanSchema.getNome(), classeGerada);
 		}
 
@@ -105,8 +109,12 @@ public class GeradorDeBeans {
 
 		// gera metodos de acesso a banco
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
-			// TODO
 			daoFactory.gerarAcessoDB(classesMap.get(javaBeanSchema.getNome()),javaBeanSchema);
+			for(JavaBeanSchema jb2 : javaBeanSchemas)
+				daoFactory.gerarRelacoes(
+						classesMap.get(javaBeanSchema.getNome()), javaBeanSchema,
+						classesMap.get(jb2.getNome()), jb2
+				);
 		}
 
 		//TODO gerar serialVersionUID

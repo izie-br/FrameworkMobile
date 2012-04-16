@@ -1,16 +1,20 @@
 package br.com.cds.mobile.geradores.dao;
 
 import java.util.Date;
-import java.util.ArrayList;
 import java.util.List;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.config.DB;
+import br.com.cds.mobile.framework.utils.SQLiteUtils;
 import br.com.cds.mobile.gerador.query.QuerySet;
-import br.com.cds.mobile.gerador.utils.SQLiteUtils;
+import br.com.cds.mobile.geradores.filters.associacao.Associacao;
+import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
+import br.com.cds.mobile.geradores.util.CamelCaseUtils;
+import br.com.cds.mobile.geradores.util.ColunasUtils;
+import br.com.cds.mobile.geradores.util.PluralizacaoUtils;
 import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 
 import com.sun.codemodel.JArray;
@@ -26,6 +30,7 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 
 public class CodeModelDaoFactory {
@@ -78,7 +83,7 @@ public class CodeModelDaoFactory {
 				"contentValues",
 				JExpr._new(jcm.ref(ContentValues.class))
 		);
-		for(String coluna : javaBeanSchema.getColunas()){
+		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 			JExpression argumentoValor =
@@ -180,7 +185,7 @@ public class CodeModelDaoFactory {
 		JClass queryset = jcm.ref(QuerySet.class).narrow(klass);
 		JDefinedClass qsInner = gerarQuerySet(klass,javaBeanSchema,queryset);
 		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset, "objects");
-		metodoObjects.body()._return(JExpr._new(qsInner));
+		metodoObjects.body()._return(JExpr._new(qsInner.narrow(klass)).arg(JExpr._new(klass)));
 	}
 
 	private JDefinedClass gerarQuerySet(
@@ -189,22 +194,34 @@ public class CodeModelDaoFactory {
 		try {
 			JDefinedClass querySetInner = klass._class(JMod.PUBLIC|JMod.STATIC, "QuerySet");
 			querySetInner._extends(queryset);
-			gerarMetodosDoQuerySetInner(klass, javaBeanSchema, querySetInner);
+			gerarQuerySetInnerInternals(klass, javaBeanSchema, querySetInner);
 			return querySetInner;
 		} catch (JClassAlreadyExistsException e) {
 			throw new RuntimeException(e);
 		}
 	}
 
-	private void gerarMetodosDoQuerySetInner(
+	private void gerarQuerySetInnerInternals(
 			JDefinedClass klass,
 			JavaBeanSchema javaBeanSchema,
 			JDefinedClass querySetInner
 	){
 
-		List<String> colunasEmOrdem = new ArrayList<String>(
-				javaBeanSchema.getColunas()
-		);
+		List<String> colunasEmOrdem = ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema);
+
+		JTypeVar generic = querySetInner.generify("T", klass);
+
+		/**
+		 * prototipo
+		 */
+		JFieldVar prototipo = querySetInner.field(JMod.PRIVATE, generic, "prototipo");
+
+		/**
+		 * Construtor
+		 */
+		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
+		JVar prototipoparam = construtor.param(generic, "prototipo");
+		construtor.body().assign(JExpr.refthis(prototipo.name()), prototipoparam);
 
 		/*****************************
 		 * Override
@@ -235,31 +252,32 @@ public class CodeModelDaoFactory {
 					javaBeanSchema.getConstante(coluna)
 			);
 			if(propriedade.getType().equals(Date.class))
-				elementoArray = jcm.ref(SQLiteUtils.class).staticInvoke("funcaoDate").arg(elementoArray);
+				elementoArray = JExpr.lit(SQLiteGeradorUtils.FUNCAO_DATE+"(" ).plus(elementoArray).plus(JExpr.lit(")"));
 			colunasArray.add(elementoArray);
 		}
 		getColunas.body()._return(colunasArray);
 
 		/**
 		 * Override
-		 * protected String[] cursorToObject(Cursor cursor){
+		 * protected Classe cursorToObject(Cursor cursor){
 		 *   Classe bean = new Classe();
 		 *   bean.id = cursor.getLong(0);
 		 *   bean.nome = cursor.
 		 * }
 		 */
 		JMethod cursorToObject = querySetInner.method(
-				JMod.PROTECTED, klass, "cursorToObject");
+				JMod.PROTECTED, generic, "cursorToObject");
 		cursorToObject.annotate(java.lang.Override.class);
 		JVar cursor = cursorToObject.param(android.database.Cursor.class, "cursor");
 		JBlock corpo = cursorToObject.body();
-		JVar bean = corpo.decl(klass, "objeto", JExpr._new(klass));
+		JVar bean = corpo.decl(generic, "objeto", JExpr.cast(generic,prototipo.invoke("clone")));
+		bean.annotate(java.lang.SuppressWarnings.class).param("value","unchecked");
 		for(String coluna : colunasEmOrdem){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 
 			JInvocation valor = cursor.invoke(
 					SQLiteGeradorUtils
-					.cursorGetColunaParaClasse(propriedade.getType())
+					.metodoGetDoCursorParaClasse(propriedade.getType())
 			).arg(JExpr.lit(colunasEmOrdem.indexOf(coluna)));
 			if(propriedade.getType().equals(Boolean.class))
 				valor = jcm.ref(SQLiteUtils.class)
@@ -278,5 +296,86 @@ public class CodeModelDaoFactory {
 		corpo._return(bean);
 
 	}
+
+	public void gerarRelacoes(
+			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
+			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB
+	){
+
+		for(Associacao associacao : javaBeanSchemaA.getAssociacoes()){
+			if(associacao instanceof AssociacaoOneToMany){
+				AssociacaoOneToMany oneToMany = (AssociacaoOneToMany)associacao;
+				if(
+						associacao.getTabelaB().equals(javaBeanSchemaA.getTabela()) &&
+						associacao.getTabelaA().equals(javaBeanSchemaB.getTabela())
+				){
+					JFieldVar campo = klassA.field(
+							JMod.PRIVATE|JMod.TRANSIENT,
+							klassB,
+							CamelCaseUtils.tolowerCamelCase(klassB.name())
+					);
+					JMethod getKlassB = klassA.method(
+							JMod.PUBLIC,
+							klassB,
+							"get"+javaBeanSchemaB.getNome()
+					);
+					JBlock corpo = getKlassB.body();
+					JConditional ifCampoNull = corpo._if(
+							campo.eq(
+									JExpr._null()
+							).cand(
+									klassA.fields()
+									.get(javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome())
+									.ne(JExpr.direct(ID_PADRAO))
+							)
+					);
+					ifCampoNull._then().assign(campo,
+							klassB.staticInvoke("objects")
+							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
+									javaBeanSchemaB.getConstante(oneToMany.getReferenciaA())
+							)).plus(JExpr.lit("=?"))).arg(
+									klassB.fields().get(
+											javaBeanSchemaB.getPropriedade(oneToMany.getReferenciaA()).getNome()
+									)
+							)
+							.invoke("first")
+					);
+					corpo._return(campo);
+				} else if(
+						associacao.getTabelaA().equals(javaBeanSchemaA.getTabela()) &&
+						associacao.getTabelaB().equals(javaBeanSchemaB.getTabela())
+				){
+					String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
+					JFieldVar campo = klassA.field(
+							JMod.PRIVATE|JMod.TRANSIENT,
+							klassB,
+							CamelCaseUtils.tolowerCamelCase(nomePlural)
+					);
+					JMethod getKlassB = klassA.method(
+							JMod.PUBLIC,
+							klassB,
+							"get"+ nomePlural
+					);
+					JBlock corpo = getKlassB.body();
+					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
+					ifCampoNull._then()._return(
+							klassB.staticInvoke("objects")
+							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
+									javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
+							)).plus(JExpr.lit("=?"))).arg(
+									klassB.fields().get(
+											javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
+									)
+							)
+							.invoke("first")
+					);
+					corpo._return(campo);
+				}
+
+			}
+		}
+	}
+
+
 
 }

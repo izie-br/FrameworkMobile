@@ -6,6 +6,8 @@ import java.util.Date;
 
 public class SQLiteGeradorUtils {
 
+	public static final String FUNCAO_DATE = "datetime";
+
 	private static final String ERRO_DATA_TYPE_SEM_CLASSE_JAVA_FORMAT =
 		"DataType \"%s\" sem uma classe java correspodente.\n ---FIXME---@%s::%s";
 	private static final String ERRO_METODO_PARA_CLASSE_JAVA_FORMAT =
@@ -106,7 +108,7 @@ public class SQLiteGeradorUtils {
 		));
 	}
 
-	public static String cursorGetColunaParaClasse(Class<?> klass){
+	public static String metodoGetDoCursorParaClasse(Class<?> klass){
 		if(klass.equals(Long.class))
 			return "getLong";
 		if(klass.equals(String.class))
@@ -115,6 +117,25 @@ public class SQLiteGeradorUtils {
 			return "getDouble";
 		if(klass.equals(Boolean.class))
 			return "getShort";
+		if(klass.equals(Date.class))
+			return "getString";
+		throw new RuntimeException(String.format(
+				ERRO_METODO_PARA_CLASSE_JAVA_FORMAT,
+				klass.getSimpleName(),
+				SQLiteGeradorUtils.class.getName(),
+				new Object(){}.getClass().getEnclosingMethod().getName()
+		));
+	}
+
+	public static String metodoGetDoJsonParaClasse(Class<?> klass){
+		if(klass.equals(Long.class))
+			return "getLong";
+		if(klass.equals(String.class))
+			return "getString";
+		if(klass.equals(Double.class))
+			return "getDouble";
+		if(klass.equals(Boolean.class))
+			return "getBoolean";
 		if(klass.equals(Date.class))
 			return "getString";
 		throw new RuntimeException(String.format(

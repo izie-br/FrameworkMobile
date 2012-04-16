@@ -1,10 +1,12 @@
 package br.com.cds.mobile.geradores;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
+import br.com.cds.mobile.geradores.util.ColunasUtils;
 
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -120,7 +122,7 @@ public class CodeModelBeanFactory {
 				javaBeanSchema.getConstanteDaTabela(),
 				JExpr.lit(javaBeanSchema.getTabela().getNome())
 			);
-		for(String coluna : javaBeanSchema.getColunas()){
+		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			if(coluna==null)
 				continue;
 			klass.field(
@@ -133,32 +135,52 @@ public class CodeModelBeanFactory {
 	}
 
 
-	public void gerarAssociacaoToOne(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
-		// private IdClass idEstrangeira;
-		// JFieldVar idCampo = klass.fields().get(idEstrangeira);
-		// private ClasseEstrangeira estrangeira;
-		JFieldVar campo = klass.field(
-				JMod.PRIVATE,
-				estrangeira,
-				estrangeira.name(),
-				JExpr._null()
-		);
-		// getters e setters
-		gerarGetterAndSetter(klass, campo.name());
+	public void gerarMetodoClone(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+		JMethod clone = klass.method(JMod.PUBLIC, klass, "clone");
+		JBlock corpo = clone.body();
+		JVar newClone = corpo.decl(klass, "obj", JExpr._new(klass));
+		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
+			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
+			if(propriedade.equals(javaBeanSchema.getPrimaryKey()))
+				continue;
+			JFieldVar campo = klass.fields().get(propriedade.getNome());
+			if(propriedade.getType().equals(Date.class))
+				corpo.assign(
+						newClone.ref(campo),
+						JExpr._new(jcm.ref(Date.class)).arg(campo.invoke("getTime"))
+				);
+			else
+				corpo.assign(newClone.ref(campo), campo);
+		}
+		corpo._return(newClone);
 	}
 
-	public void gerarAssociacaoToMany(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
-		// private ClasseEstrangeira estrangeira;
-		JFieldVar campo = klass.field(
-				JMod.PRIVATE,
-				jcm.ref(Collection.class).narrow(estrangeira),
-				// TODO pluralizar
-				estrangeira.name(),
-				JExpr._null()
-		);
-		// getters e setters
-		gerarGetterAndSetter(klass, campo.name());
-	}
+//	public void gerarAssociacaoToOne(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
+//		// private IdClass idEstrangeira;
+//		// JFieldVar idCampo = klass.fields().get(idEstrangeira);
+//		// private ClasseEstrangeira estrangeira;
+//		JFieldVar campo = klass.field(
+//				JMod.PRIVATE,
+//				estrangeira,
+//				estrangeira.name(),
+//				JExpr._null()
+//		);
+//		// getters e setters
+//		gerarGetterAndSetter(klass, campo.name());
+//	}
+//
+//	public void gerarAssociacaoToMany(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
+//		// private ClasseEstrangeira estrangeira;
+//		JFieldVar campo = klass.field(
+//				JMod.PRIVATE,
+//				jcm.ref(Collection.class).narrow(estrangeira),
+//				// TODO pluralizar
+//				estrangeira.name(),
+//				JExpr._null()
+//		);
+//		// getters e setters
+//		gerarGetterAndSetter(klass, campo.name());
+//	}
 
 	public JType getTipo(Class<?> klass){
 		if(klass==null)

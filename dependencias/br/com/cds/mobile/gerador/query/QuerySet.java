@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 
 import br.com.cds.mobile.framework.config.DB;
-import br.com.cds.mobile.gerador.utils.SQLiteUtils;
+import br.com.cds.mobile.framework.utils.SQLiteUtils;
 
 import android.database.Cursor;
 
@@ -17,9 +17,9 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 	private String groupBy;
 	private String having;
 
-	private String limit;
-	//private int offset;
-	private boolean distinct;
+	private int limit;
+	private int offset;
+	//private boolean distinct;
 
 	protected abstract T cursorToObject(Cursor cursor);
 
@@ -28,11 +28,16 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 	protected abstract String getTabela();
 
 	public QuerySet<T> distinct(){
-		distinct = true;
+		//distinct = true;
 		return this;
 	}
 
-	public QuerySet<T> filter(Q query){
+	public QuerySet<T> filter(String qstr,Object...args){
+		if(where==null)
+			where = qstr;
+		Object newargs[] = new Object[(selectionArgs==null)?0:selectionArgs.length+args.length];
+		for(int i=0;i<newargs.length;i++)
+			newargs[i] = i<selectionArgs.length ? selectionArgs[i] : args[i-selectionArgs.length];
 		return this;
 	}
 
@@ -51,11 +56,6 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 		return null;
 	}
 
-	//TODO usar rawquery
-//	public long count(){
-//		
-//	}
-
 	private String[] selectionArgs(){
 		String args[] = new String[selectionArgs.length];
 		for(int i=0;i<selectionArgs.length;i++)
@@ -65,10 +65,28 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 
 	private Cursor getCursor() {
 		Cursor cursor = DB.getReadableDatabase().query(
-				distinct, getTabela(), getColunas(),
-				where, selectionArgs(),
+				// distinct
+				true,
+				// tabela
+				getTabela(),
+				// colunas
+				getColunas(),
+				// where (********)
+				where,
+				// argumentos para substituir os "?"
+				selectionArgs(),
+				// groupBy e having
 				groupBy, having,
-				orderBy, limit
+				// order by
+				orderBy,
+				// limit e offset
+				( limit > 0 ?
+					(offset >0 ?
+						"" + limit + " , " + offset :
+						"" + limit
+					) :
+					null
+				)
 		);
 		return cursor;
 	}

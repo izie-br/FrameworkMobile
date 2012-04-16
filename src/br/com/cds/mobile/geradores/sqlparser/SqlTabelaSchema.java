@@ -1,9 +1,6 @@
 package br.com.cds.mobile.geradores.sqlparser;
 
 import java.io.StringReader;
-import java.math.BigDecimal;
-import java.math.BigInteger;
-import java.sql.Date;
 import java.util.List;
 
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;

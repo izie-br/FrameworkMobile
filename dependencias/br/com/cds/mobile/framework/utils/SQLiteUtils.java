@@ -1,4 +1,4 @@
-package br.com.cds.mobile.gerador.utils;
+package br.com.cds.mobile.framework.utils;
 
 import java.util.Calendar;
 import java.util.Date;
@@ -7,7 +7,7 @@ import java.util.Date;
 public class SQLiteUtils {
 
 
-	private static final String FUNCAO_DATE = "datetime(%s)";
+//	private static final String FUNCAO_DATE = "datetime(%s)";
 
 	/**
 	 * formato YYYY-MM-DD HH:mm:SS
@@ -32,10 +32,6 @@ public class SQLiteUtils {
 //				cal.get(Calendar.SECOND)
 //		);
 //	}
-
-	public static String funcaoDate(String coluna){
-		return String.format(FUNCAO_DATE,coluna);
-	}
 
 	@SuppressWarnings("deprecation")
 	public static String dateToString(Date date){
