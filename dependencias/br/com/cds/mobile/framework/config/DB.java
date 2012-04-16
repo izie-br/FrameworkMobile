@@ -1,4 +1,4 @@
-package br.com.cds.mobile.flora.db;
+package br.com.cds.mobile.framework.config;
 
 import android.database.sqlite.SQLiteDatabase;
 

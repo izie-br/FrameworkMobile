@@ -4,7 +4,10 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -26,11 +29,12 @@ import net.sf.jsqlparser.statement.update.Update;
 public class SqlTabelaSchema implements TabelaSchema {
 
 
-	private String nome;
-	private Map<String,Class<?>> colunas = new HashMap<String, Class<?>>();
+	private String tabela;
+	private HashSet<TabelaSchema.Coluna> colunas =
+			new HashSet<TabelaSchema.Coluna>();
 
 	/**
-	 * @param schema Statement CREATE TABLE da tasbela em string
+	 * @param schema Statement CREATE TABLE de uma tabela em string
 	 */
 	public SqlTabelaSchema(String schema){
 		// iniciando o parser
@@ -55,17 +59,17 @@ public class SqlTabelaSchema implements TabelaSchema {
 			/*
 			 * inserindo o nome da tabela aqui
 			 */
-			SqlTabelaSchema.this.nome = ct.getTable().getName();
-
+			SqlTabelaSchema.this.tabela = ct.getTable().getName();
+			// colunas
 			@SuppressWarnings("unchecked")
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
-			for(ColumnDefinition coluna :  columnDefinitions){
-				String nomeColuna = coluna.getColumnName();
-				Class<?> tipoColuna = classeJavaEquivalenteAoTipoSql(coluna.getColDataType().getDataType());
+			for(ColumnDefinition colunaDefinition :  columnDefinitions){
+				String nomeColuna = colunaDefinition.getColumnName();
+				Class<?> tipoColuna = classeJavaEquivalenteAoTipoSql(colunaDefinition.getColDataType().getDataType());
 				/*
 				 * inserindo as colunas, (nome, tipo) aqui 
 				 */
-				SqlTabelaSchema.this.colunas.put(nomeColuna,tipoColuna);
+				SqlTabelaSchema.this.colunas.add(new Coluna(nomeColuna, tipoColuna));
 			}
 		}
 
@@ -78,6 +82,30 @@ public class SqlTabelaSchema implements TabelaSchema {
 		@Override public void visit(Update arg0)   { throw new RuntimeException(MSG_ERRO); }
 		@Override public void visit(Delete arg0)   { throw new RuntimeException(MSG_ERRO); }
 		@Override public void visit(Select arg0)   { throw new RuntimeException(MSG_ERRO); }
+	}
+
+	@Override
+	public String getNome() {
+		return tabela;
+	}
+
+	@Override
+	public Map<String, TabelaSchema.Coluna> getPropriedades() {
+		HashMap<String, TabelaSchema.Coluna> propriedades = new  HashMap<String, TabelaSchema.Coluna>();
+		for(Coluna coluna : colunas){
+			propriedades.put(coluna.getNome(),coluna);
+		}
+		return propriedades;
+	}
+
+	@Override
+	public String getTabela() {
+		return tabela;
+	}
+
+	@Override
+	public Collection<TabelaSchema.Coluna> getColunas() {
+		return new ArrayList<TabelaSchema.Coluna>(this.colunas);
 	}
 
 	public static Class<?> classeJavaEquivalenteAoTipoSql(String sqlType){
@@ -169,16 +197,6 @@ public class SqlTabelaSchema implements TabelaSchema {
 		throw new RuntimeException("DataType \'"+sqlType+"\' sem uma classe java correspodente.\n"+
 				"---FIXME---@"+SqlTabelaSchema.class.getName()+"::"+
 				new Object(){}.getClass().getEnclosingMethod().getName());
-	}
-
-	@Override
-	public String getNome() {
-		return nome;
-	}
-
-	@Override
-	public Map<String, Class<?>> getColunas() {
-		return new HashMap<String, Class<?>>(colunas);
 	}
 
 }

@@ -21,6 +21,7 @@ import com.sun.codemodel.JVar;
 
 public class CodeModelBeanFactory {
 
+	public static final String ID_PADRAO = "-1l";
 	private static final String ERRO_MSG_ARGUMENTO_NULL = "argumento null passado para o metodo %s::%s";
 	private JCodeModel jcm;
 
@@ -62,7 +63,14 @@ public class CodeModelBeanFactory {
 		 *     return campo;         *
 		 * }                         *
 		 ****************************/
-		JMethod getter = klass.method(JMod.PUBLIC, campo.type(), "get"+nomeCampoCaptalizado);
+		JMethod getter =
+				// if(campo.type()==Boolean)
+				(campo.type().name().equals("bool") || campo.type().name().equals("bool") ) ?
+						// metodo = "isCampo"
+						klass.method(JMod.PUBLIC, campo.type(), "is"+nomeCampoCaptalizado):
+				// else
+						// metodo = "getCampo"
+						klass.method(JMod.PUBLIC, campo.type(), "get"+nomeCampoCaptalizado);
 		JBlock corpo = getter.body();
 		corpo._return(campo);
 	}
@@ -75,29 +83,31 @@ public class CodeModelBeanFactory {
 		//TODO escrever hascode e equals
 	}
 
-	public JDefinedClass gerarJavaBean(String fullyqualifiedName, Map<String,Class<?>> campos){
-		try {
-			JDefinedClass classeBean = jcm._class(
-					JMod.PUBLIC,
-					fullyqualifiedName,
-					ClassType.CLASS
-			);
-			for(String nomeCampo: campos.keySet()){
-				JType tipo = getTipo(campos.get(nomeCampo));
-				// campos privados
-				classeBean.field(JMod.PRIVATE, tipo, nomeCampo);
-				// getters e setters
-				// mas se for o id, gerar apenas o getter
-				if(nomeCampo.equals("id"))
-					gerarGetter(classeBean, nomeCampo);
-				else
-					gerarGetterAndSetter(classeBean, nomeCampo);
+	public JDefinedClass gerarPropriedades(JDefinedClass classeBean, Map<String,Class<?>> campos){
+		for(String nomeCampo: campos.keySet()){
+			JType tipo = getTipo(campos.get(nomeCampo));
+			// campos privados
+			JFieldVar campo = classeBean.field(JMod.PRIVATE, tipo, nomeCampo);
+			// getters e setters
+			// mas se for o id, gerar apenas o getter
+			if(nomeCampo.equals("id")){
+				gerarGetter(classeBean, nomeCampo);
+				campo.init(JExpr.direct(ID_PADRAO));
 			}
-			return classeBean;
-		} catch (JClassAlreadyExistsException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
+			else
+				gerarGetterAndSetter(classeBean, nomeCampo);
 		}
+		return classeBean;
+	}
+
+	public JDefinedClass gerarClasse(String fullyqualifiedName)
+			throws JClassAlreadyExistsException {
+		JDefinedClass classeBean = jcm._class(
+				JMod.PUBLIC,
+				fullyqualifiedName,
+				ClassType.CLASS
+		);
+		return classeBean;
 	}
 
 	public void gerarAssociacaoToOne(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){

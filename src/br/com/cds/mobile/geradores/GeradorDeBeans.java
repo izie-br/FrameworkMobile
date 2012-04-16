@@ -4,6 +4,8 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -39,6 +41,7 @@ import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
@@ -51,58 +54,98 @@ public class GeradorDeBeans {
 	public static void main(String[] args) throws Exception{
 		// exemploDeUsoDoCodeModel();
 		// exemploDeUsoJSqlParser();
-		JCodeModel jcm = new JCodeModel();
-		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
-		BufferedReader schemaReader = new BufferedReader(new FileReader("script/schema.sql"));
-		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
-		for(;;){
-			String createTableStatement = schemaReader.readLine();
-			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
-				break;
-			TabelaSchema tabela = new CamelCaseTabelaDecorator(
-					new PrefixoTabelaDecorator("tb_",
-					new SqlTabelaSchema(createTableStatement)
-			));
-			tabelas.add(tabela);
+
+		// TODO receber estas variaveis por comando de linha
+		String colunaId = "id";
+		String pacote = "br.com.cds.mobile.flora.eb";
+
+		Map<String,TabelaSchema> tabelasMap = new HashMap<String, TabelaSchema>();
+
+		// TODO separar este bloco
+		{
+			Collection<TabelaSchema> tabelasBanco =
+					getTabelasDoSchema(new FileReader("script/schema.sql"));
+
+			for(TabelaSchema tabela : tabelasBanco){
+				tabela = new CamelCaseTabelaDecorator(
+						new PrefixoTabelaDecorator("tb_",
+						tabela
+				));
+				tabelasMap.put(tabela.getNome(), tabela);
+			}
+		
 		}
 
-		Collection<AssociacaoEntreTabelasWrapper> tabelasAssociadas =
-				new AssociacaoEntreTabelasWrapper.Mapeador().mapear(tabelas);
+		JCodeModel jcm = new JCodeModel();
+		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
+		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm);
 
-		Map<String,AssociacaoEntreTabelasWrapper> tabelasMap =
-				new HashMap<String, AssociacaoEntreTabelasWrapper>();
-		for(AssociacaoEntreTabelasWrapper tabela : tabelasAssociadas)
-			tabelasMap.put(tabela.getNome(), tabela);
+		Map<String,AssociacaoEntreTabelasWrapper> tabelasAssociadas =
+				new AssociacaoEntreTabelasWrapper.Mapeador().mapear(tabelasMap.values());
 
 		Map<String,JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
-		for(TabelaSchema tabela : tabelasAssociadas){
-			JDefinedClass classeGerada = jbf.gerarJavaBean(
-					"br.com.cds.mobile.flora.eb."+tabela.getNome(),
-					tabela.getColunas()
+		for(TabelaSchema tabela : tabelasAssociadas.values()){
+			Map<String,Class<?>> propriedadesMap = new HashMap<String, Class<?>>();
+			for(String coluna : tabela.getPropriedades().keySet()){
+				propriedadesMap.put(
+						coluna,
+						tabela.getPropriedades().get(coluna).getType()
+				);
+			}
+			JDefinedClass classeGerada = jbf.gerarPropriedades(
+					jbf.gerarClasse(pacote+"."+tabela.getNome()),
+					propriedadesMap
 			);
 			classesMap.put(tabela.getNome(), classeGerada);
 		}
 
 		// relacoes entre tabelas
 		for(JDefinedClass classeGerada : classesMap.values()){
-			AssociacaoEntreTabelasWrapper associacoes = tabelasMap.get(classeGerada.name());
+			AssociacaoEntreTabelasWrapper associacoes = tabelasAssociadas.get(classeGerada.name());
 			for(TabelaSchema estrangeira : associacoes.getTabelasHasOne())
-				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), "id");
+				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
 			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
-				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), "id");
+				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
 		}
 
 		// gera metodos de acesso a banco
-		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm);
 		for(JDefinedClass classeGerada : classesMap.values()){
-			AssociacaoEntreTabelasWrapper schema = tabelasMap.get(classeGerada.name());
-			daoFactory.gerarAcessoDB(classeGerada,schema);
+			AssociacaoEntreTabelasWrapper schema = tabelasAssociadas.get(classeGerada.name());
+			Map<String,JFieldVar> constantes = 
+					daoFactory.gerarConstantesComNomesDasColunas(classeGerada, schema);
+			String campoId = null;
+			for(String coluna : schema.getPropriedades().keySet()){
+				if(schema.getPropriedades().get(coluna).getNome().equals(colunaId))
+					campoId = coluna;
+			}
+			// TODO
+			daoFactory.gerarAcessoDB(classeGerada,schema.getWrappedTabelaSchema(),"ID","id");
 		}
 
 		//TODO gerar serialVersionUID
 
 		jcm.build(new File("customGen"));
 	}
+
+	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {
+		BufferedReader reader = new BufferedReader(input);
+		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
+		for(;;){
+			String createTableStatement = reader.readLine();
+			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
+				break;
+			TabelaSchema tabela = new SqlTabelaSchema(createTableStatement);
+			tabelas.add(tabela);
+		}
+		return tabelas;
+	}
+
+
+	/***********************************
+	 * Exemplos de uso das bibliotecas *
+	 *     jCodeModel e jSqlParser     *
+	 **********************************/
+
 
 	/**
 	 * exemplo de uso do codemodel

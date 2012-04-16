@@ -1,5 +1,6 @@
 package br.com.cds.mobile.geradores.tabelaschema;
 
+import java.util.Collection;
 import java.util.Map;
 
 
@@ -22,7 +23,17 @@ public class PrefixoTabelaDecorator implements TabelaSchema {
 	}
 
 	@Override
-	public Map<String, Class<?>> getColunas() {
+	public Map<String, TabelaSchema.Coluna> getPropriedades() {
+		return tabelaDecorada.getPropriedades();
+	}
+
+	@Override
+	public String getTabela() {
+		return tabelaDecorada.getTabela();
+	}
+
+	@Override
+	public Collection<TabelaSchema.Coluna> getColunas() {
 		return tabelaDecorada.getColunas();
 	}
 
