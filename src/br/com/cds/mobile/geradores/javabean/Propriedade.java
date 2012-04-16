@@ -31,6 +31,22 @@ public class Propriedade {
 		return set;
 	}
 
+	public void setNome(String nome) {
+		this.nome = nome;
+	}
+
+	public void setType(Class<?> type) {
+		this.type = type;
+	}
+
+	public void setGet(boolean get) {
+		this.get = get;
+	}
+
+	public void setSet(boolean set) {
+		this.set = set;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;

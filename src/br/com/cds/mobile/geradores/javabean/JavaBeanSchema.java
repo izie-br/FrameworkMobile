@@ -2,9 +2,7 @@ package br.com.cds.mobile.geradores.javabean;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilter;
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilterFactory;
@@ -48,14 +46,9 @@ public class JavaBeanSchema{
 		return constanteDaTabela;
 	}
 
-	public Collection<Associacao> getAssociacoesTemUm(){
-		return filterChain.getAssociacoesTemUm();
+	public Collection<Associacao> getAssociacoes(){
+		return filterChain.getAssociacoes();
 	}
-
-	public Collection<Associacao> getAssociacoesTemMuitos(){
-		return filterChain.getAssociacoesTemMuitos();
-	}
-
 
 	private void adicionarFiltro(TabelaSchemaFilter filtro){
 		filtro.proximoFiltro(this.filterChain);
@@ -136,12 +129,7 @@ public class JavaBeanSchema{
 		}
 
 		@Override
-		public Collection<Associacao> getAssociacoesTemUm() {
-			return new ArrayList<Associacao>();
-		}
-
-		@Override
-		public Collection<Associacao> getAssociacoesTemMuitos() {
+		public Collection<Associacao> getAssociacoes() {
 			return new ArrayList<Associacao>();
 		}
 

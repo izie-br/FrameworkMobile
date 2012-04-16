@@ -6,7 +6,6 @@ import br.com.cds.mobile.framework.config.DB;
 import br.com.cds.mobile.gerador.utils.SQLiteUtils;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
-import br.com.cds.mobile.geradores.util.CamelCaseUtils;
 
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
@@ -69,23 +68,23 @@ public class CodeModelDaoFactory {
 				"contentValues",
 				JExpr._new(jcm.ref(ContentValues.class))
 		);
-		for(String nomeCampo : javaBeanSchema.getColunas()){
-			Propriedade coluna = javaBeanSchema.getPropriedade(nomeCampo);
-			JFieldVar campo = klass.fields().get(coluna.getNome());
+		for(String coluna : javaBeanSchema.getColunas()){
+			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
+			JFieldVar campo = klass.fields().get(propriedade.getNome());
 			JExpression argumentoValor =
 					// if campo instanceof Date
 					(campo.type().name().equals("Date")) ?
 							jcm.ref(SQLiteUtils.class).staticInvoke("dateToString").arg(campo) :
 					// if campo instanceof Boolean
-					(campo.type().name().equals("bool") || campo.name().equals("Boolean") ) ?
-							JExpr.direct(campo.name()+"==1 ? true : false"):
+					(campo.type().name().equals("boolean") || campo.name().equals("Boolean") ) ?
+							JExpr.direct(campo.name()+"? 1 : 0"):
 					// else
 							campo;
-			JFieldVar constante = klass.fields().get(CamelCaseUtils.camelToUpper(coluna.getNome()));
+			JFieldVar constante = klass.fields().get(javaBeanSchema.getConstante(coluna));
 			if(constante==null)
 				throw new RuntimeException(String.format(
 						"%s nao encontrada em %s.",
-						CamelCaseUtils.camelToUpper(coluna.getNome()),
+						javaBeanSchema.getConstante(coluna),
 						klass.name()
 				));
 			else
@@ -167,5 +166,8 @@ public class CodeModelDaoFactory {
 		corpo._return(JExpr.lit(false));
 	}
 
+	public void gerarMetodoQuery(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+		
+	}
 
 }

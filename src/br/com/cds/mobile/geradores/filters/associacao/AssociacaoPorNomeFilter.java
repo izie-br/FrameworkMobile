@@ -2,9 +2,6 @@ package br.com.cds.mobile.geradores.filters.associacao;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Map;
 
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilter;
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilterFactory;
@@ -23,14 +20,15 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 	public Propriedade getPropriedade(String coluna) {
 		Propriedade p = super.getPropriedade(coluna);
 		ArrayList<String> assoc = new ArrayList<String>();
-		for(Associacao associacao :getAssociacoesTemUm())
+		for(Associacao associacao : resolver.getAssociacoes(getTabela()))
 			if(associacao instanceof AssociacaoOneToMany)
 				assoc.add(
 						((AssociacaoOneToMany)associacao)
 						.getKeyToA()
 				);
 		if(assoc.contains(coluna)){
-			return new Propriedade(p.getNome(), p.getType(), false, false);
+			p.setSet(false);
+			p.setGet(false);
 		}
 		return p;
 	}
@@ -46,17 +44,10 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 	}
 
 	@Override
-	public Collection<Associacao> getAssociacoesTemUm() {
-		Collection<Associacao> associacoesTemUm = super.getAssociacoesTemUm();
-		associacoesTemUm.addAll(resolver.getAssociacoesTemUm(getNome()));
+	public Collection<Associacao> getAssociacoes() {
+		Collection<Associacao> associacoesTemUm = super.getAssociacoes();
+		associacoesTemUm.addAll(resolver.getAssociacoes(getTabela()));
 		return associacoesTemUm;
-	}
-
-	@Override
-	public Collection<Associacao> getAssociacoesTemMuitos() {
-		Collection<Associacao> associacoesTemMuitos = super.getAssociacoesTemMuitos();
-		associacoesTemMuitos.addAll(resolver.getAssociacoesTemMuitos(getNome()));
-		return associacoesTemMuitos;
 	}
 
 	private static class AssociacoesResolver{
@@ -67,20 +58,14 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 		private Collection<AssociacaoPorNomeFilter> filtros =
 				new ArrayList<AssociacaoPorNomeFilter>();
 
-		private Collection<Associacao> getAssociacoesTemUm(String tabela){
+		private Collection<Associacao> getAssociacoes(TabelaSchema tabela){
 			validar();
 			Collection<Associacao> associacoesTemUm = new ArrayList<Associacao>();
 			for(Associacao associacao : associacoes)
-				if(associacao.getTabelaB().equals(tabela))
-					associacoesTemUm.add(associacao);
-			return associacoesTemUm;
-		}
-
-		private Collection<Associacao> getAssociacoesTemMuitos(String tabela){
-			validar();
-			Collection<Associacao> associacoesTemUm = new ArrayList<Associacao>();
-			for(Associacao associacao : associacoes)
-				if(associacao.getTabelaA().equals(tabela))
+				if(
+						associacao.getTabelaA().equals(tabela) ||
+						associacao.getTabelaB().equals(tabela)
+				)
 					associacoesTemUm.add(associacao);
 			return associacoesTemUm;
 		}
