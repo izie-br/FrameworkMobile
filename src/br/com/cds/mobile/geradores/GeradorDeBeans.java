@@ -20,6 +20,11 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
+import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
+import br.com.cds.mobile.geradores.tabelaschema.CamelCaseTabelaDecorator;
+import br.com.cds.mobile.geradores.tabelaschema.PrefixoTabelaDecorator;
+import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
+
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -45,12 +50,15 @@ public class GeradorDeBeans {
 		BufferedReader schemaReader = new BufferedReader(new FileReader("script/schema.sql"));
 		for(;;){
 			String createTableStatement = schemaReader.readLine();
-			if(createTableStatement==null||createTableStatement.matches("[\\s\\n]*"))
+			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
 				break;
-			SqlTabelaSchema tabela = new SqlTabelaSchema(createTableStatement);
+			TabelaSchema tabela = new CamelCaseTabelaDecorator(
+					new PrefixoTabelaDecorator("tb_",
+					new SqlTabelaSchema(createTableStatement)
+			));
 			jbf.gerarJavaBean("br.com.cds.mobile.flora.eb."+tabela.getNome(), tabela.getColunas());
-			jcm.build(new File("customGen"));
 		}
+		jcm.build(new File("customGen"));
 	}
 
 	/**

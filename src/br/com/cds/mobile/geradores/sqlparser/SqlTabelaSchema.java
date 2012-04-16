@@ -1,4 +1,4 @@
-package br.com.cds.mobile.geradores;
+package br.com.cds.mobile.geradores.sqlparser;
 
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -7,6 +7,8 @@ import java.sql.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
 import net.sf.jsqlparser.JSQLParserException;
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
@@ -21,14 +23,14 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-public class SqlTabelaSchema {
+public class SqlTabelaSchema implements TabelaSchema {
 
 
 	private String nome;
 	private Map<String,Class<?>> colunas = new HashMap<String, Class<?>>();
 
 	/**
-	 * @param schema esquema da tabela em string
+	 * @param schema Statement CREATE TABLE da tasbela em string
 	 */
 	public SqlTabelaSchema(String schema){
 		// iniciando o parser
@@ -59,7 +61,7 @@ public class SqlTabelaSchema {
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
 			for(ColumnDefinition coluna :  columnDefinitions){
 				String nomeColuna = coluna.getColumnName();
-				Class<?> tipoColuna = classeParaSqlType(coluna.getColDataType().getDataType());
+				Class<?> tipoColuna = classeJavaEquivalenteAoTipoSql(coluna.getColDataType().getDataType());
 				/*
 				 * inserindo as colunas, (nome, tipo) aqui 
 				 */
@@ -78,7 +80,7 @@ public class SqlTabelaSchema {
 		@Override public void visit(Select arg0)   { throw new RuntimeException(MSG_ERRO); }
 	}
 
-	public static Class<?> classeParaSqlType(String sqlType){
+	public static Class<?> classeJavaEquivalenteAoTipoSql(String sqlType){
 		/********************
 		 * INT              *
 		 * INTEGER          *
@@ -165,13 +167,16 @@ public class SqlTabelaSchema {
 		 * outros *
 		 *********/
 		throw new RuntimeException("DataType \'"+sqlType+"\' sem uma classe java correspodente.\n"+
-				"---FIXME---"+SqlTabelaSchema.class.getName());
+				"---FIXME---@"+SqlTabelaSchema.class.getName()+"::"+
+				new Object(){}.getClass().getEnclosingMethod().getName());
 	}
 
+	@Override
 	public String getNome() {
 		return nome;
 	}
 
+	@Override
 	public Map<String, Class<?>> getColunas() {
 		return new HashMap<String, Class<?>>(colunas);
 	}

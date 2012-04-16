@@ -71,7 +71,9 @@ public class CodeModelBeanFactory {
 
 	public JType getTipo(Class<?> klass){
 		if(klass==null)
-			throw new RuntimeException("classe null passada para o metodo "+getClass().getName()+".getTipo");
+			throw new RuntimeException("classe null passada para o metodo "+
+					getClass().getName()+"::"+
+						new Object(){}.getClass().getEnclosingMethod().getName());
 		if(klass.equals(Byte.class))
 			return jcm.BYTE;
 		if(klass.equals(Short.class))
