@@ -7,7 +7,6 @@ public class Propriedade {
 	private boolean get;
 	private boolean set;
 
-	
 	public Propriedade(String nome, Class<?> type, boolean get, boolean set) {
 		super();
 		this.nome = nome;
@@ -20,16 +19,13 @@ public class Propriedade {
 		return nome;
 	}
 
-
 	public Class<?> getType() {
 		return type;
 	}
 
-
 	public boolean isGet() {
 		return get;
 	}
-
 
 	public boolean isSet() {
 		return set;
@@ -72,6 +68,5 @@ public class Propriedade {
 		return true;
 	}
 
-
-
+	
 }

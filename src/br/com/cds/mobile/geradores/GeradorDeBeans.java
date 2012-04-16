@@ -4,7 +4,6 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -27,10 +26,11 @@ import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
 import br.com.cds.mobile.geradores.dao.CodeModelDaoFactory;
+import br.com.cds.mobile.geradores.filters.CamelCaseFilter;
+import br.com.cds.mobile.geradores.filters.PrefixoTabelaFilter;
+import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
+import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
-import br.com.cds.mobile.geradores.tabelaschema.AssociacaoEntreTabelasWrapper;
-import br.com.cds.mobile.geradores.tabelaschema.CamelCaseTabelaDecorator;
-import br.com.cds.mobile.geradores.tabelaschema.PrefixoTabelaDecorator;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
 import com.sun.codemodel.ClassType;
@@ -41,7 +41,6 @@ import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
@@ -56,70 +55,48 @@ public class GeradorDeBeans {
 		// exemploDeUsoJSqlParser();
 
 		// TODO receber estas variaveis por comando de linha
-		String colunaId = "id";
 		String pacote = "br.com.cds.mobile.flora.eb";
+		String arquivo = "script/schema.sql";
 
-		Map<String,TabelaSchema> tabelasMap = new HashMap<String, TabelaSchema>();
+		Collection<TabelaSchema> tabelasBanco =
+				getTabelasDoSchema(new FileReader(arquivo));
 
-		// TODO separar este bloco
-		{
-			Collection<TabelaSchema> tabelasBanco =
-					getTabelasDoSchema(new FileReader("script/schema.sql"));
-
-			for(TabelaSchema tabela : tabelasBanco){
-				tabela = new CamelCaseTabelaDecorator(
-						new PrefixoTabelaDecorator("tb_",
-						tabela
-				));
-				tabelasMap.put(tabela.getNome(), tabela);
-			}
-		
-		}
+		Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
+		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
+		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
+		factory.addFiltroFactory(new CamelCaseFilter.Factory());
+		for(TabelaSchema tabela : tabelasBanco)
+			javaBeanSchemas.add(factory.javaBeanSchemaParaTabela(tabela));
 
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm);
 
-		Map<String,AssociacaoEntreTabelasWrapper> tabelasAssociadas =
-				new AssociacaoEntreTabelasWrapper.Mapeador().mapear(tabelasMap.values());
-
-		Map<String,JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
-		for(TabelaSchema tabela : tabelasAssociadas.values()){
-			Map<String,Class<?>> propriedadesMap = new HashMap<String, Class<?>>();
-			for(String coluna : tabela.getPropriedades().keySet()){
-				propriedadesMap.put(
-						coluna,
-						tabela.getPropriedades().get(coluna).getType()
-				);
+		Map<String, JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
+		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
+			JDefinedClass classeGerada =  jbf.gerarClasse(
+					pacote+"."+javaBeanSchema.getNome());
+			jbf.gerarConstantes(classeGerada, javaBeanSchema);
+			for(String coluna : javaBeanSchema.getColunas()){
+				Propriedade p = javaBeanSchema.getPropriedade(coluna);
+				jbf.gerarPropriedade(classeGerada,p);
 			}
-			JDefinedClass classeGerada = jbf.gerarPropriedades(
-					jbf.gerarClasse(pacote+"."+tabela.getNome()),
-					propriedadesMap
-			);
-			classesMap.put(tabela.getNome(), classeGerada);
+			classesMap.put(javaBeanSchema.getNome(), classeGerada);
 		}
 
-		// relacoes entre tabelas
-		for(JDefinedClass classeGerada : classesMap.values()){
-			AssociacaoEntreTabelasWrapper associacoes = tabelasAssociadas.get(classeGerada.name());
-			for(TabelaSchema estrangeira : associacoes.getTabelasHasOne())
-				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
-			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
-				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
-		}
+//		// relacoes entre tabelas
+//		for(JDefinedClass classeGerada : classesMap.values()){
+//			AssociacaoEntreTabelasWrapper associacoes = tabelasAssociadas.get(classeGerada.name());
+//			for(TabelaSchema estrangeira : associacoes.getTabelasHasOne())
+//				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
+//			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
+//				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
+//		}
 
 		// gera metodos de acesso a banco
-		for(JDefinedClass classeGerada : classesMap.values()){
-			AssociacaoEntreTabelasWrapper schema = tabelasAssociadas.get(classeGerada.name());
-			Map<String,JFieldVar> constantes = 
-					daoFactory.gerarConstantesComNomesDasColunas(classeGerada, schema);
-			String campoId = null;
-			for(String coluna : schema.getPropriedades().keySet()){
-				if(schema.getPropriedades().get(coluna).getNome().equals(colunaId))
-					campoId = coluna;
-			}
+		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			// TODO
-			daoFactory.gerarAcessoDB(classeGerada,schema.getWrappedTabelaSchema(),"ID","id");
+			daoFactory.gerarAcessoDB(classesMap.get(javaBeanSchema.getNome()),javaBeanSchema);
 		}
 
 		//TODO gerar serialVersionUID
@@ -130,11 +107,12 @@ public class GeradorDeBeans {
 	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {
 		BufferedReader reader = new BufferedReader(input);
 		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
+		SqlTabelaSchema factory = new SqlTabelaSchema();
 		for(;;){
 			String createTableStatement = reader.readLine();
 			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
 				break;
-			TabelaSchema tabela = new SqlTabelaSchema(createTableStatement);
+			TabelaSchema tabela = factory.gerarTabelaSchema(createTableStatement);
 			tabelas.add(tabela);
 		}
 		return tabelas;

@@ -2,7 +2,9 @@ package br.com.cds.mobile.geradores;
 
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.Map;
+
+import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
+import br.com.cds.mobile.geradores.javabean.Propriedade;
 
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -21,7 +23,6 @@ import com.sun.codemodel.JVar;
 
 public class CodeModelBeanFactory {
 
-	public static final String ID_PADRAO = "-1l";
 	private static final String ERRO_MSG_ARGUMENTO_NULL = "argumento null passado para o metodo %s::%s";
 	private JCodeModel jcm;
 
@@ -83,21 +84,24 @@ public class CodeModelBeanFactory {
 		//TODO escrever hascode e equals
 	}
 
-	public JDefinedClass gerarPropriedades(JDefinedClass classeBean, Map<String,Class<?>> campos){
-		for(String nomeCampo: campos.keySet()){
-			JType tipo = getTipo(campos.get(nomeCampo));
-			// campos privados
-			JFieldVar campo = classeBean.field(JMod.PRIVATE, tipo, nomeCampo);
-			// getters e setters
-			// mas se for o id, gerar apenas o getter
-			if(nomeCampo.equals("id")){
-				gerarGetter(classeBean, nomeCampo);
-				campo.init(JExpr.direct(ID_PADRAO));
-			}
-			else
-				gerarGetterAndSetter(classeBean, nomeCampo);
+	public JDefinedClass gerarPropriedades(JDefinedClass classeBean, Collection<Propriedade> propriedades){
+		for(Propriedade propriedade: propriedades){
+			gerarPropriedade(classeBean, propriedade);
 		}
 		return classeBean;
+	}
+
+	public void gerarPropriedade(JDefinedClass classeBean,
+			Propriedade propriedade) {
+		JType tipo = getTipo(propriedade.getType());
+		// campos privados
+		classeBean.field(JMod.PRIVATE, tipo, propriedade.getNome());
+		// getters e setters
+		// mas se for o id, gerar apenas o getter
+		if(propriedade.isSet())
+			gerarSetter(classeBean, propriedade.getNome());
+		if(propriedade.isGet())
+			gerarGetter(classeBean, propriedade.getNome());
 	}
 
 	public JDefinedClass gerarClasse(String fullyqualifiedName)
@@ -109,6 +113,26 @@ public class CodeModelBeanFactory {
 		);
 		return classeBean;
 	}
+
+	public void gerarConstantes(JDefinedClass klass, JavaBeanSchema javaBeanSchema) {
+		klass.field(
+				JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+				jcm.ref(String.class),
+				javaBeanSchema.getConstanteDaTabela(),
+				JExpr.lit(javaBeanSchema.getTabela().getNome())
+			);
+		for(String coluna : javaBeanSchema.getColunas()){
+			if(coluna==null)
+				continue;
+			klass.field(
+				JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+				jcm.ref(String.class),
+				javaBeanSchema.getConstante(coluna),
+				JExpr.lit(coluna)
+			);
+		}
+	}
+
 
 	public void gerarAssociacaoToOne(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
 		// private IdClass idEstrangeira;

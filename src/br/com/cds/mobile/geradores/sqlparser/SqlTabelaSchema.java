@@ -4,12 +4,7 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.sql.Date;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
@@ -26,17 +21,15 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-public class SqlTabelaSchema implements TabelaSchema {
+public class SqlTabelaSchema {
 
+	private static final String ERRO_DATA_TYPE_SEM_CLASSE_JAVA_FORMAT = "DataType \"%s\" sem uma classe java correspodente.\n ---FIXME---@%s::%s";
 
-	private String tabela;
-	private HashSet<TabelaSchema.Coluna> colunas =
-			new HashSet<TabelaSchema.Coluna>();
 
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string
 	 */
-	public SqlTabelaSchema(String schema){
+	public TabelaSchema gerarTabelaSchema(String schema){
 		// iniciando o parser
 		CCJSqlParserManager manager = new CCJSqlParserManager();
 		// iniciando o statement
@@ -48,18 +41,26 @@ public class SqlTabelaSchema implements TabelaSchema {
 			throw new RuntimeException(e);
 		}
 		// Enviando um visitor para preencher os campos
-		statement.accept(new CreateTableVisitor());
+		CreateTableVisitor createTableVisitor = new CreateTableVisitor();
+		statement.accept(createTableVisitor);
 		// System.out.println(nome+" "+colunas.size()+" colunas");
+		return createTableVisitor.getTabela();
 	}
 
-	private final class CreateTableVisitor implements StatementVisitor {
+	public final class CreateTableVisitor implements StatementVisitor {
+
+		private TabelaSchema tabela;
+
+		public TabelaSchema getTabela() {
+			return tabela;
+		}
 
 		@Override
 		public void visit(CreateTable ct) {
 			/*
 			 * inserindo o nome da tabela aqui
 			 */
-			SqlTabelaSchema.this.tabela = ct.getTable().getName();
+			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(ct.getTable().getName());
 			// colunas
 			@SuppressWarnings("unchecked")
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
@@ -69,7 +70,15 @@ public class SqlTabelaSchema implements TabelaSchema {
 				/*
 				 * inserindo as colunas, (nome, tipo) aqui 
 				 */
-				SqlTabelaSchema.this.colunas.add(new Coluna(nomeColuna, tipoColuna));
+				if(
+						colunaDefinition.getColumnSpecStrings() !=null &&
+						colunaDefinition.getColumnSpecStrings().contains("PRIMARY")&&
+						colunaDefinition.getColumnSpecStrings().contains("KEY")
+				)
+					tabelaBuilder.adicionarPrimaryKey(nomeColuna, tipoColuna);
+				else
+					tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna);
+				tabela = tabelaBuilder.get();
 			}
 		}
 
@@ -84,29 +93,6 @@ public class SqlTabelaSchema implements TabelaSchema {
 		@Override public void visit(Select arg0)   { throw new RuntimeException(MSG_ERRO); }
 	}
 
-	@Override
-	public String getNome() {
-		return tabela;
-	}
-
-	@Override
-	public Map<String, TabelaSchema.Coluna> getPropriedades() {
-		HashMap<String, TabelaSchema.Coluna> propriedades = new  HashMap<String, TabelaSchema.Coluna>();
-		for(Coluna coluna : colunas){
-			propriedades.put(coluna.getNome(),coluna);
-		}
-		return propriedades;
-	}
-
-	@Override
-	public String getTabela() {
-		return tabela;
-	}
-
-	@Override
-	public Collection<TabelaSchema.Coluna> getColunas() {
-		return new ArrayList<TabelaSchema.Coluna>(this.colunas);
-	}
 
 	public static Class<?> classeJavaEquivalenteAoTipoSql(String sqlType){
 		/********************
@@ -194,9 +180,12 @@ public class SqlTabelaSchema implements TabelaSchema {
 		 * BLOB   *
 		 * outros *
 		 *********/
-		throw new RuntimeException("DataType \'"+sqlType+"\' sem uma classe java correspodente.\n"+
-				"---FIXME---@"+SqlTabelaSchema.class.getName()+"::"+
-				new Object(){}.getClass().getEnclosingMethod().getName());
+		throw new RuntimeException(String.format(
+				ERRO_DATA_TYPE_SEM_CLASSE_JAVA_FORMAT,
+				sqlType,
+				SqlTabelaSchema.class.getName(),
+				new Object(){}.getClass().getEnclosingMethod().getName()
+		));
 	}
 
 }

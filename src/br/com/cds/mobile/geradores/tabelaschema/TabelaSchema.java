@@ -8,19 +8,32 @@ public class TabelaSchema {
 
 	private String nome;
 	private Collection<TabelaSchema.Coluna> colunas = new HashSet<TabelaSchema.Coluna>();
+	private TabelaSchema.Coluna primaryKey;
 
 	private TabelaSchema(){}
 
-	static Builder criar(String nome){
+	public static Builder criar(String nome){
 		TabelaSchema tabela = new TabelaSchema();
 		tabela.nome = nome;
 		return tabela.new Builder();
 	}
 
-	class Builder{
+	public class Builder{
 
-		public void adicionarColuna(String nome, Class<?> type){
+		private Builder(){}
+
+		public Builder adicionarColuna(String nome, Class<?> type){
 			TabelaSchema.this.colunas.add(new Coluna(nome, type));
+			return this;
+		}
+
+		public Builder adicionarPrimaryKey(String nome, Class<?> type){
+			Coluna pk = new Coluna(nome, type);
+			if(colunas.contains(pk))
+				colunas.remove(pk);
+			TabelaSchema.this.colunas.add(pk);
+			TabelaSchema.this.primaryKey = pk;
+			return this;
 		}
 
 		public TabelaSchema get(){
@@ -46,6 +59,13 @@ public class TabelaSchema {
 		return new ArrayList<TabelaSchema.Coluna>(colunas);
 	}
 
+	/**
+	 * Coluna da chave primaria
+	 * @return
+	 */
+	public TabelaSchema.Coluna getPrimaryKey() {
+		return primaryKey;
+	}
 
 	@Override
 	public int hashCode() {

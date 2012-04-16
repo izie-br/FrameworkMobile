@@ -6,7 +6,7 @@ import br.com.cds.mobile.geradores.javabean.Propriedade;
 
 public abstract class TabelaSchemaFilter {
 
-	private TabelaSchemaFilter proximo;
+	private TabelaSchemaFilter proximo = null;
 
 	/**
 	 * retorna o nome da tabela
@@ -18,10 +18,6 @@ public abstract class TabelaSchemaFilter {
 
 	public Propriedade getPropriedade(String coluna){
 		return proximo.getPropriedade(coluna);
-	}
-
-	public String getCampo(String coluna){
-		return proximo.getCampo(coluna);
 	}
 
 	public Propriedade getPrimaryKey(){
@@ -40,10 +36,11 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getAssociacoesTemMuitos();
 	}
 
+	public final TabelaSchemaFilter getProximo(){
+		return proximo;
+	}
+
 	public final void proximoFiltro(TabelaSchemaFilter filtro){
-		if(proximo!=null)
-			proximo.proximoFiltro(filtro);
-		else
 			proximo = filtro;
 	}
 

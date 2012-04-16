@@ -1,58 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="cria_banco_versao_um">"
+    <string name="cria_banco_versao_1">
 
--- -----------------------------------------------------
--- Table tb_vendedor
--- -----------------------------------------------------
 CREATE  TABLE IF NOT EXISTS tb_vendedor (
-  _id INT NOT NULL ,
-  codigo integer not null,
-  nome VARCHAR(145) NOT NULL ,
-  cpf VARCHAR(14) NULL ,
-  email VARCHAR(150) NULL ,
-  senha VARCHAR(50) NULL ,
-  ativo TINYINT NULL DEFAULT 1 ,
-  codigo_representante text NULL,
-  codigo_empresa integer NULL,
-  sigla text NULL,
-  hash_md5 text NULL,
-  PRIMARY KEY (_id),
-  UNIQUE(codigo, ativo) ON CONFLICT FAIL 
-  )
-;
+	_id INT NOT NULL ,
+	codigo integer not null,
+	nome VARCHAR(145) NOT NULL ,
+	cpf VARCHAR(14) NULL ,
+	email VARCHAR(150) NULL ,
+	senha VARCHAR(50) NULL ,
+	ativo BOOLEAN NULL DEFAULT 1 ,
+	codigo_representante integer NULL,
+	codigo_empresa integer NULL,
+	sigla text NULL,
+	hash_md5 text NULL,
+	PRIMARY KEY (_id),
+	UNIQUE(codigo, ativo) ON CONFLICT FAIL
+);
+--	FOREIGN KEY (codigo_representante)
+--		REFERENCES tb_vendedor(codigo),
 
 
--- -----------------------------------------------------
--- Table tb_produto
--- -----------------------------------------------------
 CREATE TABLE IF NOT EXISTS tb_produto (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  codigo integer not null,
-  descricao text NULL,
-  classificacao text NULL,
-  categoria text NULL,
-  tipo text NULL,
-  marca text NULL,
-  caixa text NULL,
-  unidade text null,
-  valor_agregado TINYINT NULL DEFAULT 0 ,
-  unidades INT NULL ,
-  dt_atualizacao DATE null,
-  dt_atualizacao_foto DATE null,
-  preco_caixa double DEFAULT 0.0,
-  ativo TINYINT NULL DEFAULT 1 ,
-  argumentacao_produto text NULL,
-  possui_imagem TINYINT NULL DEFAULT 0,
-  UNIQUE(codigo, ativo) ON CONFLICT FAIL
-   )
-;
+	_id INTEGER PRIMARY KEY AUTOINCREMENT ,
+	codigo integer not null,
+	descricao text NULL,
+	classificacao text NULL,
+	categoria text NULL,
+	tipo text NULL,
+	marca text NULL,
+	caixa text NULL,
+	unidade text null,
+	valor_agregado TINYINT NULL DEFAULT 0 ,
+	unidades INT NULL ,
+	dt_atualizacao DATE null,
+	dt_atualizacao_foto DATE null,
+	preco_caixa double DEFAULT 0.0,
+	ativo TINYINT NULL DEFAULT 1 ,
+	argumentacao_produto text NULL,
+	possui_imagem TINYINT NULL DEFAULT 0,
+	UNIQUE(codigo, ativo) ON CONFLICT FAIL
+);
 
--- -----------------------------------------------------
--- Table tb_cliente
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_cliente (
+
+CREATE TABLE IF NOT EXISTS tb_cliente (
   _id int NULL,
   codigo integer not null,
   razao_social text NULL,
@@ -87,428 +79,7 @@ CREATE  TABLE IF NOT EXISTS tb_cliente (
   ativo TINYINT NULL DEFAULT 1 ,
   PRIMARY KEY (_id) ,
   UNIQUE(codigo) ON CONFLICT FAIL
-) 
-;
-
-
--- -----------------------------------------------------
--- Table tb_venda
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_venda (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  id_cliente INT NOT NULL ,
-  id_vendedor INT NULL ,
-  cod_venda INT NULL ,
-  dt_venda DATETIME NOT NULL ,
-  dt_sincronia DATETIME NULL ,
-  dt_sincronia_jbs DATETIME NULL ,
-  obs TEXT NULL ,
-  qtd_itens INT NULL ,
-  vl_total FLOAT NULL ,
-  vl_total_final FLOAT NULL ,
-  situacao TINYINT NULL ,
-  id_forma_pagamento INT NULL ,
-  id_tipo_pagamento INT NULL ,
-  coordenada_sincronia VARCHAR(100) NULL,
-  ativo TINYINT NULL DEFAULT 1 
-  )
-;
-
--- -----------------------------------------------------
--- Table tb_nao_venda
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_nao_venda (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  cod_cliente INT NOT NULL ,
-  cod_vendedor INT NULL ,
-  dt_nao_venda DATETIME NOT NULL ,
-  dt_sincronia DATETIME NULL ,
-  id_motivo INT NOT NULL ,
-  coordenada_sincronia VARCHAR(100) NULL,
-  ativo TINYINT NULL DEFAULT 1 
-  )
-;
-
--- -----------------------------------------------------
--- Table tb_motivo
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_motivo (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  descricao TEXT NOT NULL ,
-  ativo TINYINT NULL DEFAULT 1,
-  UNIQUE(descricao, ativo) ON CONFLICT FAIL 
-  )
-;
-
-
--- -----------------------------------------------------
--- Table ta_produto_x_venda
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS ta_produto_x_venda (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  id_venda INT NOT NULL ,
-  id_produto INT NULL ,
-  id_conjunto_combo INT null,
-  id_combo INT null,
-  id_pai INT null,
-  soma_escalonado TINYINT NULL DEFAULT 0,
-  codigo_campanha INT null,
-  qtd FLOAT NOT NULL ,
-  desconto FLOAT NULL ,
-  preco FLOAT NOT NULL ,
-  preco_final FLOAT NULL ,
-  dt_vinculo DATETIME NOT NULL,
-  ativo TINYINT NULL DEFAULT 1 
-  )
-;
-
-
--- -----------------------------------------------------
--- Table tb_foto_pdv
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_foto_pdv (
-  _id INT NOT NULL ,
-  cod_cliente INT NOT NULL ,
-  cod_vendedor INT NOT NULL ,
-  dt_foto DATETIME NOT NULL ,
-  coordenada_gps VARCHAR(100) NOT NULL ,
-  foto_arq VARCHAR(32) NOT NULL ,
-  ativo TINYINT NULL DEFAULT 1,
-  PRIMARY KEY (_id) 
-)
-;
-
-
--- -----------------------------------------------------
--- Table tb_planejamento_visita
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_planejamento_visita (
-  _id INT NOT NULL ,
-  cod_cliente INT NOT NULL ,
-  cod_vendedor INT NOT NULL ,
-  dt_visita DATE NOT NULL ,
-  obs TEXT NULL ,
-  ativo TINYINT NULL DEFAULT 1,
-  PRIMARY KEY (_id) );
-  
--- -----------------------------------------------------
--- Table tb_rastreamento
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_rastreamento (
-	_id INTEGER PRIMARY KEY AUTOINCREMENT ,
-	cod_vendedor int null,
-	dt_localizacao datetime not null,
-	latitude double,
-	longitude double,
-	precisao float null,
-	velocidade float null,
-	ativo TINYINT NULL DEFAULT 1
-);
-  
-                              
--- -----------------------------------------------------
--- Table tb_erro
--- -----------------------------------------------------
-CREATE  TABLE tb_erro (
-  _id integer primary key autoincrement,
-  id_vendedor INT(11) ,
-  dt_erro text NULL,
-  erro_sha1 TEXT NOT NULL,
-  erro TEXT NOT NULL,
-  log TEXT NOT NULL,
-  versao_app VARCHAR(30) NULL,
-  versao_db VARCHAR(30) NULL,
-  ativo TINYINT NULL DEFAULT 1 
-);
-  
--- -----------------------------------------------------
--- Table vi_top_categoria
--- -----------------------------------------------------
-CREATE table tb_top_categoria (
-	_id integer primary key autoincrement,
-	qtd double not null,
-	valor double not null,
-	categoria text not null,
-	cod_cliente int not null,
-	ativo TINYINT NULL DEFAULT 1,
-	UNIQUE(cod_cliente, categoria) ON CONFLICT FAIL
-); 
-
--- -----------------------------------------------------
--- Table tb_top_produto
--- -----------------------------------------------------
-
-CREATE table tb_top_produto (
-	_id integer primary key autoincrement,
-	qtd double not null,
-	media double not null,
-	descricao text not null,
-	cod_cliente int not null,
-	cod_produto int not null,
-	ativo TINYINT NULL DEFAULT 1,
-	UNIQUE(cod_cliente, cod_produto) ON CONFLICT FAIL
 );
 
--- -----------------------------------------------------
--- Table tb_venda_mensal
--- -----------------------------------------------------
-
-CREATE table tb_venda_mensal (
-	_id integer primary key autoincrement,
-	ano_mes text,
-	cod_cliente int,
-	qtd_total int,
-	valor_total double,
-	ativo TINYINT NULL DEFAULT 1,
-	UNIQUE(ano_mes, cod_cliente) ON CONFLICT FAIL
-);
-
--- -----------------------------------------------------
--- Table tb_sincronia
--- -----------------------------------------------------
-
-CREATE table tb_sincronia (
-	_id integer primary key autoincrement,
-	tabela text not null,
-	dt_inicio datetime not null,
-	dt_fim datetime,
-	dt_sincronia datetime,
-	qtd int,
-	sentido int not null,
-	nivel_bateria int null,
-	tipo_conexao int null,
-	tamanho_conteudo int null,
-	taxa_transferencia float null,
-	id_vendedor int not null,
-	erro text,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-create table tb_combos (
-	_id integer primary key autoincrement,
-	nome text not null,
-	descricao text not null,
-	dt_atualizacao DATE not null,
-	codigo_campanha INT null,
-	dt_sincronia DATE not null,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-create table tb_regional (
-	_id integer primary key autoincrement,
-	nome text not null,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-create table tb_desconto_combos (
-	_id integer not null,
-	dt_fim DATE null,
-	dt_inicio DATE NULL,
-	valor_desconto float not null,
-	id_regional integer not null,
-	id_combo integer not null,
-	ativo TINYINT NULL DEFAULT 1,
-	PRIMARY KEY (_id, id_regional)
-);
-
-create table tb_conjunto_combos (
-	_id integer primary key autoincrement,
-	qtd integer null,
-	definicao TEXT NULL,
-	descricao TEXT NULL,
-	desconto_conjuntos float not null,
-	id_combo integer not null,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-
--- -----------------------------------------------------
--- Table tb_orcamento
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_orcamento (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  cod_cliente INT NOT NULL ,
-  cod_vendedor INT NULL ,
-  dt_orcamento DATETIME NOT NULL ,
-  dt_sincronia DATETIME NULL ,
-  obs TEXT NULL ,
-  qtd_itens INT NULL ,
-  vl_total FLOAT NULL ,
-  vl_total_final FLOAT NULL ,
-  coordenada_sincronia TEXT NULL ,
-  destinatarios TEXT NULL,
-  ativo TINYINT NULL DEFAULT 1 
-  );
-
--- -----------------------------------------------------
--- Table ta_produto_x_orcamento
--- -----------------------------------------------------
-CREATE  TABLE IF NOT EXISTS tb_produto_orcamento (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  id_orcamento INT NOT NULL ,
-  id_produto INT NULL ,
-  id_conjunto_combo INT null,
-  id_combo INT null,
-  id_pai INT null,
-  qtd FLOAT NOT NULL ,
-  desconto FLOAT NULL ,
-  preco FLOAT NOT NULL ,
-  preco_final FLOAT NULL ,
-  dt_vinculo DATETIME NOT NULL,
-  ativo TINYINT NULL DEFAULT 1 
-  )
-;
-
-create table tb_desconto_escalonado (
-	_id integer primary key autoincrement,
-	definicao text not null,
-	dt_atualizacao DATE not null,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-create table tb_desconto_banda (
-	_id integer not null,
-	dt_fim DATE null,
-	dt_inicio DATE NULL,
-	valor_desconto float not null,
-	id_regional integer not null,
-	id_desconto_escalonado integer not null,
-	max_caixa integer null,
-	min_caixa integer null,
-	ativo TINYINT NULL DEFAULT 1,
-	PRIMARY KEY (_id, id_regional)
-);
-
-create table tb_pedido (
-	_id INTEGER PRIMARY KEY AUTOINCREMENT ,
-	codigo_grupo text, 
-	codigo_local text,
-	codigo_matriz text,
-	mensagem_erro text,
-	resultado_pedido text,
-	resultado_grupo text,
-	codigo_campanha INT null,
-	id_venda int not null,
-	id_produto_venda_pai int null,
-	dt_sincronia DATE NULL,
-	xml_pedido text,
-	status text,
-	ativo TINYINT NULL DEFAULT 1
-);
-
-CREATE TABLE ta_cliente_x_pagamento (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  id_cliente int(11) DEFAULT NULL,
-  id_forma_pagamento int(11) DEFAULT NULL,
-  id_tipo_pagamento int(11) DEFAULT NULL,
-	ativo TINYINT NULL DEFAULT 1
-) ;
-
-CREATE TABLE tb_tipo_pagamento (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  nome text DEFAULT NULL,
-  codigo INT NULL,
-	ativo TINYINT NULL DEFAULT 1
-) ;
-
-CREATE TABLE tb_parcela (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  id_forma_pagamento int(11) DEFAULT NULL,
-  prazo int(11) DEFAULT NULL,
-  percentual int(11) DEFAULT NULL,
-	ativo TINYINT NULL DEFAULT 1
-) ;
-
-CREATE TABLE tb_forma_pagamento (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  nome text DEFAULT NULL,
-	ativo TINYINT NULL DEFAULT 1
-) ;
-
-"
- </string>
-    <string name="cria_banco_versao_dois">"
-alter table tb_venda add column md5_verba_tatica VARCHAR(32) NULL;
-alter table tb_venda add column valor_verba_tatica FLOAT NULL;
-alter table tb_pedido add column dt_integracao DATE null;
-CREATE TABLE tb_envio_pedido (
-  _id INTEGER PRIMARY KEY AUTOINCREMENT ,
-  requisicao text NOT NULL,
-  resposta text NULL,
-  dt_resposta DATE NOT NULL,
-  dt_requisicao DATE NOT NULL,
-  id_pedido INTEGER NOT NULL,
-  erro text NULL,
-  UNIQUE(requisicao, resposta, id_pedido, erro) ON CONFLICT FAIL 
-) ;
-update tb_pedido set xml_pedido = null, mensagem_erro = null;
-"</string>
-    <string name="cria_banco_versao_tres">"
-update tb_venda set dt_sincronia = null;
-update tb_nao_venda set dt_sincronia = null;
-update tb_sincronia set dt_sincronia = null;
-update tb_orcamento set dt_sincronia = null;
-update tb_pedido set dt_sincronia = null;
-"</string>
-    <string name="cria_banco_versao_quatro">"
-        ;
-"</string>
-    <string name="cria_banco_versao_cinco">"
-alter table tb_cliente add column indicativo_status int NULL;
-delete from tb_vendedor;
-"</string>
-    <string name="cria_banco_versao_seis">"
-alter table tb_cliente add column prazo_padrao int NULL;
-"</string>
-    <string name="cria_banco_versao_sete">"
-alter table tb_produto add column dias_validade int NULL;
-alter table tb_produto add column peso double NULL;
-alter table tb_produto add column codigo_unidade int NULL;
-"</string>
-    <string name="cria_banco_versao_oito">"
-alter table tb_cliente add column limite_credito double NULL;
-alter table tb_cliente add column saldo_credito double NULL;
-ALTER TABLE tb_desconto_banda RENAME TO tb_desconto_banda_bak;
-
-CREATE TABLE tb_desconto_banda (
-	_id INTEGER NOT NULL,
-	dt_fim DATE NULL,
-	dt_inicio DATE NULL,
-	valor_desconto FLOAT NOT NULL,
-	id_desconto_escalonado INTEGER NOT NULL,
-	max_caixa INTEGER NULL,
-	min_caixa INTEGER NULL,
-	ativo TINYINT NULL DEFAULT 1,
-	PRIMARY KEY (_id)
-);
-
-INSERT INTO tb_desconto_banda(_id, dt_fim, dt_inicio, valor_desconto, id_desconto_escalonado, max_caixa, min_caixa, ativo)
-    SELECT 
-        tb_desconto_banda_bak._id, tb_desconto_banda_bak.dt_fim, tb_desconto_banda_bak.dt_inicio,
-        tb_desconto_banda_bak.valor_desconto, tb_desconto_banda_bak.id_desconto_escalonado,
-        tb_desconto_banda_bak.max_caixa, tb_desconto_banda_bak.min_caixa, tb_desconto_banda_bak.ativo
-    FROM tb_desconto_banda_bak;
-
-DROP TABLE tb_desconto_banda_bak;
-
-ALTER TABLE tb_desconto_combos RENAME TO tb_desconto_combos_bak; 
-
-CREATE TABLE tb_desconto_combos (
-	_id INTEGER NOT NULL,
-	dt_fim DATE NULL,
-	dt_inicio DATE NULL,
-	valor_desconto FLOAT NOT NULL,
-	id_combo INTEGER NOT NULL,
-	ativo TINYINT NULL DEFAULT 1,
-	PRIMARY KEY (_id)
-);
-
-INSERT INTO tb_desconto_combos(_id, dt_fim, dt_inicio, valor_desconto, id_combo, ativo)
-    SELECT
-        tb_desconto_combos_bak._id, tb_desconto_combos_bak.dt_fim, tb_desconto_combos_bak.dt_inicio,
-        tb_desconto_combos_bak.valor_desconto, tb_desconto_combos_bak.id_combo, tb_desconto_combos_bak.ativo
-    FROM tb_desconto_combos_bak;
-
-DROP TABLE tb_desconto_combos_bak;
     </string>
 </resources>
