@@ -1,10 +1,24 @@
 package br.com.cds.mobile.geradores;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
+import java.io.StringReader;
 import java.math.BigDecimal;
-import java.util.Map;
-import java.util.TreeMap;
+
+import net.sf.jsqlparser.parser.CCJSqlParserManager;
+import net.sf.jsqlparser.statement.Statement;
+import net.sf.jsqlparser.statement.StatementVisitor;
+import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
+import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.delete.Delete;
+import net.sf.jsqlparser.statement.drop.Drop;
+import net.sf.jsqlparser.statement.insert.Insert;
+import net.sf.jsqlparser.statement.replace.Replace;
+import net.sf.jsqlparser.statement.select.Select;
+import net.sf.jsqlparser.statement.truncate.Truncate;
+import net.sf.jsqlparser.statement.update.Update;
 
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -18,7 +32,6 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
 
-
 public class GeradorDeBeans {
 
 	/**
@@ -26,13 +39,18 @@ public class GeradorDeBeans {
 	 */
 	public static void main(String[] args) throws Exception{
 		// exemploDeUsoDoCodeModel();
+		// exemploDeUsoJSqlParser();
 		JCodeModel jcm = new JCodeModel();
-		CodeModelBeanFactory jcmUtils = new CodeModelBeanFactory(jcm);
-		Map<String, Class<?>> campos = new TreeMap<String, Class<?>>();
-		campos.put("nome", String.class);
-		campos.put("id", Long.class);
-		/*JDefinedClass clienteClasse = */jcmUtils.gerarJavaBean("br.com.cds.mobile.flora.ClienteBean",campos);
-		jcm.build(new File("customGen"));
+		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
+		BufferedReader schemaReader = new BufferedReader(new FileReader("script/schema.sql"));
+		for(;;){
+			String createTableStatement = schemaReader.readLine();
+			if(createTableStatement==null||createTableStatement.matches("[\\s\\n]*"))
+				break;
+			SqlTabelaSchema tabela = new SqlTabelaSchema(createTableStatement);
+			jbf.gerarJavaBean("br.com.cds.mobile.flora.eb."+tabela.getNome(), tabela.getColunas());
+			jcm.build(new File("customGen"));
+		}
 	}
 
 	/**
@@ -66,5 +84,39 @@ public class GeradorDeBeans {
 		jcm.build(new File("customGen"));
 	}
 
+	public static void exemploDeUsoJSqlParser(){
+		try {
+			CCJSqlParserManager manager = new CCJSqlParserManager();
+			
+			BufferedReader reader = new BufferedReader(new FileReader("script/schema.sql"));
+			for(;;){
+				String stringStm = reader.readLine();
+				if(stringStm==null)
+					break;
+				Statement stm = manager.parse(new StringReader(stringStm));
+				stm.accept(new StatementVisitor() {
+					
+					@Override
+					public void visit(CreateTable ct) {
+						System.out.print("create ");
+						System.out.println(ct.getTable().getName());
+						for(Object obj :ct.getColumnDefinitions())
+							System.out.println( ((ColumnDefinition)obj).getColumnName()+"  "+ ((ColumnDefinition)obj).getColDataType().getDataType() );
+						System.out.println("-------------");
+					}
+					
+					@Override public void visit(Truncate arg0) {}
+					@Override public void visit(Drop arg0) {}
+					@Override public void visit(Replace arg0) {}
+					@Override public void visit(Insert arg0) {}
+					@Override public void visit(Update arg0) {}
+					@Override public void visit(Delete arg0) {}
+					@Override public void visit(Select arg0) {}
+				});
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 
 }

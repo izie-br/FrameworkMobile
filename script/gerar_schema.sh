@@ -14,7 +14,12 @@ cat "$SQL_XML" |
 	# escrevendo todos scripts no sqlite3
 	sqlite3 $DB_TESTE
 
-sqlite3 $DB_TESTE '.schema' > $SCHEMA
+sqlite3 $DB_TESTE '.schema' |
+	tr -d '\n'|
+	tr -s ';' '\n' |
+	sed -E 's/,[[:space:]]*UNIQUE[^\)]*\)//' |
+	sed 's/ON[[:space:]]*CONFLICT[[:space:]]*FAIL//g' > $SCHEMA
+
 
 rm $DB_TESTE
 
