@@ -1,0 +1,5 @@
+
+bin/*
+customGen/*
+script/schema.sql
+
