@@ -26,10 +26,14 @@ public class AssociacaoEntreTabelasWrapper implements TabelaSchema{
 	@Override
 	public Map<String, Class<?>> getColunas() {
 		Map<String,Class<?>> colunas = new HashMap<String, Class<?>>(tabelaDecorada.getColunas());
-		for(TabelaSchema schema: hasOne){
+		// montando uma lista com todos os elementos de hasOne e hasMany
+		ArrayList<TabelaSchema> todasAssociacoes = new ArrayList<TabelaSchema>(hasOne);
+		todasAssociacoes.addAll(hasMany);
+		// removendo todas essas colunas
+		for(TabelaSchema schema: todasAssociacoes){
 			String colunaChaveEstrangeira = String.format(foreignKeyFormat, schema.getNome());
 			if(colunas.keySet().contains(colunaChaveEstrangeira))
-				colunas.remove(colunaChaveEstrangeira);
+				System.out.println(colunas.remove(colunaChaveEstrangeira).toString()+ " removida");;
 		}
 		return colunas;
 	}
@@ -45,18 +49,12 @@ public class AssociacaoEntreTabelasWrapper implements TabelaSchema{
 
 	public static class Mapeador{
 
-		private String colunaId = "id";
-		private String foreignKeyFormat = "id_%s";
-
-		public Mapeador setColunaId(String coluna){
-			this.colunaId = coluna;
-			return this;
-		}
+		private String foreignKeyFormat = "id%s";
 
 		/**
 		 * Formato de string (estilo printf) com uma ocorrencia de <b>%s</b>
 		 * para inseir o nome da tabela estrangeira.
-		 * <p>Padrao: "id_%s"</p>
+		 * <p>Padrao: "id%s"</p>
 		 * @param formato string de formato (estilo printf) com 
 		 * @return
 		 */
@@ -71,6 +69,7 @@ public class AssociacaoEntreTabelasWrapper implements TabelaSchema{
 			// decorando todos schemas de entrada
 			for(TabelaSchema schema : schemas)
 				out.add(new AssociacaoEntreTabelasWrapper(schema,this.foreignKeyFormat));
+			// buscando relacoes entre as tabelas
 			for(AssociacaoEntreTabelasWrapper tabela1 : out) for(AssociacaoEntreTabelasWrapper tabela2 : out){
 				if(isPrimeiraReferenciaSegunda(tabela1, tabela2)){
 					if(isPrimeiraReferenciaSegunda(tabela2, tabela1)){
@@ -79,11 +78,16 @@ public class AssociacaoEntreTabelasWrapper implements TabelaSchema{
 						tabela2.hasOne.add(tabela1);
 					}
 					else{
-						// se a primeira referencia a segunda, mas a segunda nao
+						// se a primeira referencia a segunda, mas nao o inverso
 						// a segunda pode ter varios items da primeira
-						tabela1.hasOne.add(tabela2);
+						tabela1.hasOne .add(tabela2);
 						tabela2.hasMany.add(tabela1);
 					}
+				}
+				else if(isPrimeiraReferenciaSegunda(tabela2, tabela1)){
+					// se a segunda referencia a primera, mas nao o inverso
+					tabela1.hasMany.add(tabela2);
+					tabela2.hasOne .add(tabela1);
 				}
 			}
 			return out;

@@ -6,6 +6,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
@@ -21,6 +25,7 @@ import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
+import br.com.cds.mobile.geradores.tabelaschema.AssociacaoEntreTabelasWrapper;
 import br.com.cds.mobile.geradores.tabelaschema.CamelCaseTabelaDecorator;
 import br.com.cds.mobile.geradores.tabelaschema.PrefixoTabelaDecorator;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
@@ -48,6 +53,7 @@ public class GeradorDeBeans {
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		BufferedReader schemaReader = new BufferedReader(new FileReader("script/schema.sql"));
+		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
 		for(;;){
 			String createTableStatement = schemaReader.readLine();
 			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
@@ -56,8 +62,37 @@ public class GeradorDeBeans {
 					new PrefixoTabelaDecorator("tb_",
 					new SqlTabelaSchema(createTableStatement)
 			));
-			jbf.gerarJavaBean("br.com.cds.mobile.flora.eb."+tabela.getNome(), tabela.getColunas());
+			tabelas.add(tabela);
 		}
+
+		Collection<AssociacaoEntreTabelasWrapper> tabelasAssociadas =
+				new AssociacaoEntreTabelasWrapper.Mapeador().mapear(tabelas);
+
+		Map<String,AssociacaoEntreTabelasWrapper> tabelasMap =
+				new HashMap<String, AssociacaoEntreTabelasWrapper>();
+		for(AssociacaoEntreTabelasWrapper tabela : tabelasAssociadas)
+			tabelasMap.put(tabela.getNome(), tabela);
+
+		Map<String,JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
+		for(TabelaSchema tabela : tabelasAssociadas){
+			JDefinedClass classeGerada = jbf.gerarJavaBean(
+					"br.com.cds.mobile.flora.eb."+tabela.getNome(),
+					tabela.getColunas()
+			);
+			classesMap.put(tabela.getNome(), classeGerada);
+		}
+
+		// relacoes entre tabelas
+		for(JDefinedClass classeGerada : classesMap.values()){
+			AssociacaoEntreTabelasWrapper associacoes = tabelasMap.get(classeGerada.name());
+			for(TabelaSchema estrangeira : associacoes.getTabelasHasOne())
+				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), "id");
+			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
+				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), "id");
+		}
+
+		//TODO gerar serialVersionUID
+
 		jcm.build(new File("customGen"));
 	}
 
