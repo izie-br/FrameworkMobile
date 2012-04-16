@@ -24,6 +24,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
+import br.com.cds.mobile.geradores.dao.CodeModelDaoFactory;
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
 import br.com.cds.mobile.geradores.tabelaschema.AssociacaoEntreTabelasWrapper;
 import br.com.cds.mobile.geradores.tabelaschema.CamelCaseTabelaDecorator;
@@ -89,6 +90,13 @@ public class GeradorDeBeans {
 				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), "id");
 			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
 				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), "id");
+		}
+
+		// gera metodos de acesso a banco
+		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm);
+		for(JDefinedClass classeGerada : classesMap.values()){
+			AssociacaoEntreTabelasWrapper schema = tabelasMap.get(classeGerada.name());
+			daoFactory.gerarAcessoDB(classeGerada,schema);
 		}
 
 		//TODO gerar serialVersionUID

@@ -6,6 +6,7 @@ import java.util.Map;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.flora.db.DB;
+import br.com.cds.mobile.gerador.utils.SQLiteUtils;
 import br.com.cds.mobile.geradores.tabelaschema.CamelCaseTabelaDecorator;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
@@ -14,6 +15,7 @@ import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -28,7 +30,7 @@ public class CodeModelDaoFactory {
 		this.jcm = jcm;
 	}
 
-	void gerarAcessoDB(JDefinedClass klass, TabelaSchema schema){
+	public void gerarAcessoDB(JDefinedClass klass, TabelaSchema schema){
 		Map<String,JFieldVar> constantesColunas = new HashMap<String, JFieldVar>();
 		// gerar as constantes com nomes das colunas
 		for(String nomeCampo : schema.getColunas().keySet()){
@@ -36,7 +38,8 @@ public class CodeModelDaoFactory {
 			JFieldVar constante = klass.field(
 				JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
 				jcm.ref(String.class),
-				camelToUpper(nomeCampo)
+				camelToUpper(nomeCampo),
+				JExpr.lit(nomeCampo)
 			);
 			constantesColunas.put(nomeCampo, constante);
 		}
@@ -60,8 +63,23 @@ public class CodeModelDaoFactory {
 				JExpr._new(jcm.ref(ContentValues.class))
 		);
 		for(String nomeCampo : schema.getColunas().keySet()){
-			contentValues.invoke("put").arg(constantesColunas.get(nomeCampo)).arg(klass.fields().get(nomeCampo));
+			JFieldVar campo = klass.fields().get(nomeCampo);
+			JExpression argumentoValor =
+					// if campo instanceof Date
+					(campo.type().name().equals("Date")) ?
+							jcm.ref(SQLiteUtils.class).staticInvoke("dateToString").arg(campo) :
+					// if campo instanceof Boolean
+					(campo.type().name().equals("bool") || campo.name().equals("Boolean") ) ?
+							JExpr.direct(campo.name()+"==1 ? true : false"):
+					// else
+							campo;
+				corpo.add(
+					contentValues.invoke("put")
+						.arg(constantesColunas.get(nomeCampo))
+						.arg(argumentoValor)
+				);
 		}
+		corpo._return(JExpr.lit(true));
 	}
 
 	public static String camelToUpper(String input){
