@@ -56,7 +56,7 @@ public class CodeModelBeanFactory {
 	public JDefinedClass gerarJavaBean(String fullyqualifiedName, Map<String,Class<?>> campos){
 		try {
 			JDefinedClass classeBean = jcm._class(
-					JMod.PUBLIC|JMod.ABSTRACT,
+					JMod.PUBLIC,
 					fullyqualifiedName,
 					ClassType.CLASS
 			);
