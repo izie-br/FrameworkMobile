@@ -2,6 +2,7 @@ package br.com.cds.mobile.geradores;
 
 import java.util.Map;
 
+import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
@@ -54,7 +55,11 @@ public class CodeModelBeanFactory {
 
 	public JDefinedClass gerarJavaBean(String fullyqualifiedName, Map<String,Class<?>> campos){
 		try {
-			JDefinedClass classeBean = jcm._class(fullyqualifiedName);
+			JDefinedClass classeBean = jcm._class(
+					JMod.PUBLIC|JMod.ABSTRACT,
+					fullyqualifiedName,
+					ClassType.CLASS
+			);
 			// campos privados
 			for(String nomeCampo: campos.keySet()){
 				JType tipo = getTipo(campos.get(nomeCampo));
