@@ -1,20 +1,29 @@
 package br.com.cds.mobile.geradores.dao;
 
+import java.util.Date;
+import java.util.ArrayList;
+import java.util.List;
+
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.config.DB;
+import br.com.cds.mobile.gerador.query.QuerySet;
 import br.com.cds.mobile.gerador.utils.SQLiteUtils;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
+import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 
+import com.sun.codemodel.JArray;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JVar;
@@ -45,6 +54,7 @@ public class CodeModelDaoFactory {
 			klass.methods().remove(pkmetodo);
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoDelete(klass, javaBeanSchema);
+		gerarMetodoObjects(klass, javaBeanSchema);
 	}
 
 	public void gerarMetodoSave(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
@@ -166,8 +176,107 @@ public class CodeModelDaoFactory {
 		corpo._return(JExpr.lit(false));
 	}
 
-	public void gerarMetodoQuery(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
-		
+	public void gerarMetodoObjects(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+		JClass queryset = jcm.ref(QuerySet.class).narrow(klass);
+		JDefinedClass qsInner = gerarQuerySet(klass,javaBeanSchema,queryset);
+		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset, "objects");
+		metodoObjects.body()._return(JExpr._new(qsInner));
+	}
+
+	private JDefinedClass gerarQuerySet(
+			JDefinedClass klass,JavaBeanSchema javaBeanSchema, JClass queryset
+	){
+		try {
+			JDefinedClass querySetInner = klass._class(JMod.PUBLIC|JMod.STATIC, "QuerySet");
+			querySetInner._extends(queryset);
+			gerarMetodosDoQuerySetInner(klass, javaBeanSchema, querySetInner);
+			return querySetInner;
+		} catch (JClassAlreadyExistsException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	private void gerarMetodosDoQuerySetInner(
+			JDefinedClass klass,
+			JavaBeanSchema javaBeanSchema,
+			JDefinedClass querySetInner
+	){
+
+		List<String> colunasEmOrdem = new ArrayList<String>(
+				javaBeanSchema.getColunas()
+		);
+
+		/*****************************
+		 * Override
+		 * protected String getTabela(){
+		 *   return Classe.TABELA;
+		 * }
+		 ******************************/
+		JMethod getTabela = querySetInner.method(
+				JMod.PROTECTED, jcm.ref(String.class), "getTabela"
+		);
+		getTabela.annotate(java.lang.Override.class);
+		getTabela.body()._return(klass.fields().get(javaBeanSchema.getConstanteDaTabela()));
+
+		/**
+		 * Override
+		 * protected String[] getColunas(){
+		 *   return new String[]{ ID, NOME, ENDERECO, datetime(DATA_VISITA) };
+		 * }
+		 */
+		JMethod getColunas = querySetInner.method(
+				JMod.PROTECTED, jcm.ref(String[].class), "getColunas"
+		);
+		getColunas.annotate(java.lang.Override.class);
+		JArray colunasArray = JExpr.newArray(jcm.ref(String.class));
+		for(String coluna : colunasEmOrdem){
+			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
+			JExpression elementoArray = klass.fields().get(
+					javaBeanSchema.getConstante(coluna)
+			);
+			if(propriedade.getType().equals(Date.class))
+				elementoArray = jcm.ref(SQLiteUtils.class).staticInvoke("funcaoDate").arg(elementoArray);
+			colunasArray.add(elementoArray);
+		}
+		getColunas.body()._return(colunasArray);
+
+		/**
+		 * Override
+		 * protected String[] cursorToObject(Cursor cursor){
+		 *   Classe bean = new Classe();
+		 *   bean.id = cursor.getLong(0);
+		 *   bean.nome = cursor.
+		 * }
+		 */
+		JMethod cursorToObject = querySetInner.method(
+				JMod.PROTECTED, klass, "cursorToObject");
+		cursorToObject.annotate(java.lang.Override.class);
+		JVar cursor = cursorToObject.param(android.database.Cursor.class, "cursor");
+		JBlock corpo = cursorToObject.body();
+		JVar bean = corpo.decl(klass, "objeto", JExpr._new(klass));
+		for(String coluna : colunasEmOrdem){
+			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
+
+			JInvocation valor = cursor.invoke(
+					SQLiteGeradorUtils
+					.cursorGetColunaParaClasse(propriedade.getType())
+			).arg(JExpr.lit(colunasEmOrdem.indexOf(coluna)));
+			if(propriedade.getType().equals(Boolean.class))
+				valor = jcm.ref(SQLiteUtils.class)
+					.staticInvoke("integerToBoolean").arg(valor);
+			else if(propriedade.getType().equals(Date.class))
+				valor = jcm.ref(SQLiteUtils.class)
+					.staticInvoke("stringToDate").arg(valor);
+
+			corpo.assign(
+					// bean.campo = 
+					bean.ref(klass.fields().get(propriedade.getNome())),
+					// cursor.get****(indice)
+					valor
+			);
+		}
+		corpo._return(bean);
+
 	}
 
 }
