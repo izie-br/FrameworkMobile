@@ -334,8 +334,8 @@ public class CodeModelDaoFactory {
 							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
 									javaBeanSchemaB.getConstante(oneToMany.getReferenciaA())
 							)).plus(JExpr.lit("=?"))).arg(
-									klassB.fields().get(
-											javaBeanSchemaB.getPropriedade(oneToMany.getReferenciaA()).getNome()
+									klassA.fields().get(
+											javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome()
 									)
 							)
 							.invoke("first")
@@ -358,12 +358,18 @@ public class CodeModelDaoFactory {
 					);
 					JBlock corpo = getKlassB.body();
 					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
+					if(
+							klassA.fields().get(
+									javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
+							) == null
+					)
+						throw new RuntimeException("Erro");
 					ifCampoNull._then()._return(
 							klassB.staticInvoke("objects")
 							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
 									javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
 							)).plus(JExpr.lit("=?"))).arg(
-									klassB.fields().get(
+									klassA.fields().get(
 											javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
 									)
 							)

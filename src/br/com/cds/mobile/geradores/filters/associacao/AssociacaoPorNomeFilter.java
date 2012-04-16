@@ -90,6 +90,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 								filtroTabelaB.getPropriedadeNome(coluna.getNome())
 									.equals(colunaToA)
 						){
+							try{
 							Associacao associacao = new AssociacaoOneToMany(
 									filtroTabelaA.getTabela(),
 									filtroTabelaB.getTabela(),
@@ -98,6 +99,12 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 							);
 							associacoes.add(associacao);
 							System.out.println(associacao);
+							}catch (RuntimeException e){
+								System.err.println("Erro na tabela "+filtroTabelaA.getNome());
+								System.err.println("Relacao com "+filtroTabelaB.getNome()+" "+colunaToA);
+								System.err.println(colunaToA);
+								throw e;
+							}
 							break;
 						}
 					}

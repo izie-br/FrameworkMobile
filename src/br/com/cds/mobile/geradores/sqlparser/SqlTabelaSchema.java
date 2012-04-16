@@ -77,6 +77,9 @@ public class SqlTabelaSchema {
 					tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna);
 				tabela = tabelaBuilder.get();
 			}
+			if(tabela.getPrimaryKey()==null){
+				throw new RuntimeException(tabela.getNome()+" sem primary key");
+			}
 		}
 
 		private static final String MSG_ERRO = "Este metodo nao deveria ter sido chamado."+

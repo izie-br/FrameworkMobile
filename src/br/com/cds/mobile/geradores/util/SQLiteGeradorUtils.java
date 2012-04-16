@@ -88,7 +88,8 @@ public class SQLiteGeradorUtils {
 		 ***********/
 		if(
 				sqlType.equalsIgnoreCase("date") ||
-				sqlType.equalsIgnoreCase("datetime")
+				sqlType.equalsIgnoreCase("datetime") ||
+				sqlType.equalsIgnoreCase("timestamp")
 		)
 			return Date.class;
 		/***********
