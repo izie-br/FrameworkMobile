@@ -44,7 +44,6 @@ public class CodeModelDaoFactory {
 				pkmetodo = metodo;
 		if(pkmetodo!=null)
 			klass.methods().remove(pkmetodo);
-		// adicionando os metodos save e delete
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoDelete(klass, javaBeanSchema);
 	}

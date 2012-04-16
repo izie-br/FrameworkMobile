@@ -1,8 +1,11 @@
 package br.com.cds.mobile.geradores.filters;
 
+import java.util.Collection;
 import java.util.Map;
 
+import br.com.cds.mobile.geradores.filters.associacao.Associacao;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
+import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
 public abstract class TabelaSchemaFilter {
 
@@ -28,16 +31,16 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getConstante(coluna);
 	}
 
-	public Map<String,String> getAssociacoesTemUm(){
+	public Collection<Associacao> getAssociacoesTemUm(){
 		return proximo.getAssociacoesTemUm();
 	}
 
-	public Map<String,String> getAssociacoesTemMuitos(){
+	public Collection<Associacao> getAssociacoesTemMuitos(){
 		return proximo.getAssociacoesTemMuitos();
 	}
 
-	public final TabelaSchemaFilter getProximo(){
-		return proximo;
+	protected TabelaSchema getTabela(){
+		return proximo.getTabela();
 	}
 
 	public final void proximoFiltro(TabelaSchemaFilter filtro){

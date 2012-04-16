@@ -2,11 +2,13 @@ package br.com.cds.mobile.geradores.javabean;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilter;
 import br.com.cds.mobile.geradores.filters.TabelaSchemaFilterFactory;
+import br.com.cds.mobile.geradores.filters.associacao.Associacao;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
 public class JavaBeanSchema{
@@ -46,11 +48,11 @@ public class JavaBeanSchema{
 		return constanteDaTabela;
 	}
 
-	public Map<String,String> getAssociacoesTemUm(){
+	public Collection<Associacao> getAssociacoesTemUm(){
 		return filterChain.getAssociacoesTemUm();
 	}
 
-	public Map<String,String> getAssociacoesTemMuitos(){
+	public Collection<Associacao> getAssociacoesTemMuitos(){
 		return filterChain.getAssociacoesTemMuitos();
 	}
 
@@ -59,6 +61,8 @@ public class JavaBeanSchema{
 		filtro.proximoFiltro(this.filterChain);
 		this.filterChain = filtro;
 	}
+
+
 
 	@Override
 	public int hashCode() {
@@ -89,10 +93,10 @@ public class JavaBeanSchema{
 	 * O construtor privado soh eh acessado pela factory
 	 */
 	private JavaBeanSchema(){
-		filterChain = new FiltroMestre();
+		filterChain = new FiltroRaiz();
 	}
 
-	private class FiltroMestre extends TabelaSchemaFilter{
+	private class FiltroRaiz extends TabelaSchemaFilter{
 
 		@Override
 		public String getNome() {
@@ -126,8 +130,20 @@ public class JavaBeanSchema{
 			return getPropriedade(coluna).getNome();
 		}
 
-		@Override public Map<String, String> getAssociacoesTemUm()       { return null; }
-		@Override public Map<String, String> getAssociacoesTemMuitos()   { return null; }
+		@Override
+		protected TabelaSchema getTabela() {
+			return JavaBeanSchema.this.getTabela();
+		}
+
+		@Override
+		public Collection<Associacao> getAssociacoesTemUm() {
+			return new ArrayList<Associacao>();
+		}
+
+		@Override
+		public Collection<Associacao> getAssociacoesTemMuitos() {
+			return new ArrayList<Associacao>();
+		}
 
 	}
 

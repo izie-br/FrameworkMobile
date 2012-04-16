@@ -7,11 +7,11 @@ public class CamelCaseFilter extends TabelaSchemaFilter{
 
 	@Override
 	public String getNome() {
-		return CamelCaseUtils.toUpperCamelCase(getProximo().getNome());
+		return CamelCaseUtils.toUpperCamelCase(super.getNome());
 	}
 
 	public Propriedade getPropriedade(String coluna) {
-		Propriedade p=  getProximo().getPropriedade(coluna);
+		Propriedade p=  super.getPropriedade(coluna);
 		return new Propriedade(
 				CamelCaseUtils.tolowerCamelCase(p.getNome()),
 				p.getType(),
@@ -34,7 +34,7 @@ public class CamelCaseFilter extends TabelaSchemaFilter{
 
 	@Override
 	public String getConstante(String coluna) {
-		return CamelCaseUtils.camelToUpper(getProximo().getConstante(coluna));
+		return CamelCaseUtils.camelToUpper(super.getConstante(coluna));
 	}
 
 	public static class Factory implements TabelaSchemaFilterFactory{

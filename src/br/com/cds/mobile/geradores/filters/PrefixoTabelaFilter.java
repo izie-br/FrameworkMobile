@@ -4,13 +4,9 @@ public class PrefixoTabelaFilter extends TabelaSchemaFilter{
 
 	private String prefixo;
 
-	private PrefixoTabelaFilter(String prefixo){
-		this.prefixo = prefixo;
-	}
-
 	@Override
 	public String getNome() {
-		String nome = getProximo().getNome();
+		String nome = super.getNome();
 		if(nome.startsWith(prefixo))
 			nome =  nome.substring(prefixo.length());
 		return nome;
@@ -27,7 +23,9 @@ public class PrefixoTabelaFilter extends TabelaSchemaFilter{
 
 		@Override
 		public TabelaSchemaFilter getFilterInstance() {
-			return new PrefixoTabelaFilter(prefixo);
+			PrefixoTabelaFilter filtro = new PrefixoTabelaFilter();
+			filtro.prefixo = this.prefixo;
+			return filtro;
 		}
 	}
 

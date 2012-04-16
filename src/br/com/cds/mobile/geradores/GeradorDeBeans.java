@@ -28,6 +28,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import br.com.cds.mobile.geradores.dao.CodeModelDaoFactory;
 import br.com.cds.mobile.geradores.filters.CamelCaseFilter;
 import br.com.cds.mobile.geradores.filters.PrefixoTabelaFilter;
+import br.com.cds.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
@@ -64,6 +65,7 @@ public class GeradorDeBeans {
 		Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
+		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory("id_${TABELA}"));
 		factory.addFiltroFactory(new CamelCaseFilter.Factory());
 		for(TabelaSchema tabela : tabelasBanco)
 			javaBeanSchemas.add(factory.javaBeanSchemaParaTabela(tabela));
@@ -79,7 +81,8 @@ public class GeradorDeBeans {
 			jbf.gerarConstantes(classeGerada, javaBeanSchema);
 			for(String coluna : javaBeanSchema.getColunas()){
 				Propriedade p = javaBeanSchema.getPropriedade(coluna);
-				jbf.gerarPropriedade(classeGerada,p);
+				if(p!=null)
+					jbf.gerarPropriedade(classeGerada,p);
 			}
 			classesMap.put(javaBeanSchema.getNome(), classeGerada);
 		}
@@ -91,6 +94,13 @@ public class GeradorDeBeans {
 //				jbf.gerarAssociacaoToOne(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
 //			for(TabelaSchema estrangeira : associacoes.getTabelasHasMany())
 //				jbf.gerarAssociacaoToMany(classeGerada, classesMap.get(estrangeira.getNome()), colunaId);
+//		}
+
+//		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
+//			for(String fk : javaBeanSchema.getAssociacoesTemUm().keySet()){
+//				for(JavaBeanSchema it : javaBeanSchemas)
+//					if(it.getTabela().get)
+//			}
 //		}
 
 		// gera metodos de acesso a banco

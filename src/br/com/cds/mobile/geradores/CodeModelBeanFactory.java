@@ -66,7 +66,7 @@ public class CodeModelBeanFactory {
 		 ****************************/
 		JMethod getter =
 				// if(campo.type()==Boolean)
-				(campo.type().name().equals("bool") || campo.type().name().equals("bool") ) ?
+				(campo.type().name().equals("boolean") || campo.type().name().equals("Boolean") ) ?
 						// metodo = "isCampo"
 						klass.method(JMod.PUBLIC, campo.type(), "is"+nomeCampoCaptalizado):
 				// else
@@ -91,8 +91,7 @@ public class CodeModelBeanFactory {
 		return classeBean;
 	}
 
-	public void gerarPropriedade(JDefinedClass classeBean,
-			Propriedade propriedade) {
+	public void gerarPropriedade(JDefinedClass classeBean, Propriedade propriedade) {
 		JType tipo = getTipo(propriedade.getType());
 		// campos privados
 		classeBean.field(JMod.PRIVATE, tipo, propriedade.getNome());
@@ -136,12 +135,7 @@ public class CodeModelBeanFactory {
 
 	public void gerarAssociacaoToOne(JDefinedClass klass, JDefinedClass estrangeira, String idEstrangeira){
 		// private IdClass idEstrangeira;
-		//JFieldVar idCampo = 
-		klass.field(
-				JMod.PRIVATE,
-				estrangeira.fields().get(idEstrangeira).type(),
-				idEstrangeira+estrangeira.name()
-		);
+		// JFieldVar idCampo = klass.fields().get(idEstrangeira);
 		// private ClasseEstrangeira estrangeira;
 		JFieldVar campo = klass.field(
 				JMod.PRIVATE,
