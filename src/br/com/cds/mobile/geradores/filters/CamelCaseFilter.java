@@ -1,7 +1,7 @@
 package br.com.cds.mobile.geradores.filters;
 
+import br.com.cds.mobile.framework.utils.CamelCaseUtils;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
-import br.com.cds.mobile.geradores.util.CamelCaseUtils;
 
 public class CamelCaseFilter extends TabelaSchemaFilter{
 

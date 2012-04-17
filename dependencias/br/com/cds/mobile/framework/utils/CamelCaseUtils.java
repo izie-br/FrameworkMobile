@@ -1,4 +1,4 @@
-package br.com.cds.mobile.geradores.util;
+package br.com.cds.mobile.framework.utils;
 
 import java.util.Arrays;
 
@@ -103,5 +103,36 @@ public class CamelCaseUtils {
 
 		return out.toString();
 	}
+
+//	public static String underscoreToCamelCase(String s) {
+//		if (s.equals("id")) {
+//			return s;
+//		}
+//		String[] parts = s.split("_");
+//		StringBuilder camelCase = new StringBuilder();
+//		for (String part : parts) {
+//			camelCase.append(toProperCase(part));
+//		}
+//		String camelCaseString = camelCase.toString();
+//		camelCaseString = Character.toLowerCase(camelCaseString.charAt(0)) + camelCaseString.substring(1);
+//		return camelCaseString;
+//	}
+//
+//	public static String toProperCase(String s) {
+//		if (s.length() > 0) {
+//			return s.substring(0, 1).toUpperCase() + s.substring(1).toLowerCase();
+//		} else {
+//			return s;
+//		}
+//	}
+//
+//	public static String splitCamelCase(String s) {
+//		return s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])",
+//				"(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+//	}
+//
+//	public static String camelCaseToLowerUnderscore(String camelCase) {
+//		return splitCamelCase(camelCase).replace(' ', '_').toLowerCase();
+//	}
 
 }
