@@ -19,7 +19,7 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-public class SqlTabelaSchema {
+public class SqlTabelaSchemaFactory {
 
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string

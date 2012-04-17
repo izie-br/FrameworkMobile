@@ -32,7 +32,7 @@ import br.com.cds.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.json.CodeModelJsonSerializacaoFactory;
-import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchema;
+import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 
 import com.sun.codemodel.ClassType;
@@ -125,7 +125,7 @@ public class GeradorDeBeans {
 	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {
 		BufferedReader reader = new BufferedReader(input);
 		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
-		SqlTabelaSchema factory = new SqlTabelaSchema();
+		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
 		for(;;){
 			String createTableStatement = reader.readLine();
 			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
