@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
@@ -127,7 +128,23 @@ public class GeradorDeBeans {
 		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
 		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
 		for(;;){
-			String createTableStatement = reader.readLine();
+			StringBuilder sb = new StringBuilder();
+			int c;
+			for(;;){
+				c = reader.read();
+				if(c<0)
+					break;
+				sb.append((char)c);
+				if(c==';')
+					break;
+			}
+			String createTableStatement = sb.toString();
+			if(
+					Pattern.compile("create\\s+view", Pattern.CASE_INSENSITIVE|Pattern.MULTILINE)
+						.matcher(createTableStatement)
+						.find()
+			)
+				continue;;
 			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
 				break;
 			TabelaSchema tabela = factory.gerarTabelaSchema(createTableStatement);

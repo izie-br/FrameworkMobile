@@ -1,5 +1,6 @@
 package br.com.cds.mobile.geradores.dao;
 
+import java.util.Collection;
 import java.util.Date;
 import java.util.List;
 
@@ -346,14 +347,15 @@ public class CodeModelDaoFactory {
 						associacao.getTabelaB().equals(javaBeanSchemaB.getTabela())
 				){
 					String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
+					JClass collectionKlassB = jcm.ref(Collection.class).narrow(klassB);
 					JFieldVar campo = klassA.field(
 							JMod.PRIVATE|JMod.TRANSIENT,
-							klassB,
+							collectionKlassB,
 							CamelCaseUtils.tolowerCamelCase(nomePlural)
 					);
 					JMethod getKlassB = klassA.method(
 							JMod.PUBLIC,
-							klassB,
+							collectionKlassB,
 							"get"+ nomePlural
 					);
 					JBlock corpo = getKlassB.body();
@@ -373,7 +375,7 @@ public class CodeModelDaoFactory {
 											javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
 									)
 							)
-							.invoke("first")
+							.invoke("all")
 					);
 					corpo._return(campo);
 				}

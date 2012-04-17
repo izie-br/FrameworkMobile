@@ -11,12 +11,13 @@ CREATE  TABLE IF NOT EXISTS tb_vendedor (
 	email VARCHAR(150) NULL ,
 	senha VARCHAR(50) NULL ,
 	ativo BOOLEAN NULL DEFAULT 1 ,
-	codigo_representante integer REFERENCES tb_vendedor(codigo),
+	codigo_representante integer,
 	codigo_empresa integer NULL,
 	sigla text NULL,
 	hash_md5 text NULL,
 	PRIMARY KEY (_id),
-	UNIQUE(codigo, ativo) ON CONFLICT FAIL
+	UNIQUE(codigo, ativo) ON CONFLICT FAIL,
+	FOREIGN KEY (codigo_representante) REFERENCES tb_vendedor(codigo)
 );
  -- REFERENCES tb_vendedor(codigo),
 

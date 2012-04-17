@@ -16,15 +16,7 @@ cat "$SQL_XML" |
 	# escrevendo todos scripts no sqlite3
 	sqlite3 $DB_TESTE
 
-sqlite3 $DB_TESTE '.schema' |
-	tr -d '\n'|
-	tr -s ';' '\n' |
-	sed -E 's/,[[:space:]]*UNIQUE[^\)]*\)//' |
-	#sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
-	sed -E 's/CREATE[[:space:]]+VIEW.*//' |
-	#sed 's/ON[[:space:]]*CONFLICT[[:space:]]*FAIL//g' |
-	cat > $SCHEMA
-
+sqlite3 $DB_TESTE '.schema' > $SCHEMA
 
 rm $DB_TESTE
 

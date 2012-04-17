@@ -27,66 +27,6 @@ import net.sf.jsqlparser.statement.update.Update;
 
 public class SqlTabelaSchemaFactory {
 
-	private static final String REMOVER[] = {
-			"on\\s+conflict\\s+\\w+",
-			"constraint\\s+\\w+",
-//			sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
-//			sed -E 's/CREATE[[:space:]]+VIEW.*//' |
-
-	};
-
-	private static final String ADICIONAR_A_COLUNA[][] = {
-		{
-			",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
-			"$1",
-			"$2"
-		}, {
-			",\\s*(unique)\\s*\\(\\s*(\\w+)\\s*\\)",
-			"$2",
-			"$1"
-		}
-	};
-
-	private static String COLUNA = 
-			// inicio
-			"[\\(,]\\s*"+
-			// nome da coluna
-			"(\\w+)"+
-			// tipo e qualificadores sem parenteses
-			"\\s+[^,]"+
-			// grupos com parentses e qualificadores
-			"((\\([^\\)]\\))\\s*[^,])*"+
-			// fim da declaracao da coluna
-			// note que esta regex nao inclui a virgula ou fechamento de parenteses
-			"[^,\\)]";
-
-	private String tratarSchema(String schema) {
-		for(String regex : REMOVER){
-			Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-			Matcher mobj = pat.matcher(schema);
-			if(mobj.find()){
-				schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
-			}
-		}
-//		for(String regex[] : ADICIONAR_A_COLUNA){
-//			Pattern pat = Pattern.compile(regex[0], Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-//			Matcher mobj = pat.matcher(schema);
-//			if(mobj.find()){
-//				String result =  schema.substring(0, mobj.start()) + schema.substring(mobj.end());
-//				String coluna = mobj.group(1);
-//				Pattern colPat = Pattern.compile(COLUNA, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-//				Matcher colMatch = colPat.matcher(result);
-//				boolean colunaEncontrada = false;
-//				while(!colunaEncontrada){
-//					if(!colMatch.find())
-//						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
-//					
-//				}
-//			}
-//		}
-		return schema;
-	}
-
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string
 	 */
@@ -168,5 +108,94 @@ public class SqlTabelaSchemaFactory {
 		@Override public void visit(Select arg0)   { throw new RuntimeException(MSG_ERRO); }
 	}
 
+
+	private static class MatchRemover{
+
+		private String regex;
+		private int colunasGroup;
+		private int adicionarGroup;
+
+		public MatchRemover(String regex, int colunasGroup, int adicionarGroup) {
+			super();
+			this.regex = regex;
+			this.colunasGroup = colunasGroup;
+			this.adicionarGroup = adicionarGroup;
+		}
+
+		
+	}
+
+	private static final String REMOVER[] = {
+		"on\\s+conflict\\s+\\w+",
+		"constraint\\s+\\w+",
+//		sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
+//		sed -E 's/CREATE[[:space:]]+VIEW.*//' |
+
+};
+
+private static final MatchRemover ADICIONAR_A_COLUNA[] = {
+	new MatchRemover(
+		",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
+		1,
+		2
+	),
+	new MatchRemover(
+		",\\s*(unique)\\s*\\((\\s*\\w+\\s*(,\\s*\\w+\\s*)*)\\)",
+		2,
+		1
+	)
+};
+
+private static String COLUNA = 
+		// inicio
+		"[\\(,]\\s*"+
+		// nome da coluna
+		"(\\w+)"+
+		// tipo e qualificadores sem parenteses
+		"\\s+[^,]*"+
+		// grupos com parentses e mais qualificadores
+		"((\\([^\\)]*\\))\\s*[^,]*)*"+
+		// fim da declaracao da coluna
+		// note que esta regex nao inclui a virgula ou fechamento de parenteses
+		"[^,\\)]*";
+
+private String tratarSchema(String schema) {
+	for(String regex : REMOVER){
+		Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+		Matcher mobj = pat.matcher(schema);
+		if(mobj.find()){
+			schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+		}
+	}
+	for(MatchRemover regex : ADICIONAR_A_COLUNA){
+		Pattern pat = Pattern.compile(regex.regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+		Matcher mobj = pat.matcher(schema);
+		if(mobj.find()){
+			// DEBUG
+			//String match = mobj.group(2);
+			String result =  schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+			String colunas[] = mobj.group(regex.colunasGroup).split(",");
+			
+			String paraAdicionar = " " + mobj.group(regex.adicionarGroup);
+			for(String coluna : colunas ){
+				Pattern colPat = Pattern.compile(COLUNA, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+				Matcher colMatch = colPat.matcher(result);
+				boolean colunaEncontrada = false;
+				while(!colunaEncontrada){
+					if(!colMatch.find())
+						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
+					// DEBUG
+					//String colmatch = colMatch.group(0);
+					if(colMatch.group(1).trim().equalsIgnoreCase(coluna.trim())){
+						result = result.substring(0, colMatch.end()) + paraAdicionar+result.substring(colMatch.end());
+						colunaEncontrada = true;
+					}
+				}
+			}
+			schema = result;
+		}
+	}
+	return schema;
+}
 
 }
