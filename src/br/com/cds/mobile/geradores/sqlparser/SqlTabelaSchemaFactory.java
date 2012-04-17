@@ -1,7 +1,10 @@
 package br.com.cds.mobile.geradores.sqlparser;
 
 import java.io.StringReader;
+import java.util.Collection;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
@@ -11,6 +14,7 @@ import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.StatementVisitor;
 import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
 import net.sf.jsqlparser.statement.create.table.CreateTable;
+import net.sf.jsqlparser.statement.create.table.Index;
 import net.sf.jsqlparser.statement.delete.Delete;
 import net.sf.jsqlparser.statement.drop.Drop;
 import net.sf.jsqlparser.statement.insert.Insert;
@@ -21,6 +25,25 @@ import net.sf.jsqlparser.statement.update.Update;
 
 public class SqlTabelaSchemaFactory {
 
+	String REMOVER[] = {
+			"on\\s+conflict\\s+\\w+",
+			"constraint\\s+\\w",
+//			sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
+//			sed -E 's/CREATE[[:space:]]+VIEW.*//' |
+
+	};
+
+	private String tratarSchema(String schema) {
+		for(String regex : REMOVER){
+			Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+			Matcher mobj = pat.matcher(schema);
+			if(mobj.find()){
+				schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+			}
+		}
+		return schema;
+	}
+
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string
 	 */
@@ -29,6 +52,7 @@ public class SqlTabelaSchemaFactory {
 		CCJSqlParserManager manager = new CCJSqlParserManager();
 		// iniciando o statement
 		net.sf.jsqlparser.statement.Statement statement = null;
+		schema = tratarSchema(schema);
 		try {
 			statement = manager.parse(new StringReader(schema));
 		} catch (JSQLParserException e) {
@@ -67,11 +91,19 @@ public class SqlTabelaSchemaFactory {
 				/*
 				 * inserindo as colunas, (nome, tipo) aqui 
 				 */
-				if(
-						colunaDefinition.getColumnSpecStrings() !=null &&
+				boolean isPrimaryKey = (colunaDefinition.getColumnSpecStrings() !=null &&
 						colunaDefinition.getColumnSpecStrings().contains("PRIMARY")&&
 						colunaDefinition.getColumnSpecStrings().contains("KEY")
-				)
+						);
+				// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
+				if(ct.getIndexes()!=null) for(Object it : ct.getIndexes()){
+					Index index = (Index)it;
+					isPrimaryKey = isPrimaryKey || (
+							index.getColumnsNames().contains(nomeColuna) &&
+							index.getType().equals("PRIMARY KEY")
+					);
+				}
+				if(isPrimaryKey)
 					tabelaBuilder.adicionarPrimaryKey(nomeColuna, tipoColuna);
 				else
 					tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna);

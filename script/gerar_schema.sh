@@ -20,9 +20,10 @@ sqlite3 $DB_TESTE '.schema' |
 	tr -d '\n'|
 	tr -s ';' '\n' |
 	sed -E 's/,[[:space:]]*UNIQUE[^\)]*\)//' |
-	sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
+	#sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
 	sed -E 's/CREATE[[:space:]]+VIEW.*//' |
-	sed 's/ON[[:space:]]*CONFLICT[[:space:]]*FAIL//g' > $SCHEMA
+	#sed 's/ON[[:space:]]*CONFLICT[[:space:]]*FAIL//g' |
+	cat > $SCHEMA
 
 
 rm $DB_TESTE
