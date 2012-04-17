@@ -5,6 +5,7 @@ import java.util.Collection;
 
 import br.com.cds.mobile.framework.config.DB;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
+import br.com.cds.mobile.framework.utils.StringUtil;
 
 import android.database.Cursor;
 
@@ -32,9 +33,12 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 		return this;
 	}
 
+	@Deprecated
 	public QuerySet<T> filter(String qstr,Object...args){
-		if(where==null)
+		if(StringUtil.isNull(where))
 			where = qstr;
+		else
+			where = String.format("(%s) AND (%s)",this.where,qstr);
 		Object newargs[] = new Object[(selectionArgs==null)?0:selectionArgs.length+args.length];
 		for(int i=0;i<newargs.length;i++)
 			newargs[i] = i<selectionArgs.length ? selectionArgs[i] : args[i-selectionArgs.length];

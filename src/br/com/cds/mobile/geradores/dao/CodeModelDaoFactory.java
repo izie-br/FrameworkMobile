@@ -8,6 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.config.DB;
 import br.com.cds.mobile.framework.query.QuerySet;
 import br.com.cds.mobile.framework.utils.CamelCaseUtils;
+import br.com.cds.mobile.framework.utils.DateUtil;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
 import br.com.cds.mobile.geradores.filters.associacao.Associacao;
 import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
@@ -89,7 +90,7 @@ public class CodeModelDaoFactory {
 			JExpression argumentoValor =
 					// if campo instanceof Date
 					(campo.type().name().equals("Date")) ?
-							jcm.ref(SQLiteUtils.class).staticInvoke("timestampToString").arg(campo) :
+							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(campo) :
 					// if campo instanceof Boolean
 					(campo.type().name().equals("boolean") || campo.name().equals("Boolean") ) ?
 							JExpr.direct(campo.name()+"? 1 : 0"):
@@ -283,7 +284,7 @@ public class CodeModelDaoFactory {
 				valor = jcm.ref(SQLiteUtils.class)
 					.staticInvoke("integerToBoolean").arg(valor);
 			else if(propriedade.getType().equals(Date.class))
-				valor = jcm.ref(SQLiteUtils.class)
+				valor = jcm.ref(DateUtil.class)
 					.staticInvoke("stringToDate").arg(valor);
 
 			corpo.assign(

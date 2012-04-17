@@ -14,25 +14,11 @@ public class AndroidUtils {
 	}
 
 	public static Date datePickerToDate(DatePicker dpData) {
-		return DateUtil.stringToTimestamp(datePickerToString(dpData));
+		return DateUtil.stringToDate(datePickerToString(dpData));
 	}
 
-	public static Date datePickerToDate(DatePicker dpData, boolean endOfDay) {
-		String timestamp = datePickerToString(dpData);
-		if (endOfDay) {
-			timestamp += " 23:59:59";
-		} else {
-			timestamp += " 00:00:00";
-		}
-		return DateUtil.stringToTimestamp(timestamp);
-	}
-
-	//TODO  refazer isto com stringBuffer
 	public static String datePickerToString(DatePicker date) {
-		String dia = StringUtil.lpad(date.getDayOfMonth(), 2, '0');
-		String mes = StringUtil.lpad(date.getMonth() + 1, 2, '0');
-		String ano = StringUtil.lpad(date.getYear(), 4, '0');
-		return ano + "-" + mes + "-" + dia;
+		return String.format( DateUtil.FORMATO_DATE, date.getDayOfMonth(),date.getMonth()+1,date.getYear());
 	}
 
 	@SuppressWarnings("deprecation")

@@ -104,6 +104,11 @@ public class CamelCaseUtils {
 		return out.toString();
 	}
 
+	public static String splitCamelCase(String s) {
+		return s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])",
+				"(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
+	}
+
 //	public static String underscoreToCamelCase(String s) {
 //		if (s.equals("id")) {
 //			return s;
@@ -126,10 +131,6 @@ public class CamelCaseUtils {
 //		}
 //	}
 //
-//	public static String splitCamelCase(String s) {
-//		return s.replaceAll(String.format("%s|%s|%s", "(?<=[A-Z])(?=[A-Z][a-z])", "(?<=[^A-Z])(?=[A-Z])",
-//				"(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
-//	}
 //
 //	public static String camelCaseToLowerUnderscore(String camelCase) {
 //		return splitCamelCase(camelCase).replace(' ', '_').toLowerCase();

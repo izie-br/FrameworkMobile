@@ -10,7 +10,19 @@ public class DateUtil {
 	private static final long MINUTO = 60 * 1000;
 	private static final long SEGUNDO = 1000;
 
-	// private static final int ANO = 12 * MES;
+	/**
+	 * formato YYYY-MM-DD HH:mm:SS
+	 */
+	public static final String FORMATO_TIMESTAMP = "%4d-%2d-%2d %2d:%2d:%2d";
+	public static final String FORMATO_DATE = "%4d-%2d-%2d";
+
+	// substrings com fim nao inclusivo
+	private static int STRING_TO_DATE_ANO[] = {0,4};
+	private static int STRING_TO_DATE_MES[] = {5,7};
+	private static int STRING_TO_DATE_DIA[] = {8,10};
+	private static int STRING_TO_DATE_HORAS[] = {11,13};
+	private static int STRING_TO_DATE_MINUTOS[] = {14,16};
+	private static int STRING_TO_DATE_SEGUNDOS[] = {17};
 
 	public static Date adicionaMeses(Date date, int meses) {
 		long atual = date.getTime();
@@ -73,26 +85,77 @@ public class DateUtil {
 	}
 
 	@SuppressWarnings("deprecation")
+	public static String timestampToString(Date date){
+		return String.format(FORMATO_TIMESTAMP,
+				date.getYear()+1900,
+				date.getMonth()+1,
+				date.getDate(),
+				date.getHours(),
+				date.getMinutes(),
+				date.getSeconds()
+		);
+	}
+
+	@SuppressWarnings("deprecation")
+	public static String dateToString(Date date){
+		return String.format(FORMATO_DATE,
+				date.getYear()+1900,
+				date.getMonth()+1,
+				date.getDate()
+		);
+	}
+
+	@SuppressWarnings("deprecation")
+	public static Date stringToDate(String dateString){
+		int ano = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_ANO[0], STRING_TO_DATE_ANO[1]
+		)) - 1900;
+		int mes = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_MES[0], STRING_TO_DATE_MES[1]
+		)) -1;
+		int dia = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_DIA[0], STRING_TO_DATE_DIA[1]
+		));
+		int horas = 0, minutos = 0, segundos = 0;
+		if(dateString.length()>=FORMATO_TIMESTAMP.length()){
+			horas = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_HORAS[0], STRING_TO_DATE_HORAS[1]
+			));
+			minutos = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_MINUTOS[0], STRING_TO_DATE_MINUTOS[1]
+			));
+			segundos = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_SEGUNDOS[0], STRING_TO_DATE_SEGUNDOS[1]
+			));
+		}
+		return new Date( ano, mes, dia, horas, minutos, segundos );
+	}
+
+
+	@SuppressWarnings("deprecation")
 	public static String timestampToStringFormatada(Date data) {
 		if (data == null) {
 			return null;
 		}
-		//TODO refazer com string format
-		return StringUtil.lpad(data.getDate(), 2, '0') + "/" + StringUtil.lpad(data.getMonth() + 1, 2, '0') + "/" + (data.getYear() + 1900)
-				+ " " + StringUtil.lpad(data.getHours(), 2, '0') + ":" + StringUtil.lpad(data.getMinutes(), 2, '0') + ":"
-				+ StringUtil.lpad(data.getSeconds(), 2, '0');
+//		return StringUtil.lpad(data.getDate(), 2, '0') + "/" + StringUtil.lpad(data.getMonth() + 1, 2, '0') + "/" + (data.getYear() + 1900)
+//				+ " " + StringUtil.lpad(data.getHours(), 2, '0') + ":" + StringUtil.lpad(data.getMinutes(), 2, '0') + ":"
+//				+ StringUtil.lpad(data.getSeconds(), 2, '0');
+		return String.format(
+				"%02d/%02d/%04d %02d:%02d:%02d",
+				data.getDate(), (data.getMonth() +1), (data.getYear() +1900),
+				data.getHours(), data.getMinutes(), data.getSeconds()
+		);
 	}
 
-	//TODO conferir isso aqui
-	public static Date stringToTimestamp(String dateTime) {
-//		try {
-			return SQLiteUtils.stringToDate(dateTime);
-//			return stringToDateFormato(dateTime, "yyyy-MM-dd KK:mm:ss");
-//		} catch (Exception e) {
-//			e.printStackTrace();
-//			return stringToDateFormato(dateTime, "yyyy-MM-dd");
-//		}
-
+	@SuppressWarnings("deprecation")
+	public static String dateToStringFormatada(Date data) {
+		if (data == null) {
+			return null;
+		}
+		return String.format(
+				"%02d/%02d/%04d",
+				data.getDate(), (data.getMonth() +1), (data.getYear() +1900)
+		);
 	}
 
 //	public static String dateToStringBanco(Date data) {
@@ -126,8 +189,6 @@ public class DateUtil {
 //	 */
 //	@SuppressWarnings("deprecation")
 //	public static String dateToStringFormatadaHoraMin(Date data) {
-//		// TODO usar format
-//		// TODO passar para o DateUtils
 //		if (data == null) {
 //			return null;
 //		}

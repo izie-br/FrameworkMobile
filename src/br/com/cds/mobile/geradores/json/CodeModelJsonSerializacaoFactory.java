@@ -5,7 +5,7 @@ import java.util.Date;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import br.com.cds.mobile.framework.utils.SQLiteUtils;
+import br.com.cds.mobile.framework.utils.DateUtil;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
@@ -38,7 +38,7 @@ public class CodeModelJsonSerializacaoFactory {
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JExpression value = klass.fields().get(propriedade.getNome());
 			if(propriedade.getType().equals(Date.class))
-				value = jcm.ref(SQLiteUtils.class).staticInvoke("dateToString").arg(value);
+				value = jcm.ref(DateUtil.class).staticInvoke("dateToString").arg(value);
 			corpo.invoke(jsonObj, "put")
 				.arg(JExpr.lit(coluna))
 				.arg(value);
@@ -55,7 +55,7 @@ public class CodeModelJsonSerializacaoFactory {
 			JInvocation value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
 				.arg(coluna);
 			if(propriedade.getType().equals(Date.class))
-				value = jcm.ref(SQLiteUtils.class).staticInvoke("stringToDate").arg(value);
+				value = jcm.ref(DateUtil.class).staticInvoke("stringToDate").arg(value);
 			corpo.assign(
 					obj.ref(klass.fields().get(propriedade.getNome())),
 					value
