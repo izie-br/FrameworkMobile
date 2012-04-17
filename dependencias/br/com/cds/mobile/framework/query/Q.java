@@ -1,4 +1,4 @@
-package br.com.cds.mobile.gerador.query;
+package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
 

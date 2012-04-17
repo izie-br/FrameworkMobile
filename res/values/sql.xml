@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="cria_banco_versao_1">
+    <string name="db_versao_1">
 
 CREATE  TABLE IF NOT EXISTS tb_vendedor (
-	_id INT NOT NULL ,
+	_id INT PRIMARY KEY NOT NULL ,
 	codigo integer not null,
 	nome VARCHAR(145) NOT NULL ,
 	cpf VARCHAR(14) NULL ,
@@ -15,7 +15,6 @@ CREATE  TABLE IF NOT EXISTS tb_vendedor (
 	codigo_empresa integer NULL,
 	sigla text NULL,
 	hash_md5 text NULL,
-	PRIMARY KEY (_id),
 	UNIQUE(codigo, ativo) ON CONFLICT FAIL
 );
 --	FOREIGN KEY (codigo_representante)
@@ -45,7 +44,7 @@ CREATE TABLE IF NOT EXISTS tb_produto (
 
 
 CREATE TABLE IF NOT EXISTS tb_cliente (
-  _id int NULL,
+  _id int PRIMARY KEY NULL,
   codigo integer not null,
   razao_social text NULL,
   cnpj text NULL,
@@ -77,7 +76,6 @@ CREATE TABLE IF NOT EXISTS tb_cliente (
   dt_sincronia_imagem DATE NULL ,
   possui_imagem TINYINT NULL ,
   ativo TINYINT NULL DEFAULT 1 ,
-  PRIMARY KEY (_id) ,
   UNIQUE(codigo) ON CONFLICT FAIL
 );
 

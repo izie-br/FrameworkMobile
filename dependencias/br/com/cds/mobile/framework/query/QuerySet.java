@@ -1,4 +1,4 @@
-package br.com.cds.mobile.gerador.query;
+package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -64,7 +64,7 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 	}
 
 	private Cursor getCursor() {
-		Cursor cursor = DB.getReadableDatabase().query(
+		Cursor cursor = DB.getDb().query(
 				// distinct
 				true,
 				// tabela

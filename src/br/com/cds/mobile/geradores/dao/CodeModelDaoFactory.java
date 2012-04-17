@@ -6,8 +6,8 @@ import java.util.List;
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.config.DB;
+import br.com.cds.mobile.framework.query.QuerySet;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
-import br.com.cds.mobile.gerador.query.QuerySet;
 import br.com.cds.mobile.geradores.filters.associacao.Associacao;
 import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
@@ -89,7 +89,7 @@ public class CodeModelDaoFactory {
 			JExpression argumentoValor =
 					// if campo instanceof Date
 					(campo.type().name().equals("Date")) ?
-							jcm.ref(SQLiteUtils.class).staticInvoke("dateToString").arg(campo) :
+							jcm.ref(SQLiteUtils.class).staticInvoke("timestampToString").arg(campo) :
 					// if campo instanceof Boolean
 					(campo.type().name().equals("boolean") || campo.name().equals("Boolean") ) ?
 							JExpr.direct(campo.name()+"? 1 : 0"):
@@ -110,7 +110,7 @@ public class CodeModelDaoFactory {
 				);
 		}
 		JClass dbclass = jcm.ref(DB.class);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getWritableDatabase"));
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
 		// if(id=-1)
 		JFieldVar id = klass.fields().get( javaBeanSchema.getPrimaryKey().getNome() );
 		JConditional ifIdNull = corpo._if(
@@ -149,7 +149,7 @@ public class CodeModelDaoFactory {
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock corpo = delete.body();
 		JClass dbclass = jcm.ref(DB.class);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getWritableDatabase"));
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
 		// if(id!=-1)
 		JConditional ifIdNotNull = corpo._if(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome())
 				.ne(JExpr.direct(ID_PADRAO)));

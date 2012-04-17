@@ -12,7 +12,8 @@ public class SQLiteUtils {
 	/**
 	 * formato YYYY-MM-DD HH:mm:SS
 	 */
-	private static final String FORMATO_DATA = "%4d-%2d-%2d %2d:%2d:%2d";
+	private static final String FORMATO_TIMESTAMP = "%4d-%2d-%2d %2d:%2d:%2d";
+	private static final String FORMATO_DATE = "%4d-%2d-%2d";
 
 	// substrings com fim nao inclusivo
 	private static int STRING_TO_DATE_ANO[] = {0,4};
@@ -34,8 +35,8 @@ public class SQLiteUtils {
 //	}
 
 	@SuppressWarnings("deprecation")
-	public static String dateToString(Date date){
-		return String.format(FORMATO_DATA,
+	public static String timestampToString(Date date){
+		return String.format(FORMATO_TIMESTAMP,
 				date.getYear()+1900,
 				date.getMonth()+1,
 				date.getDate(),
@@ -46,27 +47,38 @@ public class SQLiteUtils {
 	}
 
 	@SuppressWarnings("deprecation")
-	public static Date stringToDate(String dateString){
-		return new Date(
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_ANO[0], STRING_TO_DATE_ANO[1]
-				)) - 1900,
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_MES[0], STRING_TO_DATE_MES[1]
-				)) -1 ,
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_DIA[0], STRING_TO_DATE_DIA[1]
-				)),
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_HORAS[0], STRING_TO_DATE_HORAS[1]
-				)),
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_MINUTOS[0], STRING_TO_DATE_MINUTOS[1]
-				)),
-				Integer.parseInt(dateString.substring(
-						STRING_TO_DATE_SEGUNDOS[0], STRING_TO_DATE_SEGUNDOS[1]
-				))
+	public static String dateToString(Date date){
+		return String.format(FORMATO_DATE,
+				date.getYear()+1900,
+				date.getMonth()+1,
+				date.getDate()
 		);
+	}
+
+	@SuppressWarnings("deprecation")
+	public static Date stringToDate(String dateString){
+		int ano = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_ANO[0], STRING_TO_DATE_ANO[1]
+		)) - 1900;
+		int mes = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_MES[0], STRING_TO_DATE_MES[1]
+		)) -1;
+		int dia = Integer.parseInt(dateString.substring(
+				STRING_TO_DATE_DIA[0], STRING_TO_DATE_DIA[1]
+		));
+		int horas = 0, minutos = 0, segundos = 0;
+		if(dateString.length()>=FORMATO_TIMESTAMP.length()){
+			horas = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_HORAS[0], STRING_TO_DATE_HORAS[1]
+			));
+			minutos = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_MINUTOS[0], STRING_TO_DATE_MINUTOS[1]
+			));
+			segundos = Integer.parseInt(dateString.substring(
+					STRING_TO_DATE_SEGUNDOS[0], STRING_TO_DATE_SEGUNDOS[1]
+			));
+		}
+		return new Date( ano, mes, dia, horas, minutos, segundos );
 	}
 
 	public static int booleanToInteger(boolean b){
@@ -83,9 +95,9 @@ public class SQLiteUtils {
 		if(Number.class.isInstance(object))
 				return object.toString();
 		if(object instanceof Date)
-			return dateToString((Date)object);
+			return timestampToString((Date)object);
 		if(Calendar.class.isInstance(object))
-			return dateToString(((Calendar)object).getTime());
+			return timestampToString(((Calendar)object).getTime());
 		if(object instanceof Boolean)
 			return ""+booleanToInteger((Boolean)object);
 		return null;
