@@ -2,7 +2,9 @@ package br.com.cds.mobile.geradores.sqlparser;
 
 import java.io.StringReader;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -25,13 +27,38 @@ import net.sf.jsqlparser.statement.update.Update;
 
 public class SqlTabelaSchemaFactory {
 
-	String REMOVER[] = {
+	private static final String REMOVER[] = {
 			"on\\s+conflict\\s+\\w+",
-			"constraint\\s+\\w",
+			"constraint\\s+\\w+",
 //			sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
 //			sed -E 's/CREATE[[:space:]]+VIEW.*//' |
 
 	};
+
+	private static final String ADICIONAR_A_COLUNA[][] = {
+		{
+			",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
+			"$1",
+			"$2"
+		}, {
+			",\\s*(unique)\\s*\\(\\s*(\\w+)\\s*\\)",
+			"$2",
+			"$1"
+		}
+	};
+
+	private static String COLUNA = 
+			// inicio
+			"[\\(,]\\s*"+
+			// nome da coluna
+			"(\\w+)"+
+			// tipo e qualificadores sem parenteses
+			"\\s+[^,]"+
+			// grupos com parentses e qualificadores
+			"((\\([^\\)]\\))\\s*[^,])*"+
+			// fim da declaracao da coluna
+			// note que esta regex nao inclui a virgula ou fechamento de parenteses
+			"[^,\\)]";
 
 	private String tratarSchema(String schema) {
 		for(String regex : REMOVER){
@@ -41,6 +68,22 @@ public class SqlTabelaSchemaFactory {
 				schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
 			}
 		}
+//		for(String regex[] : ADICIONAR_A_COLUNA){
+//			Pattern pat = Pattern.compile(regex[0], Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+//			Matcher mobj = pat.matcher(schema);
+//			if(mobj.find()){
+//				String result =  schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+//				String coluna = mobj.group(1);
+//				Pattern colPat = Pattern.compile(COLUNA, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+//				Matcher colMatch = colPat.matcher(result);
+//				boolean colunaEncontrada = false;
+//				while(!colunaEncontrada){
+//					if(!colMatch.find())
+//						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
+//					
+//				}
+//			}
+//		}
 		return schema;
 	}
 
