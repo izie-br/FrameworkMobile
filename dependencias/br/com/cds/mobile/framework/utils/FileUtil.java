@@ -16,7 +16,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import br.com.cds.mobile.framework.BOFacade;
 import br.com.cds.mobile.framework.LogPadrao;
 
 
@@ -92,7 +91,7 @@ public class FileUtil {
 			out.flush();
 			out.close();
 		} catch (Exception e) {
-			BOFacade.getInstance().gravarErro(e, true);
+			LogPadrao.gravarErro(e, true);
 		}
 	}
 
@@ -113,7 +112,7 @@ public class FileUtil {
 			byte[] compressedBytes = baos.toByteArray();
 			return compressedBytes;
 		} catch (Exception e) {
-			BOFacade.getInstance().gravarErro(e, true);
+			LogPadrao.gravarErro(e, true);
 		}
 		return null;
 	}
@@ -162,7 +161,7 @@ public class FileUtil {
 			origin.close();
 			out.close();
 		} catch (IOException e) {
-			BOFacade.getInstance().gravarErro(e, true);
+			LogPadrao.gravarErro(e, true);
 		}
 	}
 

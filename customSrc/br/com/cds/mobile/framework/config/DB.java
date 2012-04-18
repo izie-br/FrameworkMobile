@@ -29,16 +29,16 @@ public class DB extends SQLiteOpenHelper{
 	}
 
 	@Override
-	public void onUpgrade(SQLiteDatabase db, int arg1, int arg2) {
+	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Context ctx = Aplicacao.getContext();
-		for(int i=DB_VERSAO_INICIAL; i<=DB_VERSAO;i++){
+		for(int i=oldVersion; i<=newVersion;i++){
 			executaScript(getSqlScriptPorVersao(ctx, i), db);
 		}
 	}
 
 	public static SQLiteDatabase getDb(){
 		DB db = null;
-		if(instancia==null)
+		if(instancia!=null)
 			db = instancia.get();
 		if(db==null){
 			db = new DB();

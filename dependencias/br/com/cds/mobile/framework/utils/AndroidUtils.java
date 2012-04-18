@@ -3,14 +3,13 @@ package br.com.cds.mobile.framework.utils;
 import java.util.Calendar;
 import java.util.Date;
 
-import br.com.cds.mobile.framework.config.Aplicacao;
 import android.content.Context;
 import android.widget.DatePicker;
 
 public class AndroidUtils {
 
 	public static int getResourceByName(Context context, String name){
-		return context.getResources().getIdentifier(name, null, Aplicacao.getContext().getPackageName());
+		return context.getResources().getIdentifier(name, null, context.getPackageName());
 	}
 
 	public static Date datePickerToDate(DatePicker dpData) {

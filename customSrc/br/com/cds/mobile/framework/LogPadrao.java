@@ -3,9 +3,15 @@ package br.com.cds.mobile.framework;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.util.Date;
 
+import br.com.cds.mobile.framework.config.Constantes;
+import br.com.cds.mobile.framework.utils.DateUtil;
+
+import android.os.Environment;
 import android.util.Log;
 
+// TODO criar interface na lib
 public class LogPadrao {
 
 	private static final int TAMANHO_MAXIMO_PARTE_LOG = 4000;
@@ -14,12 +20,13 @@ public class LogPadrao {
 
 	public static FileOutputStream getFileLog() throws FileNotFoundException {
 		if (fileLog == null) {
-			File pasta = new File(BOFacade.getInstance().getCaminhoLog());
+			File pasta = new File(getCaminhoLog());
 			if (!pasta.exists()) {
 				pasta.mkdirs();
 			}
-			fileLog = new FileOutputStream(BOFacade.getInstance().getCaminhoLog()
-					+ BOFacade.getInstance().getArquivoLog());
+			fileLog = new FileOutputStream(getCaminhoLog()
+					+ getArquivoLog()
+			);
 		}
 		return fileLog;
 	}
@@ -32,7 +39,7 @@ public class LogPadrao {
 			getFileLog().write(message.getBytes());
 			getFileLog().write("\n".getBytes());
 		} catch (Throwable e) {
-			BOFacade.getInstance().gravarErro(e);
+			gravarErro(e);
 		}
 		log.append(message).append("\n");
 		if (log.length() > TAMANHO_MAXIMO_LOG) {
@@ -71,6 +78,27 @@ public class LogPadrao {
 	public static void reset() {
 		log.setLength(0);
 	}
+
+	public static void gravarErro(Throwable t) {
+		gravarErro(t,false);
+	}
+
+	public static void gravarErro(Throwable t, boolean forcar) {
+		try {
+//			erroBO.gravarErro(t, forcar);
+		} catch (Throwable t2) {
+			t2.printStackTrace();
+		}
+	}
+
+	public static String getCaminhoLog() {
+		return Environment.getDataDirectory() + Constantes.LOG_DIR;
+	}
+
+	public static String getArquivoLog() {
+		return DateUtil.dateToString(new Date()) + "_log.txt";
+	}
+
 
 	// public static String getLogErros() {
 	// try {
