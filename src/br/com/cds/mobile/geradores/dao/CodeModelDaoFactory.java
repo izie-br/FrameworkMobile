@@ -5,7 +5,6 @@ import java.util.List;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
-import br.com.cds.mobile.framework.config.DB;
 import br.com.cds.mobile.framework.query.QuerySet;
 import br.com.cds.mobile.framework.utils.CamelCaseUtils;
 import br.com.cds.mobile.framework.utils.DateUtil;
@@ -36,13 +35,16 @@ import com.sun.codemodel.JVar;
 
 public class CodeModelDaoFactory {
 
+	private static final String DB_CLASS = ".db.DB";
 	// private static final String PACOTE = "br.com.cds.mobile.flora.db";
 	// o valor 0 nao pode ser uma PK no sqlite
 	public static final String ID_PADRAO = "0";
 	private JCodeModel jcm;
+	private String _package;
 
-	public CodeModelDaoFactory(JCodeModel jcm){
+	public CodeModelDaoFactory(JCodeModel jcm, String _package){
 		this.jcm = jcm;
+		this._package = _package;
 	}
 
 	public void gerarAcessoDB(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
@@ -110,7 +112,7 @@ public class CodeModelDaoFactory {
 					.arg(argumentoValor)
 				);
 		}
-		JClass dbclass = jcm.ref(DB.class);
+		JClass dbclass = jcm.ref(this._package+DB_CLASS);
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
 		// if(id=-1)
 		JFieldVar id = klass.fields().get( javaBeanSchema.getPrimaryKey().getNome() );
@@ -149,7 +151,7 @@ public class CodeModelDaoFactory {
 		 ***********************************************************/
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock corpo = delete.body();
-		JClass dbclass = jcm.ref(DB.class);
+		JClass dbclass = jcm.ref(this._package+DB_CLASS);
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
 		// if(id!=-1)
 		JConditional ifIdNotNull = corpo._if(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome())
@@ -223,6 +225,18 @@ public class CodeModelDaoFactory {
 		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
 		JVar prototipoparam = construtor.param(generic, "prototipo");
 		construtor.body().assign(JExpr.refthis(prototipo.name()), prototipoparam);
+
+		/*****************************
+		 * Override
+		 * protected DB getDb(){
+		 *   return DB.getDB;
+		 * }
+		 ******************************/
+		JMethod getDb = querySetInner.method(
+				JMod.PROTECTED, jcm.ref(SQLiteDatabase.class), "getDb"
+		);
+		getDb.annotate(java.lang.Override.class);
+		getDb.body()._return(jcm.ref(_package+DB_CLASS).staticInvoke("getDb"));
 
 		/*****************************
 		 * Override

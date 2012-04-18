@@ -5,7 +5,6 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.util.Date;
 
-import br.com.cds.mobile.framework.config.Constantes;
 import br.com.cds.mobile.framework.utils.DateUtil;
 
 import android.os.Environment;
@@ -92,7 +91,7 @@ public class LogPadrao {
 	}
 
 	public static String getCaminhoLog() {
-		return Environment.getDataDirectory() + Constantes.LOG_DIR;
+		return Environment.getDataDirectory() + BaseApplication.getContext().getPackageName();
 	}
 
 	public static String getArquivoLog() {

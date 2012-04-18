@@ -3,11 +3,11 @@ package br.com.cds.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import br.com.cds.mobile.framework.config.DB;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
 import br.com.cds.mobile.framework.utils.StringUtil;
 
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 
 public abstract class QuerySet<T> /*implements Collection<T>*/{
 
@@ -27,6 +27,8 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 	protected abstract String[] getColunas();
 
 	protected abstract String getTabela();
+
+	protected abstract SQLiteDatabase getDb();
 
 	public QuerySet<T> distinct(){
 		//distinct = true;
@@ -68,7 +70,7 @@ public abstract class QuerySet<T> /*implements Collection<T>*/{
 	}
 
 	private Cursor getCursor() {
-		Cursor cursor = DB.getDb().query(
+		Cursor cursor = getDb().query(
 				// distinct
 				true,
 				// tabela

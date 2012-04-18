@@ -1,8 +1,9 @@
-package br.com.cds.mobile.framework.config;
+package br.com.cds.mobile.db;
 
 import java.lang.ref.SoftReference;
 
 import br.com.cds.mobile.framework.LogPadrao;
+import br.com.cds.mobile.framework.config.Aplicacao;
 import br.com.cds.mobile.framework.utils.AndroidUtils;
 
 import android.content.Context;
