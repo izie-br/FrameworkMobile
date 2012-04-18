@@ -19,7 +19,6 @@ CREATE  TABLE IF NOT EXISTS tb_vendedor (
 	UNIQUE(codigo, ativo) ON CONFLICT FAIL,
 	FOREIGN KEY (codigo_representante) REFERENCES tb_vendedor(codigo)
 );
- -- REFERENCES tb_vendedor(codigo),
 
 CREATE TABLE IF NOT EXISTS tb_produto (
 	_id INTEGER PRIMARY KEY AUTOINCREMENT ,

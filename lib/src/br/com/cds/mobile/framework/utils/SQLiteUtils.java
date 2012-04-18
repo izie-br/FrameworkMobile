@@ -6,6 +6,8 @@ import java.util.Date;
 
 public class SQLiteUtils {
 
+	private static final String ERRO_CLASSE_SEM_STRING_FORMAT =
+			"Classe \"%s\" sem um metodo parse de sring correspodente.";
 
 	public static int booleanToInteger(boolean b){
 		return b ? 1 : 0;
@@ -26,7 +28,10 @@ public class SQLiteUtils {
 			return DateUtil.timestampToString(((Calendar)object).getTime());
 		if(object instanceof Boolean)
 			return ""+booleanToInteger((Boolean)object);
-		return null;
+		throw new RuntimeException(String.format(
+				ERRO_CLASSE_SEM_STRING_FORMAT,
+				object.getClass().getSimpleName()
+		));
 	}
 
 
