@@ -3,6 +3,7 @@ package br.com.cds.mobile.framework;
 import java.util.Date;
 
 import android.os.Environment;
+import br.com.cds.mobile.framework.config.Aplicacao;
 import br.com.cds.mobile.framework.utils.DateUtil;
 
 public class BOFacade {
@@ -33,7 +34,7 @@ public class BOFacade {
 	}
 
 	public String getCaminhoLog() {
-		return Environment.getDataDirectory() + "/data/br.com.cds.mobile.flora/logs/";
+		return Environment.getDataDirectory() + "/data/"+Aplicacao.getContext().getPackageName()+"/logs/";
 	}
 
 	public String getArquivoLog() {
