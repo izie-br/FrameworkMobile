@@ -1,5 +1,5 @@
 
-bin/*
-customGen/*
-script/schema.sql
-
+gerador/bin/*
+grador/customGen/*
+gerador/script/schema.sql
+lib/bin/*
