@@ -4,3 +4,4 @@ grador/customGen/*
 gerador/script/schema.sql
 lib/bin/*
 pom.xml
+gerador/customGen/*
