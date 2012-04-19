@@ -4,7 +4,7 @@
     <string name="db_versao_1">
 
 CREATE  TABLE IF NOT EXISTS tb_vendedor (
-	_id INT NOT NULL ,
+	id INT NOT NULL ,
 	codigo integer not null,
 	nome VARCHAR(145) NOT NULL ,
 	cpf VARCHAR(14) NULL ,
@@ -15,13 +15,13 @@ CREATE  TABLE IF NOT EXISTS tb_vendedor (
 	codigo_empresa integer NULL,
 	sigla text NULL,
 	hash_md5 text NULL,
-	PRIMARY KEY (_id),
+	PRIMARY KEY (id),
 	UNIQUE(codigo, ativo) ON CONFLICT FAIL,
 	FOREIGN KEY (codigo_representante) REFERENCES tb_vendedor(codigo)
 );
 
 CREATE TABLE IF NOT EXISTS tb_produto (
-	_id INTEGER PRIMARY KEY AUTOINCREMENT ,
+	id INTEGER PRIMARY KEY AUTOINCREMENT ,
 	codigo integer not null,
 	descricao text NULL,
 	classificacao text NULL,
@@ -43,7 +43,7 @@ CREATE TABLE IF NOT EXISTS tb_produto (
 
 
 CREATE TABLE IF NOT EXISTS tb_cliente (
-  _id int PRIMARY KEY NULL,
+  id int PRIMARY KEY NULL,
   codigo integer not null,
   razao_social text NULL,
   cnpj text NULL,
