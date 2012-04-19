@@ -1,6 +1,7 @@
-
-gerador/bin/*
-grador/customGen/*
 gerador/script/schema.sql
 lib/target/*
 gerador/customGen/*
+gerador/target/*
+.project
+.classpath
+.settings/*
