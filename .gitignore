@@ -4,4 +4,4 @@ gerador/customGen/*
 gerador/target/*
 .project
 .classpath
-.settings/*
+*/.settings/*
