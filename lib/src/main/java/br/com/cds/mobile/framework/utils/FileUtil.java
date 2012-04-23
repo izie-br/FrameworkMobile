@@ -16,7 +16,7 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import br.com.cds.mobile.framework.LogPadrao;
+import br.com.cds.mobile.framework.logging.LogPadrao;
 
 
 public class FileUtil {
