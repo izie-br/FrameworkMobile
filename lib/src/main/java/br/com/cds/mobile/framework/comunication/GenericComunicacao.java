@@ -10,6 +10,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 
+import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.Tarefa;
 
@@ -84,7 +85,7 @@ public class GenericComunicacao {
 			File file = new File(path);
 			file.mkdirs();
 			if (!file.exists()) {
-				throw new FrameworkException(FrameworkException.SD_CARD_NOT_FOUND);
+				throw new FrameworkException(ErrorCode.SD_CARD_NOT_FOUND);
 			}
 			File outputFile = new File(file, arquivo);
 			// LogPadrao.d("outputFile.exists():" + outputFile.exists());

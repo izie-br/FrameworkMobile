@@ -91,7 +91,7 @@ public class FileUtil {
 			out.flush();
 			out.close();
 		} catch (Exception e) {
-			LogPadrao.gravarErro(e, true);
+			LogPadrao.e(e);
 		}
 	}
 
@@ -112,7 +112,7 @@ public class FileUtil {
 			byte[] compressedBytes = baos.toByteArray();
 			return compressedBytes;
 		} catch (Exception e) {
-			LogPadrao.gravarErro(e, true);
+			LogPadrao.e(e);
 		}
 		return null;
 	}
@@ -161,7 +161,7 @@ public class FileUtil {
 			origin.close();
 			out.close();
 		} catch (IOException e) {
-			LogPadrao.gravarErro(e, true);
+			LogPadrao.e(e);
 		}
 	}
 
