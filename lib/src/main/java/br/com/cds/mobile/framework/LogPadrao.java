@@ -9,6 +9,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
+import java.lang.ref.SoftReference;
 import java.util.Date;
 
 import br.com.cds.mobile.framework.utils.DateUtil;
@@ -20,82 +21,87 @@ public class LogPadrao {
 
 	private static final String LOG_FILE_FORMAT = "%s_log.txt";
 	private static final String LOG_FOLDER_FORMAT = "%s/data/%s/logs";
+	private static final String LEVEL_ERROR = "erro";
+	private static final String LEVEL_INFO = "info";
 	private static final String TAG = BaseApplication.getContext().getPackageName();
 
 	// TODO remover variaveis static para ser reentrant
-	private static PrintWriter fileLog;
+	private static SoftReference<PrintWriter> fileLog;
+	private static LogEntry logEntryPrototype;
 	private static boolean debug = true;
 	//private static JanelaPadrao janela;
 
-	public static PrintWriter getFileLog() throws FrameworkException{
-		if (fileLog == null) {
-			File pasta = new File(getCaminhoLog());
+	public static String getLogPath() {
+		return String.format(
+				LOG_FOLDER_FORMAT,
+				Environment.getDataDirectory(),
+				BaseApplication.getContext().getPackageName()
+		);
+	}
+
+	public static String getDefaultLogFile() {
+		return String.format(LOG_FILE_FORMAT, DateUtil.dateToString(new Date()) );
+	}
+
+	public static PrintWriter getLog() throws FileNotFoundException{
+		PrintWriter fileLogPw = (fileLog == null) ? null : fileLog.get();
+		if (fileLogPw == null) {
+			String logPath = getLogPath();
+			File pasta = new File(logPath);
 			if (!pasta.exists()) {
 				pasta.mkdirs();
 			}
-			fileLog = openLogFile();
+			fileLogPw = openLogFile(logPath+'/'+getDefaultLogFile());
+			fileLog = new SoftReference<PrintWriter>(fileLogPw);
 		}
-		return fileLog;
+		return fileLogPw;
 	}
 
-	private static PrintWriter openLogFile() throws FrameworkException {
+	private static PrintWriter openLogFile(String path) throws FileNotFoundException {
+		File logFile = new File(path);
 		PrintWriter pw = null;
 		try {
 			pw = new PrintWriter(
 					new BufferedWriter(
 							new OutputStreamWriter(
-									new FileOutputStream(
-											getCaminhoLog()+
-											"/"+getArquivoLog()
-									),
+									new FileOutputStream(logFile),
 									"UTF-8"
 							)
 					)
 			);
 		} catch (UnsupportedEncodingException e) {  // Este erro nao deve acontecer em hipotese alguma
 			throw new RuntimeException(e);          // a menos que a plataforma nao suporte UTF-8!  O_o
-		} catch (FileNotFoundException e) {
-			throw new FrameworkException(ErrorCode.LOG_FILE_NOT_FOUND);
 		}
 		return pw;
 	}
 
+	private static void writeLog(String message) {
+		try {
+			getLog().print(message);
+			getLog().println();
+		} catch (FileNotFoundException e) {
+			// TODO avisar o usuario
+			//   - ou ocorreu um erro catastrofico no sistema de logs
+			//   - ou o sdcard encheu ... AVISAR
+		}
+	}
+
 	public static void i(String message){
-		// TODO 
+		Log.i(TAG,message);
+		if(logEntryPrototype!=null){
+			LogEntry entry = logEntryPrototype.cloneFor(message);
+			entry.setLevel(LEVEL_INFO);
+			entry.save();
+		}
 	}
 
 	public static void e(String message) {
-		try {
-			getFileLog().println(message);
-		} catch (FrameworkException e) {
-			// refazer isso aqui
-			gravarErro(e);
+		Log.e(TAG,message);
+		if(logEntryPrototype!=null){
+			LogEntry entry = logEntryPrototype.cloneFor(message);
+			entry.setLevel(LEVEL_ERROR);
+			entry.save();
 		}
-		// TODO nao entendi 
-//		log.append(message).append("\n");
-//		if (log.length() > TAMANHO_MAXIMO_LOG) {
-//			log.delete(0, log.length() - TAMANHO_MAXIMO_LOG);
-//		}
-//		if (debug) {
-//			if (message.length() >= TAMANHO_MAXIMO_PARTE_LOG) {
-//				for (int i = 0; i <= message.length() / TAMANHO_MAXIMO_PARTE_LOG; i++) {
-//					int logInicial = i * TAMANHO_MAXIMO_PARTE_LOG;
-//					int logFinal = logInicial + TAMANHO_MAXIMO_PARTE_LOG;
-//					if (logInicial > TAMANHO_MAXIMO_LOG) {
-//						return;
-//					}
-//					if (message.substring(logInicial).length() <= TAMANHO_MAXIMO_PARTE_LOG) {
-//						Log.d("GenericActivity Mobile", message.substring(logInicial));
-//					} else {
-//						Log.d("GenericActivity Mobile", message.substring(logInicial, logFinal));
-//					}
-//				}
-//			} else {
-//				Log.d("GenericActivity Mobile", message);
-//			}
-//		} else {
-//			Log.d("GenericActivity Mobile", message);
-//		}
 	}
 
 	public static void e(Throwable t){
@@ -119,10 +125,6 @@ public class LogPadrao {
 //		log.setLength(0);
 //	}
 
-	public static void gravarErro(Throwable t) {
-		// gravarErro(t,false);
-	}
-
 //	public static void gravarErro(Throwable t, boolean forcar) {
 //		try {
 //			erroBO.gravarErro(t, forcar);
@@ -130,18 +132,6 @@ public class LogPadrao {
 //			t2.printStackTrace();
 //		}
 //	}
-
-	public static String getCaminhoLog() {
-		return String.format(
-				LOG_FOLDER_FORMAT,
-				Environment.getDataDirectory(),
-				BaseApplication.getContext().getPackageName()
-		);
-	}
-
-	public static String getArquivoLog() {
-		return String.format(LOG_FILE_FORMAT, DateUtil.dateToString(new Date()) );
-	}
 
 	public static String getStackTrace(Throwable aThrowable) {
 		// aThrowable.printStackTrace();
