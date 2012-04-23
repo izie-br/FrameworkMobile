@@ -251,16 +251,6 @@ public class StringUtil {
 //		return getMesExtenso(getMes(dataBanco)) + " de " + getAno(dataBanco);
 //	}
 
-	public static String getStackTrace(Throwable aThrowable) {
-		// aThrowable.printStackTrace();
-		if (aThrowable == null) {
-			return null;
-		}
-		final Writer result = new StringWriter();
-		final PrintWriter printWriter = new PrintWriter(result);
-		aThrowable.printStackTrace(printWriter);
-		return result.toString();
-	}
 
 	public static boolean isNull(String string) {
 		if (string == null) {
