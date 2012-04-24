@@ -13,8 +13,8 @@ public class DateUtil {
 	/**
 	 * formato YYYY-MM-DD HH:mm:SS
 	 */
-	public static final String FORMATO_TIMESTAMP = "%4d-%2d-%2d %2d:%2d:%2d";
-	public static final String FORMATO_DATE = "%4d-%2d-%2d";
+	public static final String FORMATO_TIMESTAMP = "%04d-%02d-%02d %02d:%02d:%02d";
+	public static final String FORMATO_DATE = "%04d-%02d-%02d";
 
 	// substrings com fim nao inclusivo
 	private static int STRING_TO_DATE_ANO[] = {0,4};

@@ -23,18 +23,20 @@ public class LogPadrao {
 	public static void i(String message){
 		Log.i(TAG,message);
 		if(logEntryPrototype!=null){
-			LogEntry entry = logEntryPrototype.cloneFor(message);
-			entry.setLevel(LEVEL_INFO);
-			entry.save();
+			LogEntry logEntry = logEntryPrototype.clone();
+			logEntry.setMessage(message);
+			logEntry.setLevel(LEVEL_INFO);
+			logEntry.save();
 		}
 	}
 
 	public static void e(String message) {
 		Log.e(TAG,message);
 		if(logEntryPrototype!=null){
-			LogEntry entry = logEntryPrototype.cloneFor(message);
-			entry.setLevel(LEVEL_ERROR);
-			entry.save();
+			LogEntry logEntry = logEntryPrototype.clone();
+			logEntry.setMessage(message);
+			logEntry.setLevel(LEVEL_ERROR);
+			logEntry.save();
 		}
 	}
 

@@ -2,7 +2,6 @@ package br.com.cds.mobile.framework.test;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.widget.DatePicker;
 import de.akquinet.android.androlog.Log;
 
 public class TestActivity extends Activity {

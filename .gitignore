@@ -7,3 +7,4 @@ gerador/target/*
 */.settings/*
 test/bin/*
 test/gen/*
+test/target/*
