@@ -34,6 +34,7 @@ public class FrameworkException extends Exception{
 				"string/"+code.toString()
 		);
 		if(id==0){
+			// TODO cadastrar erro, todos erros devem ter uma mensagem
 			return String.format(
 					ERRO_SEM_MENSAGEM_DETALHADA_FORMAT,
 					code.toString()
