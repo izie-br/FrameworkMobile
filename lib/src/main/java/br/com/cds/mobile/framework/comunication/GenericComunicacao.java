@@ -13,6 +13,7 @@ import java.util.List;
 import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.Tarefa;
+import br.com.cds.mobile.framework.logging.LogPadrao;
 
 public class GenericComunicacao {
 
@@ -68,9 +69,11 @@ public class GenericComunicacao {
 
 	public boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa, String sincronia)
 			throws IOException {
+// TODO
 //		if (sincronia != null) {
 //			getBOFacade().iniciarSincronia(sincronia, SincroniaBean.RECEBIMENTO, 1);
 //		}
+		// TODO verificar erros
 		Throwable erro = null;
 		boolean retorno = false;
 		try {
@@ -120,6 +123,7 @@ public class GenericComunicacao {
 				fos.close();
 				is.close();
 				timestampFim = System.currentTimeMillis();
+				// TODO mover isto para cima
 				if (!GenericComunicacao.isConetado())
 					GenericComunicacao.conectado = true;
 				retorno = true;
@@ -130,6 +134,7 @@ public class GenericComunicacao {
 //			}
 			erro = t;
 			retorno = false;
+// TODO
 //		} finally {
 //			if (sincronia != null) {
 //				getBOFacade().finalizarSincronia(sincronia, SincroniaBean.RECEBIMENTO, 1, erro,
