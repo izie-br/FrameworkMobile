@@ -1,6 +1,5 @@
 package br.com.cds.mobile.framework.utils;
 
-import java.util.Calendar;
 import java.util.Date;
 
 import android.content.Context;
@@ -12,22 +11,21 @@ public class AndroidUtils {
 		return context.getResources().getIdentifier(name, null, context.getPackageName());
 	}
 
+	@SuppressWarnings("deprecation")
 	public static Date datePickerToDate(DatePicker dpData) {
-		return DateUtil.stringToDate(datePickerToString(dpData));
+		return new Date(dpData.getYear()-1900, dpData.getMonth(), dpData.getDayOfMonth());
 	}
 
-	public static String datePickerToString(DatePicker date) {
-		return String.format( DateUtil.FORMATO_DATE, date.getDayOfMonth(),date.getMonth()+1,date.getYear());
-	}
+//	private static String datePickerToString(DatePicker date) {
+//		return String.format( DateUtil.FORMATO_DATE, date.getDayOfMonth(),date.getMonth()+1,date.getYear());
+//	}
 
 	@SuppressWarnings("deprecation")
 	public static void preencheDatePicker(DatePicker datePicker, Date data) {
 		if (data == null) {
 			return;
 		}
-		Calendar cal = Calendar.getInstance();
-		cal.setTime(data);
-		datePicker.init(cal.getTime().getYear() + 1900, cal.getTime().getMonth(), cal.getTime().getDate(), null);
+		datePicker.init(data.getYear() + 1900, data.getMonth(), data.getDate(), null);
 	}
 
 }

@@ -5,3 +5,5 @@ gerador/target/*
 .project
 .classpath
 */.settings/*
+test/bin/*
+test/gen/*
