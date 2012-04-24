@@ -58,8 +58,8 @@ public class GeradorDeBeans {
 		// exemploDeUsoJSqlParser();
 
 		// TODO receber estas variaveis por comando de linha
-		String pacote = "br.com.cds.mobile";
-		String arquivo = "script/schema.sql";
+		String pacote = args[1];
+		String arquivo = args[0];
 
 		Collection<TabelaSchema> tabelasBanco =
 				getTabelasDoSchema(new FileReader(arquivo));
@@ -80,7 +80,7 @@ public class GeradorDeBeans {
 		Map<String, JDefinedClass> classesMap = new HashMap<String, JDefinedClass>();
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			JDefinedClass classeGerada =  jbf.gerarClasse(
-					pacote+".eb."+javaBeanSchema.getNome());
+					pacote+javaBeanSchema.getNome());
 			jbf.gerarConstantes(classeGerada, javaBeanSchema);
 			for(String coluna : javaBeanSchema.getColunas()){
 				Propriedade p = javaBeanSchema.getPropriedade(coluna);
