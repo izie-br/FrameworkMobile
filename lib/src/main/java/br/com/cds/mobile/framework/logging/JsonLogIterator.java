@@ -51,7 +51,7 @@ public class JsonLogIterator implements Iterator<JSONObject>{
 				return null;
 			try {
 				current = new FrameworkJSONTokener(
-						FileUtil.openLogToRead(logs.next().getPath())
+						FileUtil.openFileToRead(logs.next().getPath())
 				);
 			} catch (FileNotFoundException e) {
 				// Ocorre se o arquivo de log foi removido antes de ser lido

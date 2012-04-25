@@ -3,7 +3,6 @@ package br.com.cds.mobile.framework.utils;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
 import java.io.BufferedWriter;
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,7 +15,7 @@ import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
-import java.util.zip.Deflater;
+import java.util.ArrayList;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
 import java.util.zip.ZipEntry;
@@ -59,7 +58,7 @@ public class FileUtil {
 		return pw;
 	}
 
-	public static Reader openLogToRead(String path) throws FileNotFoundException{
+	public static Reader openFileToRead(String path) throws FileNotFoundException{
 		try{
 			return new InputStreamReader(
 					new FileInputStream(path),
@@ -71,21 +70,12 @@ public class FileUtil {
 	}
 
 
-//	public static boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa,
-//			String sincronia) throws IOException {
-//		return BOFacade.getInstance().baixarArquivo(urlString, path, arquivo, tarefa, sincronia);
-//	}
-//
-//	public static boolean baixarArquivo(String string, String path, String nomeArquivo, String sincronia)
-//			throws IOException {
-//		return baixarArquivo(string, path, nomeArquivo, null, sincronia);
-//	}
-
-	public static String unzipAPK(String path, String zipname) throws IOException {
+	public static String[] unzip(String path, String zipname) throws IOException {
+		ArrayList<String> files = new ArrayList<String>(1);
 		InputStream is;
 		ZipInputStream zis;
-		String apk = null;
-		is = new FileInputStream(path + zipname);
+		// int i = 0;
+		is = new FileInputStream(zipname);
 		zis = new ZipInputStream(new BufferedInputStream(is));
 		ZipEntry ze;
 
@@ -102,100 +92,119 @@ public class FileUtil {
 				}
 				pasta.mkdir();
 			} else {
-				new File(path + filename).delete();
-				FileOutputStream fout = new FileOutputStream(path + filename);
+				File file = new File(filename);
+				file.delete();
+				file.createNewFile();
+				FileOutputStream fout = new FileOutputStream(file);
 				while ((count = zis.read(buffer)) != -1) {
 					baos.write(buffer, 0, count);
 					byte[] bytes = baos.toByteArray();
 					fout.write(bytes);
 					baos.reset();
 				}
-				if (filename.toUpperCase().contains(".APK")) {
-					apk = filename;
-				}
+				files.add(filename);
 				fout.close();
 			}
 			zis.closeEntry();
+			//i++;
 		}
-
 		zis.close();
-
-		return apk;
+		String out[] = new String[files.size()];
+		for(int i=0;i<files.size();i++)
+			out[i] = files.get(i);
+		return out;
 	}
 
-	public static void compactarArquivoZip(String file, String zipFile) throws IOException{
+	public static void zipFiles(String zipFile,String...files) throws IOException{
+		if(files==null||files.length==0)
+			return;
+
 		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
-		byte[] data = new byte[1000];
-		BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-		int count;
-		out.putNextEntry(new ZipEntry(zipFile));
-		while ((count = in.read(data, 0, 1000)) != -1) {
-			out.write(data, 0, count);
+		int bufferSize = 1000;
+		byte[] data = new byte[bufferSize];
+
+		for(String file:files){
+			BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+			int count;
+			out.putNextEntry(new ZipEntry(file));
+			while ((count = in.read(data, 0, bufferSize)) != -1) {
+				out.write(data, 0, count);
+			}
+			in.close();
 		}
-		in.close();
 		out.flush();
 		out.close();
 	}
 
-	public static byte[] compactarArquivoZlib(byte[] input) {
-		Deflater deflater = new Deflater();
-		deflater.setInput(input);
-		deflater.finish();
-
-		ByteArrayOutputStream baos = new ByteArrayOutputStream();
-		byte[] buf = new byte[8192];
-		while (!deflater.finished()) {
-			int byteCount = deflater.deflate(buf);
-			baos.write(buf, 0, byteCount);
+//	public static byte[] compactarArquivoZlib(byte[] input) {
+//		Deflater deflater = new Deflater();
+//		deflater.setInput(input);
+//		deflater.finish();
+//
+//		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//		byte[] buf = new byte[8192];
+//		while (!deflater.finished()) {
+//			int byteCount = deflater.deflate(buf);
+//			baos.write(buf, 0, byteCount);
+//		}
+//		deflater.end();
+//
+//		byte[] compressedBytes = baos.toByteArray();
+//		return compressedBytes;
+//	}
+//
+//	public static byte[] compress(String string) throws IOException {
+//		ByteArrayOutputStream os = new ByteArrayOutputStream(string.length());
+//		GZIPOutputStream gos = new GZIPOutputStream(os);
+//		gos.write(string.getBytes());
+//		gos.close();
+//		byte[] compressed = os.toByteArray();
+//		os.close();
+//		return compressed;
+//	}
+//
+	public static String ungzip(String gzFile, String outFile) throws IOException {
+		int bufferSize = 32;
+		String outFileName = outFile;
+		int numSufix = 2;
+		while(new File(outFileName).exists()){
+			outFileName = outFile+numSufix;
+			numSufix++;
 		}
-		deflater.end();
-
-		byte[] compressedBytes = baos.toByteArray();
-		return compressedBytes;
-	}
-
-	public static byte[] compress(String string) throws IOException {
-		ByteArrayOutputStream os = new ByteArrayOutputStream(string.length());
-		GZIPOutputStream gos = new GZIPOutputStream(os);
-		gos.write(string.getBytes());
-		gos.close();
-		byte[] compressed = os.toByteArray();
-		os.close();
-		return compressed;
-	}
-
-	public static String decompress(byte[] compressed) throws IOException {
-		final int BUFFER_SIZE = 32;
-		ByteArrayInputStream is = new ByteArrayInputStream(compressed);
-		GZIPInputStream gis = new GZIPInputStream(is, BUFFER_SIZE);
-		StringBuilder string = new StringBuilder();
-		byte[] data = new byte[BUFFER_SIZE];
+		FileInputStream is = new FileInputStream(gzFile);
+		GZIPInputStream gis = new GZIPInputStream(is, bufferSize);
+		FileOutputStream out = new FileOutputStream(outFileName);
+		byte[] data = new byte[bufferSize];
 		int bytesRead;
 		while ((bytesRead = gis.read(data)) != -1) {
-			string.append(new String(data, 0, bytesRead));
+			out.write(data, 0, bytesRead);
 		}
-		gis.close();
 		is.close();
-		return string.toString();
+		out.close();
+		return outFile;
 	}
 
-	public static void compactarArquivoGZIP(String file, String zipFile) throws IOException{
-		int BUFFER = 1024;
+	public static String gzip(String file, String gzFile) throws IOException{
+		int bufferSize = 1024;
+		String outFileName = gzFile;
+		int numSufix = 2;
+		while(new File(outFileName).exists()){
+			outFileName = gzFile+numSufix;
+			numSufix++;
+		}
 		BufferedInputStream origin = null;
-		FileOutputStream dest;
-		dest = new FileOutputStream(zipFile);
+		FileOutputStream dest= new FileOutputStream(gzFile);
 		GZIPOutputStream out = new GZIPOutputStream(new BufferedOutputStream(dest));
-		byte data[] = new byte[BUFFER];
+		byte data[] = new byte[bufferSize];
 		FileInputStream fi = new FileInputStream(file);
-		origin = new BufferedInputStream(fi, BUFFER);
-		// ZipEntry entry = new
-		// ZipEntry(file.substring(file.lastIndexOf("/") + 1));
+		origin = new BufferedInputStream(fi, bufferSize);
 		int count;
-		while ((count = origin.read(data, 0, BUFFER)) != -1) {
+		while ((count = origin.read(data, 0, bufferSize)) != -1) {
 			out.write(data, 0, count);
 		}
 		origin.close();
 		out.close();
+		return outFileName;
 	}
 
 }

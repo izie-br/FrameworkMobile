@@ -2,16 +2,12 @@ package br.com.cds.mobile.framework.test.utils;
 
 import java.util.Arrays;
 
-import br.com.cds.mobile.framework.test.TestActivity;
+import junit.framework.TestCase;
+
 import br.com.cds.mobile.framework.utils.StringUtil;
-import android.test.ActivityInstrumentationTestCase2;
 
-public class StringUtilTests extends
-		ActivityInstrumentationTestCase2<TestActivity> {
+public class StringUtilTests extends TestCase {
 
-	public StringUtilTests() {
-		super("br.com.cds.mobile.framework.test", TestActivity.class);
-	}
 
 	public void testCollectionToCSV(){
 		String input[] = { "val0", "val1,val1", "\"val2\"", "val3\nval3\rval3" };

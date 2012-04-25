@@ -1,4 +1,4 @@
-package br.com.cds.mobile.framework.test.utils;
+package br.com.cds.mobile.framework.test.test;
 
 import java.util.ArrayList;
 import java.util.Iterator;
