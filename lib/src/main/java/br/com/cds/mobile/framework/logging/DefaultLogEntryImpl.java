@@ -1,31 +1,20 @@
 package br.com.cds.mobile.framework.logging;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
 import java.lang.ref.SoftReference;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
 import br.com.cds.mobile.framework.BaseApplication;
-import br.com.cds.mobile.framework.ErrorCode;
-import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.utils.DateUtil;
+import br.com.cds.mobile.framework.utils.FileUtil;
 import br.com.cds.mobile.framework.utils.StringUtil;
 
 public class DefaultLogEntryImpl implements LogEntry{
@@ -41,7 +30,6 @@ public class DefaultLogEntryImpl implements LogEntry{
 
 	private final static String LOG_FOLDER_RELATIVE_PATH = "/logs/";
 	private static final String LOG_FILE_FORMAT = "%s_log.txt";
-	private static final String ENCODING = "UTF-8";
 
 	private static SoftReference<PrintWriter> fileLog;
 
@@ -73,52 +61,13 @@ public class DefaultLogEntryImpl implements LogEntry{
 		return String.format(LOG_FILE_FORMAT, DateUtil.dateToString(new Date()) );
 	}
 
-	public static synchronized PrintWriter getLog() throws FrameworkException{
+	private static synchronized PrintWriter getLog() throws IOException{
 		PrintWriter fileLogPw = (fileLog == null) ? null : fileLog.get();
 		if (fileLogPw == null) {
-			String logPath = getLogFolder();
-			File pasta = new File(logPath);
-			if (!pasta.exists()) {
-				pasta.mkdirs();
-			}
-			fileLogPw = openLogFile(logPath+getLogFileName());
+			fileLogPw = FileUtil.openFileToAppend(getLogFolder()+getLogFileName());
 			fileLog = new SoftReference<PrintWriter>(fileLogPw);
 		}
 		return fileLogPw;
-	}
-
-	private static PrintWriter openLogFile(String path) throws FrameworkException {
-		File logFile = new File(path);
-		try {
-			if( !logFile.exists())
-				logFile.createNewFile();
-		} catch (IOException e1) {
-			throw new FrameworkException(ErrorCode.LOG_FILE_NOT_CREATED_IO_EXCEPTION);
-		}
-		PrintWriter pw = null;
-		try {
-			BufferedWriter bufferedWriter = new BufferedWriter(
-					new OutputStreamWriter(
-							new FileOutputStream(logFile,true),
-							ENCODING
-					)
-			);
-			pw = new PrintWriter(bufferedWriter){
-				@Override                                     // Nao estava escrevendo o log   
-				protected void finalize() throws Throwable {  // ao finalizar.                 
-					try{                                      // Sobreescrevi o metodo finalize
-						this.flush();                         // para realizar o flush.
-					} finally {
-						super.finalize();
-					}
-				}
-			};
-		} catch (UnsupportedEncodingException e) {  // Este erro nao deve acontecer em hipotese alguma
-			throw new RuntimeException(e);          // a menos que a plataforma nao suporte UTF-8!  O_o
-		} catch (FileNotFoundException e) {  // Este nao deve ocorrer, o arquivo de log jah
-			throw new RuntimeException(e);   // foi criado e, se nao, um erro jah foi lancado
-		}                                    // reescreva isto se o metodo "openLogFile" for refatorado
-		return pw;
 	}
 
 	public JSONObject toJson() throws JSONException{
@@ -163,6 +112,15 @@ public class DefaultLogEntryImpl implements LogEntry{
 		}
 	}
 
+	public static Iterator<JSONObject> logEntriesIterator(){
+		try {
+			getLog().flush();
+		} catch (IOException e) {
+			// TODO conferir se nao ha logs mesmo
+		}
+		return new JsonLogIterator(getLogFiles());
+	}
+
 	public static void clearAllLogs(){
 		File logs[] = getLogFiles();
 		for(File log: logs)
@@ -178,81 +136,6 @@ public class DefaultLogEntryImpl implements LogEntry{
 		else
 			logArray = new File[0];
 		return logArray;
-	}
-
-	public static Iterator<JSONObject> logEntriesIterator(){
-		try {
-			getLog().flush();
-		} catch (FrameworkException e) {
-			// TODO conferir se nao ha logs mesmo
-		}
-		return new JsonLogIterator();
-	}
-
-	private static class JsonLogIterator implements Iterator<JSONObject>{
-
-		Iterator<File> logs;
-		FrameworkJSONTokener current;
-		private JSONObject nextObj;
-
-		private JsonLogIterator(){
-			File[] logArray = getLogFiles();
-			logs = Arrays.asList(logArray).iterator();
-		}
-
-		@Override
-		public boolean hasNext() {
-			if(nextObj==null)
-				nextObj = getNextfromFiles();
-			return (nextObj!=null);
-		}
-
-		@Override
-		public JSONObject next() {
-			if(nextObj==null)
-				return getNextfromFiles();
-			JSONObject obj = nextObj;
-			nextObj = null;
-			return obj;
-		}
-
-		@Override
-		public void remove() {
-			throw new UnsupportedOperationException();
-		}
-		
-		private JSONObject getNextfromFiles(){
-			if(current==null){
-				if(!logs.hasNext())
-					return null;
-				current = new FrameworkJSONTokener(openLogToRead(logs.next()));
-			}
-			try {
-				return new JSONObject((JSONTokener)current);
-			} catch (JSONException e) {
-				// TODO conferir se o arquivo acabou
-				if(logs.hasNext()){
-					current = null;
-					return getNextfromFiles();
-				}
-				return null;
-			}
-		}
-
-		private Reader openLogToRead(File file){
-			try{
-				return new InputStreamReader(
-						new FileInputStream(file),
-						ENCODING
-				);
-			} catch (UnsupportedEncodingException e) {
-				throw new RuntimeException(e);   // Estes erros nao devem ocorrer na implementacao atual
-			} catch (FileNotFoundException e) {  // a menos que UTF-8 nao seja suportada  O_o
-				throw new RuntimeException(e);   // ou File::listFiles retorna arquivos inexistentes !
-			}
-		}
-
-
 	}
 
 }

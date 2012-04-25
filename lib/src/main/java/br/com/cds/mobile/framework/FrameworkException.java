@@ -43,4 +43,8 @@ public class FrameworkException extends Exception{
 		return context.getString(id);
 	}
 
+	public RuntimeException asRuntimeException(){
+		return new RuntimeException(this);
+	}
+
 }

@@ -2,13 +2,20 @@ package br.com.cds.mobile.framework.utils;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedWriter;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.PrintWriter;
+import java.io.Reader;
+import java.io.UnsupportedEncodingException;
 import java.util.zip.Deflater;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -16,10 +23,53 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
-import br.com.cds.mobile.framework.logging.LogPadrao;
-
-
 public class FileUtil {
+
+	public static PrintWriter openFileToAppend(String path) throws IOException{
+		File logFile = new File(path);
+		File folder = logFile.getParentFile();
+		if (!folder.exists())
+			folder.mkdirs();
+		if( !logFile.exists())
+			logFile.createNewFile();  // throws IOException
+		PrintWriter pw = null;
+		try {
+			BufferedWriter bufferedWriter = new BufferedWriter(
+					new OutputStreamWriter(
+							new FileOutputStream(logFile,true),
+							StringUtil.DEFAULT_ENCODING
+					)
+			);
+			pw = new PrintWriter(bufferedWriter){
+				@Override
+				protected void finalize() throws Throwable {  // Nao estava escrevendo logs ao 
+					try{                                      // ao finalizar dento de uma softreference.                 
+						this.flush();                         // Sobreescrevi o metodo finalize
+						this.close();                         // para realizar o flush.        
+					} finally {
+						super.finalize();
+					}
+				}
+			};
+		} catch (UnsupportedEncodingException e) {  // Este erro nao deve acontecer em hipotese alguma
+			throw new RuntimeException(e);          // a menos que a plataforma nao suporte UTF-8!  O_o
+		} catch (FileNotFoundException e) {  // Este nao deve ocorrer, o arquivo de log jah
+			throw new RuntimeException(e);   // foi criado e, se nao, um erro jah foi lancado
+		}                                    // reescreva isto se o metodo "openLogFile" for refatorado
+		return pw;
+	}
+
+	public static Reader openLogToRead(String path) throws FileNotFoundException{
+		try{
+			return new InputStreamReader(
+					new FileInputStream(path),
+					StringUtil.DEFAULT_ENCODING
+			);
+		} catch (UnsupportedEncodingException e) {// Este erro nao deve acontecer em hipotese alguma 
+			throw new RuntimeException(e);        // a menos que a plataforma nao suporte UTF-8!  O_o
+		}
+	}
+
 
 //	public static boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa,
 //			String sincronia) throws IOException {
@@ -35,7 +85,6 @@ public class FileUtil {
 		InputStream is;
 		ZipInputStream zis;
 		String apk = null;
-		int i = 0;
 		is = new FileInputStream(path + zipname);
 		zis = new ZipInputStream(new BufferedInputStream(is));
 		ZipEntry ze;
@@ -46,7 +95,6 @@ public class FileUtil {
 			int count;
 
 			String filename = ze.getName();
-			LogPadrao.d("unzipando:" + path + filename);
 			if (ze.isDirectory()) {
 				File pasta = new File(path + filename);
 				if (pasta.exists()) {
@@ -68,53 +116,42 @@ public class FileUtil {
 				fout.close();
 			}
 			zis.closeEntry();
-			i++;
 		}
 
 		zis.close();
-		LogPadrao.d("Arquivos extraidos:" + i);
 
 		return apk;
 	}
 
-	public static void compactarArquivoZip(String file, String zipFile) {
-		try {
-			ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
-			byte[] data = new byte[1000];
-			BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-			int count;
-			out.putNextEntry(new ZipEntry(zipFile));
-			while ((count = in.read(data, 0, 1000)) != -1) {
-				out.write(data, 0, count);
-			}
-			in.close();
-			out.flush();
-			out.close();
-		} catch (Exception e) {
-			LogPadrao.e(e);
+	public static void compactarArquivoZip(String file, String zipFile) throws IOException{
+		ZipOutputStream out = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(zipFile)));
+		byte[] data = new byte[1000];
+		BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
+		int count;
+		out.putNextEntry(new ZipEntry(zipFile));
+		while ((count = in.read(data, 0, 1000)) != -1) {
+			out.write(data, 0, count);
 		}
+		in.close();
+		out.flush();
+		out.close();
 	}
 
 	public static byte[] compactarArquivoZlib(byte[] input) {
-		try {
-			Deflater deflater = new Deflater();
-			deflater.setInput(input);
-			deflater.finish();
+		Deflater deflater = new Deflater();
+		deflater.setInput(input);
+		deflater.finish();
 
-			ByteArrayOutputStream baos = new ByteArrayOutputStream();
-			byte[] buf = new byte[8192];
-			while (!deflater.finished()) {
-				int byteCount = deflater.deflate(buf);
-				baos.write(buf, 0, byteCount);
-			}
-			deflater.end();
-
-			byte[] compressedBytes = baos.toByteArray();
-			return compressedBytes;
-		} catch (Exception e) {
-			LogPadrao.e(e);
+		ByteArrayOutputStream baos = new ByteArrayOutputStream();
+		byte[] buf = new byte[8192];
+		while (!deflater.finished()) {
+			int byteCount = deflater.deflate(buf);
+			baos.write(buf, 0, byteCount);
 		}
-		return null;
+		deflater.end();
+
+		byte[] compressedBytes = baos.toByteArray();
+		return compressedBytes;
 	}
 
 	public static byte[] compress(String string) throws IOException {
@@ -142,27 +179,23 @@ public class FileUtil {
 		return string.toString();
 	}
 
-	public static void compactarArquivoGZIP(String file, String zipFile) {
+	public static void compactarArquivoGZIP(String file, String zipFile) throws IOException{
 		int BUFFER = 1024;
 		BufferedInputStream origin = null;
 		FileOutputStream dest;
-		try {
-			dest = new FileOutputStream(zipFile);
-			GZIPOutputStream out = new GZIPOutputStream(new BufferedOutputStream(dest));
-			byte data[] = new byte[BUFFER];
-			FileInputStream fi = new FileInputStream(file);
-			origin = new BufferedInputStream(fi, BUFFER);
-			// ZipEntry entry = new
-			// ZipEntry(file.substring(file.lastIndexOf("/") + 1));
-			int count;
-			while ((count = origin.read(data, 0, BUFFER)) != -1) {
-				out.write(data, 0, count);
-			}
-			origin.close();
-			out.close();
-		} catch (IOException e) {
-			LogPadrao.e(e);
+		dest = new FileOutputStream(zipFile);
+		GZIPOutputStream out = new GZIPOutputStream(new BufferedOutputStream(dest));
+		byte data[] = new byte[BUFFER];
+		FileInputStream fi = new FileInputStream(file);
+		origin = new BufferedInputStream(fi, BUFFER);
+		// ZipEntry entry = new
+		// ZipEntry(file.substring(file.lastIndexOf("/") + 1));
+		int count;
+		while ((count = origin.read(data, 0, BUFFER)) != -1) {
+			out.write(data, 0, count);
 		}
+		origin.close();
+		out.close();
 	}
 
 }

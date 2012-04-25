@@ -9,7 +9,7 @@ import java.util.Iterator;
 
 public class StringUtil {
 
-	private static final String DEFAULT_ENCODING = "UTF-8";
+	public static final String DEFAULT_ENCODING = "UTF-8";
 
 	/**
 	 * Converte a colecao em csv.
