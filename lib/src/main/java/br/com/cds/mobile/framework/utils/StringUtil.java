@@ -1,21 +1,11 @@
 package br.com.cds.mobile.framework.utils;
 
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
-import java.io.Writer;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Collection;
 import java.util.Iterator;
-
-import android.os.Environment;
 
 public class StringUtil {
 
@@ -52,19 +42,19 @@ public class StringUtil {
 		return retorno.toString();
 	}
 
-	/**
-	 * Transforma o stream UTF-8 em uma string
-	 * @param is
-	 * @return
-	 * @throws IOException
-	 */
+//	/**
+//	 * Transforma o stream UTF-8 em uma string
+//	 * @param is
+//	 * @return
+//	 * @throws IOException
+//	 */
 //	public static String convertStreamToString(InputStream is) throws IOException {
 //		if (is == null)
 //			return "";
 //		Writer writer = new StringWriter();
 //		char[] buffer = new char[1024];
 //		try {
-//			Reader reader = new BufferedReader(new InputStreamReader(is, "UTF-8"));
+//			Reader reader = new BufferedReader(new InputStreamReader(is, DEFAULT_ENCODING));
 //			int n;
 //			while ((n = reader.read(buffer)) != -1) {
 //				writer.write(buffer, 0, n);
@@ -100,35 +90,35 @@ public class StringUtil {
 	// }
 
 
-	/**
-	 * 
-	 * @param nomeArquivo nome do aquivo
-	 * @param conteudo
-	 * @throws IOException
-	 */
-	public static void escreverNoArquivo(String nomeArquivo, String conteudo) throws IOException {
-		File root = Environment.getDataDirectory();
-		if (root.canWrite()) {
-			File file = new File(nomeArquivo);
-			file.mkdirs();
-			BufferedWriter out = new BufferedWriter(
-					new OutputStreamWriter(
-							new FileOutputStream(file),
-							DEFAULT_ENCODING
-					)
-			);
-			try{
-				out.write(conteudo);
-			} finally {
-				out.close();
-			}
-		}
-		// BufferedWriter out = new BufferedWriter(new FileWriter(
-		// "/sdcard/flora/fvm/anexos/" + nomeArquivo + "." + extensao));
-		// out.write(conteudo);
-		// out.close();
-	}
-
+//	/**
+//	 * 
+//	 * @param nomeArquivo nome do aquivo
+//	 * @param conteudo
+//	 * @throws IOException
+//	 */
+//	public static void escreverNoArquivo(String nomeArquivo, String conteudo) throws IOException {
+//		File root = Environment.getDataDirectory();
+//		if (root.canWrite()) {
+//			File file = new File(nomeArquivo);
+//			file.mkdirs();
+//			BufferedWriter out = new BufferedWriter(
+//					new OutputStreamWriter(
+//							new FileOutputStream(file),
+//							DEFAULT_ENCODING
+//					)
+//			);
+//			try{
+//				out.write(conteudo);
+//			} finally {
+//				out.close();
+//			}
+//		}
+//		// BufferedWriter out = new BufferedWriter(new FileWriter(
+//		// "/sdcard/flora/fvm/anexos/" + nomeArquivo + "." + extensao));
+//		// out.write(conteudo);
+//		// out.close();
+//	}
+//
 //	public static String readFileAsString(String filePath) throws java.io.IOException {
 //		StringBuffer fileData = new StringBuffer(1000);
 //		BufferedReader reader = new BufferedReader(new FileReader(filePath));
@@ -266,16 +256,16 @@ public class StringUtil {
 //		return String.format("%0"+tamanho+"d", campoInt);
 //	}
 
-	public static String lpad(int campoInt, int tamanho, char caracter) {
-		String campo = String.valueOf(campoInt);
-		StringBuilder temp = new StringBuilder(campo);
-		if (tamanho > campo.length()) {
-			for (int i = 0; i < (tamanho - campo.length()); i++) {
-				temp.insert(0, caracter);
-			}
-		}
-		return temp.toString();
-	}
+//	public static String lpad(int campoInt, int tamanho, char caracter) {
+//		String campo = String.valueOf(campoInt);
+//		StringBuilder temp = new StringBuilder(campo);
+//		if (tamanho > campo.length()) {
+//			for (int i = 0; i < (tamanho - campo.length()); i++) {
+//				temp.insert(0, caracter);
+//			}
+//		}
+//		return temp.toString();
+//	}
 
 	public static String lpad(String campo, int tamanho, char caracter) {
 		StringBuilder temp = new StringBuilder(campo);
@@ -363,7 +353,7 @@ public class StringUtil {
 			MessageDigest md;
 			md = MessageDigest.getInstance("SHA-1");
 			byte[] sha1hash = new byte[40];
-			md.update(text.getBytes("iso-8859-1"), 0, text.length());
+			md.update(text.getBytes(DEFAULT_ENCODING), 0, text.length());
 			sha1hash = md.digest();
 			return convertToHex(sha1hash);
 		} catch (NoSuchAlgorithmException e) {

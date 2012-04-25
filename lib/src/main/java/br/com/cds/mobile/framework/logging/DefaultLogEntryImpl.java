@@ -22,75 +22,72 @@ import org.json.JSONTokener;
 
 import android.content.Context;
 import android.content.pm.PackageManager.NameNotFoundException;
-import android.os.Environment;
 import br.com.cds.mobile.framework.BaseApplication;
 import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.utils.DateUtil;
+import br.com.cds.mobile.framework.utils.StringUtil;
 
 public class DefaultLogEntryImpl implements LogEntry{
 
-	private static String LOG_FILE_FORMAT = "%s_log.txt";
-	/*
-CREATE  TABLE tb_erro (
-  _id integer primary key autoincrement,
-  dt_erro text NULL,
-  erro_sha1 TEXT NOT NULL,
-  erro TEXT NOT NULL,
-  log TEXT NOT NULL,
-  versao_app VARCHAR(30) NULL,
-  versao_db VARCHAR(30) NULL,
-  ativo TINYINT NULL DEFAULT 1 
-);
+	// campos do json
+	public static final String USER_NAME = "user_name";
+	public static final String MESSAGE = "message";
+	public static final String HASH_CODE = "message_hash";
+	public static final String APP_VERSION = "app_version";
+	public static final String DB_VERSION = "db_version";
+	public static final String LEVEL = "level";
+	public static final String TIMESTAMP = "timestamp";
 
-	 */
+	private final static String LOG_FOLDER_RELATIVE_PATH = "/logs/";
+	private static final String LOG_FILE_FORMAT = "%s_log.txt";
+	private static final String ENCODING = "UTF-8";
 
-	private final static String LOG_FOLDER =  
-			BaseApplication.getContext().getApplicationInfo().dataDir + "/logs";
 	private static SoftReference<PrintWriter> fileLog;
 
 	private Date timestamp;
 	private String level;
 	private String message;
 	private String appVersion;
+	private String userName;
+	private int dbVersion;
 
 	public DefaultLogEntryImpl(){
 		Context ctx = BaseApplication.getContext();
 		try{
 			appVersion = ctx.getPackageManager().getPackageInfo(
 					ctx.getPackageName(), 0).versionName;
+			userName = BaseApplication.getUserName();
+			dbVersion = BaseApplication.getDBVersion();
 		} catch (NameNotFoundException e) {
 			throw new RuntimeException(); // Este erro nao deve ocorrer, senao
 		}                                 // o aplicativo nao tem pacote! O_o
 	}
 
-	public String getLogPath() {
-		return String.format(
-				LOG_FOLDER,
-				Environment.getDataDirectory(),
-				BaseApplication.getContext().getPackageName()
-		);
+	public static String getLogFolder() {
+		return BaseApplication.getContext().getApplicationInfo().dataDir +
+				LOG_FOLDER_RELATIVE_PATH;
 	}
 
-	public String getDefaultLogFile() {
+	public static String getLogFileName() {
 		return String.format(LOG_FILE_FORMAT, DateUtil.dateToString(new Date()) );
 	}
 
-	public synchronized PrintWriter getLog() throws FrameworkException{
+	public static synchronized PrintWriter getLog() throws FrameworkException{
 		PrintWriter fileLogPw = (fileLog == null) ? null : fileLog.get();
 		if (fileLogPw == null) {
-			String logPath = getLogPath();
+			String logPath = getLogFolder();
 			File pasta = new File(logPath);
 			if (!pasta.exists()) {
 				pasta.mkdirs();
 			}
-			fileLogPw = openLogFile(logPath+'/'+getDefaultLogFile());
+			fileLogPw = openLogFile(logPath+getLogFileName());
 			fileLog = new SoftReference<PrintWriter>(fileLogPw);
 		}
 		return fileLogPw;
 	}
 
-	private PrintWriter openLogFile(String path) throws FrameworkException {
+	private static PrintWriter openLogFile(String path) throws FrameworkException {
 		File logFile = new File(path);
 		try {
 			if( !logFile.exists())
@@ -100,34 +97,39 @@ CREATE  TABLE tb_erro (
 		}
 		PrintWriter pw = null;
 		try {
-			pw = new PrintWriter(
-					new BufferedWriter(
-							new OutputStreamWriter(
-									new FileOutputStream(logFile,true),
-									"UTF-8"
-							)
+			BufferedWriter bufferedWriter = new BufferedWriter(
+					new OutputStreamWriter(
+							new FileOutputStream(logFile,true),
+							ENCODING
 					)
-			){
-				@Override
-				protected void finalize() throws Throwable {
-					this.flush();
-					super.finalize();
+			);
+			pw = new PrintWriter(bufferedWriter){
+				@Override                                     // Nao estava escrevendo o log   
+				protected void finalize() throws Throwable {  // ao finalizar.                 
+					try{                                      // Sobreescrevi o metodo finalize
+						this.flush();                         // para realizar o flush.
+					} finally {
+						super.finalize();
+					}
 				}
 			};
 		} catch (UnsupportedEncodingException e) {  // Este erro nao deve acontecer em hipotese alguma
 			throw new RuntimeException(e);          // a menos que a plataforma nao suporte UTF-8!  O_o
 		} catch (FileNotFoundException e) {  // Este nao deve ocorrer, o arquivo de log jah
-			throw new RuntimeException(e);   // foi criado e se nao funcionou, um erro jah foi lancado
-		}                                    // reescreva se o metodo "openLogFile" foi refatorado
+			throw new RuntimeException(e);   // foi criado e, se nao, um erro jah foi lancado
+		}                                    // reescreva isto se o metodo "openLogFile" for refatorado
 		return pw;
 	}
 
 	public JSONObject toJson() throws JSONException{
 		JSONObject json = new JSONObject();
-		json.put("timestamp", DateUtil.dateToString(timestamp));
-		json.put("level", level);
-		json.put("application_version", appVersion);
-		json.put("message", message);
+		json.put(TIMESTAMP, DateUtil.dateToString(timestamp));
+		json.put(USER_NAME, userName);
+		json.put(APP_VERSION, appVersion);
+		json.put(DB_VERSION, dbVersion);
+		json.put(LEVEL, level);
+		json.put(MESSAGE, message);
+		json.put(HASH_CODE, StringUtil.SHA1(message));
 		return json;
 	}
 
@@ -138,7 +140,6 @@ CREATE  TABLE tb_erro (
 			LogPadrao.d(json.toString());
 			PrintWriter log = getLog();
 			log.println(json.toString());
-			//log.flush();
 			return true;
 		} catch (Exception e) {
 			// TODO 
@@ -147,9 +148,10 @@ CREATE  TABLE tb_erro (
 	}
 
 	@Override
-	public void setMessage(String message) {
-		this.message = message;
+	public void log(String level,String message) {
 		this.timestamp = new Date();
+		this.level = level;
+		this.message = message;
 	}
 
 	@Override
@@ -161,19 +163,15 @@ CREATE  TABLE tb_erro (
 		}
 	}
 
-	@Override
-	public void setLevel(String level) {
-		this.level = level;
-	}
-
 	public static void clearAllLogs(){
 		File logs[] = getLogFiles();
 		for(File log: logs)
 			log.delete();
+		fileLog = null;
 	}
 
 	public static File[] getLogFiles() {
-		File logFolder = new File(LOG_FOLDER);
+		File logFolder = new File(getLogFolder());
 		File logArray[];
 		if(logFolder.exists())
 			logArray = logFolder.listFiles();
@@ -183,21 +181,24 @@ CREATE  TABLE tb_erro (
 	}
 
 	public static Iterator<JSONObject> logEntriesIterator(){
+		try {
+			getLog().flush();
+		} catch (FrameworkException e) {
+			// TODO conferir se nao ha logs mesmo
+		}
 		return new JsonLogIterator();
 	}
 
 	private static class JsonLogIterator implements Iterator<JSONObject>{
 
 		Iterator<File> logs;
-		Reader current;
+		FrameworkJSONTokener current;
 		private JSONObject nextObj;
 
 		private JsonLogIterator(){
 			File[] logArray = getLogFiles();
 			logs = Arrays.asList(logArray).iterator();
 		}
-
-
 
 		@Override
 		public boolean hasNext() {
@@ -224,13 +225,16 @@ CREATE  TABLE tb_erro (
 			if(current==null){
 				if(!logs.hasNext())
 					return null;
-				current = openLogToRead(logs.next());
+				current = new FrameworkJSONTokener(openLogToRead(logs.next()));
 			}
-			FrameworkJSONTokener tokener = new FrameworkJSONTokener(current);
 			try {
-				return new JSONObject((JSONTokener)tokener);
+				return new JSONObject((JSONTokener)current);
 			} catch (JSONException e) {
 				// TODO conferir se o arquivo acabou
+				if(logs.hasNext()){
+					current = null;
+					return getNextfromFiles();
+				}
 				return null;
 			}
 		}
@@ -239,7 +243,7 @@ CREATE  TABLE tb_erro (
 			try{
 				return new InputStreamReader(
 						new FileInputStream(file),
-						"UTF-8"
+						ENCODING
 				);
 			} catch (UnsupportedEncodingException e) {
 				throw new RuntimeException(e);   // Estes erros nao devem ocorrer na implementacao atual

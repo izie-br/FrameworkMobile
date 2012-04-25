@@ -2,9 +2,12 @@ package br.com.cds.mobile.framework.logging;
 
 public interface LogEntry extends Cloneable{
 
+	String LEVEL_ERROR = "erro";
+	String LEVEL_INFO = "info";
+
+
 	boolean save();
-	void setMessage(String message);
 	LogEntry clone();
-	void setLevel(String level);
+	void log(String level, String message);
 
 }

@@ -10,8 +10,6 @@ import android.util.Log;
 
 public class LogPadrao {
 
-	private static final String LEVEL_ERROR = "erro";
-	private static final String LEVEL_INFO = "info";
 	private static final String TAG = BaseApplication.getContext().getPackageName();
 
 	// TODO remover variaveis static para ser reentrant
@@ -19,13 +17,15 @@ public class LogPadrao {
 	private static boolean debug = true;
 	//private static JanelaPadrao janela;
 
+	public static void setPrototype(LogEntry logEntryPrototype){
+		LogPadrao.logEntryPrototype = logEntryPrototype;
+	}
 
 	public static void i(String message){
 		Log.i(TAG,message);
 		if(logEntryPrototype!=null){
 			LogEntry logEntry = logEntryPrototype.clone();
-			logEntry.setMessage(message);
-			logEntry.setLevel(LEVEL_INFO);
+			logEntry.log(LogEntry.LEVEL_INFO,message);
 			logEntry.save();
 		}
 	}
@@ -34,8 +34,7 @@ public class LogPadrao {
 		Log.e(TAG,message);
 		if(logEntryPrototype!=null){
 			LogEntry logEntry = logEntryPrototype.clone();
-			logEntry.setMessage(message);
-			logEntry.setLevel(LEVEL_ERROR);
+			logEntry.log(LogEntry.LEVEL_ERROR,message);
 			logEntry.save();
 		}
 	}
@@ -49,28 +48,7 @@ public class LogPadrao {
 			Log.d(TAG, message);
 	}
 
-//	public static void d(Throwable aThrowable) {
-//		d(StringUtil.getStackTrace(aThrowable));
-//	}
-
-//	public static String getLogString() {
-//		return log.toString();
-//	}
-//
-//	public static void reset() {
-//		log.setLength(0);
-//	}
-
-//	public static void gravarErro(Throwable t, boolean forcar) {
-//		try {
-//			erroBO.gravarErro(t, forcar);
-//		} catch (Throwable t2) {
-//			t2.printStackTrace();
-//		}
-//	}
-
 	public static String getStackTrace(Throwable aThrowable) {
-		// aThrowable.printStackTrace();
 		if (aThrowable == null) {
 			return null;
 		}
