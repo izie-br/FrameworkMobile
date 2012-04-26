@@ -1,8 +1,10 @@
 package br.com.cds.mobile.geradores;
 
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
@@ -17,6 +19,7 @@ import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
 
@@ -86,6 +89,22 @@ public class CodeModelBeanFactory {
 		//TODO escrever hascode e equals
 	}
 
+	public void gerarSerialVersionUID(JDefinedClass klass){
+		Map<String, JFieldVar> fields = klass.fields();
+		long result = 1;
+		for(String key : fields.keySet()){
+			JFieldVar field = fields.get(key);
+			if( (field.mods().getValue()|JMod.TRANSIENT)!=0)
+				result *= field.name().hashCode() + field.type().fullName().hashCode();
+		}
+		klass.field(
+				JMod.PRIVATE|JMod.STATIC|JMod.FINAL,
+				jcm.LONG,
+				"serialVersionUID",
+				JExpr.lit(result)
+		);
+	}
+
 	public JDefinedClass gerarPropriedades(JDefinedClass classeBean, Collection<Propriedade> propriedades){
 		for(Propriedade propriedade: propriedades){
 			gerarPropriedade(classeBean, propriedade);
@@ -112,6 +131,8 @@ public class CodeModelBeanFactory {
 				fullyqualifiedName,
 				ClassType.CLASS
 		);
+		classeBean._implements(Serializable.class);
+		classeBean._implements(Cloneable.class);
 		return classeBean;
 	}
 
@@ -138,12 +159,27 @@ public class CodeModelBeanFactory {
 	public void gerarMetodoClone(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		JMethod clone = klass.method(JMod.PUBLIC, klass, "clone");
 		JBlock corpo = clone.body();
-		JVar newClone = corpo.decl(klass, "obj", JExpr._new(klass));
+		JVar newClone = corpo.decl(klass, "obj");
+		JTryBlock tryCast = corpo._try();
+		tryCast.body().assign(
+				newClone,
+				JExpr.cast(klass, JExpr._super().invoke("clone"))
+		);
+		tryCast
+			._catch(jcm.ref(CloneNotSupportedException.class))
+			.body()
+			._return(JExpr._null());
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
-			if(propriedade.equals(javaBeanSchema.getPrimaryKey()))
-				continue;
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
+			// se for necessario "zerar"o id
+			//if(propriedade.equals(javaBeanSchema.getPrimaryKey()))
+			//	corpo.assign(
+			//			newClone.ref(campo),
+			//			JExpr.direct(CodeModelDaoFactory.ID_PADRAO)
+			//	);
+			if(campo.type().isPrimitive()||campo.type().equals(getTipo(String.class)))
+				continue;
 			if(propriedade.getType().equals(Date.class))
 				corpo.assign(
 						newClone.ref(campo),

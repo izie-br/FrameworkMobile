@@ -2,7 +2,6 @@ package br.com.cds.mobile.db;
 
 import java.lang.ref.SoftReference;
 
-import br.com.cds.mobile.framework.LogPadrao;
 import br.com.cds.mobile.framework.config.Aplicacao;
 import br.com.cds.mobile.framework.utils.AndroidUtils;
 
@@ -15,7 +14,7 @@ public class DB extends SQLiteOpenHelper{
 
 	private static String DB_NOME = "default.db";
 	private static int DB_VERSAO_INICIAL = 0;
-	private static int DB_VERSAO = 0;
+	public static int DB_VERSAO = 0;
 	private static String DB_VERSOES_RESOURCES_PREFIXO = "db_versao_";
 
 	public static SoftReference<DB> instancia;
@@ -54,31 +53,23 @@ public class DB extends SQLiteOpenHelper{
 		return ctx.getString(id);
 	}
 
-	public void execMultipleSQL(SQLiteDatabase db, String[] sql) {
+	public void execMultipleSQL(SQLiteDatabase db, String[] sql) throws SQLException {
 		if (sql == null) {
 			return;
 		}
 		for (int i = 0; i < sql.length; i++) {
-			try {
-				if (sql[i].trim().length() > 0) {
-					db.execSQL(sql[i]);
-				}
-			} catch (Throwable e) {
-				LogPadrao.d(e.getMessage());
-				e.printStackTrace();
+			if (sql[i].trim().length() > 0) {
+				db.execSQL(sql[i]);
 			}
 		}
 	}
 
-	public void executaScript(String sql, SQLiteDatabase db) {
+	public void executaScript(String sql, SQLiteDatabase db) throws SQLException{
 		String[] sqlArray = sql.toString().split(";");
 		db.beginTransaction();
 		try {
-			execMultipleSQL(db, sqlArray, false);
+			execMultipleSQL(db, sqlArray);
 			db.setTransactionSuccessful();
-		} catch (SQLException e) {
-			// TODO consertar
-			LogPadrao.d("Erro ao criar o banco " + DB_NOME+ e.toString());
 		} finally {
 			db.endTransaction();
 		}
