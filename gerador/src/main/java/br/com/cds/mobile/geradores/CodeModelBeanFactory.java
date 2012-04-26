@@ -89,12 +89,7 @@ public class CodeModelBeanFactory {
 
 		for(String campoNome : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)) {
 			JFieldVar campo = klass.fields().get(javaBeanSchema.getPropriedade(campoNome).getNome());
-			if(
-					campo!=null &&
-					( (campo.mods().getValue()&JMod.TRANSIENT)==0 ) &&
-					( (campo.mods().getValue()&JMod.STATIC)==0 ) &&
-					( (campo.mods().getValue()&JMod.FINAL)==0 )
-			)
+			if(campo!=null && fieldNotTransientStaticFinal(campo))
 				camposUsados.add(campo);
 		}
 
@@ -279,11 +274,7 @@ public class CodeModelBeanFactory {
 		long result = 1;
 		for(String key : fields.keySet()){
 			JFieldVar field = fields.get(key);
-			if(
-					((field.mods().getValue()&JMod.TRANSIENT)!=0) &&
-					((field.mods().getValue()&JMod.STATIC)!=0) &&
-					((field.mods().getValue()&JMod.FINAL)!=0)
-			){
+			if(fieldNotTransientStaticFinal(field)){
 				result = result*field.name().hashCode() + field.type().fullName().hashCode();
 			}
 		}
@@ -293,6 +284,12 @@ public class CodeModelBeanFactory {
 				"serialVersionUID",
 				JExpr.lit(result)
 		);
+	}
+
+	private boolean fieldNotTransientStaticFinal(JFieldVar field) {
+		return ((field.mods().getValue()&JMod.TRANSIENT)==0) &&
+		((field.mods().getValue()&JMod.STATIC)==0) &&
+		((field.mods().getValue()&JMod.FINAL)==0);
 	}
 
 	/**
