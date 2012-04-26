@@ -2,6 +2,8 @@ package br.com.cds.mobile.framework.logging;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
 
 import org.json.JSONException;
@@ -74,6 +76,10 @@ public class FrameworkJSONTokener extends JSONTokener{
         this.index = 0;
         this.character = 1;
         this.line = 1;
+    }
+
+    public FrameworkJSONTokener(InputStream inputStream){
+        this(new InputStreamReader(inputStream));
     }
 
     /**

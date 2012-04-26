@@ -1,6 +1,7 @@
 package br.com.cds.mobile.framework;
 
 import android.content.Context;
+import br.com.cds.mobile.framework.logging.LogPadrao;
 import br.com.cds.mobile.framework.utils.AndroidUtils;
 
 public class FrameworkException extends Exception{
@@ -34,11 +35,12 @@ public class FrameworkException extends Exception{
 				"string/"+code.toString()
 		);
 		if(id==0){
-			// TODO cadastrar erro, todos erros devem ter uma mensagem
-			return String.format(
+			String message = String.format(
 					ERRO_SEM_MENSAGEM_DETALHADA_FORMAT,
 					code.toString()
 			);
+			LogPadrao.e(message);
+			return message;
 		}
 		return context.getString(id);
 	}

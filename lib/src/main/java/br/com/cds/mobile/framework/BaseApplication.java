@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 
+// TODO refatorar o sincronizador e serviceConnection
 public abstract class BaseApplication extends Application{
 
 	private static BaseApplication instance;
