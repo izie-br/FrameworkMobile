@@ -38,7 +38,10 @@ import com.sun.codemodel.JVar;
 
 public class CodeModelDaoFactory {
 
-	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT = "%s nao encontrada em %s.";
+	private static final String REFERENCIA_NAO_ENCONTRADA =
+			"Referencia em associacao to many nao encontrada";
+	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT =
+			"%s nao encontrada em %s.";
 
 	// o valor 0 nao pode ser uma PK no sqlite
 	public static final long ID_PADRAO = 0;
@@ -159,14 +162,25 @@ public class CodeModelDaoFactory {
 		JFieldVar id = pkVar;
 		JConditional ifIdNull = corpo._if(
 				id.eq(JExpr.lit(ID_PADRAO)));
-		// db.insertOrThrow(getTabela(), null, contentValues);
+		/* **********************************************************
+		 * if(id==ID_PADRAO)                                                 *
+		 *      db.insertOrThrow(getTabela(), null, contentValues); *
+		 ***********************************************************/
 		ifIdNull._then().invoke(db, "insertOrThrow")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(JExpr._null())
 			.arg(contentValues);
 
-		// else
-		// db.update(getTabela(), objetoToContentValue(objeto), getColunaId() + "=?", new String[] { "" + id });
+		/* ***************************************
+		 * else {                                *
+		 *     db.update(                        *
+		 *         getTabela(),                  *
+		 *         objetoToContentValue(objeto), *
+		 *         getColunaId() + "=?",         *
+		 *         new String[] { "" + id }      *
+		 *     );                                *
+		 * }                                     *
+		 ****************************************/
 		JBlock elseBlock = ifIdNull._else();
 		// TODO refazer com Q
 		JExpression sqlExp = klass.fields().get(
@@ -186,28 +200,24 @@ public class CodeModelDaoFactory {
 	}
 
 	public void gerarMetodoDelete(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
-		/************************************************************
-		 * public boolean save(){                                   *
-		 *   ContentValues cv = new ContentValues();                *
-		 *   cv.put(ClasseBean.CAMPO,this.campo);                   *
-		 *   cv.put(*);                                             *
-		 *   if(id==-1)                                             *
-		 *     db.insertOrThrow(getTabela(), null, contentValues);  *
-		 *   else                                                   *
-		 *     db.update(getTabela(), objetoToContentValue(objeto), *
-		 *         getColunaId() + "=?", new String[] { "" + id }); *
-		 *   return true;                                           *
+		/* **********************************************************
+		 * public boolean delete(){                                 *
+		 *     if(id!=ID_PADRAO) {                                  *
+		 *        db.delete(TABELA,ID+"=?",new String[] { id });    *
+		 *        return true;                                      *
+		 *     }                                                    *
+		 *     return false;                                        *
 		 * }                                                        *
 		 ***********************************************************/
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock corpo = delete.body();
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
-		// if(id!=-1)
-		JConditional ifIdNotNull = corpo._if(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome())
-				.ne(JExpr.lit(ID_PADRAO)));
+		// if(id!=ID_PADRAO)
+		JFieldVar pkField = klass.fields().get(javaBeanSchema.getPrimaryKey().getNome());
+		JConditional ifIdNotNull = corpo._if(
+				pkField.ne(JExpr.lit(ID_PADRAO))
+		);
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
-
-		// if(id!=null)
 		JBlock blocoThen = ifIdNotNull._then();
 		blocoThen.invoke(db, "delete")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
@@ -219,11 +229,10 @@ public class CodeModelDaoFactory {
 					)
 				).plus(JExpr.lit("=?"))
 			)
-			// new String[]{""+id}
+			// new String[]{id}
 			.arg(
 				JExpr.newArray(jcm.ref(String.class)).add(
-					JExpr.lit("")
-					.plus(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome()))
+					boxify(pkField).invoke("toString")
 				)
 			);
 
@@ -234,9 +243,9 @@ public class CodeModelDaoFactory {
 	}
 
 	public void gerarMetodoObjects(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
-		JClass queryset = jcm.ref(QuerySet.class).narrow(klass);
+		JClass queryset = jcm.ref(QuerySet.class);
 		JDefinedClass qsInner = gerarQuerySet(klass,javaBeanSchema,queryset);
-		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset, "objects");
+		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset.narrow(klass), "objects");
 		metodoObjects.body()._return(JExpr._new(qsInner.narrow(klass)).arg(JExpr._new(klass)));
 	}
 
@@ -244,9 +253,10 @@ public class CodeModelDaoFactory {
 			JDefinedClass klass,JavaBeanSchema javaBeanSchema, JClass queryset
 	){
 		try {
-			JDefinedClass querySetInner = klass._class(JMod.PUBLIC|JMod.STATIC, "QuerySet");
-			querySetInner._extends(queryset);
-			gerarQuerySetInnerInternals(klass, javaBeanSchema, querySetInner);
+			JDefinedClass querySetInner = klass._class(JMod.PUBLIC|JMod.STATIC, "QuerySetImpl");
+			JTypeVar generic = querySetInner.generify("T", klass);
+			querySetInner._extends(queryset.narrow(generic));
+			gerarQuerySetInnerInternals(klass, javaBeanSchema, querySetInner,generic);
 			return querySetInner;
 		} catch (JClassAlreadyExistsException e) {
 			throw new RuntimeException(e);
@@ -256,18 +266,15 @@ public class CodeModelDaoFactory {
 	private void gerarQuerySetInnerInternals(
 			JDefinedClass klass,
 			JavaBeanSchema javaBeanSchema,
-			JDefinedClass querySetInner
+			JDefinedClass querySetInner,
+			JTypeVar generic
 	){
 
 		List<String> colunasEmOrdem = ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema);
-
-		JTypeVar generic = querySetInner.generify("T", klass);
-
 		/*
 		 * prototipo
 		 */
 		JFieldVar prototipo = querySetInner.field(JMod.PRIVATE, generic, "prototipo");
-
 		/*
 		 * Construtor
 		 */
@@ -324,14 +331,14 @@ public class CodeModelDaoFactory {
 		}
 		getColunas.body()._return(colunasArray);
 
-		/**
-		 * Override
-		 * protected Classe cursorToObject(Cursor cursor){
-		 *   Classe bean = new Classe();
-		 *   bean.id = cursor.getLong(0);
-		 *   bean.nome = cursor.
-		 * }
-		 */
+		/* *************************************************
+		 * Override                                        *
+		 * protected Classe cursorToObject(Cursor cursor){ *
+		 *   Classe bean = new Classe();                   *
+		 *   bean.id = cursor.getLong(0);                  *
+		 *   bean.nome = cursor.                           *
+		 * }                                               *
+		 **************************************************/
 		JMethod cursorToObject = querySetInner.method(
 				JMod.PROTECTED, generic, "cursorToObject");
 		cursorToObject.annotate(java.lang.Override.class);
@@ -376,17 +383,36 @@ public class CodeModelDaoFactory {
 						associacao.getTabelaB().equals(javaBeanSchemaA.getTabela()) &&
 						associacao.getTabelaA().equals(javaBeanSchemaB.getTabela())
 				){
+					// variavel para lazy load
+					// tansient == nao serializavel
 					JFieldVar campo = klassA.field(
 							JMod.PRIVATE|JMod.TRANSIENT,
 							klassB,
 							CamelCaseUtils.tolowerCamelCase(klassB.name())
 					);
+					/* ***********************************************
+					 *   //getter de associacao "to-one"             *
+					 *                                               *
+					 * public Asscociada getAsscociada(){            *
+					 *     if (                                      *
+					 *         (associada == null)&&                 *
+					 *         (idVendedor!= 0L)                     *
+					 *     ) {                                       *
+					 *         vendedor = Vendedor.objects().filter( *
+					 *             Vendedor.ID +"=?",                *
+					 *             idVendedor                        *
+					 *         ).first();                            *
+					 *     }                                         *
+					 *     return vendedor;                          *
+					 * }                                             *
+					 ************************************************/
 					JMethod getKlassB = klassA.method(
 							JMod.PUBLIC,
 							klassB,
 							"get"+javaBeanSchemaB.getNome()
 					);
 					JBlock corpo = getKlassB.body();
+					// if( (associada == null)&&(idVendedor!= 0L) )
 					JConditional ifCampoNull = corpo._if(
 							campo.eq(
 									JExpr._null()
@@ -396,17 +422,28 @@ public class CodeModelDaoFactory {
 									.ne(JExpr.lit(ID_PADRAO))
 							)
 					);
-					ifCampoNull._then().assign(campo,
-							klassB.staticInvoke("objects")
-							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
-									javaBeanSchemaB.getConstante(oneToMany.getReferenciaA())
-							)).plus(JExpr.lit("=?"))).arg(
-									klassA.fields().get(
-											javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome()
-									)
-							)
-							.invoke("first")
-					);
+					/* ***********************************************************
+					 *  Associada.objects().filter(Vendedor.ID +"=?",idVendedor) *
+					 ************************************************************/
+					JInvocation invokeQuery = klassB.staticInvoke("objects")
+						// .filter
+						.invoke("filter")
+						// Vendedor.ID +"=?"
+						.arg(
+								klassB.staticRef(klassB.fields().get(
+										javaBeanSchemaB.getConstante(oneToMany.getReferenciaA())
+								))
+								.plus(JExpr.lit("=?"))
+						)
+						// idVendedor
+						.arg(
+								klassA.fields().get(
+										javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome()
+								)
+						);
+					// associada = Associada.objects().filter(Vendedor.ID +"=?",idVendedor).first()
+					ifCampoNull._then().assign( campo, invokeQuery.invoke("first") );
+					// return associada
 					corpo._return(campo);
 				} else if(
 						associacao.getTabelaA().equals(javaBeanSchemaA.getTabela()) &&
@@ -416,36 +453,36 @@ public class CodeModelDaoFactory {
 					JClass collectionKlassB = jcm.ref(
 							br.com.cds.mobile.framework.query.QuerySet.class
 					).narrow(klassB);
-					JFieldVar campo = klassA.field(
-							JMod.PRIVATE|JMod.TRANSIENT,
-							collectionKlassB,
-							CamelCaseUtils.tolowerCamelCase(nomePlural)
-					);
+
+//					JFieldVar campo = klassA.field(
+//							JMod.PRIVATE|JMod.TRANSIENT,
+//							collectionKlassB,
+//							CamelCaseUtils.tolowerCamelCase(nomePlural)
+//					);
+
 					JMethod getKlassB = klassA.method(
 							JMod.PUBLIC,
 							collectionKlassB,
 							"get"+ nomePlural
 					);
 					JBlock corpo = getKlassB.body();
-					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
-					if(
-							klassA.fields().get(
-									javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
-							) == null
-					)
-						throw new RuntimeException("Erro");
-					ifCampoNull._then().assign(
-							campo,
-							klassB.staticInvoke("objects")
-							.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
-									javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
-							)).plus(JExpr.lit("=?"))).arg(
-									klassA.fields().get(
-											javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
-									)
-							)
+//					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
+					JFieldVar referenciaA = klassA.fields().get(
+							javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
 					);
-					corpo._return(campo);
+					if(referenciaA == null)
+						throw new RuntimeException(REFERENCIA_NAO_ENCONTRADA);
+					JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
+						.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
+								javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
+						)).plus(JExpr.lit("=?"))).arg(
+								referenciaA
+						);
+//					ifCampoNull._then().assign(
+//							campo,
+//							invokeAssociadaObjects
+//					);
+					corpo._return(invokeAssociadaObjects);
 				}
 
 			}
