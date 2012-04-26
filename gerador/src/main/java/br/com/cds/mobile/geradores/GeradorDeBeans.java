@@ -86,6 +86,9 @@ public class GeradorDeBeans {
 			throws IOException, FileNotFoundException
 	{
 
+		String dbClass = pacote+".db.DB";
+		String dbStaticMethod = "getDb";
+
 		Collection<TabelaSchema> tabelasBanco =
 				getTabelasDoSchema(new FileReader(arquivoSql));
 
@@ -101,7 +104,7 @@ public class GeradorDeBeans {
 
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
-		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm,pacote);
+		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
 		CodeModelJsonSerializacaoFactory jsonFactory = new CodeModelJsonSerializacaoFactory(jcm);
 
 		ArrayList<SchemaXJClass> listClasses = new ArrayList<GeradorDeBeans.SchemaXJClass>();

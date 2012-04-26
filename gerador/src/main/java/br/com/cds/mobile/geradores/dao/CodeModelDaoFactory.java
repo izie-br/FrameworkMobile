@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 import android.content.ContentValues;
+import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.query.QuerySet;
 import br.com.cds.mobile.framework.utils.CamelCaseUtils;
@@ -30,28 +31,43 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JOp;
+import com.sun.codemodel.JPrimitiveType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 
 public class CodeModelDaoFactory {
 
-	private static final String DB_CLASS = ".db.DB";
-	// private static final String PACOTE = "br.com.cds.mobile.flora.db";
-	// o valor 0 nao pode ser uma PK no sqlite
-	public static final String ID_PADRAO = "0";
-	private JCodeModel jcm;
-	private String _package;
+	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT = "%s nao encontrada em %s.";
 
-	public CodeModelDaoFactory(JCodeModel jcm, String _package){
+	// o valor 0 nao pode ser uma PK no sqlite
+	public static final long ID_PADRAO = 0;
+
+	private JCodeModel jcm;
+	private String dbClass;
+	private String getDbStaticMethod;
+
+	public CodeModelDaoFactory(JCodeModel jcm, String dbClass,
+			String getDbStaticMethod) {
+		super();
 		this.jcm = jcm;
-		this._package = _package;
+		this.dbClass = dbClass;
+		this.getDbStaticMethod = getDbStaticMethod;
 	}
 
+	/**
+	 * <p>Gera os metodos de insert/update/delete, no estilo "active record"</p>
+	 * <p>Cria tambem metodo de busca, retornando um QuerySet</p>
+	 * @param klass
+	 * @param javaBeanSchema
+	 */
 	public void gerarAcessoDB(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+
 		// inicializando a PK para o valor padrao (NULL, 0, etc...)
 		String pkNome = javaBeanSchema.getPrimaryKey().getNome();
 		JFieldVar pk = klass.fields().get(pkNome);
-		pk.init(JExpr.direct(ID_PADRAO));
+		pk.init(JExpr.lit(ID_PADRAO));
+
 		// remover o setter da PK
 		String pkSetter = "set"+Character.toUpperCase(pkNome.charAt(0)) + pkNome.substring(1);
 		JMethod pkmetodo = null;
@@ -60,14 +76,20 @@ public class CodeModelDaoFactory {
 				pkmetodo = metodo;
 		if(pkmetodo!=null)
 			klass.methods().remove(pkmetodo);
+
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoDelete(klass, javaBeanSchema);
 		gerarMetodoObjects(klass, javaBeanSchema);
 	}
 
+	/**
+	 * Gera metodo "save", para insert/update
+	 * @param klass
+	 * @param javaBeanSchema
+	 */
 	public void gerarMetodoSave(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
-		/************************************************************
-		 * public boolean save(){                                   *
+		/* **********************************************************
+		 * public boolean save() throws SQLException {              *
 		 *   ContentValues cv = new ContentValues();                *
 		 *   cv.put(ClasseBean.CAMPO,this.campo);                   *
 		 *   cv.put(*);                                             *
@@ -80,57 +102,85 @@ public class CodeModelDaoFactory {
 		 * }                                                        *
 		 ***********************************************************/
 		JMethod save = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
+		save._throws(SQLException.class);
 		JBlock corpo = save.body();
+
+		/* ********************************************
+		 *   ContentValues cv = new ContentValues();  *
+		 *********************************************/
 		JVar contentValues = corpo.decl(
 				jcm.ref(ContentValues.class),
 				"contentValues",
 				JExpr._new(jcm.ref(ContentValues.class))
 		);
+
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
+
 			JExpression argumentoValor =
 					// if campo instanceof Date
 					(campo.type().name().equals("Date")) ?
+							// value = DateUtil.timestampToString(date)
 							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(campo) :
 					// if campo instanceof Boolean
 					(campo.type().name().equals("boolean") || campo.name().equals("Boolean") ) ?
-							JExpr.direct(campo.name()+"? 1 : 0"):
+							// value = (campoBool? 1 : 0)
+							JOp.cond(campo,JExpr.lit(1),JExpr.lit(0)):
 					// else
+							// value = campo
 							campo;
+
+			/*
+			 * Constante da coluna
+			 */
 			JFieldVar constante = klass.fields().get(javaBeanSchema.getConstante(coluna));
 			if(constante==null)
 				throw new RuntimeException(String.format(
-						"%s nao encontrada em %s.",
+						CONSTANTE_NAO_ENCONTRADA_FORMAT,
 						javaBeanSchema.getConstante(coluna),
 						klass.name()
 				));
-			else
+			else {
+				/* *******************************************
+				 *   cv.put(Klass.CAMPO, <expressao value>); *
+				 ********************************************/
 				corpo.add(
-				contentValues.invoke("put")
-					.arg(constante)
-					.arg(argumentoValor)
+					contentValues.invoke("put")
+						.arg(constante)
+						.arg(argumentoValor)
 				);
+			}
 		}
-		JClass dbclass = jcm.ref(this._package+DB_CLASS);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
-		// if(id=-1)
-		JFieldVar id = klass.fields().get( javaBeanSchema.getPrimaryKey().getNome() );
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+
+		// if(id=ID_PADRAO)   => nova entidade  => insert
+		JFieldVar pkVar = klass.fields().get(javaBeanSchema.getPrimaryKey().getNome());
+		JFieldVar id = pkVar;
 		JConditional ifIdNull = corpo._if(
-				id.eq(JExpr.direct(ID_PADRAO)));
+				id.eq(JExpr.lit(ID_PADRAO)));
 		// db.insertOrThrow(getTabela(), null, contentValues);
 		ifIdNull._then().invoke(db, "insertOrThrow")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(JExpr._null())
 			.arg(contentValues);
+
 		// else
 		// db.update(getTabela(), objetoToContentValue(objeto), getColunaId() + "=?", new String[] { "" + id });
-		ifIdNull._else().invoke(db,"update")
+		JBlock elseBlock = ifIdNull._else();
+		// TODO refazer com Q
+		JExpression sqlExp = klass.fields().get(
+				javaBeanSchema.getConstante((javaBeanSchema.getTabela().getPrimaryKey().getNome()))
+		).plus(JExpr.lit("=?"));
+		
+		JArray sqlArgs = JExpr.newArray(jcm.ref(String.class))
+				.add(boxify(pkVar).invoke("toString"));
+		JVar value = elseBlock.decl(jcm.INT, "value", db.invoke("update")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(contentValues)
-			.arg(
-					klass.fields().get(javaBeanSchema.getConstante((javaBeanSchema.getTabela().getPrimaryKey().getNome()))).plus(JExpr.lit("=?")))
-			.arg(JExpr.newArray(jcm.ref(String.class)).add(JExpr.lit("").plus(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome()))));
+			.arg(sqlExp)
+			.arg(sqlArgs));
+		elseBlock._return(value.gt(JExpr.lit(0)));
 
 		corpo._return(JExpr.lit(true));
 	}
@@ -151,11 +201,10 @@ public class CodeModelDaoFactory {
 		 ***********************************************************/
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock corpo = delete.body();
-		JClass dbclass = jcm.ref(this._package+DB_CLASS);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",dbclass.staticInvoke("getDb"));
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 		// if(id!=-1)
 		JConditional ifIdNotNull = corpo._if(klass.fields().get(javaBeanSchema.getPrimaryKey().getNome())
-				.ne(JExpr.direct(ID_PADRAO)));
+				.ne(JExpr.lit(ID_PADRAO)));
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
 
 		// if(id!=null)
@@ -214,48 +263,51 @@ public class CodeModelDaoFactory {
 
 		JTypeVar generic = querySetInner.generify("T", klass);
 
-		/**
+		/*
 		 * prototipo
 		 */
 		JFieldVar prototipo = querySetInner.field(JMod.PRIVATE, generic, "prototipo");
 
-		/**
+		/*
 		 * Construtor
 		 */
 		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
 		JVar prototipoparam = construtor.param(generic, "prototipo");
 		construtor.body().assign(JExpr.refthis(prototipo.name()), prototipoparam);
 
-		/*****************************
-		 * Override
-		 * protected DB getDb(){
-		 *   return DB.getDB;
-		 * }
-		 ******************************/
+		/* ***********************
+		 * Override              *
+		 * protected DB getDb(){ *
+		 *   return DB.getDB;    *
+		 * }                     *
+		 ************************/
 		JMethod getDb = querySetInner.method(
 				JMod.PROTECTED, jcm.ref(SQLiteDatabase.class), "getDb"
 		);
 		getDb.annotate(java.lang.Override.class);
-		getDb.body()._return(jcm.ref(_package+DB_CLASS).staticInvoke("getDb"));
+		getDb.body()._return(getDbExpr());
 
-		/*****************************
-		 * Override
-		 * protected String getTabela(){
-		 *   return Classe.TABELA;
-		 * }
-		 ******************************/
+		/* *******************************
+		 * Override                      *
+		 * protected String getTabela(){ *
+		 *   return Classe.TABELA;       *
+		 * }                             *
+		 ********************************/
 		JMethod getTabela = querySetInner.method(
 				JMod.PROTECTED, jcm.ref(String.class), "getTabela"
 		);
 		getTabela.annotate(java.lang.Override.class);
 		getTabela.body()._return(klass.fields().get(javaBeanSchema.getConstanteDaTabela()));
 
-		/**
-		 * Override
-		 * protected String[] getColunas(){
-		 *   return new String[]{ ID, NOME, ENDERECO, datetime(DATA_VISITA) };
-		 * }
-		 */
+		/* **********************************
+		 * Override                         *
+		 * protected String[] getColunas(){ *
+		 *   return new String[]{           *
+		 *       ID, NOME, ENDERECO,        *
+		 *       datetime(DATA_VISITA)      *
+		 *   };                             *
+		 * }                                *
+		 ***********************************/
 		JMethod getColunas = querySetInner.method(
 				JMod.PROTECTED, jcm.ref(String[].class), "getColunas"
 		);
@@ -341,7 +393,7 @@ public class CodeModelDaoFactory {
 							).cand(
 									klassA.fields()
 									.get(javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome())
-									.ne(JExpr.direct(ID_PADRAO))
+									.ne(JExpr.lit(ID_PADRAO))
 							)
 					);
 					ifCampoNull._then().assign(campo,
@@ -401,5 +453,17 @@ public class CodeModelDaoFactory {
 	}
 
 
+	private JExpression getDbExpr(){
+		JClass dbclass = jcm.ref(dbClass);
+		return dbclass.staticInvoke(getDbStaticMethod);
+	}
+
+	private JExpression boxify(JVar var){
+		if(var.type().isPrimitive()){
+			JPrimitiveType primType= (JPrimitiveType)var.type();
+			return JExpr._new(primType.boxify()).arg(var);
+		}
+		return var;
+	}
 
 }
