@@ -7,7 +7,7 @@ public class CamelCaseUtils {
 	private static final char WHITESPACE_EXTRA[] = {'_'};
 
 	/**
-	 * Confere se o caractere <b>c</b> Ž espaco em branco
+	 * Confere se o caractere <b>c</b> eh espaco em branco
 	 * @param c caractere
 	 * @return 
 	 */

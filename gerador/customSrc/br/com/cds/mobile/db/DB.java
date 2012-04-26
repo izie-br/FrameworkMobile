@@ -54,15 +54,12 @@ public class DB extends SQLiteOpenHelper{
 		return ctx.getString(id);
 	}
 
-	public void execMultipleSQL(SQLiteDatabase db, String[] sql, boolean log) {
+	public void execMultipleSQL(SQLiteDatabase db, String[] sql) {
 		if (sql == null) {
 			return;
 		}
 		for (int i = 0; i < sql.length; i++) {
 			try {
-				if (log) {
-					LogPadrao.d("opera‹o banco:" + sql[i]);
-				}
 				if (sql[i].trim().length() > 0) {
 					db.execSQL(sql[i]);
 				}
@@ -80,6 +77,7 @@ public class DB extends SQLiteOpenHelper{
 			execMultipleSQL(db, sqlArray, false);
 			db.setTransactionSuccessful();
 		} catch (SQLException e) {
+			// TODO consertar
 			LogPadrao.d("Erro ao criar o banco " + DB_NOME+ e.toString());
 		} finally {
 			db.endTransaction();

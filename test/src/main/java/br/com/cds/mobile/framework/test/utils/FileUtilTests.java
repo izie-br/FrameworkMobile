@@ -17,6 +17,12 @@ public class FileUtilTests extends
 		super("br.com.cds.mobile.framework.test", TestActivity.class);
 	}
 
+	/**
+	 * Escreve um arquivo com FileUtil.openFileToAppend,
+	 * em seguida confere se o arquivo eh lido corretaente
+	 * usando FileUtil.openFileToRead, conferindo se o conteudo
+	 * eh o mesmo
+	 */
 	public void testWriteRead(){
 		File file = new File(
 				new File(getDataDir()),
@@ -43,6 +49,9 @@ public class FileUtilTests extends
 		}
 	}
 
+	/**
+	 * Zipa um arquivo, des-zipa, e confere se o conteudo eh o mesmo
+	 */
 	public void testZipAndUnzip(){
 		int count = 5;
 		String fileNames[] = new String[count];
@@ -123,6 +132,9 @@ public class FileUtilTests extends
 		}
 	}
 
+	/**
+	 * Gzipa um arquivo, des-gzipa, e confere se o conteudo eh o mesmo
+	 */
 	public void testGzip(){
 		// Arquivo de entrada, nome e conteudo
 		File file = new File(new File(getDataDir()),
@@ -131,7 +143,7 @@ public class FileUtilTests extends
 		);
 		String fileName = file.getPath();
 		String fileContent = org.apache.commons.lang.RandomStringUtils
-				.randomAlphabetic(120);
+				.randomAlphabetic(12000);
 
 		// arquivo gz
 		String gzFile = file.getPath()+".gz";
