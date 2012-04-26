@@ -1,9 +1,9 @@
 package br.com.cds.mobile.geradores;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashSet;
 import java.util.Map;
 
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
@@ -19,11 +19,10 @@ import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JOp;
 import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
-
-//TODO hashcode e equals
 
 
 public class CodeModelBeanFactory {
@@ -81,12 +80,76 @@ public class CodeModelBeanFactory {
 		corpo._return(campo);
 	}
 
-	public void gerarHashCodeAndEquals(JDefinedClass klass, String regexDoNomeDoCampo){
-		Collection<JFieldVar> camposUsados = new HashSet<JFieldVar>();
-		for(JFieldVar campo : klass.fields().values())
-			if(campo.name().matches(regexDoNomeDoCampo))
+	public void gerarHashCodeAndEquals(JDefinedClass klass,JavaBeanSchema javaBeanSchema){
+		Collection<JFieldVar> camposUsados = new ArrayList<JFieldVar>();
+
+		for(String campoNome : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)) {
+			JFieldVar campo = klass.fields().get(javaBeanSchema.getPropriedade(campoNome).getNome());
+			if(
+					campo!=null &&
+					( (campo.mods().getValue()&JMod.TRANSIENT)==0 ) &&
+					( (campo.mods().getValue()&JMod.STATIC)==0 ) &&
+					( (campo.mods().getValue()&JMod.FINAL)==0 )
+			)
 				camposUsados.add(campo);
-		//TODO escrever hascode e equals
+		}
+
+		JMethod hashcode = klass.method(JMod.PUBLIC, jcm.INT, "hashCode");
+		hashcode.annotate(Override.class);
+		JBlock hashcodeBody = hashcode.body();
+		JVar hashAccumulator = hashcodeBody.decl(jcm.INT, "value",JExpr.lit(1));
+
+		for(JFieldVar campoUsado : camposUsados){
+			if(campoUsado.type().equals(jcm.BOOLEAN)){
+				hashcodeBody.assign(
+						hashAccumulator,
+						hashAccumulator.plus(JExpr.direct(campoUsado.name()+"?1:0"))
+				);
+			}
+			else if(campoUsado.type().isPrimitive()){
+				hashcodeBody.assign(
+						hashAccumulator,
+						hashAccumulator.plus(JExpr.cast(jcm.INT, campoUsado))
+				);
+			} else {
+				hashcodeBody.assign(
+						hashAccumulator,
+						hashAccumulator.mul(campoUsado.invoke("hashCode"))
+				);
+			}
+		}
+		hashcodeBody._return(hashAccumulator);
+
+
+		JMethod equals = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "equals");
+		JVar other = equals.param(Object.class, "obj");
+		equals.annotate(Override.class);
+		JBlock equalsBody = equals.body();
+
+		equalsBody._if(
+				other.eq(JExpr._null())
+		)._then()._return(JExpr.lit(false));
+		equalsBody._if(
+				other._instanceof(klass).not()
+		)._then()._return(JExpr.lit(false));
+		other = equalsBody.decl(klass, "other",JExpr.cast(klass, other));
+
+		for(JFieldVar campoUsado : camposUsados){
+			if(campoUsado.type().isPrimitive()){
+				equalsBody._if(
+						other.ref(campoUsado).ne(campoUsado)
+				)._then()._return(JExpr.lit(false));
+			} else {
+				equalsBody._if(
+						JOp.cond(
+								campoUsado.eq(JExpr._null()),
+								other.ref(campoUsado).ne(JExpr._null()),
+								campoUsado.invoke("equals").arg(other.ref(campoUsado)).not()
+						)
+				)._then()._return(JExpr.lit(false));
+			}
+		}
+		equalsBody._return(JExpr.lit(true));
 	}
 
 	public void gerarSerialVersionUID(JDefinedClass klass){
@@ -94,7 +157,7 @@ public class CodeModelBeanFactory {
 		long result = 1;
 		for(String key : fields.keySet()){
 			JFieldVar field = fields.get(key);
-			if( (field.mods().getValue()|JMod.TRANSIENT)!=0)
+			if( (field.mods().getValue()&JMod.TRANSIENT)!=0)
 				result *= field.name().hashCode() + field.type().fullName().hashCode();
 		}
 		klass.field(
@@ -178,16 +241,29 @@ public class CodeModelBeanFactory {
 			//			newClone.ref(campo),
 			//			JExpr.direct(CodeModelDaoFactory.ID_PADRAO)
 			//	);
-			if(campo.type().isPrimitive()||campo.type().equals(getTipo(String.class)))
+
+			// para usar o clone binario da classe object, nada eh feito
+			if(campo.type().isPrimitive()||campo.type().equals(getTipo(String.class))) {
 				continue;
-			if(propriedade.getType().equals(Date.class))
+			}
+
+			else if(propriedade.getType().equals(Date.class)){
 				corpo.assign(
 						newClone.ref(campo),
 						JExpr._new(jcm.ref(Date.class)).arg(campo.invoke("getTime"))
 				);
+			}
+
 			else
 				corpo.assign(newClone.ref(campo), campo);
 		}
+		for(String key : klass.fields().keySet()){
+			JFieldVar campo = klass.fields().get(key);
+			if( (campo.mods().getValue()&JMod.TRANSIENT)!=0 ){
+				corpo.assign(newClone.ref(campo), JExpr._null());
+			}
+		}
+
 		corpo._return(newClone);
 	}
 

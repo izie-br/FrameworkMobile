@@ -119,7 +119,6 @@ public class GeradorDeBeans {
 				if(p!=null)
 					jbf.gerarPropriedade(classeGerada,p);
 			}
-			jbf.gerarMetodoClone(classeGerada, javaBeanSchema);
 			jsonFactory.gerarMetodosDeSerializacaoJson(classeGerada, javaBeanSchema);
 			SchemaXJClass schemaXjclass= new SchemaXJClass();
 			schemaXjclass.klass = classeGerada;
@@ -139,8 +138,11 @@ public class GeradorDeBeans {
 			}
 		}
 
-		for(SchemaXJClass schemaXJClass : listClasses)
+		for(SchemaXJClass schemaXJClass : listClasses){
 			jbf.gerarSerialVersionUID(schemaXJClass.klass);
+			jbf.gerarMetodoClone(schemaXJClass.klass, schemaXJClass.schema);
+			jbf.gerarHashCodeAndEquals(schemaXJClass.klass,schemaXJClass.schema);
+		}
 
 		File pastaGenFolder = new File(pastaGen);
 		if(pastaGenFolder.exists())
