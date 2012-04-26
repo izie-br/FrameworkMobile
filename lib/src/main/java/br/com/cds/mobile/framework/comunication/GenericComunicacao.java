@@ -24,9 +24,6 @@ public class GenericComunicacao {
 	public static final String MENSAGEM_RETORNO = "mensagem";
 	public static final int SIZE = 50;
 	protected static final int TENTATIVAS_DE_CONEXAO = 5;
-	public float conteudo;
-	public long timestampFim;
-	public long timestampInicio;
 	private static boolean conectado = false;
 	private static List<MudancaEstadoComunicacaoListener> mecListeners;
 
@@ -67,8 +64,12 @@ public class GenericComunicacao {
 		mecListeners.add(listener);
 	}
 
-	public boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa, String sincronia)
+	public static boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa, String sincronia)
 			throws IOException {
+		float conteudo;
+		long timestampFim;
+		long timestampInicio;
+
 // TODO
 //		if (sincronia != null) {
 //			getBOFacade().iniciarSincronia(sincronia, SincroniaBean.RECEBIMENTO, 1);
