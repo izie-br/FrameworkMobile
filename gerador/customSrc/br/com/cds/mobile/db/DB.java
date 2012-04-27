@@ -12,9 +12,9 @@ import android.database.sqlite.SQLiteOpenHelper;
 
 public class DB extends SQLiteOpenHelper{
 
-	private static String DB_NOME = "default.db";
+	public static String DB_NOME = "default.db";
 	private static int DB_VERSAO_INICIAL = 0;
-	public static int DB_VERSAO = 0;
+	public static int DB_VERSAO = 1;
 	private static String DB_VERSOES_RESOURCES_PREFIXO = "db_versao_";
 
 	public static SoftReference<DB> instancia;
@@ -31,9 +31,10 @@ public class DB extends SQLiteOpenHelper{
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		Context ctx = Aplicacao.getContext();
-		for(int i=oldVersion; i<=newVersion;i++){
-			executaScript(getSqlScriptPorVersao(ctx, i), db);
-		}
+		int i = oldVersion;
+		do {
+			executaScript(getSqlScriptPorVersao(ctx, ++i), db);
+		} while(i<newVersion);
 	}
 
 	public static SQLiteDatabase getDb(){
@@ -48,7 +49,7 @@ public class DB extends SQLiteOpenHelper{
 	}
 
 	private String getSqlScriptPorVersao(Context ctx, int versao ){
-		int id = AndroidUtils.getResourceByName(ctx, DB_VERSOES_RESOURCES_PREFIXO + versao );
+		int id = AndroidUtils.getResourceByName(ctx, "string/"+DB_VERSOES_RESOURCES_PREFIXO + versao );
 //		if(id!=0)
 		return ctx.getString(id);
 	}
