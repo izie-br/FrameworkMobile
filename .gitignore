@@ -8,3 +8,5 @@ gerador/target/*
 test/bin/*
 test/gen/*
 test/target/*
+test/customSrc/*
+test/customGen/*

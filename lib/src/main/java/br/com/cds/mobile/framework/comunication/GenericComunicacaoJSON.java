@@ -34,17 +34,9 @@ import br.com.cds.mobile.framework.utils.DateUtil;
 
 public abstract class GenericComunicacaoJSON<T> extends GenericComunicacao {
 
-	private String url;
 	public float conteudo;
 	public long timestampFim;
 	public long timestampInicio;
-
-	
-
-	public GenericComunicacaoJSON(String url) {
-		super();
-		this.url = url;
-	}
 
 	public T buscar(String imei, String mac, String email, String senha, HashMap<String, String> filtros) {
 		ArrayList<T> lista = listar(imei, mac, email, senha, filtros);
@@ -245,9 +237,7 @@ public abstract class GenericComunicacaoJSON<T> extends GenericComunicacao {
 		return response;
 	}
 
-	protected String getUrl() {
-		return url;
-	}
+	protected abstract String getUrl();
 
 	protected abstract T jsonToObject(JSONObject jsonObject) throws Throwable;
 

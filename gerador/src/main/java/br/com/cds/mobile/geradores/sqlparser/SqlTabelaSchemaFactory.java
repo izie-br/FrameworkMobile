@@ -37,6 +37,7 @@ public class SqlTabelaSchemaFactory {
 			statement = manager.parse(new StringReader(schema));
 		} catch (JSQLParserException e) {
 			e.printStackTrace();
+			System.err.println(schema);
 			throw new RuntimeException(e);
 		}
 		// Enviando um visitor para preencher os campos
@@ -128,33 +129,32 @@ public class SqlTabelaSchemaFactory {
 //		sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
 //		sed -E 's/CREATE[[:space:]]+VIEW.*//' |
 
-};
+	};
 
-private static final MatchRemover ADICIONAR_A_COLUNA[] = {
-	new MatchRemover(
-		",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
-		1,
-		2
-	),
-	new MatchRemover(
-		",\\s*(unique)\\s*\\((\\s*\\w+\\s*(,\\s*\\w+\\s*)*)\\)",
-		2,
-		1
-	)
-};
+	private static final MatchRemover ADICIONAR_A_COLUNA[] = {
+		new MatchRemover(
+			",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
+			1,
+			2
+		),
+		new MatchRemover(
+			",\\s*(unique)\\s*\\((\\s*\\w+\\s*(,\\s*\\w+\\s*)*)\\)",
+			2,
+			1
+		)
+	};
 
-private static String COLUNA = 
+	private static String COLUNA = 
 		// inicio
 		"[\\(,]\\s*"+
 		// nome da coluna
 		"(\\w+)"+
 		// tipo e qualificadores sem parenteses
-		"\\s+[^,]*"+
+		"\\s+[^,\\(\\)]*"+
 		// grupos com parentses e mais qualificadores
-		"((\\([^\\)]*\\))\\s*[^,]*)*"+
+		"((\\([^\\)]*\\))\\s*[^,\\)]*)*";
 		// fim da declaracao da coluna
 		// note que esta regex nao inclui a virgula ou fechamento de parenteses
-		"[^,\\)]*";
 
 private String tratarSchema(String schema) {
 	for(String regex : REMOVER){
@@ -182,7 +182,10 @@ private String tratarSchema(String schema) {
 					if(!colMatch.find())
 						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
 					// DEBUG
-					//String colmatch = colMatch.group(0);
+					String colmatch = colMatch.group();
+					String debuggroups[] = new String[colMatch.groupCount()];
+					for(int i=0;i<debuggroups.length;i++)
+						debuggroups[i] = colMatch.group(i);
 					if(colMatch.group(1).trim().equalsIgnoreCase(coluna.trim())){
 						result = result.substring(0, colMatch.end()) + paraAdicionar+result.substring(colMatch.end());
 						colunaEncontrada = true;
