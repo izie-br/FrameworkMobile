@@ -119,6 +119,8 @@ public class CodeModelDaoFactory {
 
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
+			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome()))
+				continue;
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 
 			JExpression argumentoValor =
@@ -162,23 +164,60 @@ public class CodeModelDaoFactory {
 		JFieldVar id = pkVar;
 		JConditional ifIdNull = corpo._if(
 				id.eq(JExpr.lit(ID_PADRAO)));
-		/* **********************************************************
-		 * if(id==ID_PADRAO)                                                 *
-		 *      db.insertOrThrow(getTabela(), null, contentValues); *
-		 ***********************************************************/
-		ifIdNull._then().invoke(db, "insertOrThrow")
+		/* **************************************
+		 * if(id==ID_PADRAO){                   *
+		 *      int value = db.insertOrThrow(   *
+		 *          getTabela(),                *
+		 *          null,                       *
+		 *          contentValues               *
+		 *      );                              *
+		 *      if( value > 0 ){                *
+		 *          id = value;                 *
+		 *          return true;                *
+		 *      } else {                        *
+		 *          return false;               *
+		 *      }                               *
+		 * }                                    *
+		 ***************************************/
+		JBlock thenBlock = ifIdNull._then();
+		/* **************************************
+		 * if(id==ID_PADRAO)                    * 
+		 *      int value = db.insertOrThrow(   *
+		 *          getTabela(),                *
+		 *          null,                       *
+		 *          contentValues               *
+		 *      );                              *
+		 ***************************************/
+		JExpression valueExpr = db.invoke("insertOrThrow")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(JExpr._null())
 			.arg(contentValues);
-
+		JVar valueId = thenBlock.decl(jcm.LONG, "value",valueExpr);
+		/* **************************************
+		 *      if( value > 0 ){                *
+		 *          id = value;                 *
+		 *          return true;                *
+		 *      }                               *
+		 ***************************************/
+		JConditional ifInsertOk = thenBlock._if(valueId.gt(JExpr.lit(0)));
+		JBlock ifInsertOkBlock = ifInsertOk._then();
+		ifInsertOkBlock.assign(id, valueId);
+		ifInsertOkBlock._return(JExpr.lit(true));
+		/* **************************************
+		 *      } else {                        *
+		 *          return false;               *
+		 *      }                               *
+		 ***************************************/
+		ifInsertOk._else()._return(JExpr.lit(false));
 		/* ***************************************
 		 * else {                                *
-		 *     db.update(                        *
+		 *     int value = db.update(            *
 		 *         getTabela(),                  *
 		 *         objetoToContentValue(objeto), *
 		 *         getColunaId() + "=?",         *
 		 *         new String[] { "" + id }      *
 		 *     );                                *
+		 *     return (value > 0)                *
 		 * }                                     *
 		 ****************************************/
 		JBlock elseBlock = ifIdNull._else();
@@ -195,8 +234,6 @@ public class CodeModelDaoFactory {
 			.arg(sqlExp)
 			.arg(sqlArgs));
 		elseBlock._return(value.gt(JExpr.lit(0)));
-
-		corpo._return(JExpr.lit(true));
 	}
 
 	public void gerarMetodoDelete(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
