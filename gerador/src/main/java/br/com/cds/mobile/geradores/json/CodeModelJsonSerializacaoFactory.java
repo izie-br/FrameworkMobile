@@ -6,6 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import br.com.cds.mobile.framework.utils.DateUtil;
+import br.com.cds.mobile.geradores.dao.CodeModelDaoFactory;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
@@ -13,13 +14,18 @@ import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
+import com.sun.codemodel.JOp;
+import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JVar;
+import com.sun.codemodel.JCatchBlock;
 
 public class CodeModelJsonSerializacaoFactory {
 
@@ -31,20 +37,44 @@ public class CodeModelJsonSerializacaoFactory {
 
 	public void gerarMetodosDeSerializacaoJson(JDefinedClass klass,JavaBeanSchema javaBeanSchema){
 		JMethod toJson = klass.method(JMod.PUBLIC, jcm.ref(JSONObject.class), "toJson");
-		toJson._throws(JSONException.class);
-		JBlock corpo = toJson.body();
+		//toJson._throws(JSONException.class);
+		JBlock corpoMetodo = toJson.body();
+		JTryBlock tryBlock = corpoMetodo._try();
+		JBlock corpo = tryBlock.body();
 		JVar jsonObj = corpo.decl(jcm.ref(JSONObject.class), "jsonObj", JExpr._new(jcm.ref(JSONObject.class)));
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
-			JExpression value = klass.fields().get(propriedade.getNome());
+			JFieldVar campo = klass.fields().get(propriedade.getNome());
+			JInvocation setJsonField = jsonObj.invoke("put").arg(JExpr.lit(coluna));
+			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome())){
+				corpo._if(campo.ne(JExpr.lit(CodeModelDaoFactory.ID_PADRAO)))
+					._then().add(setJsonField.arg(campo));
+			}
+			else {
+			JExpression value = campo;
 			if(propriedade.getType().equals(Date.class))
 				value = jcm.ref(DateUtil.class).staticInvoke("dateToString").arg(value);
-			corpo.invoke(jsonObj, "put")
-				.arg(JExpr.lit(coluna))
-				.arg(value);
+			corpo.add(setJsonField.arg(value));
+			}
 		}
 		corpo._return(jsonObj);
-		
+		/* ************************************************
+		 * o erro jsonexception nao deve ocorrer, a menos *
+		 * que haja algo fundamentamentalmente errado     *
+		 *                                                *
+		 *  catch(JsonException e){                       *
+		 *      throw new runtimeException(e);            *
+		 *  }                                             *
+		 *************************************************/
+		JCatchBlock catchBlock = tryBlock._catch(jcm.ref(JSONException.class));
+		JVar except = catchBlock.param("e");
+		catchBlock.body()
+			._throw(JExpr._new(jcm.ref(RuntimeException.class)).arg(except));
+
+		/*
+		 * public static jsonToObject(JsonObject json){
+		 * 
+		 */
 		JMethod jsonToObject = klass.method(JMod.PUBLIC|JMod.STATIC, klass, "jsonToObject");
 		jsonToObject._throws(JSONException.class);
 		jsonObj = jsonToObject.param(JSONObject.class, "json");
@@ -52,8 +82,19 @@ public class CodeModelJsonSerializacaoFactory {
 		JVar obj = corpo.decl(klass, "obj", JExpr._new(klass));
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
-			JInvocation value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
+			JInvocation value;
+			value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
 				.arg(coluna);
+			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome())){
+				value = jsonObj.invoke(SQLiteGeradorUtils.motodoOptDoJsonParaClasse(propriedade.getType()))
+					.arg(coluna)
+					.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));
+
+			}
+			else{
+				value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
+						.arg(coluna);
+			}
 			if(propriedade.getType().equals(Date.class))
 				value = jcm.ref(DateUtil.class).staticInvoke("stringToDate").arg(value);
 			corpo.assign(

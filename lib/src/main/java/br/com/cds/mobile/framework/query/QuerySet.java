@@ -78,8 +78,10 @@ public abstract class QuerySet<T>{
 	}
 
 	private String[] selectionArgs(){
-		String args[] = new String[selectionArgs.size()];
-		for(int i=0;i<selectionArgs.size();i++)
+		if(selectionArgs==null)
+			return null;
+		String args[] = new String[ selectionArgs.size()];
+		for(int i=0;i<args.length;i++)
 			args[i] = SQLiteUtils.parse(selectionArgs.get(i));
 		return args;
 	}
@@ -119,5 +121,6 @@ public abstract class QuerySet<T>{
 		);
 		return cursor;
 	}
+
 
 }

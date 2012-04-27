@@ -28,10 +28,5 @@ public class DbTests extends ActivityInstrumentationTestCase2<TestActivity> {
 		DB.getDb();
 	}
 
-	public void testInsertUpdateDelete(){
-		Author author = new Author();
-		author.setName(RandomStringUtils.random(60));
-		author.save();
-	}
 
 }
