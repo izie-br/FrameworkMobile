@@ -59,7 +59,6 @@
                     <assetsDirectory>${project.basedir}/assets</assetsDirectory>
                     <resourceDirectory>${project.basedir}/res</resourceDirectory>
                     <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
-                    
                     <sdk>
                         <platform>7</platform>
                     </sdk>
@@ -67,6 +66,7 @@
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
+
             <plugin>
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>2.3.2</version>

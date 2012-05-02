@@ -2,13 +2,11 @@ package br.com.cds.mobile.framework.test.db;
 
 import java.io.File;
 
-import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.BaseApplication;
 import br.com.cds.mobile.framework.test.TestActivity;
-import br.com.cds.mobile.test.Author;
-import br.com.cds.mobile.test.db.DB;
+import br.com.cds.mobile.framework.test.db.DB;
 
 public class DbTests extends ActivityInstrumentationTestCase2<TestActivity> {
 

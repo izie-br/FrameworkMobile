@@ -1,8 +1,8 @@
-package br.com.cds.mobile.db;
+package br.com.cds.mobile.framework.db;
 
 import java.lang.ref.SoftReference;
 
-import br.com.cds.mobile.framework.config.Aplicacao;
+import br.com.cds.mobile.framework.BaseApplication;
 import br.com.cds.mobile.framework.utils.AndroidUtils;
 
 import android.content.Context;
@@ -20,7 +20,7 @@ public class DB extends SQLiteOpenHelper{
 	public static SoftReference<DB> instancia;
 
 	public DB(){
-		super(Aplicacao.getContext(), DB_NOME, null, DB_VERSAO);
+		super(BaseApplication.getContext(), DB_NOME, null, DB_VERSAO);
 	}
 
 	@Override
@@ -30,7 +30,7 @@ public class DB extends SQLiteOpenHelper{
 
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-		Context ctx = Aplicacao.getContext();
+		Context ctx = BaseApplication.getContext();
 		int i = oldVersion;
 		do {
 			executaScript(getSqlScriptPorVersao(ctx, ++i), db);
