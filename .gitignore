@@ -11,3 +11,5 @@ test/target/*
 test/customSrc/*
 test/customGen/*
 test/script
+test_server/django/*
+test_server/test.db

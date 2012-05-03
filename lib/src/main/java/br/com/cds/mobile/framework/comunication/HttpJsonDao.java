@@ -94,7 +94,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			int i = 1;
 			for(;;){
 				try{
-				response = getResponse(getUrl(), getMethodGet(), parametros);
+				response = post(getUrl(), getMethodGet(), parametros);
 				} catch (RuntimeException e){
 				}
 				i++;
@@ -177,7 +177,6 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 		} catch (RuntimeException re) {
 			throw re;
 		} catch (Throwable e) {
-			e.printStackTrace();
 			throw new RuntimeException(e);
 		} finally {
 			parametrosEnviar.remove("json");
@@ -187,7 +186,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 
 	public boolean enviarMultiplos(HashMap<String, String> parametros) {
 		try {
-			getResponse(getUrl(), getMethodPost(), parametros);
+			post(getUrl(), getMethodPost(), parametros);
 			return true;
 		} catch (RuntimeException re) {
 			throw re;
@@ -198,8 +197,8 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 	}
 
 
-	public HttpResponse getResponse(
-			String url, String metodo, 
+	public HttpResponse post(
+			String url,  String metodo, 
 			HashMap<String, String> parametros
 	) throws IOException {
 		HttpResponse response = null;
@@ -245,7 +244,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			GenericComunicacao.setConectado(true);
 		} catch (IOException e) {
 			GenericComunicacao.setConectado(false);
-			throw new IOException(e);
+			throw e;
 		}
 		return response;
 	}
