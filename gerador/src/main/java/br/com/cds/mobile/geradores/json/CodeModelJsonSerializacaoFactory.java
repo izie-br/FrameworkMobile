@@ -75,11 +75,11 @@ public class CodeModelJsonSerializacaoFactory {
 		 * public static jsonToObject(JsonObject json){
 		 * 
 		 */
-		JMethod jsonToObject = klass.method(JMod.PUBLIC|JMod.STATIC, klass, "jsonToObject");
-		jsonToObject._throws(JSONException.class);
-		jsonObj = jsonToObject.param(JSONObject.class, "json");
-		corpo = jsonToObject.body();
-		JVar obj = corpo.decl(klass, "obj", JExpr._new(klass));
+		JMethod jsonToObjectWithPrototype = klass.method(JMod.PUBLIC, klass, "jsonToObjectWithPrototype");
+		jsonToObjectWithPrototype._throws(JSONException.class);
+		jsonObj = jsonToObjectWithPrototype.param(JSONObject.class, "json");
+		corpo = jsonToObjectWithPrototype.body();
+		JVar obj = corpo.decl(klass, "obj", JExpr.invoke("clone"));
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JInvocation value;
@@ -103,6 +103,8 @@ public class CodeModelJsonSerializacaoFactory {
 			);
 		}
 		corpo._return(obj);
+		
+		//Jmethod
 	}
 
 }

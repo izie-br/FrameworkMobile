@@ -87,7 +87,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		JSONObject json = author.toJson();
 		assertNotNull(json);
 		try {
-			Author authorDesserialized = Author.jsonToObject(json);
+			Author authorDesserialized = new Author().jsonToObjectWithPrototype(json);
 			assertEquals(author, authorDesserialized);
 		} catch (JSONException e) {
 			fail(e.getLocalizedMessage());
@@ -95,7 +95,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author authorIdNull = randomAuthor();
 		JSONObject jsonIdNull = authorIdNull.toJson();
 		try {
-			Author authorIdNullDesserialized = Author.jsonToObject(jsonIdNull);
+			Author authorIdNullDesserialized = new Author().jsonToObjectWithPrototype(jsonIdNull);
 			assertEquals(authorIdNull, authorIdNullDesserialized);
 		} catch (JSONException e) {
 			fail(e.getLocalizedMessage());

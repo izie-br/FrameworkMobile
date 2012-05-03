@@ -5,18 +5,17 @@ import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.Iterator;
 
-import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
+import br.com.cds.mobile.framework.StreamJsonIterator;
 import br.com.cds.mobile.framework.utils.FileUtil;
 
 public class JsonLogIterator implements Iterator<JSONObject>{
 
 	Iterator<File> logs;
-	FrameworkJSONTokener current;
+	StreamJsonIterator current;
 	private JSONObject nextObj;
 
 	public JsonLogIterator(File[] files){ 
@@ -50,7 +49,7 @@ public class JsonLogIterator implements Iterator<JSONObject>{
 			if(!logs.hasNext())
 				return null;
 			try {
-				current = new FrameworkJSONTokener(
+				current = new StreamJsonIterator(
 						FileUtil.openFileToRead(logs.next().getPath())
 				);
 			} catch (FileNotFoundException e) {
@@ -62,8 +61,8 @@ public class JsonLogIterator implements Iterator<JSONObject>{
 			}
 		}
 		try {
-			return new JSONObject((JSONTokener)current);
-		} catch (JSONException e) {
+			return current.next();
+		} catch (RuntimeException e) {
 			// TODO conferir se o arquivo acabou
 			if(logs.hasNext()){
 				current = null;

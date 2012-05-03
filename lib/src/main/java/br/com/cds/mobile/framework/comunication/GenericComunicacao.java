@@ -6,27 +6,29 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.List;
 
 import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.Tarefa;
 import br.com.cds.mobile.framework.logging.LogPadrao;
 
-public class GenericComunicacao {
+public abstract class GenericComunicacao {
 
+	private static final int BUFFER_1K = 1024;
 	public static final String TIPO_RETORNO     = "tipo";
 	public static final String RETORNO_SUCESSO  = "sucesso";
 	public static final String RETORNO_AVISO    = "aviso";
 	public static final String RETORNO_ERRO     = "erro";
 	public static final String MENSAGEM_RETORNO = "mensagem";
+
 	public static final int SIZE = 50;
 	protected static final int TENTATIVAS_DE_CONEXAO = 5;
-	private static boolean conectado = false;
-	private static List<MudancaEstadoComunicacaoListener> mecListeners;
 
+	private static boolean conectado = true;
+	private static MudancaEstadoComunicacaoListener mecListeners[];
 
 	/**
 	 * Retorna o estado da conexao
@@ -59,90 +61,81 @@ public class GenericComunicacao {
 	}
 
 	public static void addMudancaEstadoComunicacaoListener(MudancaEstadoComunicacaoListener listener) {
-		if (mecListeners == null)
-			mecListeners = new ArrayList<MudancaEstadoComunicacaoListener>();
-		mecListeners.add(listener);
+		int oldSize = mecListeners == null ? 0 : mecListeners.length;
+		MudancaEstadoComunicacaoListener old[] = mecListeners;
+		mecListeners = new MudancaEstadoComunicacaoListener[ oldSize+1 ];
+//		for(int i=0;i<size;i++)
+//			mecListeners[i] = old[i];
+		System.arraycopy(old, 0, mecListeners, 0, oldSize);
+		mecListeners[oldSize] = listener;
 	}
 
-	public static boolean baixarArquivo(String urlString, String path, String arquivo, Tarefa<?, ?> tarefa, String sincronia)
-			throws IOException {
-		float conteudo;
-		long timestampFim;
-		long timestampInicio;
-
-// TODO
-//		if (sincronia != null) {
-//			getBOFacade().iniciarSincronia(sincronia, SincroniaBean.RECEBIMENTO, 1);
-//		}
-		// TODO verificar erros
-		Throwable erro = null;
-		boolean retorno = false;
+	public static boolean baixarArquivo(
+			String urlString, String path, String arquivo,
+			Tarefa<?, ?> tarefa, String sincronia
+	) throws FrameworkException {
 		try {
 			// LogPadrao.d("Com:" + urlString);
-			URL url = new URL(urlString);
-			HttpURLConnection c = (HttpURLConnection) url.openConnection();
-			c.setRequestMethod("GET");
-			c.setDoOutput(true);
+			HttpURLConnection c;
+			try {
+				URL url = new URL(urlString);
+				c = (HttpURLConnection) url.openConnection();
+				c.setRequestMethod("GET");
+				c.setDoOutput(true);
+			} catch (MalformedURLException e) {
+				LogPadrao.e(e);
+				return false;
+			} catch (ProtocolException e){
+				LogPadrao.e (e);
+				return false;
+			}
 			// LogPadrao.d("c.getContentLength():" + c.getContentLength());
 			long contentLength = c.getContentLength();
-
-			File file = new File(path);
-			file.mkdirs();
+	
+			File folder = new File(path);
+			folder.mkdirs();
+			File file = new File(folder, arquivo);
 			if (!file.exists()) {
-				throw new FrameworkException(ErrorCode.SD_CARD_NOT_FOUND);
+				file.createNewFile();
+			} else {
+				if ( file.length() == c.getContentLength())
+					return false;
+				throw new FrameworkException(ErrorCode.UNABLE_TO_CREATE_EXISTING_FILE);
 			}
-			File outputFile = new File(file, arquivo);
 			// LogPadrao.d("outputFile.exists():" + outputFile.exists());
 			// LogPadrao.d("outputFile.length():" + outputFile.length());
 			// LogPadrao.d("c.getContentLength():" + c.getContentLength());
-			if (outputFile.exists() && outputFile.length() == c.getContentLength()) {
-				retorno = false;
-			} else {
-				timestampInicio = System.currentTimeMillis();
-				c.connect();
-				FileOutputStream fos = new FileOutputStream(outputFile);
-				conteudo = c.getContentLength();
-				InputStream is = c.getInputStream();
-
-				byte[] buffer = new byte[1024];
-				int len1 = 0;
-				int i = 0;
-				while ((len1 = is.read(buffer)) != -1) {
-					fos.write(buffer, 0, len1);
-					// LogPadrao.d("i++, (int) contentLength / 1024:" + (i++) +
-					// "/"
-					// +
-					// ((int) contentLength / 1024));
-					if (tarefa != null) {
-						if (contentLength > 0) {
-							tarefa.publicaProgresso(i++/(contentLength/1024));
-						} else {
-							tarefa.publicaProgresso(i++/(8000/1024));
-						}
+			InputStream is = c.getInputStream();;
+			c.connect();
+			FileOutputStream fos = new FileOutputStream(file);
+	
+			byte[] buffer = new byte[BUFFER_1K];
+			int len1 = 0;
+			int i = 0;
+			while ((len1 = is.read(buffer)) != -1) {
+				fos.write(buffer, 0, len1);
+				// LogPadrao.d("i++, (int) contentLength / 1024:" + (i++) +
+				// "/"
+				// +
+				// ((int) contentLength / 1024));
+				if (tarefa != null) {
+					if (contentLength > 0) {
+						tarefa.publicaProgresso(i++/(contentLength/1024));
+					} else {
+						tarefa.publicaProgresso(i++/(8000/1024));
 					}
 				}
-				fos.close();
-				is.close();
-				timestampFim = System.currentTimeMillis();
-				// TODO mover isto para cima
-				if (!GenericComunicacao.isConetado())
-					GenericComunicacao.conectado = true;
-				retorno = true;
 			}
-		} catch (Throwable t) {
-//			if (ComunicacaoException.isComunicacaoException(t)) {
-//				GenericComunicacao.setConectado(false);
-//			}
-			erro = t;
-			retorno = false;
-// TODO
-//		} finally {
-//			if (sincronia != null) {
-//				getBOFacade().finalizarSincronia(sincronia, SincroniaBean.RECEBIMENTO, 1, erro,
-//						calculaTaxaTransferencia(), (int) conteudo);
-//			}
+			fos.close();
+			is.close();
+			// TODO mover isto para cima
+			if (!GenericComunicacao.isConetado())
+				GenericComunicacao.conectado = true;
+			return true;
+		} catch (IOException e){
+			throw new RuntimeException(e);
 		}
-		return retorno;
 	}
+
 
 }

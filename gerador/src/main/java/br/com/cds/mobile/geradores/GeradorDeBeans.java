@@ -175,7 +175,7 @@ public class GeradorDeBeans {
 						.matcher(createTableStatement)
 						.find()
 			)
-				continue;;
+				continue;
 			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
 				break;
 			TabelaSchema tabela = factory.gerarTabelaSchema(createTableStatement);

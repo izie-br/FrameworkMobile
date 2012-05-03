@@ -6,12 +6,14 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
+import br.com.cds.mobile.framework.JsonSerializable;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
 
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JDefinedClass;
@@ -344,6 +346,8 @@ public class CodeModelBeanFactory {
 		);
 		classeBean._implements(Serializable.class);
 		classeBean._implements(Cloneable.class);
+		JClass jsonSerializable = jcm.ref(JsonSerializable.class).narrow(classeBean);
+		classeBean._implements(jsonSerializable);
 		return classeBean;
 	}
 
