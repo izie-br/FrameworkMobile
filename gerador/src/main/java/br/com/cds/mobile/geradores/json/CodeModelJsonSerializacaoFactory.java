@@ -36,6 +36,11 @@ public class CodeModelJsonSerializacaoFactory {
 	}
 
 	public void gerarMetodosDeSerializacaoJson(JDefinedClass klass,JavaBeanSchema javaBeanSchema){
+
+		String primaryKeyNome = javaBeanSchema.getPrimaryKey()==null ?
+				null :
+				javaBeanSchema.getPrimaryKey().getNome();
+
 		JMethod toJson = klass.method(JMod.PUBLIC, jcm.ref(JSONObject.class), "toJson");
 		//toJson._throws(JSONException.class);
 		JBlock corpoMetodo = toJson.body();
@@ -46,7 +51,7 @@ public class CodeModelJsonSerializacaoFactory {
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 			JInvocation setJsonField = jsonObj.invoke("put").arg(JExpr.lit(coluna));
-			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome())){
+			if(propriedade.getNome().equals(primaryKeyNome)){
 				corpo._if(campo.ne(JExpr.lit(CodeModelDaoFactory.ID_PADRAO)))
 					._then().add(setJsonField.arg(campo));
 			}
@@ -85,7 +90,7 @@ public class CodeModelJsonSerializacaoFactory {
 			JInvocation value;
 			value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
 				.arg(coluna);
-			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome())){
+			if(propriedade.getNome().equals(primaryKeyNome)){
 				value = jsonObj.invoke(SQLiteGeradorUtils.motodoOptDoJsonParaClasse(propriedade.getType()))
 					.arg(coluna)
 					.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));

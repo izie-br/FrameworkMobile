@@ -21,18 +21,6 @@ public class CamelCaseFilter extends TabelaSchemaFilter{
 	}
 
 	@Override
-	public Propriedade getPrimaryKey() {
-		Propriedade p=  super.getPrimaryKey();
-		return new Propriedade(
-				CamelCaseUtils.tolowerCamelCase(p.getNome()),
-				p.getType(),
-				p.isGet(),
-				p.isSet()
-		);
-
-	}
-
-	@Override
 	public String getConstante(String coluna) {
 		return CamelCaseUtils.camelToUpper(super.getConstante(coluna));
 	}

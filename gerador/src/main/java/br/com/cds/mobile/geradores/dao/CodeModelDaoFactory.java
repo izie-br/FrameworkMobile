@@ -1,6 +1,8 @@
 package br.com.cds.mobile.geradores.dao;
 
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import android.content.ContentValues;
@@ -67,22 +69,63 @@ public class CodeModelDaoFactory {
 	public void gerarAcessoDB(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 
 		// inicializando a PK para o valor padrao (NULL, 0, etc...)
-		String pkNome = javaBeanSchema.getPrimaryKey().getNome();
-		JFieldVar pk = klass.fields().get(pkNome);
-		pk.init(JExpr.lit(ID_PADRAO));
-
-		// remover o setter da PK
-		String pkSetter = "set"+Character.toUpperCase(pkNome.charAt(0)) + pkNome.substring(1);
-		JMethod pkmetodo = null;
-		for(JMethod metodo : klass.methods())
-			if(metodo.name().equals(pkSetter))
-				pkmetodo = metodo;
-		if(pkmetodo!=null)
-			klass.methods().remove(pkmetodo);
-
+		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
+		if(primaryKey!=null){
+			JFieldVar pk = klass.fields().get(primaryKey.getNome());
+			pk.init(JExpr.lit(ID_PADRAO));
+			String pkNome = primaryKey.getNome();
+			// remover o setter da PK
+			String pkSetter = "set"+Character.toUpperCase(pkNome.charAt(0)) + pkNome.substring(1);
+			JMethod pkmetodo = null;
+			for(JMethod metodo : klass.methods())
+				if(metodo.name().equals(pkSetter))
+					pkmetodo = metodo;
+			if(pkmetodo!=null)
+				klass.methods().remove(pkmetodo);
+		}
+		else{
+			generateConstrutorForCompundPrimaryKey(klass, javaBeanSchema);
+		}
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoDelete(klass, javaBeanSchema);
 		gerarMetodoObjects(klass, javaBeanSchema);
+	}
+
+	public void generateConstrutorForCompundPrimaryKey(
+			JDefinedClass klass, JavaBeanSchema javaBeanSchema
+	){
+		JMethod constructor = klass.constructor(JMod.PUBLIC);
+
+		JBlock corpo = constructor.body();
+		JVar contentValues = corpo.decl(
+				jcm.ref(ContentValues.class),
+				"contentValues",
+				JExpr._new(jcm.ref(ContentValues.class))
+		);
+
+		//Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
+		Collection<String> primaryKeys = javaBeanSchema.getPrimaryKeyColumns();
+		for(String colunm : primaryKeys){
+			Propriedade prop = javaBeanSchema.getPropriedade(colunm);
+			JVar param = constructor.param(prop.getType(), prop.getNome());
+			JFieldVar campo = klass.fields().get(prop.getNome());
+			corpo.assign(JExpr.refthis(campo.name()),param);
+			JFieldVar constante = klass.fields().get(
+					javaBeanSchema.getConstante(colunm)
+			);
+			corpo.invoke(contentValues,"put")
+				.arg(constante)
+				.arg(JExpr.refthis(campo.name()));
+		}
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JExpression valueExpr = db.invoke("insertOrThrow")
+				.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
+				.arg(JExpr._null())
+				.arg(contentValues);
+			JVar valueId = corpo.decl(jcm.LONG, "value",valueExpr);
+		JConditional ifIdNull = corpo._if(valueId.lt(JExpr.lit(ID_PADRAO)));
+		ifIdNull._then().block()._throw(JExpr._new(jcm.ref(RuntimeException.class)));
+		klass.constructor(JMod.PRIVATE);
 	}
 
 	/**
@@ -117,10 +160,16 @@ public class CodeModelDaoFactory {
 				JExpr._new(jcm.ref(ContentValues.class))
 		);
 
+		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
+
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
-			if(propriedade.getNome().equals(javaBeanSchema.getPrimaryKey().getNome()))
+			if(
+					primaryKey!=null &&
+					propriedade.getNome().equals(primaryKey.getNome())
+			){
 				continue;
+			}
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 
 			JExpression argumentoValor =
@@ -135,7 +184,6 @@ public class CodeModelDaoFactory {
 					// else
 							// value = campo
 							campo;
-
 			/*
 			 * Constante da coluna
 			 */
@@ -159,8 +207,12 @@ public class CodeModelDaoFactory {
 		}
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 
+		if(primaryKey==null){
+			gerarBlocoUpdate(klass, javaBeanSchema, corpo, db, contentValues);
+			return;
+		}
 		// if(id=ID_PADRAO)   => nova entidade  => insert
-		JFieldVar pkVar = klass.fields().get(javaBeanSchema.getPrimaryKey().getNome());
+		JFieldVar pkVar = klass.fields().get(primaryKey.getNome());
 		JFieldVar id = pkVar;
 		JConditional ifIdNull = corpo._if(
 				id.eq(JExpr.lit(ID_PADRAO)));
@@ -221,19 +273,78 @@ public class CodeModelDaoFactory {
 		 * }                                     *
 		 ****************************************/
 		JBlock elseBlock = ifIdNull._else();
+//		// TODO refazer com Q
+//		JExpression sqlExp = klass.fields().get(
+//				javaBeanSchema.getConstante((javaBeanSchema.getPrimaryKey().getNome()))
+//		).plus(JExpr.lit("=?"));
+//		
+//		JArray sqlArgs = JExpr.newArray(jcm.ref(String.class))
+//				.add(boxify(pkVar).invoke("toString"));
+//		JVar value = elseBlock.decl(jcm.INT, "value", db.invoke("update")
+//			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
+//			.arg(contentValues)
+//			.arg(sqlExp)
+//			.arg(sqlArgs));
+//		elseBlock._return(value.gt(JExpr.lit(0)));
+		gerarBlocoUpdate(klass, javaBeanSchema, elseBlock, db, contentValues);
+	}
+
+	private void gerarBlocoUpdate(
+			JDefinedClass klass,
+			JavaBeanSchema javaBeanSchema,
+			JBlock block,
+			JVar db,
+			JVar contentValues
+	){
+		/* ***********************************
+		 *                                   *
+		 * int value = db.update(            *
+		 *     getTabela(),                  *
+		 *     objetoToContentValue(objeto), *
+		 *     getColunaId() + "=?",         *
+		 *     new String[] { id }           *
+		 * );                                *
+		 * return (value > 0);               *
+		 *                                   *
+		 ************************************/
 		// TODO refazer com Q
-		JExpression sqlExp = klass.fields().get(
-				javaBeanSchema.getConstante((javaBeanSchema.getTabela().getPrimaryKey().getNome()))
-		).plus(JExpr.lit("=?"));
-		
-		JArray sqlArgs = JExpr.newArray(jcm.ref(String.class))
-				.add(boxify(pkVar).invoke("toString"));
-		JVar value = elseBlock.decl(jcm.INT, "value", db.invoke("update")
+		JVar value = block.decl(jcm.INT, "value", db.invoke("update")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(contentValues)
-			.arg(sqlExp)
-			.arg(sqlArgs));
-		elseBlock._return(value.gt(JExpr.lit(0)));
+			.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
+			.arg(getPrimaryKeysArray(klass, javaBeanSchema)));
+		block._return(value.gt(JExpr.lit(0)));
+
+	}
+
+	private JExpression getPrimaryKeysQueryString(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
+		JExpression sqlExp = null;
+		while(primarykeys.hasNext()){
+			String primarykey = primarykeys.next();
+			JExpression expr = klass.fields().get(
+					javaBeanSchema.getConstante(primarykey)
+				).plus(JExpr.lit("=?"));
+			sqlExp = (sqlExp==null) ? expr : sqlExp.plus(JExpr.lit(" AND ")).plus(expr);
+		}
+
+		return sqlExp;
+	}
+
+	private JExpression getPrimaryKeysArray(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
+		JArray sqlArgs = JExpr.newArray(jcm.ref(String.class));
+		while(primarykeys.hasNext()){
+			String primarykey = primarykeys.next();
+			sqlArgs = sqlArgs
+					.add(boxify(klass.fields().get(
+							javaBeanSchema.getPropriedade(primarykey).getNome()
+					))
+					.invoke("toString"));
+		}
+
+		return sqlArgs;
+
 	}
 
 	public void gerarMetodoDelete(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
@@ -250,28 +361,25 @@ public class CodeModelDaoFactory {
 		JBlock corpo = delete.body();
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 		// if(id!=ID_PADRAO)
-		JFieldVar pkField = klass.fields().get(javaBeanSchema.getPrimaryKey().getNome());
-		JConditional ifIdNotNull = corpo._if(
-				pkField.ne(JExpr.lit(ID_PADRAO))
-		);
+		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
+		JExpression ifexpr = klass.fields().get(
+				javaBeanSchema.getPropriedade(primarykeys.next()).getNome()
+		).ne(JExpr.lit(ID_PADRAO));
+		while(primarykeys.hasNext()){
+			ifexpr = ifexpr.cand( 
+				klass.fields().get(javaBeanSchema.getPropriedade(primarykeys.next()).getNome())
+				.ne(JExpr.lit(ID_PADRAO))
+			);
+		}
+		JConditional ifIdNotNull = corpo._if(ifexpr);
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
 		JBlock blocoThen = ifIdNotNull._then();
 		blocoThen.invoke(db, "delete")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			// ID+"=?"
-			.arg(klass.fields()
-				.get(
-					javaBeanSchema.getConstante(
-							javaBeanSchema.getTabela().getPrimaryKey().getNome()
-					)
-				).plus(JExpr.lit("=?"))
-			)
+			.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
 			// new String[]{id}
-			.arg(
-				JExpr.newArray(jcm.ref(String.class)).add(
-					boxify(pkField).invoke("toString")
-				)
-			);
+			.arg(getPrimaryKeysArray(klass, javaBeanSchema));
 
 		blocoThen._return(JExpr.lit(true));
 

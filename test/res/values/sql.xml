@@ -14,5 +14,12 @@ CREATE TABLE tb_author (
     name varchar(79) NOT NULL,
     UNIQUE (name)
 );
+CREATE TABLE tb_scores (
+    id_author integer NOT NULL,
+    id_document integer NOT NULL,
+    score integer DEFAULT 0,
+    PRIMARY KEY(id_author,id_document)
+);
+
 </string>
 </resources>

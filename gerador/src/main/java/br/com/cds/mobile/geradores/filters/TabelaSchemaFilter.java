@@ -22,10 +22,6 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getPropriedade(coluna);
 	}
 
-	public Propriedade getPrimaryKey(){
-		return proximo.getPrimaryKey();
-	}
-
 	public String getConstante(String coluna){
 		return proximo.getConstante(coluna);
 	}

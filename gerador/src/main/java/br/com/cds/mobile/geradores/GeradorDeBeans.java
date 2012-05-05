@@ -94,7 +94,7 @@ public class GeradorDeBeans {
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
-		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory("id_${TABELA}"));
+		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory("{COLUMN}_{TABLE}"));
 		factory.addFiltroFactory(new CamelCaseFilter.Factory());
 
 		// gerando os JavaBeanSchemas

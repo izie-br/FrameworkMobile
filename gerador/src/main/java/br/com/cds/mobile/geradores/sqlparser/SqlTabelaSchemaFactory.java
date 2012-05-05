@@ -64,6 +64,7 @@ public class SqlTabelaSchemaFactory {
 			// colunas
 			@SuppressWarnings("unchecked")
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
+			int primaryKeyCount = 0;
 			for(ColumnDefinition colunaDefinition :  columnDefinitions){
 				String nomeColuna = colunaDefinition.getColumnName();
 				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(
@@ -81,16 +82,20 @@ public class SqlTabelaSchemaFactory {
 					Index index = (Index)it;
 					isPrimaryKey = isPrimaryKey || (
 							index.getColumnsNames().contains(nomeColuna) &&
-							index.getType().equals("PRIMARY KEY")
+							index.getType().equalsIgnoreCase(TabelaSchema.PRIMARY_KEY_CONSTRAINT)
 					);
 				}
 				if(isPrimaryKey)
-					tabelaBuilder.adicionarPrimaryKey(nomeColuna, tipoColuna);
-				else
-					tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna);
+					primaryKeyCount++;
+				
+				//TODO outras constraints
+				String constraints [] = isPrimaryKey ?
+						new String []{TabelaSchema.PRIMARY_KEY_CONSTRAINT} :
+						new String []{};
+				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna,constraints);
 				tabela = tabelaBuilder.get();
 			}
-			if(tabela.getPrimaryKey()==null){
+			if(primaryKeyCount==0){
 				throw new RuntimeException(tabela.getNome()+" sem primary key");
 			}
 		}

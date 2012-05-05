@@ -3,12 +3,20 @@ package br.com.cds.mobile.geradores.tabelaschema;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.List;
 
 public class TabelaSchema {
 
+	public static final String PRIMARY_KEY_CONSTRAINT = "PRIMARY KEY";
+	public static final String UNIQUE_CONSTRAINT = "UNIQUE";
+	public static final String FOREIGN_KEY_CONSTRAINT = "FOREIGN KEY";
+	public static final String NOT_NULL_CONSTRAINT = "NOT NULL";
+	public static final String DEFAULT_CONSTRAINT = "DEFAULT";
+	public static final String CHECK_CONSTRAINT = "CHECK";
+
+
 	private String nome;
 	private Collection<TabelaSchema.Coluna> colunas = new HashSet<TabelaSchema.Coluna>();
-	private TabelaSchema.Coluna primaryKey;
 
 	private TabelaSchema(){}
 
@@ -22,17 +30,8 @@ public class TabelaSchema {
 
 		private Builder(){}
 
-		public Builder adicionarColuna(String nome, Class<?> type){
-			TabelaSchema.this.colunas.add(new Coluna(nome, type));
-			return this;
-		}
-
-		public Builder adicionarPrimaryKey(String nome, Class<?> type){
-			Coluna pk = new Coluna(nome, type);
-			if(colunas.contains(pk))
-				colunas.remove(pk);
-			TabelaSchema.this.colunas.add(pk);
-			TabelaSchema.this.primaryKey = pk;
+		public Builder adicionarColuna(String nome, Class<?> type, String...constraints){
+			TabelaSchema.this.colunas.add(new Coluna(nome, type,constraints));
 			return this;
 		}
 
@@ -41,7 +40,6 @@ public class TabelaSchema {
 		}
 
 	}
-
 
 	/**
 	 * Nome da tabela
@@ -59,55 +57,40 @@ public class TabelaSchema {
 		return new ArrayList<TabelaSchema.Coluna>(colunas);
 	}
 
-	/**
-	 * Coluna da chave primaria
-	 * @return
-	 */
-	public TabelaSchema.Coluna getPrimaryKey() {
-		return primaryKey;
-	}
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((colunas == null) ? 0 : colunas.hashCode());
-		result = prime * result + ((nome == null) ? 0 : nome.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		TabelaSchema other = (TabelaSchema) obj;
-		if (colunas == null) {
-			if (other.colunas != null)
-				return false;
-		} else if (!colunas.equals(other.colunas))
-			return false;
-		if (nome == null) {
-			if (other.nome != null)
-				return false;
-		} else if (!nome.equals(other.nome))
-			return false;
-		return true;
+	public List<TabelaSchema.Coluna> getPrimaryKeys(){
+		ArrayList<TabelaSchema.Coluna> keys =
+				new ArrayList<TabelaSchema.Coluna>();
+		for(TabelaSchema.Coluna coluna : colunas){
+			label_iterar_colunas:
+			for(String constraint : coluna.getConstraints()){
+				if(constraint.equalsIgnoreCase(PRIMARY_KEY_CONSTRAINT)){
+					keys.add(coluna);
+					break label_iterar_colunas;
+				}
+			}
+		}
+		return keys;
 	}
 
 	public class Coluna{
 
 		private String nome;
 		private Class<?> type;
+		private String constraints[];
 
-		public Coluna(String nome, Class<?> type){
+		public Coluna(String nome, Class<?> type, String...constraints){
 			this.nome = nome;
 			this.type = type;
+			this.constraints = constraints;
 		}
 
+		public String [] getConstraints() {
+			if(constraints==null || constraints.length ==0)
+				return new String[0];
+			String copy [] = new String[constraints.length];
+			System.arraycopy(constraints, 0, copy, 0, copy.length);
+			return copy;
+		}
 
 		public String getNome() {
 			return nome;
@@ -115,36 +98,6 @@ public class TabelaSchema {
 
 		public Class<?> getType() {
 			return type;
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result + ((nome == null) ? 0 : nome.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			Coluna other = (Coluna) obj;
-			if (nome == null) {
-				if (other.nome != null)
-					return false;
-			} else if (!nome.equals(other.nome))
-				return false;
-			if (type == null) {
-				if (other.type != null)
-					return false;
-			} else if (!type.equals(other.type))
-				return false;
-			return true;
 		}
 
 	}

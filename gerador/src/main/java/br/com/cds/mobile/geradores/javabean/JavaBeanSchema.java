@@ -35,7 +35,18 @@ public class JavaBeanSchema{
 	}
 
 	public Propriedade getPrimaryKey(){
-		return filterChain.getPrimaryKey();
+		Collection<TabelaSchema.Coluna> colunas = tabela.getPrimaryKeys();
+		if(colunas.size()!=1)
+			return null;
+		return getPropriedade(colunas.iterator().next().getNome());
+	}
+
+	public Collection<String> getPrimaryKeyColumns(){
+		Collection<String> props = new ArrayList<String>();
+		Collection<TabelaSchema.Coluna> colunas = tabela.getPrimaryKeys();
+		for(TabelaSchema.Coluna coluna :colunas)
+			props.add(coluna.getNome());
+		return props;
 	}
 
 	public String getConstante(String coluna){
@@ -55,32 +66,6 @@ public class JavaBeanSchema{
 		this.filterChain = filtro;
 	}
 
-
-
-	@Override
-	public int hashCode() {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + ((tabela == null) ? 0 : tabela.hashCode());
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (this == obj)
-			return true;
-		if (obj == null)
-			return false;
-		if (getClass() != obj.getClass())
-			return false;
-		JavaBeanSchema other = (JavaBeanSchema) obj;
-		if (tabela == null) {
-			if (other.tabela != null)
-				return false;
-		} else if (!tabela.equals(other.tabela))
-			return false;
-		return true;
-	}
 
 	/**
 	 * O construtor privado soh eh acessado pela factory
@@ -109,13 +94,6 @@ public class JavaBeanSchema{
 				}
 			}
 			return null;
-		}
-
-		@Override
-		public Propriedade getPrimaryKey() {
-			return tabela.getPrimaryKey() != null ?
-					getPropriedade(tabela.getPrimaryKey().getNome()) :
-					null;
 		}
 
 		@Override
