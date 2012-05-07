@@ -20,6 +20,12 @@ CREATE TABLE tb_scores (
     score integer DEFAULT 0,
     PRIMARY KEY(id_author,id_document)
 );
+CREATE TABLE tb_references (
+    id_referer_document INTEGER NOT NULL,
+    id_refered_document INTEGER NOT NULL,
+    PRIMARY KEY(id_referer_document, id_refered_document)
+);
+
 
 </string>
 </resources>

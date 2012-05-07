@@ -42,6 +42,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 	private static final String LOGIN = "email";
 	private static final String MAC = "mac";
 	private static final String IMEI = "imei";
+	private static final String JSON = "json";
 
 	// TODO firefox - ubuntu - i686!  ???? o_O
 	private static final String USER_AGENT =
@@ -103,35 +104,42 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 				if(i>TENTATIVAS_DE_CONEXAO)
 					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
 			}
-			HttpEntity entity = response.getEntity();
-			if (entity != null) {
-				InputStream instream = entity.getContent();
-	
-				Header contentEncoding = response.getFirstHeader("Content-Encoding");
-				if (contentEncoding != null && contentEncoding.getValue().toLowerCase().contains("gzip")) {
-					instream = new GZIPInputStream(instream);
-				}
-				//if (debug) {
-				//	LogPadrao.d("entity.getContentLength():" + entity.getContentLength());
-				//}
-	
-				GenericComunicacao.setConectado(true);
-	
-				try {
-					return new JsonToObjectIterator<T>(
-							new InputStreamReader(instream, encoding),
-							prototype
-					);
-				} catch (UnsupportedEncodingException e) { /* nao ocorre a menos que */
-					throw new RuntimeException(e);  /* a plataforma nao suporte UTF-8 */
-				}
-			} else {
-				return null;
-			}
+			return getObjectsFromResponse(prototype, response);
 		} catch (IOException e) {
 			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
 		}
 
+	}
+
+	protected Iterator<T> getObjectsFromResponse(T prototype,
+			HttpResponse response) throws IOException {
+		HttpEntity entity = response.getEntity();
+		if (entity != null) {
+			InputStream instream = entity.getContent();
+
+			Header contentEncoding = response.getFirstHeader("Content-Encoding");
+			if (contentEncoding != null && contentEncoding.getValue().toLowerCase().contains("gzip")) {
+				instream = new GZIPInputStream(instream);
+			}
+			//if (debug) {
+			//	LogPadrao.d("entity.getContentLength():" + entity.getContentLength());
+			//}
+
+			GenericComunicacao.setConectado(true);
+
+			try {
+				// TODO ler ate chegas a lista de objetos
+				return new JsonToObjectIterator<T>(
+						new InputStreamReader(instream, encoding),
+						prototype
+				);
+			} catch (UnsupportedEncodingException e) {
+				LogPadrao.e (e);
+				throw new RuntimeException(e);
+			}
+		} else {
+			return null;
+		}
 	}
 
 	protected String getLastSyncParameter() {
@@ -154,14 +162,21 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 		return IMEI;
 	}
 
+	protected String getJsonObjectsParameter(){
+		return JSON;
+	}
 
 	public void enviar(String imei, String mac, String email, String senha, T objeto) {
 		ArrayList<T> objetos = new ArrayList<T>(1);
 		objetos.add(objeto);
-		enviarMultiplos(imei, mac, email, senha, objetos.iterator());
+		enviarMultiplos(imei, mac, email, senha, objetos.iterator(),objeto);
 	}
 
 	public void enviarMultiplos(String imei, String mac, String email, String senha, Iterator<T> objetos) {
+		enviarMultiplos(imei, mac, email, senha, objetos, null);
+	}
+
+	public Iterator<T> enviarMultiplos(String imei, String mac, String email, String senha, Iterator<T> objetos,T prototype) {
 		HashMap<String, String> parametrosEnviar = new HashMap<String, String>();
 		try {
 			parametrosEnviar.put(getImeiParameter(), imei);
@@ -172,30 +187,26 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			if (senha != null) {
 				parametrosEnviar.put(getPasswordParameter(), senha);
 			}
-			parametrosEnviar.put("json", objetosToJson(objetos).toString());
-			enviarMultiplos(parametrosEnviar);
+			// TODO refazer iterando
+			parametrosEnviar.put(getJsonObjectsParameter(), objetosToJson(objetos).toString());
+			HttpResponse response = post(getUrl(), getMethodPost(), parametrosEnviar);
+			if (response.getStatusLine().getStatusCode()!=200)
+				//TODO
+				return null;
+			if (prototype!=null)
+				return getObjectsFromResponse(prototype, response);
+			return null;
 		} catch (RuntimeException re) {
+			LogPadrao.e (re);
 			throw re;
 		} catch (Throwable e) {
+			LogPadrao.e (e);
 			throw new RuntimeException(e);
 		} finally {
-			parametrosEnviar.remove("json");
+			parametrosEnviar.remove(getJsonObjectsParameter());
 			parametrosEnviar = null;
 		}
 	}
-
-	public boolean enviarMultiplos(HashMap<String, String> parametros) {
-		try {
-			post(getUrl(), getMethodPost(), parametros);
-			return true;
-		} catch (RuntimeException re) {
-			throw re;
-		} catch (Throwable e) {
-			LogPadrao.e(e);
-			throw new RuntimeException(e);
-		}
-	}
-
 
 	public HttpResponse post(
 			String url,  String metodo, 
@@ -230,7 +241,10 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			//}
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 			if (parametros != null) {
-				for (Iterator<String> iterator = parametros.keySet().iterator(); iterator.hasNext();) {
+				for (
+						Iterator<String> iterator = parametros.keySet().iterator();
+						iterator.hasNext();
+				) {
 					String chave = iterator.next();
 					String valor = parametros.get(chave);
 					nameValuePairs.add(new BasicNameValuePair(chave, valor));
@@ -256,8 +270,8 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 	protected JSONObject objetosToJson(Iterator<T> objetos) throws JSONException {
 		JSONObject jsonObject = new JSONObject();
 		JSONArray jsonArray = new JSONArray();
-		for (T objeto = objetos.next(); objetos.hasNext();) {
-			jsonArray.put(objetoToJson(objeto));
+		while( objetos.hasNext()) {
+			jsonArray.put(objetoToJson(objetos.next()));
 		}
 		jsonObject.put("list", jsonArray);
 		return jsonObject;

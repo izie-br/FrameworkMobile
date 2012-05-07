@@ -105,14 +105,17 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 			mapeadas = new ArrayList<String>();
 			for(AssociacaoPorNomeFilter filtroTabelaA :filtros){
 				for(AssociacaoPorNomeFilter filtroTabelaB : filtros){
+					if (onlyTables!=null && !onlyTables.contains(filtroTabelaB.getNome()))
+						continue;
 					for(TabelaSchema.Coluna colunaA : filtroTabelaA.getTabela().getColunas()){
+						if (onlyColumns !=null && !onlyColumns.contains(colunaA.getNome()))
+							continue;
 						Object args[] = new String[2];
 						args[TABLE_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getNome();
 						args[COLUMN_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getPropriedadeNome(colunaA.getNome());
 						// exemplo: colunaToA = "id_outratbela"
 						String colunaToA = String.format(pattern,args);
 						for(TabelaSchema.Coluna coluna : filtroTabelaB.getTabela().getColunas()){
-	
 							if(
 									filtroTabelaB.getPropriedadeNome(coluna.getNome())
 										.equals(colunaToA)
