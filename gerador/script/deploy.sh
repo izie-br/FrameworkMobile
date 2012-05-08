@@ -17,5 +17,7 @@ echo '#!/bin/sh' > $SCRIPT_DIR/gerar.sh
 echo "$GERADOR_SCRIPT_DIR/gerar_classes.sh "'"$( cd -P "$( dirname "$0" )" && pwd )/.."' >> $SCRIPT_DIR/gerar.sh
 chmod +x $SCRIPT_DIR/gerar.sh
 
-cp -r $GERADOR_SCRIPT_DIR/../customSrc $1
+if [ ! -d "$1/customSrc" ] ; then
+    cp -r $GERADOR_SCRIPT_DIR/../customSrc $1
+fi
 

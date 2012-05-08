@@ -77,11 +77,12 @@ public class SQLiteGeradorUtils {
 		 * NUMERIC       *
 		 * DECIMAL(10,5) *
 		 ****************/
-		if(
-				sqlType.equalsIgnoreCase("numeric") ||
-				sqlType.matches("[\\w]*[d][D][e][E][c][C][i][I][m][M][a][A][l][L].*")
-		)
-			return BigDecimal.class;
+//		if(
+//				sqlType.equalsIgnoreCase("numeric") ||
+//				sqlType.equalsIgnoreCase("decimal") ||
+//				sqlType.matches("[\\w]*[d][D][e][E][c][C][i][I][m][M][a][A][l][L].*")
+//		)
+//			return BigDecimal.class;
 		/************
 		 * DATE     *
 		 * DATETIME *
