@@ -106,6 +106,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			}
 			return getObjectsFromResponse(prototype, response);
 		} catch (IOException e) {
+			LogPadrao.e(e);
 			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
 		}
 

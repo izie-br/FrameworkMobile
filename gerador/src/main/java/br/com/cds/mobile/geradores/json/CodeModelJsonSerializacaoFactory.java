@@ -7,6 +7,8 @@ import org.json.JSONObject;
 
 import br.com.cds.mobile.framework.utils.DateUtil;
 import br.com.cds.mobile.geradores.dao.CodeModelDaoFactory;
+import br.com.cds.mobile.geradores.filters.associacao.Associacao;
+import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
@@ -57,8 +59,9 @@ public class CodeModelJsonSerializacaoFactory {
 			}
 			else {
 			JExpression value = campo;
-			if(propriedade.getType().equals(Date.class))
+			if(propriedade.getType().equals(Date.class)){
 				value = jcm.ref(DateUtil.class).staticInvoke("dateToString").arg(value);
+			}
 			corpo.add(setJsonField.arg(value));
 			}
 		}
@@ -91,7 +94,7 @@ public class CodeModelJsonSerializacaoFactory {
 			value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
 				.arg(coluna);
 			if(propriedade.getNome().equals(primaryKeyNome)){
-				value = jsonObj.invoke(SQLiteGeradorUtils.motodoOptDoJsonParaClasse(propriedade.getType()))
+				value = jsonObj.invoke(SQLiteGeradorUtils.metodoOptDoJsonParaClasse(propriedade.getType()))
 					.arg(coluna)
 					.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));
 
@@ -100,8 +103,19 @@ public class CodeModelJsonSerializacaoFactory {
 				value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))
 						.arg(coluna);
 			}
-			if(propriedade.getType().equals(Date.class))
+			for(Associacao associacao : javaBeanSchema.getAssociacoes()){
+				if(associacao instanceof AssociacaoOneToMany){
+					AssociacaoOneToMany associacaoOneToMany = (AssociacaoOneToMany)associacao;
+					if(associacaoOneToMany.getKeyToA().equals(coluna)){
+						value = jsonObj.invoke(SQLiteGeradorUtils.metodoOptDoJsonParaClasse(propriedade.getType()))
+								.arg(coluna)
+								.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));
+					}
+				}
+			}
+			if(propriedade.getType().equals(Date.class)){
 				value = jcm.ref(DateUtil.class).staticInvoke("stringToDate").arg(value);
+			}
 			corpo.assign(
 					obj.ref(klass.fields().get(propriedade.getNome())),
 					value

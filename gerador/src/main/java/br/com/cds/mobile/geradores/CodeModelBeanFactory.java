@@ -16,6 +16,7 @@ import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JFieldVar;
@@ -437,7 +438,7 @@ public class CodeModelBeanFactory {
 			 *     obj.data = new Date(data);               *
 			 ***********************************************/
 			else if(propriedade.getType().equals(Date.class)){
-				corpo.assign(
+				corpo._if(campo.ne(JExpr._null()))._then().assign(
 						newClone.ref(campo),
 						JExpr._new(jcm.ref(Date.class)).arg(campo.invoke("getTime"))
 				);

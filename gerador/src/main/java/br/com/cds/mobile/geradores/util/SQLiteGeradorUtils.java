@@ -148,7 +148,7 @@ public class SQLiteGeradorUtils {
 		));
 	}
 
-	public static String motodoOptDoJsonParaClasse(Class<?> klass){
+	public static String metodoOptDoJsonParaClasse(Class<?> klass){
 		return "opt"+metodoGetDoJsonParaClasse(klass).substring(3);
 	}
 
