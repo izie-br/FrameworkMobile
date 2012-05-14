@@ -97,11 +97,6 @@ public class CodeModelDaoFactory {
 		JMethod constructor = klass.constructor(JMod.PUBLIC);
 
 		JBlock corpo = constructor.body();
-		JVar contentValues = corpo.decl(
-				jcm.ref(ContentValues.class),
-				"contentValues",
-				JExpr._new(jcm.ref(ContentValues.class))
-		);
 
 		//Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
 		Collection<String> primaryKeys = javaBeanSchema.getPrimaryKeyColumns();
@@ -113,18 +108,7 @@ public class CodeModelDaoFactory {
 			JFieldVar constante = klass.fields().get(
 					javaBeanSchema.getConstante(colunm)
 			);
-			corpo.invoke(contentValues,"put")
-				.arg(constante)
-				.arg(JExpr.refthis(campo.name()));
 		}
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
-		JExpression valueExpr = db.invoke("insertOrThrow")
-				.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
-				.arg(JExpr._null())
-				.arg(contentValues);
-			JVar valueId = corpo.decl(jcm.LONG, "value",valueExpr);
-		JConditional ifIdNull = corpo._if(valueId.lt(JExpr.lit(ID_PADRAO)));
-		ifIdNull._then().block()._throw(JExpr._new(jcm.ref(RuntimeException.class)));
 		klass.constructor(JMod.PRIVATE);
 	}
 
@@ -208,7 +192,9 @@ public class CodeModelDaoFactory {
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 
 		if(primaryKey==null){
-			gerarBlocoUpdate(klass, javaBeanSchema, corpo, db, contentValues);
+			gerarMetodoSaveComPrimaryKeyMultipla(
+					klass, javaBeanSchema, corpo, db, contentValues
+			);
 			return;
 		}
 		// if(id=ID_PADRAO)   => nova entidade  => insert
@@ -314,7 +300,33 @@ public class CodeModelDaoFactory {
 			.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
 			.arg(getPrimaryKeysArray(klass, javaBeanSchema)));
 		block._return(value.gt(JExpr.lit(0)));
+	}
 
+	private void gerarMetodoSaveComPrimaryKeyMultipla(
+		JDefinedClass klass,
+		JavaBeanSchema javaBeanSchema,
+		JBlock block,
+		JVar db,
+		JVar contentValues
+	){
+		JVar existente =  block.decl(
+				klass, "existente",
+				klass.staticInvoke("objects")
+					.invoke("filter")
+						.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
+						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+					.invoke("first")
+		);
+		JConditional ifExist =  block._if(existente.eq(JExpr._null()));
+		JBlock thenBlock = ifExist._then();
+		JExpression valueExpr = db.invoke("insertOrThrow")
+			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
+			.arg(JExpr._null())
+			.arg(contentValues);
+		JVar valueId = thenBlock.decl(jcm.LONG, "value",valueExpr);
+		thenBlock._return(valueId.gt(JExpr.lit(0)));
+
+		gerarBlocoUpdate(klass, javaBeanSchema, ifExist._else(), db, contentValues);
 	}
 
 	private JExpression getPrimaryKeysQueryString(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
