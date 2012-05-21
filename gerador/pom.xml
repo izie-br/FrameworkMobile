@@ -1,15 +1,15 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>br.com.cds.mobile.framework</groupId>
   <artifactId>gerador</artifactId>
   <packaging>jar</packaging>
-  <version>0.2-alpha</version>
   <name>gerador</name>
 
-  <properties>
-    <platform.version> 2.1.2 </platform.version>
-  </properties>
+  <parent>
+    <groupId>br.com.cds.mobile.framework</groupId>
+    <artifactId>frameworkMobile</artifactId>
+    <version>0.2-alpha</version>
+  </parent>
 
   <repositories>
     <repository>
@@ -22,10 +22,9 @@
 
     <dependency>
       <groupId>br.com.cds.mobile.framework</groupId>
-      <artifactId>libFramework</artifactId>
+      <artifactId>lib</artifactId>
       <version>0.2-alpha</version>
-      <systemPath>${basedir}/../lib/target/libFramework-0.2-alpha.jar</systemPath>
-      <scope>system</scope>
+      <scope>compile</scope>
     </dependency>
 
     <dependency>
@@ -39,13 +38,6 @@
       <groupId>com.sun.codemodel</groupId>
       <artifactId>codemodel</artifactId>
       <version>2.6</version>
-      <scope>compile</scope>
-    </dependency>
-
-    <dependency>
-      <groupId>com.google.android</groupId>
-      <artifactId>android</artifactId>
-      <version>${platform.version}</version>
       <scope>compile</scope>
     </dependency>
 

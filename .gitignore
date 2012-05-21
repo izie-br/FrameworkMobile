@@ -6,7 +6,7 @@ gerador/target/*
 .classpath
 */.settings/*
 test/bin/*
-test/gen/*
+gen
 test/target/*
 test/customSrc/*
 test/customGen/*

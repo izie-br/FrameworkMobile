@@ -8,7 +8,7 @@ import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.test.TestActivity;
-import br.com.cds.mobile.framework.test.Author;
+import br.com.cds.mobile.framework.test.gen.Author;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
 

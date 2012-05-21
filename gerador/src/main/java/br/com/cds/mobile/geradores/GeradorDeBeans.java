@@ -60,17 +60,17 @@ public class GeradorDeBeans {
 			System.out.println(
 					"Uso:\n"+
 					"java -classpath <JARS> "+GeradorDeBeans.class.getName()+ " " +
-					"arquivo_sql pacote diretorio_gen"
+					"arquivo_sql pacote pastaSrc"
 			);
 			return;
 		}
 
 		String arquivo = args[0];
 		String pacote = args[1];
-		String pastaGen = args[2];
+		String pastaSrc = args[2];
 
 		try {
-			gerarBeansWithJsqlparserAndCodeModel(pacote, arquivo, pastaGen);
+			gerarBeansWithJsqlparserAndCodeModel(pacote, arquivo, pastaSrc, pacote+".gen");
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -81,7 +81,8 @@ public class GeradorDeBeans {
 	public static void gerarBeansWithJsqlparserAndCodeModel(
 			String pacote,
 			String arquivoSql,
-			String pastaGen
+			String pastaSrc,
+			String pacoteGen
 	)
 			throws IOException, FileNotFoundException
 	{
@@ -112,7 +113,7 @@ public class GeradorDeBeans {
 			JDefinedClass classeGerada;
 			try {
 				classeGerada = jbf.gerarClasse(
-						pacote+'.'+javaBeanSchema.getNome());
+						pacoteGen+'.'+javaBeanSchema.getNome());
 			} catch (JClassAlreadyExistsException e) {
 				throw new RuntimeException(e);
 			}
@@ -147,11 +148,12 @@ public class GeradorDeBeans {
 			jbf.gerarHashCodeAndEquals(schemaXJClass.klass,schemaXJClass.schema);
 		}
 
+		String pastaGen = pacoteGen.replace(".", File.pathSeparator);
 		File pastaGenFolder = new File(pastaGen);
 		if(pastaGenFolder.exists())
 			deleteFolderR(pastaGenFolder);
-		pastaGenFolder.mkdirs();
-		jcm.build(pastaGenFolder);
+		//pastaGenFolder.mkdirs();
+		jcm.build(new File(pastaSrc));
 	}
 
 	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {

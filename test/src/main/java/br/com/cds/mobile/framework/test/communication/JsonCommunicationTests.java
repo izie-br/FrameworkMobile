@@ -18,7 +18,7 @@ import org.apache.http.params.HttpParams;
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.comunication.HttpJsonDao;
-import br.com.cds.mobile.framework.test.Author;
+import br.com.cds.mobile.framework.test.gen.Author;
 import br.com.cds.mobile.framework.test.TestActivity;
 
 public class JsonCommunicationTests extends

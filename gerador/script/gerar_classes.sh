@@ -11,10 +11,9 @@ GERADOR_SCRIPT_DIR="$( cd -P "$( dirname "$0" )" && pwd )"
 BASE_DIR="$1"
 
 SCHEMA="$BASE_DIR/script/schema.sql"
-GENDIR="$BASE_DIR/customGen"
 
 MAIN=br.com.cds.mobile.geradores.GeradorDeBeans
-JARS="$GERADOR_SCRIPT_DIR/../target/gerador-0.2-alpha.jar:$GERADOR_SCRIPT_DIR/../libs/jsqlparser.jar:$GERADOR_SCRIPT_DIR/../libs/codemodel-2.4.jar:$GERADOR_SCRIPT_DIR/../../lib/target/libFramework-0.2-alpha.jar:$GERADOR_SCRIPT_DIR/../libs/android.jar"
+JARS="$GERADOR_SCRIPT_DIR/../target/gerador-0.2-alpha.jar:$GERADOR_SCRIPT_DIR/../libs/jsqlparser.jar:$GERADOR_SCRIPT_DIR/../libs/codemodel-2.4.jar:$GERADOR_SCRIPT_DIR/../../lib/target/lib-0.2-alpha.jar:$GERADOR_SCRIPT_DIR/../libs/android.jar"
 
 SQL_XML="$BASE_DIR/res/values/sql.xml"
 
@@ -40,5 +39,5 @@ PACKAGE="$(
 )"
 echo $PACKAGE
 
-java -classpath $JARS $MAIN $SCHEMA $PACKAGE $GENDIR
+java -classpath $JARS $MAIN $SCHEMA $PACKAGE src/main/java
 
