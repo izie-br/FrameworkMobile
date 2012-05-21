@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -70,7 +71,7 @@ public class GeradorDeBeans {
 		String pastaSrc = args[2];
 
 		try {
-			gerarBeansWithJsqlparserAndCodeModel(pacote, arquivo, pastaSrc, pacote+".gen");
+			gerarBeansWithJsqlparserAndCodeModel(pacote, new FileReader(new File(arquivo)), pastaSrc, pacote+".gen");
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -80,7 +81,7 @@ public class GeradorDeBeans {
 
 	public static void gerarBeansWithJsqlparserAndCodeModel(
 			String pacote,
-			String arquivoSql,
+			Reader sql,
 			String pastaSrc,
 			String pacoteGen
 	)
@@ -91,7 +92,7 @@ public class GeradorDeBeans {
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(new FileReader(arquivoSql));
+				getTabelasDoSchema(sql);
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
@@ -182,6 +183,7 @@ public class GeradorDeBeans {
 				break;
 			TabelaSchema tabela = factory.gerarTabelaSchema(createTableStatement);
 			tabelas.add(tabela);
+			System.out.println("tabela: " +tabela);
 		}
 		return tabelas;
 	}
