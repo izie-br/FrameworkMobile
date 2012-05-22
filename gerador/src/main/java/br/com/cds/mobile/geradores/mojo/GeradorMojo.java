@@ -87,7 +87,7 @@ public class GeradorMojo extends AbstractMojo{
                 GeradorDeBeans.gerarBeansWithJsqlparserAndCodeModel(
                         basePackage,
                         new StringReader(val),
-                        "customSrc",
+                        basedir+"/src/main/java",
                         basePackage+".gen"
                 );
             } catch (FileNotFoundException e) {
