@@ -16,6 +16,7 @@
 
   <properties>
     <platform.version> 2.1.2 </platform.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
   </properties>
 
   <dependencies>
