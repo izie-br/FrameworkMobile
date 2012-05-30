@@ -33,7 +33,9 @@ import br.com.cds.mobile.geradores.GeradorDeBeans;
  */
 public class GeradorMojo extends AbstractMojo{
 
-    /**
+    private static final String DEFAULT_ENCODING = "UTF-8";
+
+	/**
      * @parameter expression="${basedir}"
      */
     private String basedir;
@@ -49,8 +51,12 @@ public class GeradorMojo extends AbstractMojo{
             resource = new File(sqlResource);
         else
             resource = new File(basedir+"/res/values/sql.xml");
-        if (!resource.exists())
-            throw new MojoExecutionException("Manifest nao encontrado em "+resource.getAbsolutePath());
+        if (!resource.exists()){
+            throw new MojoExecutionException(
+                    "Resources SQL nao encontrados em "+
+                    resource.getAbsolutePath()
+            );
+        }
         return resource;
     }
 
@@ -65,13 +71,18 @@ public class GeradorMojo extends AbstractMojo{
             manifest = new File(manifestFile);
         else
             manifest = new File(basedir+"/AndroidManifest.xml");
-        if (!manifest.exists())
-            throw new MojoExecutionException("Manifest nao encontrado em "+manifest.getAbsolutePath());
+        if (!manifest.exists()) {
+            throw new MojoExecutionException(
+                    "Manifest nao encontrado em "+
+                     manifest.getAbsolutePath()
+            );
+        }
         return manifest;
     }
 
     @Override
-    public void execute() throws MojoExecutionException, MojoFailureException {
+    public void execute() throws MojoExecutionException, MojoFailureException
+    {
         getLog().info("iniciando gerador");
         Integer dbVersion = getDBVersion();
         if(dbVersion!=null)
@@ -110,18 +121,6 @@ public class GeradorMojo extends AbstractMojo{
 
     public String sqliteSchema(String sql){
         try {
-//            File f = new File("__schema.init");
-//            if(f.exists())
-//                f.delete();
-//            f.createNewFile();
-//            FileOutputStream out = new FileOutputStream(f);
-//            PrintWriter pw = new PrintWriter(out);
-//            pw.print(sql);
-//            pw.close();
-//            Process p = Runtime.getRuntime().exec("sqlite3 __temp.db ' "+sql+"';"+"sqlite3 __temp.db "+".schema");
-//            //InputStream is = p.getInputStream();
-//            p.waitFor();
-//            String schema = "";//convertStreamToString(is);
             return SQLiteUtil.getSchema(sql);
         } catch (SQLException e) {
         	e.printStackTrace();
@@ -133,7 +132,8 @@ public class GeradorMojo extends AbstractMojo{
         StringBuilder sb = new StringBuilder();
         Map<String, String> nodes = XMLUtil.getChildren(
             getSqlResource(),
-            "//string[contains(@name,\"db_versao_\") and number(substring(@name,11)) < "+(version+1)+"]"
+            "//string[contains(@name,\"db_versao_\") and " +
+            "number(substring(@name,11)) < "+(version+1)+"]"
         );
         getLog().info(sb.toString());
         StringBuilder out = new StringBuilder();
@@ -157,14 +157,15 @@ public class GeradorMojo extends AbstractMojo{
                 props.storeToXML(
                     out,
                     null,
-                    "UTF-8"
+                    DEFAULT_ENCODING
                 );
                 out.close();
             }
             return props;
         }
         catch (IOException e) {
-            throw new MojoFailureException("Arquivo de configuracao inacessivel");
+            throw new MojoFailureException(
+                    "Arquivo de configuracao inacessivel");
         }
     }
 
@@ -175,7 +176,8 @@ public class GeradorMojo extends AbstractMojo{
                     ".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
                     Pattern.MULTILINE
             );
-            String manifestStr = convertStreamToString(new FileInputStream(manifest));
+            String manifestStr = convertStreamToString(
+                    new FileInputStream(manifest));
             Matcher mobj = pat.matcher(manifestStr);
             if(mobj.find())
                 return mobj.group(1);
@@ -185,7 +187,9 @@ public class GeradorMojo extends AbstractMojo{
         }
     }
 
-    private static String convertStreamToString(InputStream is) throws IOException {
+    private static String convertStreamToString(InputStream is)
+            throws IOException
+    {
         /*
          * To convert the InputStream to String we use the Reader.read(char[]
          * buffer) method. We iterate until the Reader return -1 which means
@@ -198,7 +202,7 @@ public class GeradorMojo extends AbstractMojo{
             char[] buffer = new char[1024];
             try {
                 Reader reader = new BufferedReader(
-                        new InputStreamReader(is,"UTF-8")
+                        new InputStreamReader(is,DEFAULT_ENCODING)
                 );
                 int n;
                 while ((n = reader.read(buffer)) != -1) {

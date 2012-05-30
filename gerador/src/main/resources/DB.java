@@ -1,4 +1,3 @@
-package br.com.cds.mobile.framework.db;
 
 import java.lang.ref.SoftReference;
 

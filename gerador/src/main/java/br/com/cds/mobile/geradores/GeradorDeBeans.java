@@ -88,7 +88,8 @@ public class GeradorDeBeans {
 			throws IOException, FileNotFoundException
 	{
 
-		String dbClass = pacote+".db.DB";
+		String pacoteDb = getPacoteDb(pacote);
+		String dbClass = pacoteDb + ".DB";
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
@@ -155,6 +156,14 @@ public class GeradorDeBeans {
 			deleteFolderR(pastaGenFolder);
 		//pastaGenFolder.mkdirs();
 		jcm.build(new File(pastaSrc));
+	}
+
+	protected static String getPacoteDb(String pacote) {
+		return pacote+".db";
+	}
+
+	protected static String getPacoteDbPath(String pacote) {
+		return getPacoteDb(pacote).replaceAll(".", File.pathSeparator);
 	}
 
 	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {
