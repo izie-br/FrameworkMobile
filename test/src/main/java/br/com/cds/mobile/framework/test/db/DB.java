@@ -17,7 +17,7 @@ public class DB extends SQLiteOpenHelper{
 	public static int DB_VERSAO = 1;
 	private static String DB_VERSOES_RESOURCES_PREFIXO = "db_versao_";
 
-	public static SoftReference<DB> instancia;
+	public static SQLiteDatabase instancia;
 
 	public DB(){
 		super(BaseApplication.getContext(), DB_NOME, null, DB_VERSAO);
@@ -38,14 +38,15 @@ public class DB extends SQLiteOpenHelper{
 	}
 
 	public static SQLiteDatabase getDb(){
-		DB db = null;
-		if(instancia!=null)
-			db = instancia.get();
-		if(db==null){
-			db = new DB();
-			instancia = new SoftReference<DB>(db);
-		}
-		return db.getWritableDatabase();
+		if(instancia==null || !instancia.isOpen())
+			instancia = new DB().getWritableDatabase();
+		return instancia;
+	}
+
+	@Override
+	protected void finalize() throws Throwable {
+		instancia.close();
+		super.finalize();
 	}
 
 	private String getSqlScriptPorVersao(Context ctx, int versao ){
