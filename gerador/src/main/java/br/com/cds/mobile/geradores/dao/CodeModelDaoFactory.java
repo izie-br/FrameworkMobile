@@ -655,7 +655,7 @@ public class CodeModelDaoFactory {
 	private JExpression boxify(JVar var){
 		if(var.type().isPrimitive()){
 			JPrimitiveType primType= (JPrimitiveType)var.type();
-			return JExpr._new(primType.boxify()).arg(var);
+			return JExpr.cast(primType.boxify(), var);
 		}
 		return var;
 	}
