@@ -1,5 +1,6 @@
 package br.com.cds.mobile.geradores.mojo;
 
+import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
@@ -8,14 +9,16 @@ import java.sql.Statement;
 
 public class SQLiteUtil {
 
-    public static String getSchema(String sql) throws SQLException{
+    private static final String DB_FILE = "__sample.db";
+
+	public static String getSchema(String sql) throws SQLException{
         try {
             @SuppressWarnings("unused")
             Class<?> klass = Class.forName("org.sqlite.JDBC");
         } catch (ClassNotFoundException e) {
             throw new RuntimeException(e);
         }
-        Connection connection = DriverManager.getConnection("jdbc:sqlite:__sample.db");
+        Connection connection = DriverManager.getConnection("jdbc:sqlite:"+DB_FILE);
 //        Statement statement = connection.createStatement();
 //        statement.setQueryTimeout(30);
         String[] stms = sql.split(";");
@@ -31,6 +34,7 @@ public class SQLiteUtil {
             if(sqlTab!=null)
                 sb.append(sqlTab).append(";");
         }
+        new File(DB_FILE).delete();
         return sb.toString();
     }
 

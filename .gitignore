@@ -8,9 +8,8 @@ gerador/target/*
 test/bin/*
 gen
 test/target/*
-test/customSrc/*
-test/customGen/*
-test/script
+test/src/main/java/br/com/cds/mobile/framework/test/db/DB.java
+test/.gerador.xml
 test_server/django/*
 test_server/test.db
 *.pyc

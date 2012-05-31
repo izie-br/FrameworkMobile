@@ -3,9 +3,12 @@ package br.com.cds.mobile.geradores;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -50,6 +53,11 @@ import com.sun.codemodel.JVar;
 
 public class GeradorDeBeans {
 
+	private static final String DB_CLASS = "DB";
+
+	public static PrintStream out = System.out;
+
+
 	/**
 	 * @param args
 	 */
@@ -60,7 +68,8 @@ public class GeradorDeBeans {
 		if(args==null||args.length<3){
 			System.out.println(
 					"Uso:\n"+
-					"java -classpath <JARS> "+GeradorDeBeans.class.getName()+ " " +
+					"java -classpath <JARS> " +
+					GeradorDeBeans.class.getName()+ " " +
 					"arquivo_sql pacote pastaSrc"
 			);
 			return;
@@ -71,12 +80,59 @@ public class GeradorDeBeans {
 		String pastaSrc = args[2];
 
 		try {
-			gerarBeansWithJsqlparserAndCodeModel(pacote, new FileReader(new File(arquivo)), pastaSrc, pacote+".gen");
+			gerarBeansWithJsqlparserAndCodeModel(
+				pacote, new FileReader(new File(arquivo)),
+				pastaSrc, pacote+".gen"
+			);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	public static void conferirArquivosCustomSrc(
+			String pacote, String pastaSrc
+	){
+		String pacoteDb = getPacoteDb(pacote);
+		String pacoteDbPath = getPacotePath(pacoteDb);
+		GeradorDeBeans.class.getResourceAsStream(DB_CLASS+".java");
+		File dbFolder = new File(pastaSrc + "/" + pacoteDbPath);
+		if(!dbFolder.exists())
+			dbFolder.mkdirs();
+		File dbFile = new File(dbFolder, DB_CLASS + ".java");
+		if(!dbFile.exists()){
+			out.println("Criando arquivo "+dbFile.getPath());
+			try{
+				gerarClasseDB(pacoteDb,dbFile);
+			} catch (IOException e ) {
+				throw new RuntimeException(e);
+			}
+		}
+	}
+
+	public static void gerarClasseDB(String pacoteDb, File dbFile)
+			throws IOException
+	{
+		dbFile.createNewFile();
+		InputStream is = GeradorDeBeans.class
+			.getResourceAsStream("/DB.java");
+		System.out.println(is.available());
+		dbFile.createNewFile();
+		OutputStream os = new FileOutputStream(dbFile);
+		if(pacoteDb.charAt(pacoteDb.length()-1)=='.')
+			pacoteDb = pacoteDb.substring(0,pacoteDb.length()-1);
+		os.write( ("package " + pacoteDb + ";\n\n").getBytes("ASCII"));
+		byte buffer [] = new byte[255];
+		for(
+			int charsRead = is.read(buffer);
+			charsRead >= 0;
+			charsRead = is.read(buffer)
+		){
+			os.write(buffer,0,charsRead);
+		}
+		os.close();
+		buffer = null;
 	}
 
 	public static void gerarBeansWithJsqlparserAndCodeModel(
@@ -87,45 +143,58 @@ public class GeradorDeBeans {
 	)
 			throws IOException, FileNotFoundException
 	{
-
+		conferirArquivosCustomSrc(pacote, pastaSrc);
 		String pacoteDb = getPacoteDb(pacote);
-		String dbClass = pacoteDb + ".DB";
+		String dbClass = pacoteDb + DB_CLASS;
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
 				getTabelasDoSchema(sql);
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
-		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
-		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory("{COLUMN=id}_{TABLE}"));
-		factory.addFiltroFactory(new CamelCaseFilter.Factory());
+		factory.addFiltroFactory(
+			new PrefixoTabelaFilter.Factory("tb_"));
+		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
+				"{COLUMN=id}_{TABLE}"
+		));
+		factory.addFiltroFactory(
+			new CamelCaseFilter.Factory());
 
 		// gerando os JavaBeanSchemas
-		Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
+		Collection<JavaBeanSchema> javaBeanSchemas =
+			new ArrayList<JavaBeanSchema>();
 		for(TabelaSchema tabela : tabelasBanco)
-			javaBeanSchemas.add(factory.javaBeanSchemaParaTabela(tabela));
+			javaBeanSchemas.add(
+				factory.javaBeanSchemaParaTabela(tabela));
 
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
-		CodeModelDaoFactory daoFactory = new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
-		CodeModelJsonSerializacaoFactory jsonFactory = new CodeModelJsonSerializacaoFactory(jcm);
+		CodeModelDaoFactory daoFactory =
+			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
+		CodeModelJsonSerializacaoFactory jsonFactory =
+			new CodeModelJsonSerializacaoFactory(jcm);
 
-		ArrayList<SchemaXJClass> listClasses = new ArrayList<GeradorDeBeans.SchemaXJClass>();
+		ArrayList<SchemaXJClass> listClasses =
+			new ArrayList<GeradorDeBeans.SchemaXJClass>();
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			JDefinedClass classeGerada;
 			try {
 				classeGerada = jbf.gerarClasse(
-						pacoteGen+'.'+javaBeanSchema.getNome());
+					pacoteGen+'.'+javaBeanSchema.getNome());
 			} catch (JClassAlreadyExistsException e) {
 				throw new RuntimeException(e);
 			}
 			jbf.gerarConstantes(classeGerada, javaBeanSchema);
 			for(String coluna : javaBeanSchema.getColunas()){
-				Propriedade p = javaBeanSchema.getPropriedade(coluna);
+				Propriedade p =
+					javaBeanSchema.getPropriedade(coluna);
 				if(p!=null)
 					jbf.gerarPropriedade(classeGerada,p);
 			}
-			jsonFactory.gerarMetodosDeSerializacaoJson(classeGerada, javaBeanSchema);
+			jsonFactory.gerarMetodosDeSerializacaoJson(
+					classeGerada,
+					javaBeanSchema
+			);
 			SchemaXJClass schemaXjclass= new SchemaXJClass();
 			schemaXjclass.klass = classeGerada;
 			schemaXjclass.schema = javaBeanSchema;
@@ -134,23 +203,34 @@ public class GeradorDeBeans {
 
 		// gera metodos de acesso a banco e ralacoes
 		for(SchemaXJClass schemaJclass : listClasses){
-			daoFactory.gerarAcessoDB(schemaJclass.klass,schemaJclass.schema);
+			daoFactory.gerarAcessoDB(
+					schemaJclass.klass,
+					schemaJclass.schema
+			);
 			for(SchemaXJClass schemaJclassAssoc : listClasses){
 				// gerando relacoes
 				daoFactory.gerarRelacoes(
-						schemaJclass.klass, schemaJclass.schema,
-						schemaJclassAssoc.klass, schemaJclassAssoc.schema
+						schemaJclass.klass,
+						schemaJclass.schema,
+						schemaJclassAssoc.klass,
+						schemaJclassAssoc.schema
 				);
 			}
 		}
 
 		for(SchemaXJClass schemaXJClass : listClasses){
 			jbf.gerarSerialVersionUID(schemaXJClass.klass);
-			jbf.gerarMetodoClone(schemaXJClass.klass, schemaXJClass.schema);
-			jbf.gerarHashCodeAndEquals(schemaXJClass.klass,schemaXJClass.schema);
+			jbf.gerarMetodoClone(
+					schemaXJClass.klass,
+					schemaXJClass.schema
+			);
+			jbf.gerarHashCodeAndEquals(
+					schemaXJClass.klass,
+					schemaXJClass.schema
+			);
 		}
 
-		String pastaGen = pacoteGen.replace(".", File.pathSeparator);
+		String pastaGen = pacoteGen.replace("\\.", File.separator);
 		File pastaGenFolder = new File(pastaGen);
 		if(pastaGenFolder.exists())
 			deleteFolderR(pastaGenFolder);
@@ -159,16 +239,19 @@ public class GeradorDeBeans {
 	}
 
 	protected static String getPacoteDb(String pacote) {
-		return pacote+".db";
+		return pacote+".db.";
 	}
 
-	protected static String getPacoteDbPath(String pacote) {
-		return getPacoteDb(pacote).replaceAll(".", File.pathSeparator);
+	protected static String getPacotePath(String pacote) {
+		return pacote.replaceAll("\\.", File.separator);
 	}
 
-	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input) throws IOException {
+	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input)
+			throws IOException
+	{
 		BufferedReader reader = new BufferedReader(input);
-		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
+		Collection<TabelaSchema> tabelas =
+			new ArrayList<TabelaSchema>();
 		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
 		for(;;){
 			StringBuilder sb = new StringBuilder();
@@ -183,14 +266,21 @@ public class GeradorDeBeans {
 			}
 			String createTableStatement = sb.toString();
 			if(
-					Pattern.compile("create\\s+view", Pattern.CASE_INSENSITIVE|Pattern.MULTILINE)
-						.matcher(createTableStatement)
-						.find()
+				Pattern.compile(
+					"create\\s+view",
+					Pattern.CASE_INSENSITIVE |
+					Pattern.MULTILINE
+				).matcher(createTableStatement).find()
 			)
 				continue;
-			if(createTableStatement==null||createTableStatement.matches("^[\\s\\n]*$"))
+			if(
+				createTableStatement==null ||
+				createTableStatement.matches("^[\\s\\n]*$")
+			){
 				break;
-			TabelaSchema tabela = factory.gerarTabelaSchema(createTableStatement);
+			}
+			TabelaSchema tabela =
+				factory.gerarTabelaSchema(createTableStatement);
 			tabelas.add(tabela);
 			System.out.println("tabela: " +tabela);
 		}
@@ -207,8 +297,11 @@ public class GeradorDeBeans {
 			for (File c : f.listFiles())
 				deleteFolderR(c);
 		}
-		if (!f.delete())
-			throw new FileNotFoundException("Failed to delete file: " + f);
+		if (!f.delete()){
+			throw new FileNotFoundException(
+				"Failed to delete file: " + f
+			);
+		}
 	}
 
 	/***********************************

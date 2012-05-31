@@ -57,7 +57,50 @@
                 </configuration>
                 <extensions>true</extensions>
             </plugin>
-        </plugins>
+           <plugin>
+             <groupId>br.com.cds.mobile.framework</groupId>
+             <artifactId>gerador</artifactId>
+             <version>0.2-alpha</version>
+             <executions>
+               <execution>
+                 <phase>generate-sources</phase>
+                 <goals>
+                   <goal>checar</goal>
+                 </goals>
+               </execution>
+             </executions>
+           </plugin>
+      </plugins>
+
+    <pluginManagement>
+      <plugins>
+        <plugin>
+          <groupId>org.eclipse.m2e</groupId>
+          <artifactId>lifecycle-mapping</artifactId>
+          <version>1.0.0</version>
+          <configuration>
+            <lifecycleMappingMetadata>
+              <pluginExecutions>
+                <pluginExecution>
+                  <pluginExecutionFilter>
+                    <groupId>br.com.cds.mobile.framework</groupId>
+                    <artifactId>gerador</artifactId>
+                    <versionRange>[0.2-alpha,)</versionRange>
+                    <goals>
+                      <goal>checar</goal>
+                    </goals>
+                  </pluginExecutionFilter>
+                  <action>
+                    <ignore />
+                  </action>
+                </pluginExecution>
+              </pluginExecutions>
+            </lifecycleMappingMetadata>
+          </configuration>
+        </plugin>
+      </plugins>
+    </pluginManagement>
+
     </build>
 
 </project>
