@@ -1,8 +1,8 @@
 package br.com.cds.mobile.framework.test;
 
 
-import br.com.cds.mobile.framework.BaseApplication;
 import br.com.cds.mobile.framework.test.db.DB;
+import br.com.cds.mobile.framework.BaseApplication;
 
 public class Aplicacao extends BaseApplication{
 

@@ -54,6 +54,14 @@ import com.sun.codemodel.JVar;
 public class GeradorDeBeans {
 
 	private static final String DB_CLASS = "DB";
+	private static final String DB_RESOURCE_FILE = "/DB.java";
+	private static final String DB_PACKAGE = "db";
+
+	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
+		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
+		{"",	"Aplicacao",	"/Aplicacao.java"},
+		{"",	"Constantes",	"/Constantes.java"}
+	};
 
 	public static PrintStream out = System.out;
 
@@ -92,37 +100,60 @@ public class GeradorDeBeans {
 	}
 
 	public static void conferirArquivosCustomSrc(
-			String pacote, String pastaSrc
+			String pacote,
+			String pastaSrc
 	){
-		String pacoteDb = getPacoteDb(pacote);
-		String pacoteDbPath = getPacotePath(pacoteDb);
-		GeradorDeBeans.class.getResourceAsStream(DB_CLASS+".java");
-		File dbFolder = new File(pastaSrc + "/" + pacoteDbPath);
-		if(!dbFolder.exists())
-			dbFolder.mkdirs();
-		File dbFile = new File(dbFolder, DB_CLASS + ".java");
-		if(!dbFile.exists()){
-			out.println("Criando arquivo "+dbFile.getPath());
-			try{
-				gerarClasseDB(pacoteDb,dbFile);
-			} catch (IOException e ) {
-				throw new RuntimeException(e);
+		for(
+			String pacoteClassResource [] :
+			CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES
+		){
+			String pacoteClass =
+				pacote + '.' +
+				pacoteClassResource[0];
+			String pacotePath = getPacotePath(pacoteClass);
+			File folder = new File(pastaSrc + "/" + pacotePath);
+			if(!folder.exists())
+				folder.mkdirs();
+			File f = new File(
+				folder,
+				pacoteClassResource[1] + ".java"
+			);
+			if(!f.exists()){
+				out.println(
+					"Criando arquivo " + f.getPath()
+				);
+				try{
+					gerarClasseCustomSrc(
+						pacoteClass,
+						f,
+						pacoteClassResource[2]
+					);
+				} catch (IOException e ) {
+					throw new RuntimeException(e);
+				}
 			}
 		}
 	}
 
-	public static void gerarClasseDB(String pacoteDb, File dbFile)
+	public static void gerarClasseCustomSrc(
+			String pacote,
+			File classFile,
+			String classResource
+	)
 			throws IOException
 	{
-		dbFile.createNewFile();
+		classFile.createNewFile();
 		InputStream is = GeradorDeBeans.class
-			.getResourceAsStream("/DB.java");
-		System.out.println(is.available());
-		dbFile.createNewFile();
-		OutputStream os = new FileOutputStream(dbFile);
-		if(pacoteDb.charAt(pacoteDb.length()-1)=='.')
-			pacoteDb = pacoteDb.substring(0,pacoteDb.length()-1);
-		os.write( ("package " + pacoteDb + ";\n\n").getBytes("ASCII"));
+			.getResourceAsStream(classResource);
+		if(is == null)
+			throw new RuntimeException(
+				"Resource " + classResource + " nao encontrado"
+			);
+		classFile.createNewFile();
+		OutputStream os = new FileOutputStream(classFile);
+		if(pacote.charAt(pacote.length()-1)=='.')
+			pacote = pacote.substring(0,pacote.length()-1);
+		os.write( ("package " + pacote + ";\n\n").getBytes("ASCII"));
 		byte buffer [] = new byte[255];
 		for(
 			int charsRead = is.read(buffer);
