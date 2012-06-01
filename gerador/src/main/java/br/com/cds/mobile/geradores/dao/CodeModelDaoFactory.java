@@ -61,13 +61,18 @@ public class CodeModelDaoFactory {
 	}
 
 	/**
-	 * <p>Gera os metodos de insert/update/delete, no estilo "active record"</p>
+	 * <p>
+	 *   Gera os metodos de insert/update/delete,
+	 *   no estilo "active record"
+	 * </p>
 	 * <p>Cria tambem metodo de busca, retornando um QuerySet</p>
 	 * @param klass
 	 * @param javaBeanSchema
 	 */
-	public void gerarAcessoDB(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
-
+	public void gerarAcessoDB(
+		JDefinedClass klass,
+		JavaBeanSchema javaBeanSchema
+	){
 		// inicializando a PK para o valor padrao (NULL, 0, etc...)
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 		if(primaryKey!=null){
@@ -75,7 +80,10 @@ public class CodeModelDaoFactory {
 			pk.init(JExpr.lit(ID_PADRAO));
 			String pkNome = primaryKey.getNome();
 			// remover o setter da PK
-			String pkSetter = "set"+Character.toUpperCase(pkNome.charAt(0)) + pkNome.substring(1);
+			String pkSetter =
+				"set" +
+				Character.toUpperCase(pkNome.charAt(0)) +
+				pkNome.substring(1);
 			JMethod pkmetodo = null;
 			for(JMethod metodo : klass.methods())
 				if(metodo.name().equals(pkSetter))
@@ -84,7 +92,10 @@ public class CodeModelDaoFactory {
 				klass.methods().remove(pkmetodo);
 		}
 		else{
-			generateConstrutorForCompundPrimaryKey(klass, javaBeanSchema);
+			generateConstrutorForCompundPrimaryKey(
+				klass,
+				javaBeanSchema
+			);
 		}
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoDelete(klass, javaBeanSchema);
@@ -105,9 +116,6 @@ public class CodeModelDaoFactory {
 			JVar param = constructor.param(prop.getType(), prop.getNome());
 			JFieldVar campo = klass.fields().get(prop.getNome());
 			corpo.assign(JExpr.refthis(campo.name()),param);
-			JFieldVar constante = klass.fields().get(
-					javaBeanSchema.getConstante(colunm)
-			);
 		}
 		klass.constructor(JMod.PRIVATE);
 	}

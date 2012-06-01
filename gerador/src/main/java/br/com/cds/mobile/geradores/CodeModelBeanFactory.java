@@ -67,14 +67,19 @@ public class CodeModelBeanFactory {
 		 *     return campo;         *
 		 * }                         *
 		 ****************************/
-		JMethod getter =
+		JMethod getter = klass.method(
+			JMod.PUBLIC,
+			campo.type(),
+			(
 				// if(campo.type()==Boolean)
 				(campo.type().name().equals("boolean") || campo.type().name().equals("Boolean") ) ?
-						// metodo = "isCampo"
-						klass.method(JMod.PUBLIC, campo.type(), "is"+nomeCampoCaptalizado):
+					// metodo = "isCampo"
+					"is" : 
 				// else
-						// metodo = "getCampo"
-						klass.method(JMod.PUBLIC, campo.type(), "get"+nomeCampoCaptalizado);
+					// metodo = "getCampo"
+					"get"
+			) + nomeCampoCaptalizado
+		);
 		JBlock corpo = getter.body();
 		corpo._return(campo);
 	}
