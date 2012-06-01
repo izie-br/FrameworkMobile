@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -18,12 +17,12 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 	private static final String COLUMN_TABLE_NAME_REGEX = "\\w[\\w_\\d]*";
 	private static final String SEPARATOR = "[,|]";
 	private static final String MULTIPLE_COLUMN_TABLE_NAME_REGEX =
-			COLUMN_TABLE_NAME_REGEX +
-			"("+ SEPARATOR + COLUMN_TABLE_NAME_REGEX + ")*";
+		COLUMN_TABLE_NAME_REGEX +
+		"("+ SEPARATOR + COLUMN_TABLE_NAME_REGEX + ")*";
 	private static final String TABLE_PLACEHOLDER_WITH_FIXED_NAMES =
-			"\\{TABLE(=(" +MULTIPLE_COLUMN_TABLE_NAME_REGEX+ "))?\\}";
+		"\\{TABLE(=(" +MULTIPLE_COLUMN_TABLE_NAME_REGEX+ "))?\\}";
 	private static final String COLUMN_PLACEHOLDER_REGEX_WITH_FIXED_NAMES =
-			"\\{COLUMN(=(" +MULTIPLE_COLUMN_TABLE_NAME_REGEX+ "))?\\}";
+		"\\{COLUMN(=(" +MULTIPLE_COLUMN_TABLE_NAME_REGEX+ "))?\\}";
 
 	private static final int COLUMN_INDEX_IN_FORMAT_STRING = 2;
 	private static final int TABLE_INDEX_IN_FORMAT_STRING = 1;
@@ -31,7 +30,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 
 
 	private static final String ERRO_PADRAO_CHAVE_ESTRANGEIRA_SEM_PLACEHOLDER_MSG_FORMAT =
-			"O padrao de chave estrangeira deve conter uma ocorrencia de %s";
+		"O padrao de chave estrangeira deve conter uma ocorrencia de %s";
 
 	private AssociacoesResolver resolver;
 
@@ -99,7 +98,6 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 					mapear();
 		}
 
-		// TODO mapear one-to-one
 		private void mapear(){
 			associacoes = new ArrayList<Associacao>();
 			mapeadas = new ArrayList<String>();
@@ -136,12 +134,71 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 									throw e;
 								}
 								break;
-							}
-						}
+							} // endif(filtroTabelaB.getPropriedadeNome(coluna.getNome()))
+						} // endfor(TabelaSchema.Coluna coluna : filtroTabelaB.getTabela().getColunas())
+					} // endfor(TabelaSchema.Coluna colunaA : filtroTabelaA.getTabela().getColunas())
+				} // endfor(AssociacaoPorNomeFilter filtroTabelaB : filtros)
+				mapeadas.add(filtroTabelaA.getTabela().getNome());
+			} // endfor(AssociacaoPorNomeFilter filtroTabelaA :filtros)
+			mapManyToManyRelationships();
+		}
+
+		private void mapManyToManyRelationships(){
+			ArrayList<Associacao> associationsCopy = new ArrayList<Associacao>(associacoes);
+			for(Associacao associationA : associationsCopy){
+				TabelaSchema table = associationA.getTabelaB();
+				if(
+					!(associationA instanceof AssociacaoOneToMany) ||
+					table.getColunas().size()>3
+				){
+					continue;
+				}
+				AssociacaoPorNomeFilter filter = null;
+				for(AssociacaoPorNomeFilter f : filtros){
+					if(f.getTabela().equals(table)){
+						filter = f;
+						break;
 					}
 				}
-				mapeadas.add(filtroTabelaA.getTabela().getNome());
-			}
+				for(Associacao associationB : associationsCopy){
+					if(
+						!associationB.getTabelaB().equals(table) ||
+						!(associationB instanceof AssociacaoOneToMany)
+					){
+						continue;
+					}
+					boolean isManyToMany = true;
+					for(TabelaSchema.Coluna coluna : table.getColunas()){
+						if(!(
+							filter.getPropriedadeNome(coluna.getNome()).equals(
+								((AssociacaoOneToMany)associationA).getKeyToA()
+							) ||
+							filter.getPropriedadeNome(coluna.getNome()).equals(
+								((AssociacaoOneToMany)associationB).getKeyToA()
+							) || (
+								table.getPrimaryKeys().size()==1 &&
+								table.getPrimaryKeys().get(0).equals(coluna)
+							)
+						)){
+							isManyToMany = false;
+						}
+					}
+					if(isManyToMany){
+						associacoes.remove(associationA);
+						associacoes.remove(associationB);
+						AssociacaoManyToMany manyToMany =
+							new AssociacaoManyToMany(
+								associationA.getTabelaB(),
+								associationB.getTabelaB(),
+								((AssociacaoOneToMany)associationA).getKeyToA(),
+								((AssociacaoOneToMany)associationB).getKeyToA(),
+								"",
+								table.getNome()
+							);
+						associacoes.add(manyToMany);
+					}
+				} // for(Associacao associationB : associationsCopy)
+			} // for(Associacao associationA : associationsCopy)
 		}
 
 	}
