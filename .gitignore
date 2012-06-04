@@ -13,3 +13,5 @@ test/.gerador.xml
 test_server/django/*
 test_server/test.db
 *.pyc
+*.swp
+

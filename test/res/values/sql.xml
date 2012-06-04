@@ -20,10 +20,15 @@ CREATE TABLE tb_scores (
     score integer DEFAULT 0,
     PRIMARY KEY(id_author,id_document)
 );
-CREATE TABLE tb_references (
-    id_referer_document INTEGER NOT NULL,
-    id_refered_document INTEGER NOT NULL,
-    PRIMARY KEY(id_referer_document, id_refered_document)
+CREATE TABLE tb_customer (
+    id integer NOT NULL PRIMARY KEY,
+    name varchar(79) NOT NULL,
+    UNIQUE (name)
+);
+CREATE TABLE tb_customer_join_document (
+    id integer NOT NULL PRIMARY KEY,
+    id_customer INTEGER NOT NULL,
+    id_document INTEGER NOT NULL
 );
     </string>
     <string name="db_versao_2">

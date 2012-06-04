@@ -188,14 +188,15 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 						associacoes.remove(associationB);
 						AssociacaoManyToMany manyToMany =
 							new AssociacaoManyToMany(
-								associationA.getTabelaB(),
-								associationB.getTabelaB(),
+								associationA.getTabelaA(),
+								associationB.getTabelaA(),
 								((AssociacaoOneToMany)associationA).getKeyToA(),
 								((AssociacaoOneToMany)associationB).getKeyToA(),
 								"",
 								table.getNome()
 							);
-						associacoes.add(manyToMany);
+						if (!associacoes.contains(manyToMany))
+							associacoes.add(manyToMany);
 					}
 				} // for(Associacao associationB : associationsCopy)
 			} // for(Associacao associationA : associationsCopy)

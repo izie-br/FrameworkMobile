@@ -13,6 +13,7 @@ import br.com.cds.mobile.framework.utils.CamelCaseUtils;
 import br.com.cds.mobile.framework.utils.DateUtil;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
 import br.com.cds.mobile.geradores.filters.associacao.Associacao;
+import br.com.cds.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
@@ -542,7 +543,10 @@ public class CodeModelDaoFactory {
 	){
 
 		for(Associacao associacao : javaBeanSchemaA.getAssociacoes()){
-			if(associacao instanceof AssociacaoOneToMany){
+			if(associacao instanceof AssociacaoManyToMany){
+				AssociacaoManyToMany m2m = (AssociacaoManyToMany) associacao;
+				System.out.println( m2m.getTabelaA().getNome() + " Many-to-many " + m2m.getTabelaB().getNome() + System.identityHashCode(m2m));
+			} else if(associacao instanceof AssociacaoOneToMany){
 				AssociacaoOneToMany oneToMany = (AssociacaoOneToMany)associacao;
 				if(
 						associacao.getTabelaB().equals(javaBeanSchemaA.getTabela()) &&
