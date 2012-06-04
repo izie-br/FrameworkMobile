@@ -25,7 +25,8 @@ CREATE TABLE tb_references (
     id_refered_document INTEGER NOT NULL,
     PRIMARY KEY(id_referer_document, id_refered_document)
 );
+    </string>
+    <string name="db_versao_2">
 
-
-</string>
+    </string>
 </resources>

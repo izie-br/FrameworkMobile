@@ -261,10 +261,19 @@ public class GeradorDeBeans {
 			);
 		}
 
-		String pastaGen = pacoteGen.replace("\\.", File.separator);
-		File pastaGenFolder = new File(pastaGen);
-		if(pastaGenFolder.exists())
+		String pastaGen = pacoteGen.replaceAll("\\.", File.separator);
+		File pastaGenFolder = new File(pastaSrc, pastaGen);
+		if(pastaGenFolder.exists()){
+			System.out.println("Deletando " + pastaGenFolder.getAbsolutePath());
 			deleteFolderR(pastaGenFolder);
+		} else {
+			System.out.println(
+				"Pasta " +
+				pastaGenFolder.getAbsolutePath() +
+				"nao encontrada"
+			);
+		}
+
 		//pastaGenFolder.mkdirs();
 		jcm.build(new File(pastaSrc));
 	}
