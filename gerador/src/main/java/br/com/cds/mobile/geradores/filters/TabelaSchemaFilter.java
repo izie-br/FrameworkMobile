@@ -18,6 +18,10 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getNome();
 	}
 
+	public boolean isNonEntityTable(){
+		return proximo.isNonEntityTable();
+	}
+
 	public Propriedade getPropriedade(String coluna){
 		return proximo.getPropriedade(coluna);
 	}

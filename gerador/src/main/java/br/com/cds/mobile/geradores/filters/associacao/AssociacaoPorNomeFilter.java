@@ -35,6 +35,22 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 	private AssociacoesResolver resolver;
 
 	@Override
+	public boolean isNonEntityTable(){
+		for(Associacao a : resolver.getAssociacoes()){
+			if(
+				a instanceof AssociacaoManyToMany &&
+				((AssociacaoManyToMany)a).getTabelaJuncao()
+					.getNome().equals(
+						super.getTabela().getNome()
+					)
+			) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@Override
 	public Propriedade getPropriedade(String coluna) {
 		Propriedade p = super.getPropriedade(coluna);
 		ArrayList<String> assoc = new ArrayList<String>();
@@ -78,10 +94,14 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 		private Collection<AssociacaoPorNomeFilter> filtros =
 				new ArrayList<AssociacaoPorNomeFilter>();
 
-		private Collection<Associacao> getAssociacoes(TabelaSchema tabela){
+		private Collection<Associacao> getAssociacoes(){
 			validar();
+			return associacoes;
+		}
+
+		private Collection<Associacao> getAssociacoes(TabelaSchema tabela){
 			Collection<Associacao> associacoesTemUm = new ArrayList<Associacao>();
-			for(Associacao associacao : associacoes)
+			for(Associacao associacao : getAssociacoes())
 				if(
 						associacao.getTabelaA().equals(tabela) ||
 						associacao.getTabelaB().equals(tabela)

@@ -23,6 +23,10 @@ public class JavaBeanSchema{
 		return filterChain.getNome();
 	}
 
+	public boolean isNonEntityTable(){
+		return filterChain.isNonEntityTable();
+	}
+
 	public Propriedade getPropriedade(String coluna){
 		return filterChain.getPropriedade(coluna);
 	}
@@ -79,6 +83,11 @@ public class JavaBeanSchema{
 		@Override
 		public String getNome() {
 			return tabela.getNome();
+		}
+
+		@Override
+		public boolean isNonEntityTable(){
+			return false;
 		}
 
 		@Override

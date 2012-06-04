@@ -208,6 +208,8 @@ public class GeradorDeBeans {
 		ArrayList<SchemaXJClass> listClasses =
 			new ArrayList<GeradorDeBeans.SchemaXJClass>();
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
+			if( javaBeanSchema.isNonEntityTable())
+				continue;
 			JDefinedClass classeGerada;
 			try {
 				classeGerada = jbf.gerarClasse(
