@@ -192,8 +192,10 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 								associationB.getTabelaA(),
 								((AssociacaoOneToMany)associationA).getKeyToA(),
 								((AssociacaoOneToMany)associationB).getKeyToA(),
-								"",
-								table.getNome()
+								((AssociacaoOneToMany)associationA).getReferenciaA(),
+								((AssociacaoOneToMany)associationB).getReferenciaA(),
+								table,
+								""
 							);
 						if (!associacoes.contains(manyToMany))
 							associacoes.add(manyToMany);
