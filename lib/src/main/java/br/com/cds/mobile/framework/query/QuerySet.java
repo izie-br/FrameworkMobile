@@ -31,9 +31,8 @@ public abstract class QuerySet<T>{
 
 	protected abstract SQLiteDatabase getDb();
 
-	@SuppressWarnings("deprecation")
 	public QuerySet<T> filter(Q q){
-		return filter(q.toString(),q.getArgumentos());
+		return null; //filter(q.toString(),q.getArgumentos());
 	}
 
 	@Deprecated
