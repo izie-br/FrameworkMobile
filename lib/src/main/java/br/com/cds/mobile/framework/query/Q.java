@@ -2,7 +2,7 @@ package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
 
-public final class Q {
+public final class Q  implements Cloneable {
 
 /*
 SQL avg()
@@ -81,14 +81,18 @@ public static byte ROUND = 22;
         return mergeQs (this, q, " OR ");
     }
 
-    protected String getQstring(){
+    public String getQstring(){
         return this.query;
     }
 
-    protected String getSelectStm(Table.Column<?>...columns){
+    public String getSelectStm(Table.Column<?>...columns){
         String out = "SELECT ";
-        for(Table.Column<?> c : columns){
-            out += c.getName() + ',';
+        for(int i=0 ; ; i++){
+            out += columns[i].getName();
+            if( i < columns.length )
+                out += ',';
+            else
+                break;
         }
         out += "count(*)" + " FROM " + this.table.getName();
         if(this.joins != null ){
@@ -118,11 +122,20 @@ public static byte ROUND = 22;
     }
 
     private static Q mergeQs (Q q1, Q q2, String op){
-        Q out = new Q(q1);
+        Q out;
+        try {
+            out = (Q)q1.clone();
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
         if (out.query == null ) {
              out.query = q2.query;
         } else if (q2.query != null){
-            out.query += op + "(" + q2.query + ')' ;
+            out.query += op + (
+                (q2.args != null && q2.args.size() > 1) ?
+                    "(" + q2.query + ')' :
+                    q2.query
+            );
         }
         if (out.joins == null){
             out.joins = q2.joins;

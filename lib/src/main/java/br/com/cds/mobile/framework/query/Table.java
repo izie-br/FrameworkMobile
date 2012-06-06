@@ -8,8 +8,9 @@ public class Table {
         this.name  = name;
     }
 
-    public <T> Table.Column<T> addColumn (String name){
+    public <T> Table.Column<T> addColumn (Class<T> klass, String name){
         Table.Column<T> col = new Table.Column<T>();
+        col.klass = klass;
         col.name = name;
         return col;
     }
@@ -25,6 +26,7 @@ public class Table {
 
     public class Column<T> {
         private String name;
+        private Class<T> klass;
 
         /**
          * Gets the name for this instance.
@@ -33,6 +35,10 @@ public class Table {
          */
         public String getName() {
             return this.name;
+        }
+
+        public Class<T> getKlass() {
+            return klass;
         }
 
         public Table getTable(){
