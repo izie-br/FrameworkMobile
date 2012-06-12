@@ -49,7 +49,15 @@ public class Table {
             return new Q(this, Q.Op1x1.EQ, arg);
         }
 
+        public Q eq(Table.Column<?> arg){
+            return new Q(this, Q.Op1x1.EQ, arg);
+        }
+
         public Q ne(T arg){
+            return new Q(this, Q.Op1x1.NE, arg);
+        }
+
+        public Q ne(Table.Column<?> arg){
             return new Q(this, Q.Op1x1.NE, arg);
         }
 
@@ -57,7 +65,15 @@ public class Table {
             return new Q(this, Q.Op1x1.LT, arg);
         }
 
+        public Q lt(Table.Column<?> arg){
+            return new Q(this, Q.Op1x1.LT, arg);
+        }
+
         public Q le(T arg){
+            return new Q(this, Q.Op1x1.LE, arg);
+        }
+
+        public Q le(Table.Column<?> arg){
             return new Q(this, Q.Op1x1.LE, arg);
         }
 
@@ -65,13 +81,21 @@ public class Table {
             return new Q(this, Q.Op1x1.GT, arg);
         }
 
+        public Q gt(Table.Column<?> arg){
+            return new Q(this, Q.Op1x1.GT, arg);
+        }
+
         public Q ge(T arg){
             return new Q(this, Q.Op1x1.GE, arg);
         }
 
-        public Q in(T arg){
-            return new Q(this, Q.Op1x1.IN, arg);
+        public Q ge(Table.Column<?> arg){
+            return new Q(this, Q.Op1x1.GE, arg);
         }
+
+//        public Q in(T...arg){
+//            return new Q(this, Q.Op1x1.IN, arg);
+//        }
 
     }
 

@@ -60,7 +60,7 @@ public static byte ROUND = 22;
     public <T> Q (
         Table.Column<T> column,
         Op1x1 op,
-        Table.Column<T> otherColumn
+        Table.Column<?> otherColumn
     ){
         this.table = column.getTable();
         if ( otherColumn.getTable().equals(this.table) ) {
@@ -101,10 +101,18 @@ public static byte ROUND = 22;
         return mergeQs (this, q, " OR ");
     }
 
-    public String getSelectStm(Table.Column<?>...columns){
+    public String select(Table.Column<?>...columns){
         String out = "SELECT ";
         for(int i=0 ; ; i++){
-            out += getColumn(null, columns[i]);
+            out += getColumn(
+                // conferir se eh da mesma tabela
+                ( this.table.equals(columns[i].getTable()) ?
+                        // se for a coluna for da mesma tabela
+                        null :
+                        // caso seja uma coluna de outra tabela
+                        columns[i].getTable().getName()
+                ), columns[i]
+            );
             if( i < columns.length -1 )
                 out += ',';
             else
@@ -112,8 +120,9 @@ public static byte ROUND = 22;
         }
         out += " FROM " + this.table.getName();
         if(this.joins != null ){
-            for(InnerJoin j: this.joins){
+            for(InnerJoin j: this.joins) {
                 out += " JOIN " + j.foreignColumn.getTable().getName() +
+                    " AS " + j.foreignColumn.getTable().getName() +
                     " ON " + j.column.getName() + j.op.toString() +
                     j.foreignColumn.getTable().getName() + "." +
                     j.foreignColumn.getName();
@@ -148,7 +157,7 @@ public static byte ROUND = 22;
             return;
         StringBuilder sb = new StringBuilder();
         ArrayList<String> args = new ArrayList<String>();
-        root.output(sb, args);
+        root.output(table, sb, args);
         qstringCache = sb.toString();
         argsCache = new String[args.size()];
         for (int i=0 ; i < argsCache.length ; i++)
@@ -160,7 +169,7 @@ public static byte ROUND = 22;
         try {
             out = (Q)q1.clone();
         } catch (CloneNotSupportedException e) {
-            // Este erro nao ira acontecer a se Q implementar Cloneable
+            // Este erro nao ira acontecer se Q implementar Cloneable
             throw new RuntimeException("classe Q sem suporte a clone");
         }
         out.qstringCache = null;
@@ -190,65 +199,32 @@ public static byte ROUND = 22;
         return out;
     }
 
-    private String getColumn(String tableAs, Table.Column<?> column) {
-        return (
-                // para innerJoins multiplos
+    private static String getColumn(String tableAs, Table.Column<?> column) {
+        String columnNameWithTable =
+            (
                 (tableAs != null) ?
                     // se a tabela for nomeada com "tablename AS tablealias"
                     tableAs + '.' :
-                // conferir se a tabela da coluna eh a mesma que a atual
-                (column.getTable().equals(this.table)) ?
-                    // se a tabela for a mesma, nao adiciona nada
-                    "" :
-                    // adiciona o nome da tabela
-                    column.getTable().getName() + '.'
-            ) + (
-                // tratar a classe Date para o SQlite3
-                (column.getKlass().equals(Date.class)) ?
-                    // se eh date, buscar por "datetime(coluna)"
-                    SQLiteUtils.dateTimeForColumn(column.getName()) :
-                    // se nao, apenas o nome
-                    column.getName()
-            );
+                     // se nao ha alias
+                    ""
+            ) + column.getName();
+        return
+            // tratar a classe Date para o SQlite3
+            (column.getKlass().equals(Date.class)) ?
+                // se eh date, buscar por "datetime(coluna)"
+                SQLiteUtils.dateTimeForColumn(columnNameWithTable) :
+                // se nao, apenas o nome
+                columnNameWithTable;
     }
-
-/*
-    private static Q mergeQs (Q q1, Q q2, String op){
-        Q out;
-        try {
-            out = (Q)q1.clone();
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
-        if (out.query == null ) {
-             out.query = q2.query;
-        } else if (q2.query != null){
-            if (q1.args.size() > 1)
-                out.query = "("+out.query+')';
-            out.query += op + (
-                (q2.args != null && q2.args.size() > 1) ?
-                    "(" + q2.query + ')' :
-                    q2.query
-            );
-        }
-        if (out.joins == null){
-            out.joins = q2.joins;
-        } else if (q2.joins != null) {
-            out.addInnerJoin(q2.joins);
-        }
-        return out;
-    }
-*/
-
 
     private static class QNode {
         QNode next;
         String nextOp;
 
-        void output(StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, ArrayList<String> args) {
             if (next != null) {
                 sb.append(nextOp);
-                next.output(sb, args);
+                next.output(table, sb, args);
             }
         }
 
@@ -258,23 +234,32 @@ public static byte ROUND = 22;
         QNode node;
 
         @Override
-        void output(StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, ArrayList<String> args) {
             sb.append('(');
-            this.node.output(sb, args);
+            this.node.output(table, sb, args);
             sb.append(')');
-            super.output(sb, args);
+            super.output(table, sb, args);
         }
 
     }
 
-    private class QNode1X1 extends QNode {
+    private static class QNode1X1 extends QNode {
         Table.Column<?> column;
         Op1x1 op;
         Object arg;
 
         @Override
-        void output(StringBuilder sb, ArrayList<String> args) {
-            sb.append( Q.this.getColumn(null, this.column) );
+        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+            sb.append( Q.getColumn(
+                // conferir se eh da mesma tabela
+                ( table.equals(this.column.getTable()) ?
+                    // se for a coluna for da mesma tabela
+                    null :
+                    // caso seja uma coluna de outra tabela
+                    column.getTable().getName()
+                ),
+                this.column)
+            );
             sb.append(op.toString());
             if (arg instanceof Table.Column) {
                 sb.append( ((Table.Column<?>)arg).getName() );
@@ -282,7 +267,7 @@ public static byte ROUND = 22;
                 sb.append('?');
                 args.add(SQLiteUtils.parse(arg));
             }
-            super.output(sb, args);
+            super.output(table, sb, args);
         }
 
     }
@@ -295,7 +280,7 @@ public static byte ROUND = 22;
 
     public static enum Op1x1 {
 
-        NE, EQ, LT, GT, LE, GE, IN;
+        NE, EQ, LT, GT, LE, GE /*, IN*/;
 
         public String toString() {
             return
@@ -304,9 +289,9 @@ public static byte ROUND = 22;
                 this == LT     ?  "<"      :
                 this == GT     ?  ">"      :
                 this == LE     ?  "<="     :
-                this == GE     ?  ">="     :
+                /* this == GE ?*/ ">="     ;
                 /* this == LIKE             ?  " LIKE " : */
-                /*this == IN   ?*/  " IN " ;
+                /*this == IN   ?  " IN " ; */
         }
     }
 

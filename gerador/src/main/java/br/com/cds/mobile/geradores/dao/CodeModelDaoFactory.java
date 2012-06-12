@@ -268,7 +268,6 @@ public class CodeModelDaoFactory {
 		 * }                                     *
 		 ****************************************/
 		JBlock elseBlock = ifIdNull._else();
-//		// TODO refazer com Q
 //		JExpression sqlExp = klass.fields().get(
 //				javaBeanSchema.getConstante((javaBeanSchema.getPrimaryKey().getNome()))
 //		).plus(JExpr.lit("=?"));
@@ -302,7 +301,6 @@ public class CodeModelDaoFactory {
 		 * return (value > 0);               *
 		 *                                   *
 		 ************************************/
-		// TODO refazer com Q
 		JVar value = block.decl(jcm.INT, "value", db.invoke("update")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()))
 			.arg(contentValues)
@@ -618,44 +616,56 @@ public class CodeModelDaoFactory {
 						associacao.getTabelaA().equals(javaBeanSchemaA.getTabela()) &&
 						associacao.getTabelaB().equals(javaBeanSchemaB.getTabela())
 				){
-					String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
-					JClass collectionKlassB = jcm.ref(
-							br.com.cds.mobile.framework.query.QuerySet.class
-					).narrow(klassB);
-
-//					JFieldVar campo = klassA.field(
-//							JMod.PRIVATE|JMod.TRANSIENT,
-//							collectionKlassB,
-//							CamelCaseUtils.tolowerCamelCase(nomePlural)
-//					);
-
-					JMethod getKlassB = klassA.method(
-							JMod.PUBLIC,
-							collectionKlassB,
-							"get"+ nomePlural
-					);
-					JBlock corpo = getKlassB.body();
-//					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
-					JFieldVar referenciaA = klassA.fields().get(
+					JFieldVar referenceA = klassA.fields().get(
 							javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
 					);
-					if(referenciaA == null)
-						throw new RuntimeException(REFERENCIA_NAO_ENCONTRADA);
-					JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
-						.invoke("filter").arg(klassB.staticRef(klassB.fields().get(
-								javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
-						)).plus(JExpr.lit("=?"))).arg(
-								referenciaA
-						);
-//					ifCampoNull._then().assign(
-//							campo,
-//							invokeAssociadaObjects
-//					);
-					corpo._return(invokeAssociadaObjects);
+					JFieldVar columnRefB = klassB.fields().get(
+							javaBeanSchemaB.getConstante(oneToMany.getKeyToA())
+					);
+					generateToManyAssociation(
+							klassA, javaBeanSchemaA,
+							referenceA, null,
+							klassB,javaBeanSchemaB,
+							columnRefB, null, null);
 				}
 
 			}
 		}
+	}
+
+	private void generateToManyAssociation(
+			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
+			JFieldVar referenceA, JFieldVar columnThroughTableToA,
+			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB,
+			JFieldVar columnRefB, JFieldVar columnThroughTableToB,
+			JFieldVar throughTable
+	) {
+		String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
+		JClass collectionKlassB = jcm.ref(
+				br.com.cds.mobile.framework.query.QuerySet.class
+		).narrow(klassB);
+
+		JMethod getKlassB = klassA.method(
+				JMod.PUBLIC,
+				collectionKlassB,
+				"get"+ nomePlural
+		);
+		JBlock corpo = getKlassB.body();
+//					JConditional ifCampoNull = corpo._if(campo.eq(JExpr._null()));
+//		JFieldVar referenciaA = klassA.fields().get(
+//				javaBeanSchemaA.getPropriedade(oneToMany.getReferenciaA()).getNome()
+//		);
+//		if(referenciaA == null)
+//			throw new RuntimeException(REFERENCIA_NAO_ENCONTRADA);
+		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
+			.invoke("filter")
+				.arg( klassB.staticRef(columnRefB).plus(JExpr.lit("=?")) )
+				.arg(referenceA);
+//					ifCampoNull._then().assign(
+//							campo,
+//							invokeAssociadaObjects
+//					);
+		corpo._return(invokeAssociadaObjects);
 	}
 
 
