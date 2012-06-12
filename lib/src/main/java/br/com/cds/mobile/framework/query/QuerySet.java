@@ -1,22 +1,21 @@
 package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Collection;
-
-import br.com.cds.mobile.framework.utils.SQLiteUtils;
-import br.com.cds.mobile.framework.utils.StringUtil;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 public abstract class QuerySet<T>{
 
-	private String where;
-	private ArrayList<Object> selectionArgs;
-	private String orderBy;
+	private Q q;
+//	private String where;
+//	private List<String> selectionArgs;
+//	private String orderBy;
 
-	private String groupBy;
-	private String having;
+//	private String groupBy;
+//	private String having;
 
 	private int limit;
 	private int offset;
@@ -25,30 +24,36 @@ public abstract class QuerySet<T>{
 
 	protected abstract T cursorToObject(Cursor cursor);
 
-	protected abstract String[] getColunas();
+	protected abstract Table.Column<?>[] getColunas();
 
-	protected abstract String getTabela();
+	protected abstract Table getTabela();
 
 	protected abstract SQLiteDatabase getDb();
 
 	public QuerySet<T> filter(Q q){
-		return null; //filter(q.toString(),q.getArgumentos());
-	}
-
-	@Deprecated
-	public QuerySet<T> filter(String qstr,Object...args){
-		if(StringUtil.isNull(where))
-			where = qstr;
+		if (q==null)
+			return this;
+		else if (this.q==null)
+			this.q = q;
 		else
-			where = String.format("(%s) AND (%s)",this.where,qstr);
-		if(args!=null){ 
-			if(selectionArgs == null)
-				selectionArgs = new ArrayList<Object>( args.length );
-			for(Object arg : args)
-				selectionArgs.add(arg);
-		}
+			this.q.and (q);
 		return this;
 	}
+
+//	@Deprecated
+//	public QuerySet<T> filter(String qstr,Object...args){
+//		if(StringUtil.isNull(where))
+//			where = qstr;
+//		else
+//			where = String.format("(%s) AND (%s)",this.where,qstr);
+//		if(args!=null){ 
+//			if(selectionArgs == null)
+//				selectionArgs = new ArrayList<String>( args.length );
+//			for(Object arg : args)
+//				selectionArgs.add(SQLiteUtils.parse(arg));
+//		}
+//		return this;
+//	}
 
 	public Collection<T> all(){
 		Collection<T> all = new ArrayList<T>();
@@ -76,15 +81,6 @@ public abstract class QuerySet<T>{
 		return null;
 	}
 
-	private String[] selectionArgs(){
-		if(selectionArgs==null)
-			return null;
-		String args[] = new String[ selectionArgs.size()];
-		for(int i=0;i<args.length;i++)
-			args[i] = SQLiteUtils.parse(selectionArgs.get(i));
-		return args;
-	}
-
 	/**
 	 * Retorna o cursor, para uso em cursor adapter, etc.
 	 * @return cursor
@@ -98,25 +94,39 @@ public abstract class QuerySet<T>{
 				(offset>0) ?
 						String.format("%d,", offset):
 				// limit <= 0 && offset <= 0
-						null;
+						"";
 
-		Cursor cursor = getDb().query(
-			// distinct
-			true,
-			// tabela
-			getTabela(),
-			// colunas
-			getColunas(),
-			// where (********)
-			where,
-			// argumentos para substituir os "?"
-			selectionArgs(),
-			// groupBy e having
-			groupBy, having,
-			// order by
-			orderBy,
-			// limit e offset
-			limitStr
+//		Cursor cursor = getDb().query(
+//			// distinct
+//			true,
+//			// tabela
+//			getTabela(),
+//			// colunas
+//			getColunas(),
+//			// where (********)
+//			where,
+//			// argumentos para substituir os "?"
+//			selectionArgs(),
+//			// groupBy e having
+//			groupBy, having,
+//			// order by
+//			orderBy,
+//			// limit e offset
+//			limitStr
+//		);
+		String args [] = null;
+		if (this.q == null) {
+			this.q = new Q (getTabela());
+		} else {
+			List<String> arguments = q.getArguments();
+			if (arguments != null) {
+				args = new String[arguments.size()];
+				arguments.toArray(args);
+			}
+		}
+		Cursor cursor = getDb().rawQuery(
+				q.select(getColunas())+" " +limitStr,
+				args
 		);
 		return cursor;
 	}

@@ -2,6 +2,7 @@ package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
 
@@ -42,7 +43,11 @@ public static byte ROUND = 22;
     private QNode root;
 
     private String qstringCache;
-    private String argsCache[];
+    private List<String> argsCache;
+
+    public Q (Table table) {
+        this.table = table;
+    }
 
     public <T> Q (Table.Column<T> column, Op1x1 op, T arg){
         this.table = column.getTable();
@@ -146,7 +151,7 @@ public static byte ROUND = 22;
      *
      * @return arguments.
      */
-    public String[] getArguments() {
+    public List<String> getArguments() {
         if (qstringCache == null)
             genQstringAndArgs();
         return argsCache;
@@ -159,9 +164,7 @@ public static byte ROUND = 22;
         ArrayList<String> args = new ArrayList<String>();
         root.output(table, sb, args);
         qstringCache = sb.toString();
-        argsCache = new String[args.size()];
-        for (int i=0 ; i < argsCache.length ; i++)
-            argsCache[i] = args.get(i);
+        argsCache = args;
     }
 
     private static Q mergeQs (Q q1, Q q2, String op) {

@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.Map;
 
 import br.com.cds.mobile.framework.JsonSerializable;
+import br.com.cds.mobile.framework.query.Table;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
@@ -16,7 +17,6 @@ import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JFieldVar;
@@ -363,20 +363,28 @@ public class CodeModelBeanFactory {
 	 * @param javaBeanSchema
 	 */
 	public void gerarConstantes(JDefinedClass klass, JavaBeanSchema javaBeanSchema) {
-		klass.field(
-				JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
-				jcm.ref(String.class),
-				javaBeanSchema.getConstanteDaTabela(),
-				JExpr.lit(javaBeanSchema.getTabela().getNome())
-			);
+		JClass tableClass = jcm.ref(Table.class);
+		JFieldVar table = klass.field(
+			JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+			tableClass,
+			javaBeanSchema.getConstanteDaTabela(),
+			JExpr._new(tableClass).arg(
+					JExpr.lit(javaBeanSchema.getTabela().getNome())
+			)
+		);
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			if(coluna==null)
 				continue;
+			Class<?> type = javaBeanSchema.getPropriedade(coluna).getType();
+			JClass columnClass = jcm.ref(Table.Column.class)
+					.narrow(type);
 			klass.field(
 				JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
-				jcm.ref(String.class),
+				columnClass,
 				javaBeanSchema.getConstante(coluna),
-				JExpr.lit(coluna)
+				table.invoke ("addColumn")
+					.arg (JExpr.dotclass (jcm.ref(type)))
+					.arg(JExpr.lit(coluna))
 			);
 		}
 	}
