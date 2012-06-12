@@ -1,0 +1,11 @@
+TODO
+
+- regras de cascata em persistência de associações no framework mobile;
+- persistencia de associações many to one no framework mobile;
+- persistencia de associações many to many no framework mobile;
+- criar classe pai para beans gerados pelo plugin do framework mobile;
+- escrever wiki do assunto "backend mobile";
+- criar classe herdando AbstractHttpEntity, para usar "streams" para envio de
+  dados;
+- configurar e avaliar o uso de proguard;
+
