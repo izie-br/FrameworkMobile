@@ -564,7 +564,65 @@ public class CodeModelDaoFactory {
 		for(Associacao associacao : javaBeanSchemaA.getAssociacoes()){
 			if(associacao instanceof AssociacaoManyToMany){
 				AssociacaoManyToMany m2m = (AssociacaoManyToMany) associacao;
-				System.out.println( m2m.getTabelaA().getNome() + " Many-to-many " + m2m.getTabelaB().getNome() + System.identityHashCode(m2m));
+				if(
+					(
+						m2m.getTabelaA ().equals (javaBeanSchemaA.getTabela ()) &&
+						m2m.getTabelaB ().equals (javaBeanSchemaB.getTabela ())
+					) /*| (
+						m2m.getTabelaB ().equals (javaBeanSchemaA.getTabela ()) &&
+						m2m.getTabelaA ().equals (javaBeanSchemaB.getTabela ())
+					)*/
+				) {
+					JFieldVar throughTableA = klassA.field(
+						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+						Table.class,
+						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
+						JExpr._new (jcm.ref (Table.class)).arg (m2m.getTabelaJuncao ().getNome ())
+					);
+					JFieldVar throughTableB = klassB.field(
+						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+						Table.class,
+						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
+						klassA.staticRef(throughTableA)
+					);
+
+					JFieldVar throughTableKeyToA = klassA.field(
+						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+						Table.Column.class,
+						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (
+							m2m.getTabelaJuncao ().getNome () +
+							"_" + (m2m.getKeyToA ()))),
+						throughTableA.invoke ("addColumn")
+							.arg (JExpr.dotclass (jcm.ref (javaBeanSchemaA.getPropriedade (m2m.getReferenciaA ()).getType ())))
+							.arg (m2m.getKeyToA ())
+					);
+					JFieldVar throughTableKeyToB = klassB.field(
+						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
+						Table.Column.class,
+						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase(
+							m2m.getTabelaJuncao ().getNome () +
+							"_" + (m2m.getKeyToB ()))),
+						throughTableB.invoke ("addColumn")
+							.arg (JExpr.dotclass (jcm.ref (javaBeanSchemaB.getPropriedade (m2m.getReferenciaB ()).getType ())))
+							.arg (m2m.getKeyToB ())
+					);
+
+					JFieldVar referenceA = klassA.fields ().get (
+							javaBeanSchemaA.getPropriedade (m2m.getReferenciaA ()).getNome ()
+					);
+					JFieldVar columnRefB = klassB.fields ().get (
+							javaBeanSchemaB.getConstante (m2m.getReferenciaB ())
+					);
+
+					generateToManyAssociation (
+						klassA, javaBeanSchemaA,
+						referenceA, throughTableKeyToA,
+						klassB, javaBeanSchemaB,
+						columnRefB, throughTableKeyToB,
+						throughTableA
+					);
+				}
+
 			} else if(associacao instanceof AssociacaoOneToMany){
 				AssociacaoOneToMany oneToMany = (AssociacaoOneToMany)associacao;
 				if(
@@ -676,10 +734,18 @@ public class CodeModelDaoFactory {
 //		if(referenciaA == null)
 //			throw new RuntimeException(REFERENCIA_NAO_ENCONTRADA);
 		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
-			.invoke("filter")
-				.arg( klassB.staticRef(columnRefB).invoke("eq")
-						.arg(referenceA)
-				);
+			.invoke("filter");
+			if (throughTable == null || columnThroughTableToA == null || columnThroughTableToB == null) {
+				invokeAssociadaObjects = invokeAssociadaObjects.arg(
+						klassB.staticRef(columnRefB).invoke("eq")
+							.arg(referenceA)
+					);
+			} else {
+				invokeAssociadaObjects = invokeAssociadaObjects.arg(
+					klassB.staticRef(columnRefB).invoke("eq")
+							.arg(klassB.staticRef(columnThroughTableToB))
+						.invoke("and").arg(columnThroughTableToA.invoke("eq").arg(referenceA)));
+			}
 //					ifCampoNull._then().assign(
 //							campo,
 //							invokeAssociadaObjects
