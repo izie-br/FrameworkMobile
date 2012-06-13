@@ -560,7 +560,6 @@ public class CodeModelDaoFactory {
 			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
 			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB
 	){
-
 		for(Associacao associacao : javaBeanSchemaA.getAssociacoes()){
 			if(associacao instanceof AssociacaoManyToMany){
 				AssociacaoManyToMany m2m = (AssociacaoManyToMany) associacao;
@@ -610,6 +609,12 @@ public class CodeModelDaoFactory {
 					JFieldVar referenceA = klassA.fields ().get (
 							javaBeanSchemaA.getPropriedade (m2m.getReferenciaA ()).getNome ()
 					);
+					JFieldVar referenceB = klassB.fields ().get (
+							javaBeanSchemaB.getPropriedade (m2m.getReferenciaB ()).getNome ()
+					);
+					JFieldVar columnRefA = klassA.fields ().get (
+							javaBeanSchemaA.getConstante (m2m.getReferenciaA ())
+					);
 					JFieldVar columnRefB = klassB.fields ().get (
 							javaBeanSchemaB.getConstante (m2m.getReferenciaB ())
 					);
@@ -620,6 +625,14 @@ public class CodeModelDaoFactory {
 						klassB, javaBeanSchemaB,
 						columnRefB, throughTableKeyToB,
 						throughTableA
+					);
+
+					generateToManyAssociation (
+						klassB, javaBeanSchemaB,
+						referenceB, throughTableKeyToB,
+						klassA, javaBeanSchemaA,
+						columnRefA, throughTableKeyToA,
+						throughTableB
 					);
 				}
 
