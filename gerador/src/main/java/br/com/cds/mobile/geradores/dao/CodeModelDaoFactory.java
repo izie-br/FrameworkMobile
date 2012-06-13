@@ -623,15 +623,27 @@ public class CodeModelDaoFactory {
 						klassA, javaBeanSchemaA,
 						referenceA, throughTableKeyToA,
 						klassB, javaBeanSchemaB,
-						columnRefB, throughTableKeyToB,
-						throughTableA
+						columnRefB, throughTableKeyToB
 					);
-
 					generateToManyAssociation (
 						klassB, javaBeanSchemaB,
 						referenceB, throughTableKeyToB,
 						klassA, javaBeanSchemaA,
-						columnRefA, throughTableKeyToA,
+						columnRefA, throughTableKeyToA
+					);
+
+					generateManyToManyPersistence (
+						klassA, javaBeanSchemaA,
+						referenceA, throughTableKeyToA,
+						klassB, javaBeanSchemaB,
+						m2m.getReferenciaB(), throughTableKeyToB,
+						throughTableA
+					);
+					generateManyToManyPersistence (
+						klassB, javaBeanSchemaB,
+						referenceB, throughTableKeyToB,
+						klassA, javaBeanSchemaA,
+						m2m.getReferenciaA(), throughTableKeyToA,
 						throughTableB
 					);
 				}
@@ -715,7 +727,8 @@ public class CodeModelDaoFactory {
 							klassA, javaBeanSchemaA,
 							referenceA, null,
 							klassB,javaBeanSchemaB,
-							columnRefB, null, null);
+							columnRefB, null
+					);
 				}
 
 			}
@@ -726,8 +739,7 @@ public class CodeModelDaoFactory {
 			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
 			JFieldVar referenceA, JFieldVar columnThroughTableToA,
 			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB,
-			JFieldVar columnRefB, JFieldVar columnThroughTableToB,
-			JFieldVar throughTable
+			JFieldVar columnRefB, JFieldVar columnThroughTableToB
 	) {
 		String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
 		JClass collectionKlassB = jcm.ref(
@@ -748,7 +760,7 @@ public class CodeModelDaoFactory {
 //			throw new RuntimeException(REFERENCIA_NAO_ENCONTRADA);
 		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
 			.invoke("filter");
-			if (throughTable == null || columnThroughTableToA == null || columnThroughTableToB == null) {
+			if (columnThroughTableToA == null || columnThroughTableToB == null) {
 				invokeAssociadaObjects = invokeAssociadaObjects.arg(
 						klassB.staticRef(columnRefB).invoke("eq")
 							.arg(referenceA)
@@ -766,6 +778,89 @@ public class CodeModelDaoFactory {
 		corpo._return(invokeAssociadaObjects);
 	}
 
+	private void generateManyToManyPersistence (
+			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
+			JFieldVar referenceA, JFieldVar columnThroughTableToA,
+			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB,
+			String columnRefB, JFieldVar columnThroughTableToB,
+			JFieldVar throughTable
+	) {
+		String getterReferenceB = "get" +
+			Character.toUpperCase( columnRefB.charAt (0)) +
+			columnRefB.substring (1);
+		//
+		JMethod addMethod = klassA.method(
+			JMod.PUBLIC,
+			jcm.BOOLEAN,
+			"add" + javaBeanSchemaB.getNome()
+		);
+		JVar obj = addMethod.param(klassB, "obj");
+		JBlock body = addMethod.body();
+		String pkName = javaBeanSchemaA.getPrimaryKey().getNome();
+		if (pkName != null) {
+			JFieldVar pk = klassA.fields().get(pkName);
+			body._if (pk.eq (JExpr.lit (ID_PADRAO)))
+				._then()._return (JExpr.lit(false));
+		}
+		/* ********************************************
+		 *   ContentValues cv = new ContentValues();  *
+		 *********************************************/
+		JVar contentValues = body.decl(
+				jcm.ref(ContentValues.class),
+				"contentValues",
+				JExpr._new(jcm.ref(ContentValues.class))
+		);
+		body.add (contentValues.invoke ("put")
+			.arg (klassA.staticRef (columnThroughTableToA).invoke ("getName"))
+			.arg (referenceA)
+		);
+		body.add (contentValues.invoke ("put")
+			.arg (klassB.staticRef (columnThroughTableToB).invoke ("getName"))
+			.arg (obj.invoke (getterReferenceB))
+		);
+		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JExpression valueExpr = db.invoke("insertOrThrow")
+			.arg(klassA.staticRef(throughTable).invoke("getName"))
+			.arg(JExpr._null())
+			.arg(contentValues);
+		JVar valueId = body.decl(jcm.LONG, "value",valueExpr);
+		body._return (valueId.gt(JExpr.lit(0)));
+		//
+		JMethod removeMethod = klassA.method(
+			JMod.PUBLIC,
+			jcm.BOOLEAN,
+			"remove" + javaBeanSchemaB.getNome()
+		);
+		obj = removeMethod.param(klassB, "obj");
+		body = removeMethod.body();
+		if (pkName != null) {
+			JFieldVar pk = klassA.fields().get(pkName);
+			body._if (pk.eq (JExpr.lit (ID_PADRAO)))
+				._then()._return (JExpr.lit(false));
+		}
+		db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JVar affeted = body.decl(
+			jcm.LONG,
+			"value",
+			db.invoke("delete")
+				.arg(klassA.staticRef(throughTable).invoke("getName"))
+				.arg(klassA.staticRef(
+					columnThroughTableToA).invoke("getName")
+					.plus(JExpr.lit("=? AND "))
+					.plus(klassB.staticRef(columnThroughTableToB).invoke("getName"))
+					.plus(JExpr.lit("=?"))
+				)
+				.arg(JExpr.newArray(jcm.ref(String.class))
+					.add(boxify(referenceA).invoke("toString"))
+					.add(((JExpression)JExpr.cast(
+						jcm.ref(javaBeanSchemaB.getPropriedade(columnRefB).getType()),
+						obj.invoke(getterReferenceB)
+					)).invoke("toString"))
+				)
+		);
+		body._return(affeted.gt(JExpr.lit(0)));
+
+	}
 
 	private JExpression getDbExpr(){
 		JClass dbclass = jcm.ref(dbClass);
