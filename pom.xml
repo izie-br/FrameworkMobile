@@ -12,7 +12,7 @@
   <modules>
     <module>gerador</module>
     <module>lib</module>
-    <module>test</module>
+    <!-- module>test</module -->
   </modules>
 
   <properties>

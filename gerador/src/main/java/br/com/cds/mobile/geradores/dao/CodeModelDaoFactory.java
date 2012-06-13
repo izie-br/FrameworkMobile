@@ -651,6 +651,9 @@ public class CodeModelDaoFactory {
 						associacao.getTabelaB().equals(javaBeanSchemaA.getTabela()) &&
 						associacao.getTabelaA().equals(javaBeanSchemaB.getTabela())
 				){
+					JFieldVar keyToB = klassA.fields().get(
+						javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome()
+					);
 					// variavel para lazy load
 					// tansient == nao serializavel
 					JFieldVar campo = klassA.field(
@@ -700,16 +703,38 @@ public class CodeModelDaoFactory {
 						.arg(
 								klassB.staticRef(klassB.fields().get(
 										javaBeanSchemaB.getConstante(oneToMany.getReferenciaA())
-								)).invoke("eq").arg(
-								klassA.fields().get(
-										javaBeanSchemaA.getPropriedade(oneToMany.getKeyToA()).getNome()
-								)
-							)
+								)).invoke("eq").arg(keyToB)
 						);
 					// associada = Associada.objects().filter(Vendedor.ID +"=?",idVendedor).first()
 					ifCampoNull._then().assign( campo, invokeQuery.invoke("first") );
 					// return associada
 					corpo._return(campo);
+					/*
+					 *  // setter para onetomany
+					 *
+					 * public void setAssociada (Associada obj) {
+					 *     if (obj.getId () == ID_PADRAO)
+					 *         throw new RuntimeException (ASSOCIADA_SEM_ID);
+					 *     this.idAssociada = obj.getId ();
+					 *     this.associada = obj;
+					 * }
+					 */
+					JMethod methodSetAssociated = klassA.method(
+						JMod.PUBLIC,
+						jcm.VOID,
+						"set" + javaBeanSchemaB.getNome()
+					);
+					JVar obj = methodSetAssociated.param(klassB, "obj");
+					corpo = methodSetAssociated.body();
+					String getterRefB = "get" +
+						Character.toUpperCase(oneToMany.getReferenciaA().charAt(0)) +
+						oneToMany.getReferenciaA().substring(1);
+					corpo._if(obj.invoke(getterRefB).eq(JExpr.lit(ID_PADRAO)))
+						._then()._throw(JExpr._new(jcm.ref(RuntimeException.class))
+							.arg(JExpr.lit(getterRefB+" retornou null"))
+						);
+					corpo.assign(keyToB, obj.invoke(getterRefB));
+					corpo.assign(campo, obj);
 				} else if(
 						associacao.getTabelaA().equals(javaBeanSchemaA.getTabela()) &&
 						associacao.getTabelaB().equals(javaBeanSchemaB.getTabela())
