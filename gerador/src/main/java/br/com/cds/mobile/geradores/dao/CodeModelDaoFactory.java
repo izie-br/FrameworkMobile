@@ -506,12 +506,9 @@ public class CodeModelDaoFactory {
 		getColunas.annotate(java.lang.Override.class);
 		JArray colunasArray = JExpr.newArray(columnClass);
 		for(String coluna : colunasEmOrdem){
-			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JExpression elementoArray = klass.fields().get(
 					javaBeanSchema.getConstante(coluna)
 			);
-			if(propriedade.getType().equals(Date.class))
-				elementoArray = JExpr.lit(SQLiteGeradorUtils.FUNCAO_DATE+"(" ).plus(elementoArray).plus(JExpr.lit(")"));
 			colunasArray.add(elementoArray);
 		}
 		getColunas.body()._return(colunasArray);
