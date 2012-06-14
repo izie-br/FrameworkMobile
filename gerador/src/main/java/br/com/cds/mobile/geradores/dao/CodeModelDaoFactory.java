@@ -6,6 +6,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import br.com.cds.mobile.framework.query.QuerySet;
@@ -861,11 +862,12 @@ public class CodeModelDaoFactory {
 				._then()._return (JExpr.lit(false));
 		}
 		db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
-		JVar affeted = body.decl(
-			jcm.LONG,
-			"value",
-			db.invoke("delete")
-				.arg(klassA.staticRef(throughTable).invoke("getName"))
+		JVar cursor = body.decl(
+			jcm.ref(Cursor.class),
+			"cursor",
+			db.invoke("query")
+				.arg(throughTable.invoke("getName"))
+				.arg(JExpr.direct("new String[]{\"rowid\"}"))
 				.arg(klassA.staticRef(
 					columnThroughTableToA).invoke("getName")
 					.plus(JExpr.lit("=? AND "))
@@ -879,8 +881,44 @@ public class CodeModelDaoFactory {
 						obj.invoke(getterReferenceB)
 					)).invoke("toString"))
 				)
+				.arg(JExpr._null())
+				.arg(JExpr._null())
+				.arg(JExpr._null())
+				.arg(JExpr.lit("1"))
 		);
-		body._return(affeted.gt(JExpr.lit(0)));
+		body._if(cursor.invoke("moveToNext").not())
+			._then()._return(JExpr.lit(false));
+		Class<?> referenceType;
+		try {
+			referenceType = Class.forName(
+				referenceA.type().boxify()._package().name() +
+				"." + referenceA.type().boxify().name()
+			);
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+		JVar rowid = body.decl(
+			referenceA.type(),
+			"rowid",
+			cursor.invoke(SQLiteGeradorUtils.metodoGetDoCursorParaClasse(
+				referenceType
+			)).arg(JExpr.lit(0))
+		);
+		body.add(cursor.invoke("close"));
+		body._if(rowid.lte(JExpr.lit(0)))
+			._then()._return(JExpr.lit(false));
+			
+		JVar affeted = body.decl(
+			jcm.LONG,
+			"affected",
+			db.invoke("delete")
+				.arg(klassA.staticRef(throughTable).invoke("getName"))
+				.arg(JExpr.lit("rowid=?"))
+				.arg(JExpr.newArray(jcm.ref(String.class))
+					.add(boxify(rowid).invoke("toString"))
+				)
+		);
+		body._return(affeted.eq(JExpr.lit(1)));
 
 	}
 
