@@ -17,11 +17,13 @@ public class AssociacaoManyToMany extends Associacao {
 		super(tabelaA,tabelaB);
 		this.children[0] = new AssociacaoOneToMany(
 			tabelaA, tabelaJuncao,
-			keyToA, referenciaA
+			keyToA, false,
+			referenciaA
 		);
 		this.children[1] = new AssociacaoOneToMany(
 			tabelaB, tabelaJuncao,
-			keyToB, referenciaB
+			keyToB, false,
+			referenciaB
 		);
 		this.nome = nome;
 	}

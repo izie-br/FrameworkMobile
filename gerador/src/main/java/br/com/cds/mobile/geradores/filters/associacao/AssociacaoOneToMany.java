@@ -5,22 +5,35 @@ import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
 public class AssociacaoOneToMany extends Associacao{
 
 	private String keyToA;
+	private boolean nullable;
 	private String referenciaA;
 
 	public AssociacaoOneToMany(
 			TabelaSchema tabelaA, TabelaSchema tabelaB,
-			String keyToA, String referenciaA
+			String keyToA, boolean nullable,
+			String referenciaA
 	) {
 		super(tabelaA, tabelaB);
 		if(keyToA == null || referenciaA == null)
 			throw new RuntimeException(Associacao.ERRO_ARGUMENTOS_NULL_MSG);
 		this.keyToA = keyToA;
+		this.nullable = nullable;
 		this.referenciaA = referenciaA;
 	}
 
 	public String getKeyToA() {
 		return keyToA;
 	}
+
+	/**
+	 * Determina se a chave estrangeira pode assumir valor NULL.
+	 *
+	 * @return chave pode ser NULL
+	 */
+	public boolean isNullable() {
+		return this.nullable;
+	}
+
 	public String getReferenciaA() {
 		return referenciaA;
 	}

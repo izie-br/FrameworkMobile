@@ -138,11 +138,14 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 									filtroTabelaB.getPropriedadeNome(coluna.getNome())
 										.equals(colunaToA)
 							){
+								boolean nullable = ! Arrays.asList(coluna.getConstraints())
+									.contains(TabelaSchema.NOT_NULL_CONSTRAINT);
 								try{
 								Associacao associacao = new AssociacaoOneToMany(
 										filtroTabelaA.getTabela(),
 										filtroTabelaB.getTabela(),
 										colunaToA,
+										nullable,
 										colunaA.getNome()
 								);
 								associacoes.add(associacao);
