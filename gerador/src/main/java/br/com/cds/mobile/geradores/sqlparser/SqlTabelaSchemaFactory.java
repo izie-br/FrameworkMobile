@@ -1,6 +1,7 @@
 package br.com.cds.mobile.geradores.sqlparser;
 
 import java.io.StringReader;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -70,29 +71,17 @@ public class SqlTabelaSchemaFactory {
 				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(
 						colunaDefinition.getColDataType().getDataType()
 				);
-				/*
-				 * inserindo as colunas, (nome, tipo) aqui 
-				 */
-				boolean isPrimaryKey = (colunaDefinition.getColumnSpecStrings() !=null &&
-						colunaDefinition.getColumnSpecStrings().contains("PRIMARY")&&
-						colunaDefinition.getColumnSpecStrings().contains("KEY")
-						);
-				// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
-				if(ct.getIndexes()!=null) for(Object it : ct.getIndexes()){
-					Index index = (Index)it;
-					isPrimaryKey = isPrimaryKey || (
-							index.getColumnsNames().contains(nomeColuna) &&
-							index.getType().equalsIgnoreCase(TabelaSchema.PRIMARY_KEY_CONSTRAINT)
-					);
-				}
-				if(isPrimaryKey)
+				@SuppressWarnings("unchecked")
+				List<String> constraints = extractColumnConstraints(
+						colunaDefinition, ct.getIndexes()
+				);
+				if( constraints.contains(TabelaSchema.PRIMARY_KEY_CONSTRAINT) ) {
+					System.out.println("pk encontrada");
 					primaryKeyCount++;
-				
-				//TODO outras constraints
-				String constraints [] = isPrimaryKey ?
-						new String []{TabelaSchema.PRIMARY_KEY_CONSTRAINT} :
-						new String []{};
-				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna,constraints);
+				}
+				String arrConstraints [] = new String[constraints.size()];
+				constraints.toArray(arrConstraints);
+				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna, arrConstraints);
 				tabela = tabelaBuilder.get();
 			}
 			if(primaryKeyCount==0){
@@ -126,6 +115,60 @@ public class SqlTabelaSchemaFactory {
 		}
 
 		
+	}
+
+	private List<String> extractColumnConstraints(
+			ColumnDefinition colunaDefinition,
+			List<Index> indexes
+	) {
+		@SuppressWarnings("unchecked")
+		List<String> specStrings = colunaDefinition.getColumnSpecStrings();
+		int indexOfPrimaryKeyConstraint =
+				findConstraint(specStrings, TabelaSchema.PRIMARY_KEY_CONSTRAINT);
+		// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
+		boolean isPrimaryKey = (indexOfPrimaryKeyConstraint >= 0);
+		for(int i = 0; indexes!=null && i < indexes.size(); i++){
+			Index index = (Index)indexes.get(i);
+			isPrimaryKey = isPrimaryKey || (
+					index.getColumnsNames()
+						.contains(colunaDefinition.getColumnName()) &&
+					index.getType()
+						.equalsIgnoreCase(TabelaSchema.PRIMARY_KEY_CONSTRAINT)
+			);
+		}
+		List<String> constraints = new ArrayList<String>();
+		if(isPrimaryKey)
+				constraints.add(TabelaSchema.PRIMARY_KEY_CONSTRAINT);
+		if (findConstraint(specStrings, TabelaSchema.UNIQUE_CONSTRAINT) >= 0)
+				constraints.add(TabelaSchema.UNIQUE_CONSTRAINT);
+		if (findConstraint(specStrings, TabelaSchema.NOT_NULL_CONSTRAINT) >= 0)
+				constraints.add(TabelaSchema.NOT_NULL_CONSTRAINT);
+		return constraints;
+	}
+
+	private int findConstraint (List<String> specStrings, String constrt) {
+		String[] primaryKeyStrings = constrt.split("\\s+");
+		System.out.println(constrt+ " :: " + specStrings.size());
+		int indexOfPrimary = -1;
+		for (int i = 0; i < specStrings.size(); i++) {
+			if (specStrings.get(i).equalsIgnoreCase(primaryKeyStrings[0])) {
+				indexOfPrimary = i;
+				break;
+			}
+		}
+		if (indexOfPrimary < 0)
+			return -1;
+		for (int i = 1; i < primaryKeyStrings.length ; i++) {
+			if ( !(
+					specStrings.get(indexOfPrimary+i)
+						.equalsIgnoreCase(primaryKeyStrings[i])
+			) ) {
+				System.out.println("invalidou em " +specStrings.get(i+indexOfPrimary));
+				return -1;
+			}
+		}
+		System.out.println("primary key encontrada :: " + indexOfPrimary);
+		return indexOfPrimary;
 	}
 
 	private static final String REMOVER[] = {
@@ -187,7 +230,7 @@ private String tratarSchema(String schema) {
 					if(!colMatch.find())
 						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
 					// DEBUG
-					String colmatch = colMatch.group();
+					//String colmatch = colMatch.group();
 					String debuggroups[] = new String[colMatch.groupCount()];
 					for(int i=0;i<debuggroups.length;i++)
 						debuggroups[i] = colMatch.group(i);

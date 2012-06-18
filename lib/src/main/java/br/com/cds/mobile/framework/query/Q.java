@@ -60,7 +60,7 @@ public static byte ROUND = 22;
         node.op = op;
         node.arg = arg;
         this.root = node;
-	}
+    }
 
     public <T> Q (
         Table.Column<T> column,
@@ -79,6 +79,14 @@ public static byte ROUND = 22;
             this.joins.add(join);
         }
     }
+
+    public Q (Table.Column<?> column, OpUnary op) {
+        QNodeUnary node = new QNodeUnary ();
+        node.column = column;
+        node.op = op;
+        this.root = node;
+    }
+
 
     public Q (Q q){
         this.table = q.table;
@@ -275,10 +283,42 @@ public static byte ROUND = 22;
 
     }
 
+    private static class QNodeUnary extends QNode {
+        Table.Column<?> column;
+        OpUnary op;
+
+        @Override
+        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+            sb.append( Q.getColumn(
+                // conferir se eh da mesma tabela
+                ( table.equals(this.column.getTable()) ?
+                    // se for a coluna for da mesma tabela
+                    null :
+                    // caso seja uma coluna de outra tabela
+                    column.getTable().getName()
+                ),
+                this.column)
+            );
+            sb.append(op.toString());
+            super.output(table, sb, args);
+        }
+
+    }
+
     private class InnerJoin {
         Table.Column<?> foreignColumn;
         Op1x1 op;
         Table.Column<?> column;
+    }
+
+    public static enum OpUnary {
+        ISNULL, NOTNULL;
+
+        public String toString () {
+            return
+                this == ISNULL     ?     " ISNULL " :
+                /* this == NOTNULL ?  */ " NOTNULL ";
+        }
     }
 
     public static enum Op1x1 {
