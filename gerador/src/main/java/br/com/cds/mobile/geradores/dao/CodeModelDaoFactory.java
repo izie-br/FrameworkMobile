@@ -377,6 +377,7 @@ public class CodeModelDaoFactory {
 	public void gerarMetodoDelete(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		/* **********************************************************
 		 * public boolean delete(){                                 *
+		 *     super.delete();                                      *
 		 *     if(id!=ID_PADRAO) {                                  *
 		 *        db.delete(TABELA,ID+"=?",new String[] { id });    *
 		 *        for (Associada obj : getAssociadas() {            *

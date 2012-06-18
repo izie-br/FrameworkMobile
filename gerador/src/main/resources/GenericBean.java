@@ -6,7 +6,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public abstract class GenericBean
-    implements Serializable, Cloneable, JsonSerializable<GenericBean>
+    implements Serializable, Cloneable
 {
     public abstract JSONObject toJson();
     public abstract GenericBean jsonToObjectWithPrototype(JSONObject json)

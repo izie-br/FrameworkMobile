@@ -32,6 +32,7 @@ public class CodeModelBeanFactory {
 
 	private static final String ERROR_CLONE_NOT_DEEP_COPY_WARNING = "Metodo clone parece nao fazer deep copy de %s da classe %s";
 	private static final String ERRO_MSG_ARGUMENTO_NULL = "argumento null passado para o metodo %s::%s";
+	private static final String GEN_SUBPKG = "gen";
 	private JCodeModel jcm;
 
 	public CodeModelBeanFactory(JCodeModel jcm){
@@ -336,7 +337,7 @@ public class CodeModelBeanFactory {
 	 * @return classe gerada
 	 * @throws JClassAlreadyExistsException
 	 */
-	public JDefinedClass gerarClasse(String fullyqualifiedName)
+	public JDefinedClass generateClass(String basePackage, String name)
 			throws JClassAlreadyExistsException {
 		/* *********************************************************
 		 * package nome.completo.do.pacote;                        *
@@ -347,13 +348,13 @@ public class CodeModelBeanFactory {
 		 **********************************************************/
 		JDefinedClass classeBean = jcm._class(
 				JMod.PUBLIC,
-				fullyqualifiedName,
+				basePackage + "." + GEN_SUBPKG + "." + name,
 				ClassType.CLASS
 		);
-		classeBean._implements(Serializable.class);
-		classeBean._implements(Cloneable.class);
+		JClass genericBean = jcm.ref(basePackage + "." + GeradorDeBeans.GENERIC_BEAN_CLASS);
 		JClass jsonSerializable = jcm.ref(JsonSerializable.class).narrow(classeBean);
 		classeBean._implements(jsonSerializable);
+		classeBean._extends(genericBean);
 		return classeBean;
 	}
 

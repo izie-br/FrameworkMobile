@@ -56,12 +56,13 @@ public class GeradorDeBeans {
 	private static final String DB_CLASS = "DB";
 	private static final String DB_RESOURCE_FILE = "/DB.java";
 	private static final String DB_PACKAGE = "db";
+	public static final String GENERIC_BEAN_CLASS = "GenericBean";
 
 	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
 		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
 		{"",	"Aplicacao",	"/Aplicacao.java"},
 		{"",	"Constantes",	"/Constantes.java"},
-		{"",	"GenericBean",	"/GenericBean.java"}
+		{"",	GENERIC_BEAN_CLASS,	"/GenericBean.java"}
 	};
 
 	public static PrintStream out = System.out;
@@ -213,8 +214,10 @@ public class GeradorDeBeans {
 				continue;
 			JDefinedClass classeGerada;
 			try {
-				classeGerada = jbf.gerarClasse(
-					pacoteGen+'.'+javaBeanSchema.getNome());
+				classeGerada = jbf.generateClass(
+					pacote,
+					javaBeanSchema.getNome()
+				);
 			} catch (JClassAlreadyExistsException e) {
 				throw new RuntimeException(e);
 			}

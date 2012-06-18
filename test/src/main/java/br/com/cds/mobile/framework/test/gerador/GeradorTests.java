@@ -7,6 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
+import br.com.cds.mobile.framework.test.GenericBean;
 import br.com.cds.mobile.framework.test.TestActivity;
 import br.com.cds.mobile.framework.test.gen.Author;
 
@@ -101,6 +102,15 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			fail(e.getLocalizedMessage());
 		}
 		
+	}
+
+	public void testGenericBean() {
+		Author obj = new Author();
+		try {
+			GenericBean genericObj = obj;
+		} catch (ClassCastException e) {
+			fail ("Beans nao herdam da classe " + GenericBean.class.getSimpleName());
+		}
 	}
 
 	private Author randomAuthor() {
