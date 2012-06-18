@@ -60,7 +60,8 @@ public class GeradorDeBeans {
 	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
 		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
 		{"",	"Aplicacao",	"/Aplicacao.java"},
-		{"",	"Constantes",	"/Constantes.java"}
+		{"",	"Constantes",	"/Constantes.java"},
+		{"",	"GenericBean",	"/GenericBean.java"}
 	};
 
 	public static PrintStream out = System.out;

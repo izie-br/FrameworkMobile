@@ -379,6 +379,9 @@ public class CodeModelDaoFactory {
 		 * public boolean delete(){                                 *
 		 *     if(id!=ID_PADRAO) {                                  *
 		 *        db.delete(TABELA,ID+"=?",new String[] { id });    *
+		 *        for (Associada obj : getAssociadas() {            *
+		 *            obj.setPai(null);                             *
+		 *        }                                                 *
 		 *        return true;                                      *
 		 *     }                                                    *
 		 *     return false;                                        *
@@ -387,7 +390,7 @@ public class CodeModelDaoFactory {
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock corpo = delete.body();
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
-		// if(id!=ID_PADRAO)
+		// if(id==ID_PADRAO)
 		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
 		JExpression ifexpr = klass.fields().get(
 				javaBeanSchema.getPropriedade(primarykeys.next()).getNome()
@@ -398,20 +401,35 @@ public class CodeModelDaoFactory {
 				.ne(JExpr.lit(ID_PADRAO))
 			);
 		}
-		JConditional ifIdNotNull = corpo._if(ifexpr);
+		corpo._if(ifexpr.not())._then()._return(JExpr.lit(false));
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
-		JBlock blocoThen = ifIdNotNull._then();
-		blocoThen.invoke(db, "delete")
-			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
-			// ID+"=?"
-			.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
-			// new String[]{id}
-			.arg(getPrimaryKeysArray(klass, javaBeanSchema));
+		JVar affected = corpo.decl(
+			jcm.INT,
+			"affected",
+			db.invoke("delete")
+				.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
+				// ID+"=?"
+				.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
+				// new String[]{id}
+				.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+		);
 
-		blocoThen._return(JExpr.lit(true));
+		corpo._if(affected.eq(JExpr.lit(ID_PADRAO)))
+			._then()._return(JExpr.lit(false));
 
-		// se id == null
-		corpo._return(JExpr.lit(false));
+		// conferir associadas
+		Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
+		if (associacoes != null && associacoes.size() > 0) {
+			for (Associacao associacao : associacoes) {
+				//String metodoGet =
+			}
+		}
+
+		corpo._return(JExpr.lit(true));
+	}
+
+	private void generateAssociatedDelete (){
+		return;
 	}
 
 	public void gerarMetodoObjects(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
