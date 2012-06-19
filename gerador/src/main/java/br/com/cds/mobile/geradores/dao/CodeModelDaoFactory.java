@@ -3,7 +3,9 @@ package br.com.cds.mobile.geradores.dao;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -45,11 +47,12 @@ public class CodeModelDaoFactory {
 
 //	private static final String REFERENCIA_NAO_ENCONTRADA =
 //			"Referencia em associacao to many nao encontrada";
-	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT =
-			"%s nao encontrada em %s.";
+//	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT =
+//			"%s nao encontrada em %s.";
 
 	// o valor 0 nao pode ser uma PK no sqlite
 	public static final long ID_PADRAO = 0;
+	// SQL's
 
 	private JCodeModel jcm;
 	private String dbClass;
@@ -145,60 +148,25 @@ public class CodeModelDaoFactory {
 		save._throws(SQLException.class);
 		JBlock corpo = save.body();
 
-		/* ********************************************
-		 *   ContentValues cv = new ContentValues();  *
-		 *********************************************/
-		JVar contentValues = corpo.decl(
-				jcm.ref(ContentValues.class),
-				"contentValues",
-				JExpr._new(jcm.ref(ContentValues.class))
-		);
-
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 
+		Map<String, JFieldVar> fields = new LinkedHashMap<String, JFieldVar>();
 		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
-			if(
+			if( !(
 					primaryKey!=null &&
 					propriedade.getNome().equals(primaryKey.getNome())
-			){
-				continue;
-			}
-			JFieldVar campo = klass.fields().get(propriedade.getNome());
-
-			JExpression argumentoValor =
-					// if campo instanceof Date
-					(campo.type().name().equals("Date")) ?
-							// value = DateUtil.timestampToString(date)
-							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(campo) :
-					// if campo instanceof Boolean
-					(campo.type().name().equals("boolean") || campo.name().equals("Boolean") ) ?
-							// value = (campoBool? 1 : 0)
-							JOp.cond(campo,JExpr.lit(1),JExpr.lit(0)):
-					// else
-							// value = campo
-							campo;
-			/*
-			 * Constante da coluna
-			 */
-			JFieldVar constante = klass.fields().get(javaBeanSchema.getConstante(coluna));
-			if(constante==null)
-				throw new RuntimeException(String.format(
-						CONSTANTE_NAO_ENCONTRADA_FORMAT,
-						javaBeanSchema.getConstante(coluna),
-						klass.name()
-				));
-			else {
-				/* *******************************************
-				 *   cv.put(Klass.CAMPO, <expressao value>); *
-				 ********************************************/
-				corpo.add(
-					contentValues.invoke("put")
-						.arg(constante.invoke("getName"))
-						.arg(argumentoValor)
-				);
+			) ){
+				fields.put(coluna, klass.fields().get(propriedade.getNome()));
 			}
 		}
+		/*
+		 * ContentValues cv = new ContentValues();
+		 * cv.put(ClasseBean.CAMPO,this.campo);
+		 * cv.put(*);
+		 */
+		JVar contentValues = generateContentValues(klass, fields, corpo);
+
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 
 		if(primaryKey==null){
@@ -272,6 +240,45 @@ public class CodeModelDaoFactory {
 		gerarBlocoUpdate(klass, javaBeanSchema, elseBlock, db, contentValues);
 	}
 
+	private JVar generateContentValues(
+			JDefinedClass klass,
+			Map<String,JFieldVar> fields,
+			JBlock body
+	) {
+		/* ********************************************
+		 *   ContentValues cv = new ContentValues();  *
+		 *********************************************/
+		JVar contentValues = body.decl(
+				jcm.ref(ContentValues.class),
+				"contentValues",
+				JExpr._new(jcm.ref(ContentValues.class))
+		);
+		for (String column : fields.keySet()) {
+			JFieldVar field = fields.get(column);
+			JExpression argumentoValor =
+					// if campo instanceof Date
+					(field.type().name().equals("Date")) ?
+							// value = DateUtil.timestampToString(date)
+							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(field) :
+					// if campo instanceof Boolean
+					(field.type().name().equals("boolean") || field.name().equals("Boolean") ) ?
+							// value = (campoBool? 1 : 0)
+							JOp.cond(field, JExpr.lit(1),JExpr.lit(0)):
+					// else
+							// value = campo
+							field;
+			/* ****************************************
+			 *   cv.put("campo", <expressao value>);  *
+			 *****************************************/
+			body.add(
+				contentValues.invoke("put")
+					.arg(JExpr.lit(column))
+					.arg(argumentoValor)
+			);
+		}
+		return contentValues;
+	}
+
 	private void gerarBlocoUpdate(
 			JDefinedClass klass,
 			JavaBeanSchema javaBeanSchema,
@@ -334,7 +341,6 @@ public class CodeModelDaoFactory {
 				).invoke("getName").plus(JExpr.lit("=?"));
 			sqlExp = (sqlExp==null) ? expr : sqlExp.plus(JExpr.lit(" AND ")).plus(expr);
 		}
-
 		return sqlExp;
 	}
 
@@ -415,22 +421,39 @@ public class CodeModelDaoFactory {
 				.arg(getPrimaryKeysArray(klass, javaBeanSchema))
 		);
 
-		corpo._if(affected.eq(JExpr.lit(ID_PADRAO)))
+		corpo._if(affected.eq(JExpr.lit(0)))
 			._then()._return(JExpr.lit(false));
 
 		// conferir associadas
 		Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
 		if (associacoes != null && associacoes.size() > 0) {
 			for (Associacao associacao : associacoes) {
-				//String metodoGet =
+				//generateAssociatedDelete(
 			}
 		}
 
 		corpo._return(JExpr.lit(true));
 	}
 
-	private void generateAssociatedDelete (){
-		return;
+	private void generateAssociatedDelete (
+		JDefinedClass klass, JavaBeanSchema javaBeanSchema,
+		Associacao association,
+		JBlock body, JVar db
+	) {
+		if (association instanceof AssociacaoOneToMany) {
+			AssociacaoOneToMany one2many = (AssociacaoOneToMany)association;
+			if (one2many.getTabelaB().getNome().equals(
+				javaBeanSchema.getTabela().getNome()
+			)) {
+				return;
+			}
+			if (one2many.isNullable()) {
+				//JVar contentValues = body.decl
+			}
+		}
+		//else if (associacao instanceof AssociacaoManyToMany) {
+		//	return 
+		//}
 	}
 
 	public void gerarMetodoObjects(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
