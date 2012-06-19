@@ -1,6 +1,7 @@
 package br.com.cds.mobile.framework.test.gerador;
 
 import java.util.Collection;
+import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONException;
@@ -10,6 +11,8 @@ import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.test.GenericBean;
 import br.com.cds.mobile.framework.test.TestActivity;
 import br.com.cds.mobile.framework.test.gen.Author;
+import br.com.cds.mobile.framework.test.gen.Document;
+import br.com.cds.mobile.framework.test.gen.Score;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -105,18 +108,45 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testGenericBean() {
-		Author obj = new Author();
+		Author obj = randomAuthor();
 		try {
 			GenericBean genericObj = obj;
+			assertTrue(genericObj.save());
+			assertTrue(obj.getId()>0);
+			long id = obj.getId();
+			assertTrue(genericObj.delete());
+			Author fromDb = Author.objects().filter(Author.ID.eq(id)).first();
+			assertNull(fromDb);
 		} catch (ClassCastException e) {
 			fail ("Beans nao herdam da classe " + GenericBean.class.getSimpleName());
 		}
+	}
+
+	public void testDeleteCascade () {
+		Author author = randomAuthor();
+		assertTrue(author.save());
+
+		Document document = randomDocument();
+		document.setAuthor(author);
+		assertTrue(document.save());
+
+		Score score = new Score(document.getId(), author.getId());
+		score.setScore( (new Random().nextInt())%100 );
+		assertTrue(score.save());
+
 	}
 
 	private Author randomAuthor() {
 		Author author = new Author();
 		author.setName(RandomStringUtils.random(60));
 		return author;
+	}
+
+	private Document randomDocument () {
+		Document document = new Document();
+		document.setText(RandomStringUtils.random(6000));
+		document.setTitle(RandomStringUtils.random(60));
+		return document;
 	}
 
 }

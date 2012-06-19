@@ -14,6 +14,8 @@ import java.io.StringReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
@@ -57,6 +59,7 @@ public class GeradorDeBeans {
 	private static final String DB_RESOURCE_FILE = "/DB.java";
 	private static final String DB_PACKAGE = "db";
 	public static final String GENERIC_BEAN_CLASS = "GenericBean";
+	public static final String GENERIC_BEAN_PACKAGE = null;
 
 	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
 		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
@@ -179,6 +182,10 @@ public class GeradorDeBeans {
 		conferirArquivosCustomSrc(pacote, pastaSrc);
 		String pacoteDb = getPacoteDb(pacote);
 		String dbClass = pacoteDb + DB_CLASS;
+		String genericBeanClass = pacote;
+		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
+			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
+		genericBeanClass += GENERIC_BEAN_CLASS;
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
@@ -203,7 +210,7 @@ public class GeradorDeBeans {
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory =
-			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
+			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod,genericBeanClass);
 		CodeModelJsonSerializacaoFactory jsonFactory =
 			new CodeModelJsonSerializacaoFactory(jcm);
 
@@ -254,6 +261,12 @@ public class GeradorDeBeans {
 				);
 			}
 		}
+
+		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
+		for(SchemaXJClass schemaJclass : listClasses){
+			map.put(schemaJclass.schema, schemaJclass.klass);
+		}
+		daoFactory.generateDeleteMethods(map);
 
 		for(SchemaXJClass schemaXJClass : listClasses){
 			jbf.gerarSerialVersionUID(schemaXJClass.klass);

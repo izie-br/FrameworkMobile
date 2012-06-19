@@ -2,6 +2,7 @@ package br.com.cds.mobile.geradores.dao;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -24,6 +25,7 @@ import br.com.cds.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import br.com.cds.mobile.geradores.javabean.JavaBeanSchema;
 import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.util.ColunasUtils;
+import br.com.cds.mobile.geradores.util.JavaBeanUtils;
 import br.com.cds.mobile.geradores.util.PluralizacaoUtils;
 import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 
@@ -37,6 +39,7 @@ import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
@@ -58,13 +61,17 @@ public class CodeModelDaoFactory {
 
 	private JCodeModel jcm;
 	private String dbClass;
+	private String genericBeanClass;
 	private String getDbStaticMethod;
 
-	public CodeModelDaoFactory(JCodeModel jcm, String dbClass,
-			String getDbStaticMethod) {
+	public CodeModelDaoFactory(JCodeModel jcm,
+		String dbClass, String getDbStaticMethod,
+		String genericBeanClass
+	) {
 		super();
 		this.jcm = jcm;
 		this.dbClass = dbClass;
+		this.genericBeanClass = genericBeanClass;
 		this.getDbStaticMethod = getDbStaticMethod;
 	}
 
@@ -106,7 +113,6 @@ public class CodeModelDaoFactory {
 			);
 		}
 		gerarMetodoSave(klass, javaBeanSchema);
-		gerarMetodoDelete(klass, javaBeanSchema);
 		gerarMetodoObjects(klass, javaBeanSchema);
 	}
 
@@ -382,7 +388,32 @@ public class CodeModelDaoFactory {
 		return q;
 	}
 
-	public void gerarMetodoDelete(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+	public void generateDeleteMethods(Map<JavaBeanSchema,JDefinedClass> map){
+		for (JavaBeanSchema javaBeanSchema : map.keySet()){
+			JDefinedClass klass = map.get(javaBeanSchema);
+			HashMap<String,JDefinedClass> associatedClasses = new HashMap<String, JDefinedClass>();
+			HashMap<String,JavaBeanSchema> associatedSchemas = new HashMap<String, JavaBeanSchema>();
+			Collection<Associacao> associations = javaBeanSchema.getAssociacoes();
+			for (JavaBeanSchema associatedSchema : map.keySet()) {
+				for (Associacao association : associations) {
+					if (
+						association.getTabelaA().getNome().equals(associatedSchema.getTabela().getNome()) ||
+						association.getTabelaB().getNome().equals(associatedSchema.getTabela().getNome())
+					) {
+						associatedClasses.put(associatedSchema.getTabela().getNome(), map.get(associatedSchema));
+						associatedSchemas.put(associatedSchema.getTabela().getNome(), associatedSchema);
+					}
+				}
+			}
+			generateDeleteMethod(klass, javaBeanSchema, associatedClasses, associatedSchemas);
+		}
+	}
+
+	public void generateDeleteMethod(
+		JDefinedClass klass, JavaBeanSchema javaBeanSchema,
+		Map<String,JDefinedClass> associatedClasses,
+		Map<String,JavaBeanSchema> associatedSchemas
+	){
 		/* **********************************************************
 		 * public boolean delete(){                                 *
 		 *     super.delete();                                      *
@@ -409,8 +440,20 @@ public class CodeModelDaoFactory {
 		Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
 		if (associacoes != null && associacoes.size() > 0) {
 			for (Associacao association : associacoes) {
+				String tableNameA = association.getTabelaA().getNome();
+				String tableNameB = association.getTabelaB().getNome();
+				JDefinedClass associatedClass;
+				JavaBeanSchema associatedSchema;
+				if(tableNameA.equals(javaBeanSchema.getTabela().getNome())) {
+					associatedClass = associatedClasses.get(tableNameB);
+					associatedSchema = associatedSchemas.get(tableNameB);
+				} else {
+					associatedClass = associatedClasses.get(tableNameA);
+					associatedSchema = associatedSchemas.get(tableNameA);
+				}
 				generateAssociatedDelete(
 					klass, javaBeanSchema,
+					associatedClass, associatedSchema,
 					association,
 					tryBody, db
 				);
@@ -455,9 +498,11 @@ public class CodeModelDaoFactory {
 
 	private void generateAssociatedDelete (
 		JDefinedClass klass, JavaBeanSchema javaBeanSchema,
+		JDefinedClass associatedClass, JavaBeanSchema associatedSchema,
 		Associacao association,
 		JBlock body, JVar db
 	) {
+		body = body.block();
 		if (association instanceof AssociacaoOneToMany) {
 			AssociacaoOneToMany one2many = (AssociacaoOneToMany)association;
 			if (one2many.getTabelaB().getNome().equals(
@@ -472,9 +517,8 @@ public class CodeModelDaoFactory {
 					JExpr._new(jcm.ref(ContentValues.class))
 				);
 				body.add(
-					contentValues.invoke("put")
+					contentValues.invoke("putNull")
 						.arg(JExpr.lit(one2many.getKeyToA()))
-						.arg(JExpr._null())
 				);
 				body.add(
 					db.invoke("update")
@@ -484,11 +528,14 @@ public class CodeModelDaoFactory {
 						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
 				);
 			} else {
-				body.add(
-					db.invoke("delete")
-						.arg(JExpr.lit(one2many.getTabelaB().getNome()))
-						.arg( JExpr.lit(one2many.getKeyToA() + "=?") )
-						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+				JForEach foreach = body.forEach(
+						associatedClass,
+						"obj",
+						JExpr.invoke(methodGetMany(associatedSchema))
+							.invoke("all")
+				);
+				foreach.body().add(
+						foreach.var().invoke("delete")
 				);
 			}
 		}
@@ -851,13 +898,19 @@ public class CodeModelDaoFactory {
 		corpo.assign(campo, obj);
 	}
 
+	private String methodGetMany (JavaBeanSchema javaBeanSchema) {
+		String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchema.getNome());
+		return "get"+ nomePlural;
+	}
+
 	private void generateToManyAssociation(
 			JDefinedClass klassA, JavaBeanSchema javaBeanSchemaA,
 			JFieldVar referenceA, JFieldVar columnThroughTableToA,
 			JDefinedClass klassB, JavaBeanSchema javaBeanSchemaB,
 			JFieldVar columnRefB, JFieldVar columnThroughTableToB
 	) {
-		String nomePlural = PluralizacaoUtils.pluralizar(javaBeanSchemaB.getNome());
+		String getAssociatedName = methodGetMany(javaBeanSchemaB);
+
 		JClass collectionKlassB = jcm.ref(
 				br.com.cds.mobile.framework.query.QuerySet.class
 		).narrow(klassB);
@@ -870,7 +923,7 @@ public class CodeModelDaoFactory {
 		JMethod getKlassB = klassA.method(
 				JMod.PUBLIC,
 				collectionKlassB,
-				"get"+ nomePlural
+				getAssociatedName
 		);
 		JBlock body = getKlassB.body();
 		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
@@ -979,7 +1032,7 @@ public class CodeModelDaoFactory {
 		body._return (valueId.gt(JExpr.lit(0)));
 
 		/*
-		 * public boolean removeDocument(Document obj) {
+		 * public boolean removeAssociada(Associada obj) {
 		 *     if (id == 0L) {
 		 *         return false;
 		 *     }
@@ -1110,6 +1163,11 @@ public class CodeModelDaoFactory {
 	private JExpression getDbExpr(){
 		JClass dbclass = jcm.ref(dbClass);
 		return dbclass.staticInvoke(getDbStaticMethod);
+	}
+
+	private JClass getGenericBeanClass () {
+		JClass genericBean = jcm.ref(genericBeanClass);
+		return genericBean;
 	}
 
 	private JExpression boxify(JVar var){

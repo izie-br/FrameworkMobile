@@ -147,27 +147,26 @@ public class SqlTabelaSchemaFactory {
 	}
 
 	private int findConstraint (List<String> specStrings, String constrt) {
-		String[] primaryKeyStrings = constrt.split("\\s+");
-		System.out.println(constrt+ " :: " + specStrings.size());
+		if (specStrings == null || constrt == null)
+			return -1;
+		String[] keyStrings = constrt.split("\\s+");
 		int indexOfPrimary = -1;
 		for (int i = 0; i < specStrings.size(); i++) {
-			if (specStrings.get(i).equalsIgnoreCase(primaryKeyStrings[0])) {
+			if (specStrings.get(i).equalsIgnoreCase(keyStrings[0])) {
 				indexOfPrimary = i;
 				break;
 			}
 		}
 		if (indexOfPrimary < 0)
 			return -1;
-		for (int i = 1; i < primaryKeyStrings.length ; i++) {
+		for (int i = 1; i < keyStrings.length ; i++) {
 			if ( !(
 					specStrings.get(indexOfPrimary+i)
-						.equalsIgnoreCase(primaryKeyStrings[i])
+						.equalsIgnoreCase(keyStrings[i])
 			) ) {
-				System.out.println("invalidou em " +specStrings.get(i+indexOfPrimary));
 				return -1;
 			}
 		}
-		System.out.println("primary key encontrada :: " + indexOfPrimary);
 		return indexOfPrimary;
 	}
 
