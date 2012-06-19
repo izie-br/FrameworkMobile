@@ -7,6 +7,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.sun.codemodel.JTryBlock;
+
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.SQLException;
@@ -395,9 +397,26 @@ public class CodeModelDaoFactory {
 		 * }                                                        *
 		 ***********************************************************/
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
-		JBlock corpo = delete.body();
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JBlock body = delete.body();
+		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		body.directStatement("synchronized (" + db.name() +") {");
 		// if(id==ID_PADRAO)
+		JTryBlock tryCatch = body._try();
+		JBlock tryBody = tryCatch.body();
+		tryBody.add(db.invoke("beginTransaction"));
+
+		// alterar/deletar associadas
+		Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
+		if (associacoes != null && associacoes.size() > 0) {
+			for (Associacao association : associacoes) {
+				generateAssociatedDelete(
+					klass, javaBeanSchema,
+					association,
+					tryBody, db
+				);
+			}
+		}
+
 		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
 		JExpression ifexpr = klass.fields().get(
 				javaBeanSchema.getPropriedade(primarykeys.next()).getNome()
@@ -408,9 +427,9 @@ public class CodeModelDaoFactory {
 				.ne(JExpr.lit(ID_PADRAO))
 			);
 		}
-		corpo._if(ifexpr.not())._then()._return(JExpr.lit(false));
+		tryBody._if(ifexpr.not())._then()._return(JExpr.lit(false));
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
-		JVar affected = corpo.decl(
+		JVar affected = tryBody.decl(
 			jcm.INT,
 			"affected",
 			db.invoke("delete")
@@ -421,18 +440,17 @@ public class CodeModelDaoFactory {
 				.arg(getPrimaryKeysArray(klass, javaBeanSchema))
 		);
 
-		corpo._if(affected.eq(JExpr.lit(0)))
+		tryBody._if(affected.eq(JExpr.lit(0)))
 			._then()._return(JExpr.lit(false));
+		tryBody.add(db.invoke("setTransactionSuccessful"));
 
-		// conferir associadas
-		Collection<Associacao> associacoes = javaBeanSchema.getAssociacoes();
-		if (associacoes != null && associacoes.size() > 0) {
-			for (Associacao associacao : associacoes) {
-				//generateAssociatedDelete(
-			}
-		}
+		tryCatch._finally().add(
+			db.invoke("endTransaction")
+		);
 
-		corpo._return(JExpr.lit(true));
+		body.directStatement("}"); // JExpr.direct("synchronized (db) {");
+
+		body._return(JExpr.lit(true));
 	}
 
 	private void generateAssociatedDelete (
@@ -448,12 +466,49 @@ public class CodeModelDaoFactory {
 				return;
 			}
 			if (one2many.isNullable()) {
-				//JVar contentValues = body.decl
+				JVar contentValues = body.decl(
+					jcm.ref(ContentValues.class),
+					"contentValues",
+					JExpr._new(jcm.ref(ContentValues.class))
+				);
+				body.add(
+					contentValues.invoke("put")
+						.arg(JExpr.lit(one2many.getKeyToA()))
+						.arg(JExpr._null())
+				);
+				body.add(
+					db.invoke("update")
+						.arg(JExpr.lit(one2many.getTabelaB().getNome()))
+						.arg(contentValues)
+						.arg( JExpr.lit(one2many.getKeyToA() + "=?") )
+						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+				);
+			} else {
+				body.add(
+					db.invoke("delete")
+						.arg(JExpr.lit(one2many.getTabelaB().getNome()))
+						.arg( JExpr.lit(one2many.getKeyToA() + "=?") )
+						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+				);
 			}
 		}
-		//else if (associacao instanceof AssociacaoManyToMany) {
-		//	return 
-		//}
+		else if (association instanceof AssociacaoManyToMany) {
+			AssociacaoManyToMany many2many = (AssociacaoManyToMany)association;
+			String throughTableKey =
+				//if
+				(many2many.getTabelaA().getNome().equals(javaBeanSchema.getTabela().getNome())) ?
+					// keyToA
+					many2many.getKeyToA() :
+					// keyToB
+					many2many.getKeyToB();
+				throughTableKey = many2many.getKeyToA();
+			body.add(
+				db.invoke("delete")
+					.arg(JExpr.lit(many2many.getTabelaJuncao().getNome()))
+					.arg( JExpr.lit(throughTableKey+ "=?") )
+					.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+			);
+		}
 	}
 
 	public void gerarMetodoObjects(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
