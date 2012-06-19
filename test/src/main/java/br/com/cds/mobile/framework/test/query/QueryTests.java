@@ -27,35 +27,47 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			// parentese de abertura, opcional neste caso
 			"\\s*\\(?\\s*" +
 				// "datetime(caldate) <= ?"
-				SQLiteUtils.dateTimeForColumn(colDate.getName())
+				SQLiteUtils.dateTimeForColumn(
+						colDate.getTable().getName() + "\\." +
+						colDate.getName()
+				)
 					// nao esquecer os escapes dos parenteses
-					.replace("(", "\\(\\s*").replace(")", "\\s*\\)") +
+					.replace("(", "\\(\\s*")
+					.replace(")", "\\s*\\)") +
 				"\\s*\\<=\\s*\\?\\s*" +
 				insensitiveRegex("AND") +
 				// "( colStr = ? OR colStrTwo < ? )"
 				"\\s*\\(\\s*" +
-					colStr.getName() + "\\s*=\\s*\\?" +
+					colStr.getTable().getName() + "\\." +
+						colStr.getName() + "\\s*=\\s*\\?" +
 					"\\s+" + insensitiveRegex("OR") + "\\s+" +
-					colStr2.getName() + "\\s*\\<\\s*\\?" +
+					colStr2.getTable().getName() + "\\." +
+						colStr2.getName() + "\\s*\\<\\s*\\?" +
 				"\\s*\\)\\s*" +
 			// parentese opcional fechando o primeiro
 			"\\)?\\s*" +
 			insensitiveRegex("AND") + "\\s+" +
 			// "colInt >= ?"
-			colInt.getName() +"\\s*\\>=\\s*\\?\\s*";
+			colInt.getTable().getName() + "\\." +
+				colInt.getName() +
+				"\\s*\\>=\\s*\\?\\s*";
 		assertTrue(qstring.matches(
 				qstrmatch
 		));
 		
 		String selectRegex =
 			"\\s*" + insensitiveRegex("select") + "\\s+" +
-				SQLiteUtils.dateTimeForColumn(colDate.getName())
+				SQLiteUtils.dateTimeForColumn(
+						colDate.getTable().getName() + "\\." +
+						colDate.getName()
+				)
 					// nao esquecer os escapes dos parenteses
 					.replace("(", "\\(\\s*").replace(")", "\\s*\\)") +
 				"\\s*,\\s*" +
-				colStr.getName() +
+				colStr.getTable().getName() + "\\." +colStr.getName() +
 			"\\s+" +insensitiveRegex("from") +"\\s+" + t.getName() +
-			"\\s+"+insensitiveRegex("where") +"\\s+" +
+			"\\s+" + insensitiveRegex("as") + "\\s+" + t.getName() + "\\s+" +
+			insensitiveRegex("where") +"\\s+" +
 				qstrmatch;
 		assertTrue(selectString.matches(
 				selectRegex
@@ -86,11 +98,14 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			"\\s*" + insensitiveRegex("select") + "\\s+" +
 			// id,though_table.id
 			//    NOTA: DEVEM estar na mesma ordem
-			colTab1Id.getName() + "\\s*,\\s*" +
+			colTab1Id.getTable().getName() + "\\." +
+				colTab1Id.getName() + "\\s*,\\s*" +
 			colTab2Id.getTable().getName()+ "\\." +
 				colTab2Id.getName() +
-			// from tab_1
+			// from tab_1 AS tab_1
 			"\\s+" + insensitiveRegex("from") + "\\s+" +
+			colTab1Id.getTable().getName() +
+			"\\s+" + insensitiveRegex("as") + "\\s+" +
 			colTab1Id.getTable().getName() + "\\s+" +
 			// JOIN though_table AS though_table
 			insensitiveRegex("join") + "\\s+" +
@@ -99,12 +114,14 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			colTab2Id.getTable().getName() + "\\s+" +
 			// ON (id=though_table.id|though_table.id=id)
 			insensitiveRegex("on") + "\\s+(" +
+				colTab1Id.getTable().getName() + "\\." +
 				colTab1Id.getName() + "\\s*=\\s*" +
 				colTab2Id.getTable().getName()+ "\\." +
 				colTab2Id.getName() +
 			"|" +
 				colTab2Id.getTable().getName()+ "\\." +
 				colTab2Id.getName() + "\\s*=\\s*" +
+				colTab1Id.getTable().getName() + "\\." +
 				colTab1Id.getName() +
 			"\\s*)\\s*" +
 			// WHERE

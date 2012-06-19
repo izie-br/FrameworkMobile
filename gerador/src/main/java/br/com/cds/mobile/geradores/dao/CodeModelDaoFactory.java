@@ -106,12 +106,12 @@ public class CodeModelDaoFactory {
 			if(pkmetodo!=null)
 				klass.methods().remove(pkmetodo);
 		}
-		else{
-			generateConstrutorForCompundPrimaryKey(
-				klass,
-				javaBeanSchema
-			);
-		}
+//		else{
+//			generateConstrutorForCompundPrimaryKey(
+//				klass,
+//				javaBeanSchema
+//			);
+//		}
 		gerarMetodoSave(klass, javaBeanSchema);
 		gerarMetodoObjects(klass, javaBeanSchema);
 	}
@@ -460,17 +460,13 @@ public class CodeModelDaoFactory {
 			}
 		}
 
-		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
-		JExpression ifexpr = klass.fields().get(
-				javaBeanSchema.getPropriedade(primarykeys.next()).getNome()
-		).ne(JExpr.lit(ID_PADRAO));
-		while(primarykeys.hasNext()){
-			ifexpr = ifexpr.cand( 
-				klass.fields().get(javaBeanSchema.getPropriedade(primarykeys.next()).getNome())
-				.ne(JExpr.lit(ID_PADRAO))
-			);
+		if (javaBeanSchema.getPrimaryKeyColumns().size() == 1) {
+			Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
+			JExpression ifexpr = klass.fields().get(
+					javaBeanSchema.getPropriedade(primarykeys.next()).getNome()
+			).ne(JExpr.lit(ID_PADRAO));
+			tryBody._if(ifexpr.not())._then()._return(JExpr.lit(false));
 		}
-		tryBody._if(ifexpr.not())._then()._return(JExpr.lit(false));
 		// getDb().getWritableDatabase().delete(TABELA, ID + "=?", new String[] { "" + id });
 		JVar affected = tryBody.decl(
 			jcm.INT,

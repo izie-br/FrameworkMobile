@@ -118,27 +118,23 @@ public static byte ROUND = 22;
         String out = "SELECT ";
         for(int i=0 ; ; i++){
             out += getColumn(
-                // conferir se eh da mesma tabela
-                ( this.table.equals(columns[i].getTable()) ?
-                        // se for a coluna for da mesma tabela
-                        null :
-                        // caso seja uma coluna de outra tabela
-                        columns[i].getTable().getName()
-                ), columns[i]
+                columns[i].getTable().getName(),
+                columns[i]
             );
             if( i < columns.length -1 )
                 out += ',';
             else
                 break;
         }
-        out += " FROM " + this.table.getName();
+        out += " FROM " + this.table.getName() + " AS " + this.table.getName();
         if(this.joins != null ){
             for(InnerJoin j: this.joins) {
                 out += " JOIN " + j.foreignColumn.getTable().getName() +
                     " AS " + j.foreignColumn.getTable().getName() +
-                    " ON " + j.column.getName() + j.op.toString() +
-                    j.foreignColumn.getTable().getName() + "." +
-                    j.foreignColumn.getName();
+                    " ON " +
+                    getColumn(j.column.getTable().getName(), j.column) +
+                    j.op.toString() +
+                    getColumn(j.foreignColumn.getTable().getName(), j.foreignColumn);
             }
         }
         String qstring = getQString();
@@ -262,13 +258,7 @@ public static byte ROUND = 22;
         @Override
         void output(Table table, StringBuilder sb, ArrayList<String> args) {
             sb.append( Q.getColumn(
-                // conferir se eh da mesma tabela
-                ( table.equals(this.column.getTable()) ?
-                    // se for a coluna for da mesma tabela
-                    null :
-                    // caso seja uma coluna de outra tabela
-                    column.getTable().getName()
-                ),
+                column.getTable().getName(),
                 this.column)
             );
             sb.append(op.toString());

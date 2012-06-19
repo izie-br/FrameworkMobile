@@ -7,10 +7,12 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.color;
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.test.GenericBean;
 import br.com.cds.mobile.framework.test.TestActivity;
 import br.com.cds.mobile.framework.test.gen.Author;
+import br.com.cds.mobile.framework.test.gen.Customer;
 import br.com.cds.mobile.framework.test.gen.Document;
 import br.com.cds.mobile.framework.test.gen.Score;
 
@@ -130,10 +132,54 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		document.setAuthor(author);
 		assertTrue(document.save());
 
-		Score score = new Score(document.getId(), author.getId());
+		Score score = new Score();
+		score.setAuthor(author);
+		score.setDocument(document);
 		score.setScore( (new Random().nextInt())%100 );
 		assertTrue(score.save());
 
+		Customer customer = randomCustomer();
+		assertTrue(customer.save());
+
+		assertTrue(customer.addDocument(document));
+		Collection<Document> documents = customer.getDocuments().all();
+		assertEquals(1,documents.size());
+
+		assertTrue(document.delete());
+		documents = customer.getDocuments().all();
+		assertEquals(0,documents.size());
+
+		// Em score tem relacao many-to-one para document e autor,
+		//   mas document_id PODE SER NULL, logo score tem
+		//   document_id anulado apos delete do "document" referido
+		Collection<Score> scoresDb = Score.objects()
+				.filter(Score.ID_AUTHOR.eq(author.getId()))
+				.all();
+		assertEquals(1, scoresDb.size());
+		Score scoreDb = scoresDb.iterator().next();
+		// document_id pode ser NULL
+		assertEquals(null, scoreDb.getDocument());
+
+		// Scores e Document tem chaves estrangeiras NOT NULL
+		//    ambas as classes filhas sao deletadas
+		assertTrue(author.delete());
+		Collection<Document> documentsDb =Document.objects()
+				.filter(Document.ID.eq(document.getId()))
+				.all();
+		assertEquals(0, documentsDb.size());
+		scoreDb = Score.objects()
+				.filter(Score.ID_AUTHOR.eq(author.getId()))
+				.first();
+		//assertNull(scoreDb);
+
+		documents = customer.getDocuments().all();
+		assertEquals(0, documents.size());
+
+		customer.delete();
+		customer = Customer.objects()
+				.filter(Customer.ID.eq(customer.getId()))
+				.first();
+		assertNull(customer);
 	}
 
 	private Author randomAuthor() {
@@ -147,6 +193,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
 		return document;
+	}
+
+	private Customer randomCustomer () {
+		Customer customer = new Customer();
+		customer.setName(RandomStringUtils.random(60));
+		return customer;
 	}
 
 }
