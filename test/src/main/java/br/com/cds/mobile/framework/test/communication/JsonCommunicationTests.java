@@ -73,19 +73,19 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
-		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(
-				URL, "", "authors/save_json/"
-		);
+		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author())
+				.setURL(URL+"authors/save_json/")
+				.setBodyKey("json")
+				.setKeysToObjectArray("list")
+				.setIterator(list.iterator());
 
 
-		Iterator<Author> received = authorsDao.send(
-				new HashMap<String, String>(),
-				list.iterator(),
-				"json",
-				null,
-				new Author(),
-				"list"
-		);
+		Iterator<Author> received = null;
+		try {
+			received = authorsDao.send();
+		} catch (FrameworkException e) {
+			fail(e.getMessage());
+		}
 		return received;
 	}
 
@@ -100,12 +100,12 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		saveOnServer(list);
 
-		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(
-				URL, "authors/get_json/", ""
-		);
+		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author())
+				.setURL(URL + "authors/get_json/")
+				.setKeysToObjectArray("list");
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.query(null, new Author());
+			it = authorsDao.send();
 		} catch (FrameworkException e) {
 			fail();
 		}

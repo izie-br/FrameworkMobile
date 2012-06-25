@@ -51,61 +51,186 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			"text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 
 	private String url;
-	private String queryPath;
-	private String postPath;
+	private T prototype;
+	private Iterator<T> iterator;
+	private Map<String,String> parameters;
+	private Map<String,Object> bodyParameters;
+	private String body;
+	private String keysToObjectArray [];
 	private String charset = StringUtil.DEFAULT_ENCODING;
 
-	public HttpJsonDao(String url, String queryPath, String postPath) {
-		super();
-		this.url = url;
-		this.queryPath = queryPath;
-		this.postPath = postPath;
+	private Map<String,Object> responseOutput;
+
+	/**
+	 * @see HttpJsonDao#setPrototype(JsonSerializable)
+	 */
+	public HttpJsonDao (T prototype) {
+		this.prototype = prototype;
 	}
 
 	/**
-	 * Override para caminho de "query" dinamico
+	 * @see HttpJsonDao#setIterator(Iterator)
 	 */
-	protected String getQueryPath(){
-		return queryPath;
+	public HttpJsonDao (Iterator<T> iterator) {
+		this.iterator = iterator;
 	}
 
-	/**
-	 * Override para caminho de "post" dinamico
-	 */
-	protected String getPostPath(){
-		return postPath;
-	}
 
 	/**
-	 * Altera o encoding das comunicacoes
+	 * Altera o encoding da comunicação
+	 *
+	 * @param charset charset (default "UTF-8")
 	 */
-	public void setCharset (String charset) {
+	public HttpJsonDao<T> setCharset (String charset) {
 		this.charset = charset;
+		return this;
 	}
 
 	/**
-	 * Override para url de busca no servidor dinamica
+	 * <p>
+	 *   Armazena o prototipo para deserializacao dos objetos
+	 *   recebidos comunicacao.
+	 * </p>
+	 * <p>
+	 *   O metodo destes objetos é chamado, e seus atributos serão
+	 *   valores padrão na deserialização.
+	 * </p>
+	 * <p>
+	 *   Se for NULL, não será feita a deserialização.
+	 * </p>
+	 *
+	 * @param prototype prototipo para deserialização
+	 */
+	public HttpJsonDao<T> setPrototype (T prototype) {
+		this.prototype = prototype;
+		return this;
+	}
+
+	/**
+	 *p Armazena um iterador de objetos para enviar
+	 *
+	 * @param iterator iterador de colecao de objetos pare enviar
+	 */
+	public HttpJsonDao<T> setIterator (Iterator<T> iterator) {
+		this.iterator = iterator;
+		return this;
+	}
+
+	/**
+	 * Remove o mapa de parametros anterior e troca pelo mapa
+	 * de parametros especificado.
+	 *
+	 * @param parameters novo mapa de parametros
+	 */
+	public HttpJsonDao<T> setParameters (Map<String,String> parameters) {
+		this.parameters = parameters;
+		return this;
+	}
+
+	/**
+	 * Adiciona ou altera o parametro de especificado.
+	 *
+	 * @param key chave (nome do parametro)
+	 * @param value valor do parametro
+	 */
+	public HttpJsonDao<T> setParameter (String key, String value) {
+		this.getParameters().put(key, value);
+		return this;
+	}
+
+	/**
+	 * Remove o mapa de parametros do corpo anterior e troca pelo mapa
+	 * de parametros especificado.
+	 *
+	 * @param parameters novo mapa de parametros
+	 */
+	public HttpJsonDao<T> setBodyParameters (Map<String,Object> bodyParameters) {
+		this.bodyParameters = bodyParameters;
+		return this;
+	}
+
+	/**
+	 * Adiciona ou altera o parametro de corpo especificado.
+	 *
+	 * @param key chave (nome do parametro)
+	 * @param value valor do parametro
+	 */
+	public HttpJsonDao<T> setBodyParameter (String key, String value) {
+		this.getBodyParameters().put(key, value);
+		return this;
+	}
+
+	/**
+	 * Altera as chaves para o array de objetos no corpo
+	 * da resposta.
+	 *
+	 * @param keys
+	 */
+	public HttpJsonDao<T> setKeysToObjectArray(String...keys) {
+		this.keysToObjectArray = keys;
+		return this;
+	}
+
+	/**
+	 * Altera a chaves para onde vai o corpo
+	 *
+	 * @param body chave onde vai o corpo
+	 */
+	public HttpJsonDao<T> setBodyKey(String body) {
+		this.body = body;
+		return this;
+	}
+
+
+	/**
+	 * Altera a url completa da requisicao
+	 *
+	 * @param url URL
+	 */
+	public HttpJsonDao<T> setURL (String url) {
+		this.url = url;
+		return this;
+	}
+
+	/**
+	 * <p>
+	 *   Insere um Map responseOutput com os dados do JSON anteriores ao 
+	 *   array de objetos lido pelo iterador.
+	 * </p>
+	 * @param map
 	 * @return
 	 */
-	protected String getUrl(){
-		return url;
+	public HttpJsonDao<T> setResponseOutputMap(Map<String, Object> map) {
+		this.responseOutput = map;
+		return this;
 	}
 
 	/**
-	 * @see HttpJsonDao#query(HashMap, JsonSerializable, JSONObject, String...)
+	 * Gets the bodyParameters for this instance.
+	 *
+	 * @return The bodyParameters.
 	 */
-	public Iterator<T> query(
-			HashMap<String, String> parametros,
-			T prototype
-	) throws FrameworkException
-	{
-		return query(parametros, prototype, null);
+	public Map<String,Object> getBodyParameters(){
+		if (this.bodyParameters == null)
+			this.bodyParameters = new HashMap<String,Object>(2);
+		return this.bodyParameters;
+	}
+
+	/**
+	 * Parametros
+	 *
+	 * @return The parameters.
+	 */
+	public Map<String,String> getParameters(){
+		if (this.parameters == null)
+			this.parameters = new HashMap<String,String>(2);
+		return this.parameters;
 	}
 
 	/**
 	 * <p>Busca no servidor por JSON com array de objetos.</p>
 	 * <p>
-	 *   JSONObject newObject Opcionalmente, outros parametros podem ser
+	 *   Opcionalmente, outros parametros podem ser
 	 *   recebidos.
 	 * </p>
 	 * <p>Warning: Todo conteudo apos o array de objetos sera ignorado.</p>
@@ -118,28 +243,46 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 	 * @return iterador do array de objetos, retirado do stream recebido do servidor
 	 * @throws FrameworkException
 	 */
-	public Iterator<T> query(
-			HashMap<String, String> parametros,
-			T prototype,
-			Map<String, Object> responseOutput,
-			String...keysToObjectArray
-	) throws FrameworkException
-	{
+	public Iterator<T> send () throws FrameworkException{
 		try{
 			HttpResponse response = null;
-			int i = 1;
+			int connectionTries = 1;
 			for(;;){
 				Exception exceptions [] = new Exception[TENTATIVAS_DE_CONEXAO+1];
 				try{
-					response = post(getUrl(), getQueryPath(), parametros);
+					JSONArray jsonarray = null;
+					if (iterator != null ){
+						jsonarray = new JSONArray();
+						while (iterator.hasNext()) {
+							jsonarray.put(iterator.next().toJson());
+						}
+						String json;
+						if (keysToObjectArray == null || keysToObjectArray.length ==0) {
+							json = jsonarray.toString();
+						} else {
+							JSONObject obj = new JSONObject();
+							JSONObject current = obj;
+							for (int i = 0; ; i++) {
+								if (i == keysToObjectArray.length -1) {
+									current.put(keysToObjectArray[i], jsonarray);
+									break;
+								}
+									current = new JSONObject();
+								obj.put(keysToObjectArray[i], current);
+							}
+							json = obj.toString();
+						}
+						getParameters().put(body, json);
+					}
+					response = post(url, getParameters());
 				} catch (RuntimeException e){
-					exceptions[i] = e;
+					exceptions[connectionTries] = e;
 				}
-				i++;
+				connectionTries++;
 				if(response!=null)
 					break;
-				if(i>TENTATIVAS_DE_CONEXAO){
-					for (int j = 0; j < i; j++)
+				if(connectionTries>TENTATIVAS_DE_CONEXAO){
+					for (int j = 0; j < connectionTries; j++)
 						LogPadrao.e(exceptions[j]);
 					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
 				}
@@ -148,57 +291,12 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 					response, prototype,
 					keysToObjectArray, responseOutput
 			);
+		} catch (JSONException e) {
+			LogPadrao.e(e);
+			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
 		} catch (IOException e) {
 			LogPadrao.e(e);
 			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
-		}
-	}
-
-	// fazer builder
-	public Iterator<T> send(
-			HashMap<String, String> parametros,
-			Iterator<T> objetos,
-			String jsonParameter,
-			Map<String, Object> responseOutput,
-			T prototype,
-			String...keysToObjectArray
-	) {
-		try {
-			// TODO refazer iterando
-			JSONArray jsonarray = new JSONArray();
-			if (objetos != null ) while (objetos.hasNext()) {
-				jsonarray.put(objetos.next().toJson());
-			}
-			String json;
-			if (keysToObjectArray == null || keysToObjectArray.length ==0) {
-				json = jsonarray.toString();
-			} else {
-				JSONObject obj = new JSONObject();
-				JSONObject current = obj;
-				for (int i = 0; ; i++) {
-					if (i == keysToObjectArray.length -1) {
-						current.put(keysToObjectArray[i], jsonarray);
-						break;
-					}
-						current = new JSONObject();
-					obj.put(keysToObjectArray[i], current);
-				}
-				json = obj.toString();
-			}
-			parametros.put(jsonParameter, json);
-			HttpResponse response = post(getUrl(), getPostPath(), parametros);
-			if (response.getStatusLine().getStatusCode()!=200)
-				//TODO
-				return null;
-			if (prototype!=null)
-				return parseResponse(response, prototype, keysToObjectArray, responseOutput);
-			return null;
-		} catch (RuntimeException re) {
-			LogPadrao.e (re);
-			throw re;
-		} catch (Throwable e) {
-			LogPadrao.e (e);
-			throw new RuntimeException(e);
 		}
 	}
 
@@ -339,10 +437,9 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 		return ACCEPT_HEADER;
 	}
 
-	public HttpResponse post(
-			String url,  String metodo, 
-			HashMap<String, String> parametros
-	) throws IOException {
+	public HttpResponse post(String url, Map<String, String> parametros)
+	throws IOException
+	{
 		HttpResponse response = null;
 
 		try {
@@ -350,7 +447,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
 			HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
 			HttpClient httpclient = new DefaultHttpClient(httpParameters);
-			HttpPost httpPost = new HttpPost(url + metodo);
+			HttpPost httpPost = new HttpPost(url);
 			httpPost.setHeader("User-Agent", getUserAgent());
 			httpPost.setHeader("Accept", getAcceptHeader());
 			httpPost.setHeader("Content-Type", HTTP_REQUEST_ENCODING);
@@ -400,5 +497,4 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 	private static int getSoTimeout() {
 		return SO_TIMEOUT;
 	}
-
 }
