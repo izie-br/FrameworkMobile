@@ -3,7 +3,7 @@ package br.com.cds.mobile.framework.test.communication;
 
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -58,6 +58,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	protected void comparaAuthors(ArrayList<Author> list, Iterator<Author> received) {
+		if (received == null)
+			fail ();
 		received_loop:
 		for(int i=0; i< list.size();i++){
 			if(!received.hasNext())
@@ -72,13 +74,17 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
 		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(
-				URL, "", "authors/save_json/",
-				new Author()
+				URL, "", "authors/save_json/"
 		);
 
 
-		Iterator<Author> received = authorsDao.enviarMultiplos(
-				"", "", "", "", list.iterator(), new Author()
+		Iterator<Author> received = authorsDao.send(
+				new HashMap<String, String>(),
+				list.iterator(),
+				"json",
+				null,
+				new Author(),
+				"list"
 		);
 		return received;
 	}
@@ -95,8 +101,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		saveOnServer(list);
 
 		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(
-				URL, "authors/get_json/", "",
-				new Author()
+				URL, "authors/get_json/", ""
 		);
 		Iterator<Author> it = null;
 		try {

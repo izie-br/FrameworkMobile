@@ -15,7 +15,7 @@ def parsejson(classname,objs,*keys_to_list):
 
 def objects_to_json(objs):
     return json.dumps(
-        [ a.map for a in objs ],
+        { "list" :[ a.map for a in objs ]},
         ensure_ascii=False
     )
 

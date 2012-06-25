@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
@@ -30,110 +31,202 @@ import br.com.cds.mobile.framework.ErrorCode;
 import br.com.cds.mobile.framework.FrameworkException;
 import br.com.cds.mobile.framework.JsonSerializable;
 import br.com.cds.mobile.framework.JsonToObjectIterator;
+import br.com.cds.mobile.framework.FrameworkJSONTokener;
 import br.com.cds.mobile.framework.logging.LogPadrao;
 import br.com.cds.mobile.framework.utils.StringUtil;
 
 public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicacao {
 
+	private static final String HTTP_REQUEST_ENCODING =
+			"application/x-www-form-urlencoded";
 	private static final int SO_TIMEOUT = 90000;
 	private static final int CONNECTION_TIMEOUT = 15000;
-	private static final String LAST_SYNC = "dtUltimaAtualizacao";
-	private static final String PASSWORD = "senha";
-	private static final String LOGIN = "email";
-	private static final String MAC = "mac";
-	private static final String IMEI = "imei";
-	private static final String JSON = "json";
-
 	// TODO firefox - ubuntu - i686!  ???? o_O
 	private static final String USER_AGENT =
-			"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.6)"+
+			"Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.8.1.6)" +
 			" Gecko/20061201 Firefox/2.0.0.6 (Ubuntu-feisty)";
+	// TODO deve ser "application/json"
 	private static final String ACCEPT_HEADER =
-			"text/html,application/xml,application/xhtml+xml,"+
+			"text/html,application/xml,application/xhtml+xml," +
 			"text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 
-
-	//TODO paginar
-	//private int page;
-	//private int offset;
 	private String url;
-	private String methodGet;
-	private String methodPost;
-	private String encoding = StringUtil.DEFAULT_ENCODING;
+	private String queryPath;
+	private String postPath;
+	private String charset = StringUtil.DEFAULT_ENCODING;
 
-	public HttpJsonDao(
-			String url, String methodGet, String methodPost,
-			T prototype
-	) {
+	public HttpJsonDao(String url, String queryPath, String postPath) {
 		super();
 		this.url = url;
-		this.methodGet = methodGet;
-		this.methodPost = methodPost;
+		this.queryPath = queryPath;
+		this.postPath = postPath;
 	}
 
 	/**
-	 * Override para metodo "get" dinamico
+	 * Override para caminho de "query" dinamico
 	 */
-	protected String getMethodGet(){
-		return methodGet;
+	protected String getQueryPath(){
+		return queryPath;
 	}
 
 	/**
-	 * Override para metodo "post" dinamico
+	 * Override para caminho de "post" dinamico
 	 */
-	protected String getMethodPost(){
-		return methodPost;
+	protected String getPostPath(){
+		return postPath;
 	}
 
+	/**
+	 * Altera o encoding das comunicacoes
+	 */
+	public void setCharset (String charset) {
+		this.charset = charset;
+	}
+
+	/**
+	 * Override para url de busca no servidor dinamica
+	 * @return
+	 */
 	protected String getUrl(){
 		return url;
 	}
 
-	public Iterator<T> query(HashMap<String, String> parametros,T prototype) throws FrameworkException{
+	/**
+	 * @see HttpJsonDao#query(HashMap, JsonSerializable, JSONObject, String...)
+	 */
+	public Iterator<T> query(
+			HashMap<String, String> parametros,
+			T prototype
+	) throws FrameworkException
+	{
+		return query(parametros, prototype, null);
+	}
+
+	/**
+	 * <p>Busca no servidor por JSON com array de objetos.</p>
+	 * <p>
+	 *   JSONObject newObject Opcionalmente, outros parametros podem ser
+	 *   recebidos.
+	 * </p>
+	 * <p>Warning: Todo conteudo apos o array de objetos sera ignorado.</p>
+	 * 
+	 * @param parametros parametros HTTP para a busca
+	 * @param prototype prototipo usado para deserializacao
+	 * @param responseOutput saida da copia da resposta sem array de objetos
+	 * @param keysToObjectArray "XPATH" para chegar ao array de objetos
+	 * 
+	 * @return iterador do array de objetos, retirado do stream recebido do servidor
+	 * @throws FrameworkException
+	 */
+	public Iterator<T> query(
+			HashMap<String, String> parametros,
+			T prototype,
+			Map<String, Object> responseOutput,
+			String...keysToObjectArray
+	) throws FrameworkException
+	{
 		try{
 			HttpResponse response = null;
 			int i = 1;
 			for(;;){
+				Exception exceptions [] = new Exception[TENTATIVAS_DE_CONEXAO+1];
 				try{
-				response = post(getUrl(), getMethodGet(), parametros);
+					response = post(getUrl(), getQueryPath(), parametros);
 				} catch (RuntimeException e){
+					exceptions[i] = e;
 				}
 				i++;
 				if(response!=null)
 					break;
-				if(i>TENTATIVAS_DE_CONEXAO)
+				if(i>TENTATIVAS_DE_CONEXAO){
+					for (int j = 0; j < i; j++)
+						LogPadrao.e(exceptions[j]);
 					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
+				}
 			}
-			return getObjectsFromResponse(prototype, response);
+			return parseResponse(
+					response, prototype,
+					keysToObjectArray, responseOutput
+			);
 		} catch (IOException e) {
 			LogPadrao.e(e);
 			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
 		}
-
 	}
 
-	protected Iterator<T> getObjectsFromResponse(T prototype,
-			HttpResponse response) throws IOException {
+	// fazer builder
+	public Iterator<T> send(
+			HashMap<String, String> parametros,
+			Iterator<T> objetos,
+			String jsonParameter,
+			Map<String, Object> responseOutput,
+			T prototype,
+			String...keysToObjectArray
+	) {
+		try {
+			// TODO refazer iterando
+			JSONArray jsonarray = new JSONArray();
+			if (objetos != null ) while (objetos.hasNext()) {
+				jsonarray.put(objetos.next().toJson());
+			}
+			String json;
+			if (keysToObjectArray == null || keysToObjectArray.length ==0) {
+				json = jsonarray.toString();
+			} else {
+				JSONObject obj = new JSONObject();
+				JSONObject current = obj;
+				for (int i = 0; ; i++) {
+					if (i == keysToObjectArray.length -1) {
+						current.put(keysToObjectArray[i], jsonarray);
+						break;
+					}
+						current = new JSONObject();
+					obj.put(keysToObjectArray[i], current);
+				}
+				json = obj.toString();
+			}
+			parametros.put(jsonParameter, json);
+			HttpResponse response = post(getUrl(), getPostPath(), parametros);
+			if (response.getStatusLine().getStatusCode()!=200)
+				//TODO
+				return null;
+			if (prototype!=null)
+				return parseResponse(response, prototype, keysToObjectArray, responseOutput);
+			return null;
+		} catch (RuntimeException re) {
+			LogPadrao.e (re);
+			throw re;
+		} catch (Throwable e) {
+			LogPadrao.e (e);
+			throw new RuntimeException(e);
+		}
+	}
+
+	protected Iterator<T> parseResponse (
+		HttpResponse response,
+		T prototype,
+		String keysToArray[],
+		Map<String, Object> responseOutput
+	) throws IOException
+	{
 		HttpEntity entity = response.getEntity();
 		if (entity != null) {
 			InputStream instream = entity.getContent();
-
 			Header contentEncoding = response.getFirstHeader("Content-Encoding");
 			if (contentEncoding != null && contentEncoding.getValue().toLowerCase().contains("gzip")) {
 				instream = new GZIPInputStream(instream);
 			}
-			//if (debug) {
-			//	LogPadrao.d("entity.getContentLength():" + entity.getContentLength());
-			//}
-
-			GenericComunicacao.setConectado(true);
-
 			try {
-				// TODO ler ate chegas a lista de objetos
+				InputStreamReader reader =
+						new InputStreamReader(instream, charset);
+				fillResponseOutput(keysToArray, responseOutput, reader);
 				return new JsonToObjectIterator<T>(
-						new InputStreamReader(instream, encoding),
+						reader,
 						prototype
 				);
+			} catch (JSONException e) {
+				LogPadrao.e(e);
+				throw new RuntimeException(e);
 			} catch (UnsupportedEncodingException e) {
 				LogPadrao.e (e);
 				throw new RuntimeException(e);
@@ -143,70 +236,107 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 		}
 	}
 
-	protected String getLastSyncParameter() {
-		return LAST_SYNC;
-	}
+	/**
+	 * <p>
+	 *   Preenche o Map responseOutput com os dados do JSON anteriores ao 
+	 *   array de objetos lido pelo iterador.
+	 * </p>
+	 * <p>
+	 *   Alem disso, este metodo move a posicao de leitura do stream para
+	 *   o array de objetos da request, indicadao pelas keysToArray.
+	 * </p>
+	 *
+	 * @param keysToArray  chaves do json que levam ate o array de objetos
+	 * @param responseOutput  map para excrever o conteudo da resposta
+	 * @param reader  reader do stream recebido do servidor
+	 */
+	private boolean fillResponseOutput (
+			String[] keysToArray,
+			Map<String,Object> responseOutput,
+			InputStreamReader reader
+	) throws JSONException
+	{
+		FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
+		int keysToArrayIndex = 0;
+		char c;
+		String key;
+		c = tokener.nextClean();
+		if (keysToArray == null || keysToArray.length == 0)
+			return (c=='[');
+		for(;;) {
+			// chave de abertura
+			if (c != '{')
+				throw new JSONException("json incompleto");
 
-	protected String getPasswordParameter() {
-		return PASSWORD;
-	}
-
-	protected String getLoginParameter() {
-		return LOGIN;
-	}
-
-	protected String getMacParameter() {
-		return MAC;
-	}
-
-	protected String getImeiParameter() {
-		return IMEI;
-	}
-
-	protected String getJsonObjectsParameter(){
-		return JSON;
-	}
-
-	public void enviar(String imei, String mac, String email, String senha, T objeto) {
-		ArrayList<T> objetos = new ArrayList<T>(1);
-		objetos.add(objeto);
-		enviarMultiplos(imei, mac, email, senha, objetos.iterator(),objeto);
-	}
-
-	public void enviarMultiplos(String imei, String mac, String email, String senha, Iterator<T> objetos) {
-		enviarMultiplos(imei, mac, email, senha, objetos, null);
-	}
-
-	public Iterator<T> enviarMultiplos(String imei, String mac, String email, String senha, Iterator<T> objetos,T prototype) {
-		HashMap<String, String> parametrosEnviar = new HashMap<String, String>();
-		try {
-			parametrosEnviar.put(getImeiParameter(), imei);
-			parametrosEnviar.put(getMacParameter(), mac);
-			if (email != null) {
-				parametrosEnviar.put(getLoginParameter(), email);
+			// key
+			c = tokener.nextClean();
+			switch (c) {
+			case 0:
+				throw new JSONException("json incompleto");
+			case '}':
+				return false;
+			default:
+				tokener.back();
+				key = tokener.nextValue().toString();
 			}
-			if (senha != null) {
-				parametrosEnviar.put(getPasswordParameter(), senha);
+
+			// espacador ":", "=" ou "=>"
+			c = tokener.nextClean();
+			switch (c) {
+			case '=':
+				if (tokener.next() != '>') {
+					tokener.back();
+				}
+				/* fall through */
+			case ':':
+				break;
+			default:
+				throw new JSONException("json incompleto");
 			}
-			// TODO refazer iterando
-			parametrosEnviar.put(getJsonObjectsParameter(), objetosToJson(objetos).toString());
-			HttpResponse response = post(getUrl(), getMethodPost(), parametrosEnviar);
-			if (response.getStatusLine().getStatusCode()!=200)
-				//TODO
-				return null;
-			if (prototype!=null)
-				return getObjectsFromResponse(prototype, response);
-			return null;
-		} catch (RuntimeException re) {
-			LogPadrao.e (re);
-			throw re;
-		} catch (Throwable e) {
-			LogPadrao.e (e);
-			throw new RuntimeException(e);
-		} finally {
-			parametrosEnviar.remove(getJsonObjectsParameter());
-			parametrosEnviar = null;
-		}
+
+			// conferir se eh uma das chaves que levam aos objetos
+			if ( key.equals(keysToArray[keysToArrayIndex]) ) {
+				if (responseOutput != null) {
+					HashMap<String, Object> newObject =
+						new HashMap<String, Object>(2);
+					responseOutput.put(key, newObject );
+					responseOutput = newObject;
+				}
+				c = tokener.nextClean();
+				if (
+					keysToArrayIndex == (keysToArray.length -1) &&
+					c == '['
+				){
+					return true;
+				}
+				if (c != '{')
+					throw new JSONException("json incompleto");
+				keysToArrayIndex++;
+				continue;
+			}
+			responseOutput.put(key, tokener.nextValue());
+			switch (tokener.nextClean()) {
+			case ';':
+			case ',':
+				if (tokener.nextClean() == '}') {
+					return false;
+				}
+				tokener.back();
+				break;
+			case '}':
+				return false;
+			default:
+				throw new JSONException("json incompleto");
+			}
+		} // for
+	}
+
+	protected String getUserAgent() {
+		return USER_AGENT;
+	}
+
+	protected String getAcceptHeader() {
+		return ACCEPT_HEADER;
 	}
 
 	public HttpResponse post(
@@ -217,50 +347,31 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 
 		try {
 			HttpParams httpParameters = new BasicHttpParams();
-			HttpConnectionParams.setConnectionTimeout(httpParameters, CONNECTION_TIMEOUT);
-			HttpConnectionParams.setSoTimeout(httpParameters, SO_TIMEOUT);
+			HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
+			HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
 			HttpClient httpclient = new DefaultHttpClient(httpParameters);
 			HttpPost httpPost = new HttpPost(url + metodo);
-			httpPost.setHeader("User-Agent", USER_AGENT);
-			httpPost.setHeader("Accept", ACCEPT_HEADER);
-			httpPost.setHeader("Content-Type", "application/x-www-form-urlencoded");
-			//if (debug) {
-			//	String urlDebug = url + metodo;
-			//	String urlForm = "<form action='" + url + metodo + "' method='post'>";
-			//	Set<Entry<String, String>> set = parametros.entrySet();
-			//	Iterator<Entry<String, String>> i = set.iterator();
-			//	Entry<String, String> entrada = null;
-			//	while (i.hasNext()) {
-			//		entrada = i.next();
-			//		urlForm += "<br><input type='text' name='" + entrada.getKey() + "' value='" + entrada.getValue()
-			//				+ "' />";
-			//		urlDebug += "/" + entrada.getKey() + "/" + entrada.getValue();
-			//	}
-			//	urlForm += "<br><input type='submit' value='ok'/><br></form>";
-			//	LogPadrao.d("Com:" + urlDebug);
-			//	LogPadrao.d("Form:" + urlForm);
-			//}
+			httpPost.setHeader("User-Agent", getUserAgent());
+			httpPost.setHeader("Accept", getAcceptHeader());
+			httpPost.setHeader("Content-Type", HTTP_REQUEST_ENCODING);
 			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
 			if (parametros != null) {
-				for (
-						Iterator<String> iterator = parametros.keySet().iterator();
-						iterator.hasNext();
-				) {
+				Iterator<String> iterator = parametros.keySet().iterator();
+				while (iterator.hasNext()) {
 					String chave = iterator.next();
 					String valor = parametros.get(chave);
 					nameValuePairs.add(new BasicNameValuePair(chave, valor));
 				}
 			}
+			// TODO criar um entity aqui
 			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
-			GenericComunicacao.setConectado(true);
-
 			response = httpclient.execute(httpPost);
-			GenericComunicacao.setConectado(true);
 		} catch (IOException e) {
 			GenericComunicacao.setConectado(false);
 			throw e;
 		}
+		GenericComunicacao.setConectado(true);
 		return response;
 	}
 
@@ -280,6 +391,14 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 
 	protected JSONObject objetoToJson(T objeto){
 		return objeto.toJson();
+	}
+
+	private static int getConnectionTimeout() {
+		return CONNECTION_TIMEOUT;
+	}
+
+	private static int getSoTimeout() {
+		return SO_TIMEOUT;
 	}
 
 }

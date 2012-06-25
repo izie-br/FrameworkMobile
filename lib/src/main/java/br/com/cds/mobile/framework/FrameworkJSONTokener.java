@@ -1,13 +1,11 @@
-package br.com.cds.mobile.framework.logging;
+package br.com.cds.mobile.framework;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
 
+import org.json.JSONArray;
 import org.json.JSONException;
-import org.json.JSONTokener;
+import org.json.JSONObject;
 
 /*
 Copyright (c) 2002 JSON.org
@@ -33,13 +31,10 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-Este arquivo foi modificado po Igor Bruno P. Soares
+Alterado por Igor Bruno Pereira Soares
 
-Este eh o JSONTokener presente no commit d98dc0b
-encontrado em https://github.com/douglascrockford/JSON-java.git
-
-Alguns metodos foram removidos, assim como os construtores de String e InputStream
-
+- remocao dos construtores que nao aceitam "Reader"
+- adicao do metodo stringToValue de JSONObject
 */
 
 /**
@@ -49,7 +44,7 @@ Alguns metodos foram removidos, assim como os construtores de String e InputStre
  * @author JSON.org
  * @version 2012-02-16
  */
-public class FrameworkJSONTokener extends JSONTokener{
+public class FrameworkJSONTokener extends org.json.JSONTokener {
 
     private long    character;
     private boolean eof;
@@ -67,19 +62,13 @@ public class FrameworkJSONTokener extends JSONTokener{
      */
     public FrameworkJSONTokener(Reader reader) {
         super("");
-        this.reader = reader.markSupported()
-            ? reader
-            : new BufferedReader(reader);
+        this.reader = reader;
         this.eof = false;
         this.usePrevious = false;
         this.previous = 0;
         this.index = 0;
         this.character = 1;
         this.line = 1;
-    }
-
-    public FrameworkJSONTokener(InputStream inputStream){
-        this(new InputStreamReader(inputStream));
     }
 
     /**
@@ -347,7 +336,98 @@ public class FrameworkJSONTokener extends JSONTokener{
      *
      * @return An object.
      */
+    public Object nextValue() throws JSONException {
+        char c = this.nextClean();
+        String string;
 
+        switch (c) {
+            case '"':
+            case '\'':
+                return this.nextString(c);
+            case '{':
+                this.back();
+                return new JSONObject(this);
+            case '[':
+                this.back();
+                return new JSONArray(this);
+        }
+
+        /*
+         * Handle unquoted text. This could be the values true, false, or
+         * null, or it can be a number. An implementation (such as this one)
+         * is allowed to also accept non-standard forms.
+         *
+         * Accumulate characters until we reach the end of the text or a
+         * formatting character.
+         */
+
+        StringBuffer sb = new StringBuffer();
+        while (c >= ' ' && ",:]}/\\\"[{;=#".indexOf(c) < 0) {
+            sb.append(c);
+            c = this.next();
+        }
+        this.back();
+
+        string = sb.toString().trim();
+        if ("".equals(string)) {
+            throw this.syntaxError("Missing value");
+        }
+        return stringToValue(string);
+    }
+
+    /**
+     * Try to convert a string into a number, boolean, or null. If the string
+     * can't be converted, return the string.
+     * @param string A String.
+     * @return A simple JSON value.
+     */
+    public static Object stringToValue(String string) {
+        Double d;
+        if (string.equals("")) {
+            return string;
+        }
+        if (string.equalsIgnoreCase("true")) {
+            return Boolean.TRUE;
+        }
+        if (string.equalsIgnoreCase("false")) {
+            return Boolean.FALSE;
+        }
+        if (string.equalsIgnoreCase("null")) {
+            return JSONObject.NULL;
+        }
+        /*
+         * If it might be a number, try converting it.
+         * If a number cannot be produced, then the value will just
+         * be a string. Note that the plus and implied string
+         * conventions are non-standard. A JSON parser may accept
+         * non-JSON forms as long as it accepts all correct JSON forms.
+         */
+        char b = string.charAt(0);
+        if ((b >= '0' && b <= '9') || b == '.' || b == '-' || b == '+') {
+            try {
+                if (string.indexOf('.') > -1 ||
+                        string.indexOf('e') > -1 || string.indexOf('E') > -1) {
+                    d = Double.valueOf(string);
+                    if (!d.isInfinite() && !d.isNaN()) {
+                        return d;
+                    }
+                } else {
+                    Long myLong = new Long(string);
+                    if (myLong.longValue() == myLong.intValue()) {
+                        return new Integer(myLong.intValue());
+                    } else {
+                        return myLong;
+                    }
+                }
+            } catch (Exception ignore) {
+            }
+        }
+        return string;
+    }
+
+
+
+    
     /**
      * Skip characters until the next character is the requested character.
      * If the requested character is not found, no characters are skipped.

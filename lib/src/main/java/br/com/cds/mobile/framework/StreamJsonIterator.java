@@ -7,7 +7,7 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.json.JSONTokener;
 
-import br.com.cds.mobile.framework.logging.FrameworkJSONTokener;
+import br.com.cds.mobile.framework.FrameworkJSONTokener;
 
 public class StreamJsonIterator implements Iterator<JSONObject> {
 
