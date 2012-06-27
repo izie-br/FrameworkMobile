@@ -16,7 +16,6 @@
     if (keytoarray != null) {
         org.json.JSONObject json = new org.json.JSONObject ();
         json.put (keytoarray.toString (), obj);
-        json.put ("status", "success");
         out.println (json.toString ());
     } else {
         out.println (obj.toString ());

@@ -10,7 +10,7 @@
 <%
     String classname = map.get ("classname").toString ();
     String dataparameter = map.get ("dataparameter").toString ();
-    Object keytoarray = map.get ("keytoarray");
+    String keytoarray = (String) map.get ("keytoarray");
 
     @SuppressWarnings ("unchecked")
     org.json.JSONArray savedObjects =
@@ -23,7 +23,10 @@
     String dataStr = request.getParameter (dataparameter);
     org.json.JSONArray jsonArray =
         (keytoarray != null) ?
-             new org.json.JSONObject (dataStr).get (keytoarray.toString ()) :
+             (org.json.JSONArray) (
+                 new org.json.JSONObject (dataStr)
+                 .get (keytoarray)
+             ):
              new org.json.JSONArray (dataStr);
 
     for (int i = 0; i < jsonArray.length (); i++) {
@@ -31,10 +34,9 @@
     }
     if (keytoarray != null) {
         org.json.JSONObject json = new org.json.JSONObject ();
-        json.put (keytoarray.toString (), jsonArray);
-        json.put ("status", "success");
+        json.put (keytoarray, jsonArray);
         out.println (json.toString ());
     } else {
-        out.println (obj.toString ());
+        out.println (jsonArray.toString ());
     }
 %>

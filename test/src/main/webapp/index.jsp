@@ -12,6 +12,9 @@
   <c:when test="${param.method == query}">
     <tags:query keytoarray="list" classname="${param.classname}"/>
   </c:when>
+  <c:when test="${param.method == insert}">
+    <tags:insert keytoarray="list" dataparameter="json"  classname="${param.classname}"/>
+  </c:when>
   <c:otherwise>
     sem metodo
   </c:otherwise>
