@@ -19,7 +19,7 @@
     <tags:clear classname="${param.classname}"/>
   </c:when>
   <c:otherwise>
-    sem metodo
+    <% System.out.println (request.getParameter("method")); %>
   </c:otherwise>
 </c:choose>
 

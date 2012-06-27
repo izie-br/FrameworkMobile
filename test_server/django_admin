@@ -1,7 +1,0 @@
-#!/bin/sh
-
-DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
-export PYTHONPATH=$DIR
-echo $PYTHONPATH
-
-python $DIR/django/bin/django-admin.py $@
