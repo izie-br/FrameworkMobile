@@ -6,44 +6,17 @@ import java.util.List;
 
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
 
-public final class Q  implements Cloneable {
+public final class Q {
 
-/*
-SQL avg()
-SQL count()
-SQL first()
-SQL last()
-SQL max()
-SQL min()
-SQL sum()
-SQL Group By
-SQL Having
-SQL ucase()
-SQL lcase()
-SQL mid()
-SQL len()
-SQL round()
-SQL now()
-SQL format()
-
-public static byte COUNT = 14;
-public static byte AVG = 15;
-public static byte SUM = 16;
-public static byte MIN = 17;
-public static byte MAX = 18;
-public static byte FIRST = 19;
-public static byte LAST = 20;
-public static byte ABS = 21;
-public static byte ROUND = 22;
-*/
+    private static final String NULL_ARGUMENT_EXCEPTION_FMT =
+        "Operador %s operando coluna %s com argumento %s";
 
     private Table table;
-    private ArrayList<InnerJoin> joins = new ArrayList<Q.InnerJoin>(0);
-
+    // pode ser NULL
+    private ArrayList<InnerJoin> joins;
+    // pode ser NULL
     private QNode root;
 
-    private String qstringCache;
-    private List<String> argsCache;
 
     public Q (Table table) {
         this.table = table;
@@ -70,13 +43,12 @@ public static byte ROUND = 22;
         this.table = column.getTable();
         if ( otherColumn.getTable().equals(this.table) ) {
             init1x1(column, op, otherColumn);
-        }
-        else {
+        } else {
             InnerJoin join = new InnerJoin();
             join.column = column;
             join.op = op;
             join.foreignColumn = otherColumn;
-            this.joins.add(join);
+            getJoins().add(join);
         }
     }
 
@@ -90,7 +62,8 @@ public static byte ROUND = 22;
 
     public Q (Q q){
         this.table = q.table;
-        this.joins = q.joins;
+        if (q.joins != null)
+            this.joins = new ArrayList<InnerJoin>(q.joins);
         if (q.root != null) {
             QNodeGroup group = new QNodeGroup();
             group.node = q.root;
@@ -98,23 +71,24 @@ public static byte ROUND = 22;
         }
     }
 
-/*    public static Q not (Q q){
+    public static Q not (Q q){
         Q out = new Q(q);
+        // alterar se o o construtor "Q (Q)" for alterado
         if (q.root != null)
-            out.root = 
+            ((QNodeGroup)out.root).notOp = true;
         return q;
     }
-*/
+
 
     public Q and (Q q) {
-        return mergeQs (this, q, " AND ");
+        return mergeQs (this, " AND ", q);
     }
 
     public Q or (Q q) {
-        return mergeQs (this, q, " OR ");
+        return mergeQs (this, " OR ", q);
     }
 
-    public String select(Table.Column<?>...columns){
+    public String select(Table.Column<?> columns [], List<String> args){
         String out = "SELECT ";
         for(int i=0 ; ; i++){
             out += getColumn(
@@ -137,53 +111,35 @@ public static byte ROUND = 22;
                     getColumn(j.foreignColumn.getTable().getName(), j.foreignColumn);
             }
         }
-        String qstring = getQString();
-        if(qstring != null){
+        StringBuilder sb = new StringBuilder();
+        genQstringAndArgs(sb, args);
+        String qstring = sb.toString();
+        if(qstring != null && !qstring.matches("\\s*")){
             out += " WHERE " + qstring;
         }
         return out;
     }
 
-    public String getQString () {
-        if (qstringCache == null )
-            genQstringAndArgs();
-        return qstringCache;
+    private ArrayList<InnerJoin> getJoins () {
+        if (joins == null)
+            joins = new ArrayList<InnerJoin>(1);
+       return joins;
     }
 
-    /**
-     * Gets the arguments for this instance.
-     *
-     * @return arguments.
-     */
-    public List<String> getArguments() {
-        if (qstringCache == null)
-            genQstringAndArgs();
-        return argsCache;
-    }
-
-    private void genQstringAndArgs () {
+    private void genQstringAndArgs (StringBuilder sb, List<String> args) {
         if (root == null )
             return;
-        StringBuilder sb = new StringBuilder();
-        ArrayList<String> args = new ArrayList<String>();
         root.output(table, sb, args);
-        qstringCache = sb.toString();
-        argsCache = args;
     }
 
-    private static Q mergeQs (Q q1, Q q2, String op) {
-        Q out;
-        try {
-            out = (Q)q1.clone();
-        } catch (CloneNotSupportedException e) {
-            // Este erro nao ira acontecer se Q implementar Cloneable
-            throw new RuntimeException("classe Q sem suporte a clone");
-        }
-        out.qstringCache = null;
-        out.argsCache = null;
-        if (out.root == null) {
-            out.root = q2.root;
-        } else if (q2.root != null) {
+    private static Q mergeQs (Q q1, String op, Q q2) {
+        Q out = new Q(q1.table);
+        if (q1.joins != null)
+            out.joins = new ArrayList<Q.InnerJoin>(q1.joins);
+
+        out.root = (q1.root != null) ? q1.root : q2.root;
+
+        if (q1.root != null && q2.root != null) {
             if (q1.root.next != null ) {
                 QNodeGroup group = new QNodeGroup();
                 group.node = q1.root;
@@ -228,7 +184,7 @@ public static byte ROUND = 22;
         QNode next;
         String nextOp;
 
-        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, List<String> args) {
             if (next != null) {
                 sb.append(nextOp);
                 next.output(table, sb, args);
@@ -238,10 +194,13 @@ public static byte ROUND = 22;
     }
 
     private static class QNodeGroup extends QNode{
+        boolean notOp;
         QNode node;
 
         @Override
-        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, List<String> args) {
+            if (notOp)
+                sb.append(" NOT ");
             sb.append('(');
             this.node.output(table, sb, args);
             sb.append(')');
@@ -256,17 +215,34 @@ public static byte ROUND = 22;
         Object arg;
 
         @Override
-        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, List<String> args) {
             sb.append( Q.getColumn(
                 column.getTable().getName(),
                 this.column)
             );
-            sb.append(op.toString());
-            if (arg instanceof Table.Column) {
-                sb.append( ((Table.Column<?>)arg).getName() );
+            if (arg == null) {
+                switch (op) {
+                case EQ:
+                    sb.append( OpUnary.ISNULL.toString());
+                    break;
+                case NE:
+                    sb.append( OpUnary.NOTNULL.toString());
+                    break;
+                default:
+                    throw new QueryParseException(String.format(
+                        NULL_ARGUMENT_EXCEPTION_FMT,
+                        column.getTable().getName() + column.getName(),
+                        op.toString()
+                    ));
+                }
             } else {
-                sb.append('?');
-                args.add(SQLiteUtils.parse(arg));
+                sb.append(op.toString());
+                if (arg instanceof Table.Column) {
+                    sb.append( ((Table.Column<?>)arg).getName() );
+                } else {
+                    sb.append('?');
+                    args.add(SQLiteUtils.parse(arg));
+                }
             }
             super.output(table, sb, args);
         }
@@ -278,7 +254,7 @@ public static byte ROUND = 22;
         OpUnary op;
 
         @Override
-        void output(Table table, StringBuilder sb, ArrayList<String> args) {
+        void output(Table table, StringBuilder sb, List<String> args) {
             sb.append( Q.getColumn(
                 // conferir se eh da mesma tabela
                 ( table.equals(this.column.getTable()) ?
@@ -306,8 +282,8 @@ public static byte ROUND = 22;
 
         public String toString () {
             return
-                this == ISNULL     ?     " ISNULL " :
-                /* this == NOTNULL ?  */ " NOTNULL ";
+                this == ISNULL     ?     " ISNULL" :
+                /* this == NOTNULL ?  */ " NOTNULL";
         }
     }
 
@@ -315,7 +291,7 @@ public static byte ROUND = 22;
 
         NE, EQ, LT, GT, LE, GE /*, IN*/;
 
-        public String toString() {
+        public String toString() throws QueryParseException {
             return
                 this == NE     ?  "<>"     :
                 this == EQ     ?  "="      :

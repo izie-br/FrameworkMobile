@@ -1,7 +1,6 @@
 package br.com.cds.mobile.framework.query;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Collection;
 
 import android.database.Cursor;
@@ -114,18 +113,18 @@ public abstract class QuerySet<T>{
 //			// limit e offset
 //			limitStr
 //		);
-		String args [] = null;
 		if (this.q == null) {
 			this.q = new Q (getTabela());
-		} else {
-			List<String> arguments = q.getArguments();
-			if (arguments != null) {
-				args = new String[arguments.size()];
-				arguments.toArray(args);
-			}
+		}
+		String args [] = null;
+		ArrayList<String> listArg = new ArrayList<String>();
+		String qstr = q.select(getColunas(),listArg);
+		if (listArg.size() > 0) {
+			args = new String[listArg.size()];
+			listArg.toArray(args);
 		}
 		Cursor cursor = getDb().rawQuery(
-				q.select(getColunas())+" " +limitStr,
+				qstr +" " +limitStr,
 				args
 		);
 		return cursor;

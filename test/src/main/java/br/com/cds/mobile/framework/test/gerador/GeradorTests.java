@@ -170,6 +170,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		scoreDb = Score.objects()
 				.filter(Score.ID_AUTHOR.eq(author.getId()))
 				.first();
+		// refazer este teste
 		//assertNull(scoreDb);
 
 		documents = customer.getDocuments().all();
