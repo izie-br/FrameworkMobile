@@ -5,7 +5,6 @@ import java.util.Iterator;
 
 import org.json.JSONException;
 import org.json.JSONObject;
-import org.json.JSONTokener;
 
 import br.com.cds.mobile.framework.FrameworkJSONTokener;
 
@@ -61,7 +60,7 @@ public class StreamJsonIterator implements Iterator<JSONObject> {
 					break;
 			}                   /* Encontrar a primeira '{' */
 			current.back();     /* E voltar 1 caractere em seguida */
-			json =  new JSONObject((JSONTokener)current);
+			json =  current.nextJSONObject();
 		} catch (JSONException e) {
 			// TODO conferir se o arquivo acabou
 		}

@@ -33,8 +33,11 @@ SOFTWARE.
 
 Alterado por Igor Bruno Pereira Soares
 
+- independencia do "Tokener" oficial
 - remocao dos construtores que nao aceitam "Reader"
-- adicao do metodo stringToValue de JSONObject
+- adicao do metodo stringToValue JSONObject
+- adicao de metodos nextJSONObject e nextJSONArray baseados nos construtores
+  de JSONObject e JSONArray, respectivamente
 */
 
 /**
@@ -44,7 +47,7 @@ Alterado por Igor Bruno Pereira Soares
  * @author JSON.org
  * @version 2012-02-16
  */
-public class FrameworkJSONTokener extends org.json.JSONTokener {
+public final class FrameworkJSONTokener {
 
     private long    character;
     private boolean eof;
@@ -61,7 +64,6 @@ public class FrameworkJSONTokener extends org.json.JSONTokener {
      * @param reader     A reader.
      */
     public FrameworkJSONTokener(Reader reader) {
-        super("");
         this.reader = reader;
         this.eof = false;
         this.usePrevious = false;
@@ -346,10 +348,10 @@ public class FrameworkJSONTokener extends org.json.JSONTokener {
                 return this.nextString(c);
             case '{':
                 this.back();
-                return new JSONObject(this);
+                return nextJSONObject();
             case '[':
                 this.back();
-                return new JSONArray(this);
+                return nextJSONArray();
         }
 
         /*
@@ -373,6 +375,139 @@ public class FrameworkJSONTokener extends org.json.JSONTokener {
             throw this.syntaxError("Missing value");
         }
         return stringToValue(string);
+    }
+
+    public JSONObject nextJSONObject () throws JSONException {
+        /*
+        JSONObject.java
+        Copyright (c) 2002 JSON.org
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+
+        The Software shall be used for Good, not Evil.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        */
+
+        JSONObject jsonObject = new JSONObject();
+
+        char c;
+        String key;
+
+        if (nextClean() != '{') {
+            throw syntaxError("A JSONObject text must begin with '{'");
+        }
+        for (;;) {
+            c = nextClean();
+            switch (c) {
+            case 0:
+                throw syntaxError("A JSONObject text must end with '}'");
+            case '}':
+                return null;
+            default:
+                back();
+                key = nextValue().toString();
+            }
+
+// The key is followed by ':'. We will also tolerate '=' or '=>'.
+
+            c = nextClean();
+            if (c == '=') {
+                if (next() != '>') {
+                    back();
+                }
+            } else if (c != ':') {
+                throw syntaxError("Expected a ':' after a key");
+            }
+            jsonObject.put(key, nextValue());
+
+// Pairs are separated by ','. We will also tolerate ';'.
+
+            switch (nextClean()) {
+            case ';':
+            case ',':
+                if (nextClean() == '}') {
+                    return jsonObject;
+                }
+                back();
+                break;
+            case '}':
+                return jsonObject;
+            default:
+                throw syntaxError("Expected a ',' or '}'");
+            }
+        }
+    }
+
+    public JSONArray nextJSONArray () throws JSONException {
+        /*
+        JSONArray.java
+        Copyright (c) 2002 JSON.org
+
+        Permission is hereby granted, free of charge, to any person obtaining a copy
+        of this software and associated documentation files (the "Software"), to deal
+        in the Software without restriction, including without limitation the rights
+        to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+        copies of the Software, and to permit persons to whom the Software is
+        furnished to do so, subject to the following conditions:
+
+        The above copyright notice and this permission notice shall be included in all
+        copies or substantial portions of the Software.
+        
+        The Software shall be used for Good, not Evil.
+
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+        IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+        FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+        AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+        LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+        OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+        SOFTWARE.
+        */
+        JSONArray jsonArray =  new JSONArray();
+        if (nextClean() != '[') {
+            throw syntaxError("A JSONArray text must start with '['");
+        }
+        if (nextClean() != ']') {
+            back();
+            for (;;) {
+                if (nextClean() == ',') {
+                    back();
+                    jsonArray.put(JSONObject.NULL);
+                } else {
+                    back();
+                    jsonArray.put(nextValue());
+                }
+                switch (nextClean()) {
+                case ';':
+                case ',':
+                    if (nextClean() == ']') {
+                        return jsonArray;
+                    }
+                    back();
+                    break;
+                case ']':
+                    return jsonArray;
+                default:
+                    throw syntaxError("Expected a ',' or ']'");
+                }
+            }
+        }
+        return jsonArray;
     }
 
     /**
