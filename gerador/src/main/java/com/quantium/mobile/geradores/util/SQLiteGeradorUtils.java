@@ -26,7 +26,7 @@ public class SQLiteGeradorUtils {
 		int i = 0;
 
 		while (dbFile.exists()) {
-			System.err.println(dbFile.getAbsolutePath() + " ja existe");
+			LoggerUtil.getLog().error(dbFile.getAbsolutePath() + " ja existe");
 			i++;
 			dbFile = new File(String.format(DB_FILE_FMT, "_"+i));
 		}

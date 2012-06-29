@@ -4,10 +4,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 
+import org.apache.log4j.Logger;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
+import com.pyx4j.log4j.MavenLogAppender;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.GeradorException;
 
@@ -66,7 +68,9 @@ public class GeradorMojo extends AbstractMojo{
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException
     {
-        getLog().info("iniciando gerador");
+        MavenLogAppender.startPluginLog(this);
+        Logger log = Logger.getLogger(getClass().getName());
+        log.info("iniciando gerador");
         try {
             new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
                     getAndroidManifest(),
@@ -81,7 +85,8 @@ public class GeradorMojo extends AbstractMojo{
         } catch (GeradorException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());
         }
-        getLog().info("finalizando gerador");
+        log.info("finalizando gerador");
+        MavenLogAppender.endPluginLog(this);
     }
 
     private String getSrcFolder() {

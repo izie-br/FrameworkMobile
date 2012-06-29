@@ -8,7 +8,6 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
@@ -46,6 +45,7 @@ import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.json.CodeModelJsonSerializacaoFactory;
 import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.geradores.util.XMLUtil;
 import com.sun.codemodel.ClassType;
@@ -75,8 +75,6 @@ public class GeradorDeBeans {
 		{"",	GENERIC_BEAN_CLASS,	"/GenericBean.java"}
 	};
 
-	public static PrintStream out = System.out;
-
 
 	/**
 	 * @param args
@@ -86,7 +84,7 @@ public class GeradorDeBeans {
 		// exemploDeUsoJSqlParser();
 
 		if(args==null||args.length<3){
-			System.out.println(
+			LoggerUtil.getLog().info(
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					GeradorDeBeans.class.getName()+ " " +
@@ -133,7 +131,7 @@ public class GeradorDeBeans {
 				pacoteClassResource[1] + ".java"
 			);
 			if(!f.exists()){
-				out.println(
+				LoggerUtil.getLog().info(
 					"Criando arquivo " + f.getPath()
 				);
 				try{
@@ -199,7 +197,12 @@ public class GeradorDeBeans {
 		String val = getSqlTill(sqlResource,dbVersion);
 		if(val!=null){
 			val = sqliteSchema(val);
-			System.out.println(val);
+			BufferedReader reader = new BufferedReader(new StringReader(val));
+			String line = reader.readLine();
+			while (line != null) {
+				LoggerUtil.getLog().info(line);
+				line = reader.readLine();
+			}
 		}
 
 		conferirArquivosCustomSrc(pacote, pastaSrc);
@@ -250,6 +253,7 @@ public class GeradorDeBeans {
 			try {
 				classeGerada = jbf.generateClass(
 					pacote,
+					pacoteGen,
 					javaBeanSchema.getNome()
 				);
 			} catch (JClassAlreadyExistsException e) {
@@ -307,16 +311,17 @@ public class GeradorDeBeans {
 			);
 		}
 
-		String pastaGen = pacoteGen.replaceAll("\\.", File.separator);
+		String pastaGen = (pacote + "."+ pacoteGen)
+				.replaceAll("\\.", File.separator);
 		File pastaGenFolder = new File(pastaSrc, pastaGen);
 		if(pastaGenFolder.exists()){
-			System.out.println("Deletando " + pastaGenFolder.getAbsolutePath());
+			LoggerUtil.getLog().info("Deletando " + pastaGenFolder.getAbsolutePath());
 			deleteFolderR(pastaGenFolder);
 		} else {
-			System.out.println(
+			LoggerUtil.getLog().info(
 				"Pasta " +
 				pastaGenFolder.getAbsolutePath() +
-				"nao encontrada"
+				" nao encontrada"
 			);
 		}
 
@@ -332,7 +337,9 @@ public class GeradorDeBeans {
 				+ File.separator + GeradorDeBeans.DB_PACKAGE + File.separator
 				+ GeradorDeBeans.DB_CLASS + ".java");
 		if (!dbFile.exists()) {
-			System.out.println("err" + dbFile.getAbsolutePath());
+			String errmsg = dbFile.getAbsolutePath() + " nao encontrado";
+			LoggerUtil.getLog().error(errmsg);
+			throw new GeradorException(errmsg);
 		}
 		Scanner scan;
 		try {
@@ -343,8 +350,11 @@ public class GeradorDeBeans {
 		Pattern dbVersionPattern = Pattern.compile("DB_VERSAO\\s*=\\s*([^;]);");
 		int versionNumberGroup = 1;
 		String s = scan.findWithinHorizon(dbVersionPattern, 0);
-		if (s == null)
-			System.out.println("DB_VERSAO nao encontrado");
+		if (s == null) {
+			String errmsg = "DB_VERSAO nao encontrado";
+			LoggerUtil.getLog().error(errmsg);
+			throw new GeradorException(errmsg);
+		}
 
 		Matcher mobj = dbVersionPattern.matcher(s);
 		mobj.find();
@@ -460,7 +470,7 @@ public class GeradorDeBeans {
 			TabelaSchema tabela =
 				factory.gerarTabelaSchema(createTableStatement);
 			tabelas.add(tabela);
-			System.out.println("tabela: " +tabela);
+			LoggerUtil.getLog().info("tabela: " +tabela.getNome());
 		}
 		return tabelas;
 	}
@@ -535,11 +545,10 @@ public class GeradorDeBeans {
 					
 					@Override
 					public void visit(CreateTable ct) {
-						System.out.print("create ");
-						System.out.println(ct.getTable().getName());
+						LoggerUtil.getLog().info("create" + ct.getTable().getName());
 						for(Object obj :ct.getColumnDefinitions())
-							System.out.println( ((ColumnDefinition)obj).getColumnName()+"  "+ ((ColumnDefinition)obj).getColDataType().getDataType() );
-						System.out.println("-------------");
+							LoggerUtil.getLog().info( ((ColumnDefinition)obj).getColumnName()+"  "+ ((ColumnDefinition)obj).getColDataType().getDataType() );
+						LoggerUtil.getLog().info("-------------");
 					}
 					
 					@Override public void visit(Truncate arg0) {}

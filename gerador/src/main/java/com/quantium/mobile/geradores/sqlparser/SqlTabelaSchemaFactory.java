@@ -7,6 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 
 
@@ -38,14 +39,13 @@ public class SqlTabelaSchemaFactory {
 		try {
 			statement = manager.parse(new StringReader(schema));
 		} catch (JSQLParserException e) {
-			e.printStackTrace();
-			System.err.println(schema);
+			LoggerUtil.getLog().error(e);
+			LoggerUtil.getLog().error(schema);
 			throw new RuntimeException(e);
 		}
 		// Enviando um visitor para preencher os campos
 		CreateTableVisitor createTableVisitor = new CreateTableVisitor();
 		statement.accept(createTableVisitor);
-		// System.out.println(nome+" "+colunas.size()+" colunas");
 		return createTableVisitor.getTabela();
 	}
 
@@ -77,7 +77,6 @@ public class SqlTabelaSchemaFactory {
 						colunaDefinition, ct.getIndexes()
 				);
 				if( constraints.contains(TabelaSchema.PRIMARY_KEY_CONSTRAINT) ) {
-					System.out.println("pk encontrada");
 					primaryKeyCount++;
 				}
 				String arrConstraints [] = new String[constraints.size()];

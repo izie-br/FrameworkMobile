@@ -11,6 +11,7 @@ import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
 import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.util.LoggerUtil;
 
 
 public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
@@ -150,11 +151,10 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 										colunaA.getNome()
 								);
 								associacoes.add(associacao);
-								System.out.println(associacao);
 								}catch (RuntimeException e){
-									System.err.println("Erro na tabela "+filtroTabelaA.getNome());
-									System.err.println("Relacao com "+filtroTabelaB.getNome()+" "+colunaToA);
-									System.err.println(colunaToA);
+									LoggerUtil.getLog().error("Erro na tabela "+filtroTabelaA.getNome());
+									LoggerUtil.getLog().error("Relacao com "+filtroTabelaB.getNome()+" "+colunaToA);
+									LoggerUtil.getLog().error(colunaToA);
 									throw e;
 								}
 								break;

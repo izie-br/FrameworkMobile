@@ -1,6 +1,5 @@
 package com.quantium.mobile.geradores;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -32,7 +31,7 @@ public class CodeModelBeanFactory {
 
 	private static final String ERROR_CLONE_NOT_DEEP_COPY_WARNING = "Metodo clone parece nao fazer deep copy de %s da classe %s";
 	private static final String ERRO_MSG_ARGUMENTO_NULL = "argumento null passado para o metodo %s::%s";
-	private static final String GEN_SUBPKG = "gen";
+
 	private JCodeModel jcm;
 
 	public CodeModelBeanFactory(JCodeModel jcm){
@@ -337,7 +336,7 @@ public class CodeModelBeanFactory {
 	 * @return classe gerada
 	 * @throws JClassAlreadyExistsException
 	 */
-	public JDefinedClass generateClass(String basePackage, String name)
+	public JDefinedClass generateClass(String basePackage, String genPackage, String name)
 			throws JClassAlreadyExistsException {
 		/* *********************************************************
 		 * package nome.completo.do.pacote;                        *
@@ -348,7 +347,11 @@ public class CodeModelBeanFactory {
 		 **********************************************************/
 		JDefinedClass classeBean = jcm._class(
 				JMod.PUBLIC,
-				basePackage + "." + GEN_SUBPKG + "." + name,
+				basePackage + (
+					(genPackage == null || genPackage.matches("\\s*")) ?
+						"" :
+						("." + genPackage)
+				) + "." + name,
 				ClassType.CLASS
 		);
 		JClass genericBean = jcm.ref(basePackage + "." + GeradorDeBeans.GENERIC_BEAN_CLASS);
