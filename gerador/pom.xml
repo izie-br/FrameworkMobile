@@ -2,11 +2,11 @@
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>gerador</artifactId>
-  <packaging>maven-plugin</packaging>
+  <packaging>jar</packaging>
   <name>gerador</name>
 
   <parent>
-    <groupId>br.com.cds.mobile.framework</groupId>
+    <groupId>com.quantium.mobile.framework</groupId>
     <artifactId>frameworkMobile</artifactId>
     <version>0.2-alpha</version>
   </parent>
@@ -14,13 +14,13 @@
   <repositories>
     <repository>
       <id>mvnsearch</id>
-      <url>http://www.mvnsearch.org/maven2/</url>
+      <url>http://dev.mapfish.org/maven/repository/</url>
     </repository>
   </repositories>
 
   <dependencies>
     <dependency>
-      <groupId>br.com.cds.mobile.framework</groupId>
+      <groupId>com.quantium.mobile.framework</groupId>
       <artifactId>lib</artifactId>
       <version>0.2-alpha</version>
       <scope>compile</scope>
@@ -41,12 +41,6 @@
     </dependency>
 
     <dependency>
-      <groupId>org.apache.maven</groupId>
-      <artifactId>maven-plugin-api</artifactId>
-      <version>2.0</version>
-    </dependency>
-
-    <dependency>
       <groupId>org.xerial</groupId>
       <artifactId>sqlite-jdbc</artifactId>
       <version>3.6.16</version>
@@ -59,7 +53,7 @@
       <version>${platform.version}</version>
       <scope>compile</scope>
     </dependency>
-    
+
   </dependencies>
 
   <build>

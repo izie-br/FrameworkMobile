@@ -7,7 +7,7 @@
     <packaging>apk</packaging>
     <name>test</name>
     <parent>
-        <groupId>br.com.cds.mobile.framework</groupId>
+        <groupId>com.quantium.mobile.framework</groupId>
         <artifactId>frameworkMobile</artifactId>
         <version>0.2-alpha</version>
     </parent>
@@ -37,7 +37,7 @@
             <scope>provided</scope>
         </dependency>
         <dependency>
-            <groupId>br.com.cds.mobile.framework</groupId>
+            <groupId>com.quantium.mobile.framework</groupId>
             <artifactId>lib</artifactId>
             <version>0.2-alpha</version>
             <scope>compile</scope>
@@ -68,8 +68,8 @@
                 <extensions>true</extensions>
             </plugin>
             <plugin>
-              <groupId>br.com.cds.mobile.framework</groupId>
-              <artifactId>gerador</artifactId>
+              <groupId>com.quantium.mobile.framework</groupId>
+              <artifactId>maven-plugin-gerador</artifactId>
               <version>0.2-alpha</version>
               <executions>
                 <execution>
@@ -132,8 +132,8 @@
                   <pluginExecutions>
                     <pluginExecution>
                       <pluginExecutionFilter>
-                        <groupId>br.com.cds.mobile.framework</groupId>
-                        <artifactId>gerador</artifactId>
+                        <groupId>com.quantium.mobile.framework</groupId>
+                        <artifactId>maven-plugin-gerador</artifactId>
                         <versionRange>[0.2-alpha,)</versionRange>
                         <goals>
                           <goal>gerar</goal>

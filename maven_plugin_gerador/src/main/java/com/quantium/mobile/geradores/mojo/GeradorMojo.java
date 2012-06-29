@@ -1,4 +1,4 @@
-package br.com.cds.mobile.geradores.mojo;
+package com.quantium.mobile.geradores.mojo;
 
 import java.io.File;
 import java.io.FileNotFoundException;

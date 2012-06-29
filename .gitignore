@@ -15,4 +15,5 @@ test_server/django/*
 test_server/test.db
 *.pyc
 *.swp
-
+maven_plugin_gerador/target
+maven_plugin_gerador/bin

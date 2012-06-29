@@ -4,13 +4,14 @@
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
   <modelVersion>4.0.0</modelVersion>
-  <groupId>br.com.cds.mobile.framework</groupId>
+  <groupId>com.quantium.mobile.framework</groupId>
   <artifactId>frameworkMobile</artifactId>
   <version>0.2-alpha</version>
   <packaging>pom</packaging>
 
   <modules>
     <module>gerador</module>
+    <module>maven_plugin_gerador</module>
     <module>lib</module>
     <module>test</module>
   </modules>
