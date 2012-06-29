@@ -4,19 +4,15 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.sql.SQLException;
-import java.util.InvalidPropertiesFormatException;
-import java.util.Map;
-import java.util.Properties;
+import java.util.List;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,7 +21,6 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
-import br.com.cds.mobile.geradores.CodeModelBeanFactory;
 import br.com.cds.mobile.geradores.GeradorDeBeans;
 import br.com.cds.mobile.geradores.util.SQLiteUtil;
 import br.com.cds.mobile.geradores.util.XMLUtil;
@@ -173,19 +168,19 @@ public class GeradorMojo extends AbstractMojo{
 
     public String getSqlTill(Integer version) throws MojoExecutionException{
         StringBuilder out = new StringBuilder();
-        for (int i = 0; i <= version ; i++) {
-            Map<String, String> nodes = XMLUtil.getChildren(
-                getSqlResource(),
-                "//string[contains(@name,\"db_versao_\") and " +
-                "number(substring(@name,11)) = "+i+"]"
-            );
-            for(String key : nodes.keySet())
-                out.append(nodes.get(key));
-            }
+        List<String> nodes = XMLUtil.xpath(
+            getSqlResource(),
+            "//string[" +
+                "contains(@name,\"db_versao_\") and " +
+                "number(substring(@name,11)) < "+ (version++) +
+            "]//text()"
+        );
+        for(String node : nodes)
+            out.append(node);
         return out.toString();
     }
 
-    private Properties getPropertiesFile() throws MojoFailureException{
+/*    private Properties getPropertiesFile() throws MojoFailureException{
         try {
             File configFile = new File(basedir+"/.gerador.xml");
             if(!configFile.exists()){
@@ -211,7 +206,7 @@ public class GeradorMojo extends AbstractMojo{
                     "Arquivo de configuracao inacessivel");
         }
     }
-
+*/
     private String getBasePackage() throws MojoExecutionException{
         try {
             File manifest = getAndroidManifest();
