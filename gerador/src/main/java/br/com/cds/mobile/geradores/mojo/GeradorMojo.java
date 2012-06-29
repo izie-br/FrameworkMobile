@@ -25,6 +25,7 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
+import br.com.cds.mobile.geradores.CodeModelBeanFactory;
 import br.com.cds.mobile.geradores.GeradorDeBeans;
 
 /**
@@ -85,12 +86,12 @@ public class GeradorMojo extends AbstractMojo{
     {
         getLog().info("iniciando gerador");
         Integer dbVersion = getDBVersion();
-        if(dbVersion!=null)
-            getLog().info("dbversion: "+ dbVersion.toString());
+        if(dbVersion==null)
+            throw new MojoFailureException("versao do banco nao encontrada");
         String basePackage = getBasePackage();
         if(basePackage!=null)
             getLog().info("package "+basePackage);
-        String val = getSqlTill(1);
+        String val = getSqlTill(dbVersion);
         if(val!=null){
             val = sqliteSchema(val);
             getLog().info(val);
@@ -98,7 +99,7 @@ public class GeradorMojo extends AbstractMojo{
                 GeradorDeBeans.gerarBeansWithJsqlparserAndCodeModel(
                         basePackage,
                         new StringReader(val),
-                        basedir+"/src/main/java",
+                        basedir+getSrcFolder(),
                         basePackage+".gen"
                 );
             } catch (FileNotFoundException e) {
@@ -110,13 +111,53 @@ public class GeradorMojo extends AbstractMojo{
         getLog().info("finalizando gerador");
     }
 
+	private String getSrcFolder() {
+		return "/src/main/java";
+	}
+
     public Integer getDBVersion() throws MojoFailureException{
+        String packageFolder;
+        try {
+            packageFolder = getBasePackage().replaceAll("\\.", File.separator);
+        } catch (MojoExecutionException e) {
+            throw new MojoFailureException(e.getLocalizedMessage());
+        }
+        File dbFile = new File(
+            basedir + File.separator + getSrcFolder() + File.separator +
+            packageFolder +
+            File.separator + GeradorDeBeans.DB_PACKAGE + File.separator +
+            GeradorDeBeans.DB_CLASS + ".java"
+        );
+        if (!dbFile.exists()) {
+           getLog().error(dbFile.getAbsolutePath());
+        }
+        Scanner scan;
+        try {
+            scan = new Scanner(dbFile);
+        } catch (FileNotFoundException e) {
+            throw new MojoFailureException (e.getLocalizedMessage());
+        }
+        Pattern dbVersionPattern = Pattern.compile(
+            "DB_VERSAO\\s*=\\s*([^;]);"
+        );
+        int versionNumberGroup = 1;
+        String s = scan.findWithinHorizon(
+            dbVersionPattern,
+            0
+        );
+        if (s == null)
+            getLog().error("DB_VERSAO nao encontrado");
+        
+        Matcher mobj = dbVersionPattern.matcher(s);
+        mobj.find();
+        Integer ver = Integer.parseInt(mobj.group(versionNumberGroup));
+        return ver;/*
         Properties props = getPropertiesFile();
         try {
             return Integer.parseInt(props.getProperty("DBVersion"));
         } catch (NumberFormatException e) {
             return null;
-        }
+        }*/
     }
 
     public String sqliteSchema(String sql){
