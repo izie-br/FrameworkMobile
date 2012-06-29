@@ -5,6 +5,7 @@ import java.util.Date;
 
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.query.Q;
+import br.com.cds.mobile.framework.query.QueryParseException;
 import br.com.cds.mobile.framework.query.Table;
 import br.com.cds.mobile.framework.test.TestActivity;
 import br.com.cds.mobile.framework.utils.SQLiteUtils;
@@ -130,6 +131,38 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			"\\s+" + insensitiveRegex("where") + "\\s+" +
 			qstringRegex;
 		assertTrue(select.matches(selectRegex));
+	}
+
+	public void testNullArg () {
+		Table t = new Table("tab");
+		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");
+
+		Q q = colInt.eq((Integer)null);
+		String select = q.select(new Table.Column []{colInt}, new ArrayList<String>());
+		assertTrue(
+			select.matches(
+				".*"+colInt.getName()+ "\\s+" +
+				insensitiveRegex("is") + "\\s*" + insensitiveRegex("null")
+			)
+		);
+
+		q = colInt.ne((Integer)null);
+		select = q.select(new Table.Column []{colInt}, new ArrayList<String>());
+		assertTrue(
+			select.matches(
+				".*"+colInt.getName()+ "\\s+" +
+				insensitiveRegex("not") + "\\s*" + insensitiveRegex("null")
+			)
+		);
+
+		q = colInt.lt((Integer)null);
+		try {
+			q.select(new Table.Column []{colInt}, new ArrayList<String>());
+			fail ("A query " +select + " eh absurda");
+		} catch (QueryParseException e) {
+			/* Aqui deve acontencer esta excecao mesmo. */
+			/* A condicao menor que NULL eh absurda */
+		}
 	}
 
 	public String insensitiveRegex(String str) {
