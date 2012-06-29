@@ -231,8 +231,9 @@ public final class Q {
                 default:
                     throw new QueryParseException(String.format(
                         NULL_ARGUMENT_EXCEPTION_FMT,
+                        op.toString(),
                         column.getTable().getName() + column.getName(),
-                        op.toString()
+                        (arg == null) ? "NULL" : arg.toString()
                     ));
                 }
             } else {
