@@ -141,38 +141,49 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Customer customer = randomCustomer();
 		assertTrue(customer.save());
 
+		// adicionar os documentos oa customer
+		//    e a busca pelo queryset deve achar este
 		assertTrue(customer.addDocument(document));
 		Collection<Document> documents = customer.getDocuments().all();
-		assertEquals(1,documents.size());
+		assertEquals(document, documents.iterator().next());
 
-		assertTrue(document.delete());
-		documents = customer.getDocuments().all();
-		assertEquals(0,documents.size());
-
-		// Em score tem relacao many-to-one para document e autor,
-		//   mas document_id PODE SER NULL, logo score tem
-		//   document_id anulado apos delete do "document" referido
-		Collection<Score> scoresDb = Score.objects()
-				.filter(Score.ID_AUTHOR.eq(author.getId()))
-				.all();
-		assertEquals(1, scoresDb.size());
-		Score scoreDb = scoresDb.iterator().next();
-		// document_id pode ser NULL
-		assertEquals(null, scoreDb.getDocument());
-
-		// Scores e Document tem chaves estrangeiras NOT NULL
-		//    ambas as classes filhas sao deletadas
+		// A author, ao ser "deletado" deve desaparecer do banco
 		assertTrue(author.delete());
-		Collection<Document> documentsDb =Document.objects()
-				.filter(Document.ID.eq(document.getId()))
-				.all();
-		assertEquals(0, documentsDb.size());
-		scoreDb = Score.objects()
-				.filter(Score.ID_AUTHOR.eq(author.getId()))
-				.first();
-		// refazer este teste
-		//assertNull(scoreDb);
+		Author authorFromDb = Author.objects().first();
+		assertNull(authorFromDb);
 
+		// Score tem relacao many-to-one para document e author
+		//    ambas com chave NOT NULL
+		//    e deve ser removida ao remover o author (veja acima)
+		Collection<Score> scoresDb = Score.objects()
+				.all();
+		assertEquals(0, scoresDb.size());
+//		Score scoreDb = scoresDb.iterator().next();
+//		// document_id pode ser NULL
+//		assertEquals(null, scoreDb.getDocument());
+
+		// Document tem uma chave para author, mas pode ser null
+		//    o document nao deve ser removido com o author,
+		//    mas deve ter sua chave de author anulada
+		documents = customer.getDocuments().all();
+		assertEquals(1, documents.size());
+		document = documents.iterator().next();
+		assertEquals(null,document.getAuthor());
+
+//		// Scores e Document tem chaves estrangeiras NOT NULL
+//		//    ambas as classes filhas sao deletadas
+//		assertTrue(author.delete());
+//		Collection<Document> documentsDb =Document.objects()
+//				.filter(Document.ID.eq(document.getId()))
+//				.all();
+//		assertEquals(0, documentsDb.size());
+//		scoreDb = Score.objects()
+//				.filter(Score.ID_AUTHOR.eq(author.getId()))
+//				.first();
+//		// refazer este teste
+//		//assertNull(scoreDb);
+
+		document.delete();
 		documents = customer.getDocuments().all();
 		assertEquals(0, documents.size());
 

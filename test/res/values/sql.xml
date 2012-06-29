@@ -5,9 +5,8 @@
 CREATE TABLE tb_document (
     id integer NOT NULL PRIMARY KEY,
     title varchar(79) NOT NULL,
-    id_author integer NOT NULL,
-    text text NOT NULL,
-    CONSTRAINT author_id_ct FOREIGN KEY(id_author) REFERENCES author(id)
+    id_author integer,
+    text text NOT NULL
 );
 CREATE TABLE tb_author (
     id integer NOT NULL PRIMARY KEY,
@@ -32,6 +31,16 @@ CREATE TABLE tb_customer_join_document (
 );
     </string>
     <string name="db_versao_2">
-
+ALTER TABLE tb_score RENAME TO tb_score_tmp;
+CREATE TABLE tb_score (
+    id_author integer NOT NULL,
+    id_document integer NOT NULL,
+    score integer DEFAULT 0,
+    PRIMARY KEY(id_author,id_document)
+);
+INSERT INTO tb_score (id_author, id_document, score)
+    SELECT id_author, id_document, score FROM tb_score_tmp
+    WHERE id_document NOTNULL;
+DROP TABLE tb_score_tmp;
     </string>
 </resources>
