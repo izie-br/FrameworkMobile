@@ -12,11 +12,16 @@ import java.io.PrintStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
@@ -40,6 +45,8 @@ import br.com.cds.mobile.geradores.javabean.Propriedade;
 import br.com.cds.mobile.geradores.json.CodeModelJsonSerializacaoFactory;
 import br.com.cds.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import br.com.cds.mobile.geradores.tabelaschema.TabelaSchema;
+import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
+import br.com.cds.mobile.geradores.util.XMLUtil;
 
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -74,7 +81,7 @@ public class GeradorDeBeans {
 	/**
 	 * @param args
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws GeradorException{
 		// exemploDeUsoDoCodeModel();
 		// exemploDeUsoJSqlParser();
 
@@ -83,19 +90,21 @@ public class GeradorDeBeans {
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					GeradorDeBeans.class.getName()+ " " +
-					"arquivo_sql pacote pastaSrc"
+					"androidManifest arquivo_sql pastaSrc"
 			);
 			return;
 		}
 
-		String arquivo = args[0];
-		String pacote = args[1];
+		String manifest = args[0];
+		String arquivo = args[1];
 		String pastaSrc = args[2];
 
 		try {
-			gerarBeansWithJsqlparserAndCodeModel(
-				pacote, new FileReader(new File(arquivo)),
-				pastaSrc, pacote+".gen"
+			new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
+				new File(manifest),
+				new File (arquivo),
+				pastaSrc,
+				"gen"
 			);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
@@ -171,17 +180,35 @@ public class GeradorDeBeans {
 		buffer = null;
 	}
 
-	public static void gerarBeansWithJsqlparserAndCodeModel(
-			String pacote,
-			Reader sql,
+	public void gerarBeansWithJsqlparserAndCodeModel(
+			File androidManifestFile,
+			File sqlResource,
 			String pastaSrc,
 			String pacoteGen
 	)
-			throws IOException, FileNotFoundException
+			throws IOException, FileNotFoundException, GeradorException
 	{
+
+		String pacote = getBasePackage(androidManifestFile);
+		Integer dbVersion = getDBVersion(pastaSrc, pacote);
+		if(dbVersion==null)
+			throw new GeradorException("versao do banco nao encontrada");
+//		String basePackage = getBasePackage();
+//		if(basePackage!=null)
+//			getLog().info("package "+basePackage);
+		String val = getSqlTill(sqlResource,dbVersion);
+		if(val!=null){
+			val = sqliteSchema(val);
+			System.out.println(val);
+		}
+
 		conferirArquivosCustomSrc(pacote, pastaSrc);
-		String pacoteDb = getPacoteDb(pacote);
-		String dbClass = pacoteDb + DB_CLASS;
+		String pacoteDb = pacote + (
+			(DB_PACKAGE == null || DB_PACKAGE.matches("\\s*")) ?
+				"" :
+				"." + DB_PACKAGE
+		);
+		String dbClass = pacoteDb + "." +DB_CLASS;
 		String genericBeanClass = pacote;
 		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
 			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
@@ -189,7 +216,7 @@ public class GeradorDeBeans {
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(sql);
+				getTabelasDoSchema(new StringReader(val));
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(
@@ -297,10 +324,102 @@ public class GeradorDeBeans {
 		jcm.build(new File(pastaSrc));
 	}
 
-	protected static String getPacoteDb(String pacote) {
-		return pacote+".db.";
+	public Integer getDBVersion(String srcFolder, String basePackage)
+			throws GeradorException {
+		String packageFolder;
+		packageFolder = basePackage.replaceAll("\\.", File.separator);
+		File dbFile = new File(srcFolder + File.separator + packageFolder
+				+ File.separator + GeradorDeBeans.DB_PACKAGE + File.separator
+				+ GeradorDeBeans.DB_CLASS + ".java");
+		if (!dbFile.exists()) {
+			System.out.println("err" + dbFile.getAbsolutePath());
+		}
+		Scanner scan;
+		try {
+			scan = new Scanner(dbFile);
+		} catch (FileNotFoundException e) {
+			throw new GeradorException(e);
+		}
+		Pattern dbVersionPattern = Pattern.compile("DB_VERSAO\\s*=\\s*([^;]);");
+		int versionNumberGroup = 1;
+		String s = scan.findWithinHorizon(dbVersionPattern, 0);
+		if (s == null)
+			System.out.println("DB_VERSAO nao encontrado");
+
+		Matcher mobj = dbVersionPattern.matcher(s);
+		mobj.find();
+		Integer ver = Integer.parseInt(mobj.group(versionNumberGroup));
+		return ver;
 	}
 
+	public String sqliteSchema(String sql) {
+		try {
+			return SQLiteGeradorUtils.getSchema(sql);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		}
+	}
+
+	public String getSqlTill(File sqlResource, Integer version) {
+		StringBuilder out = new StringBuilder();
+		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
+				+ "contains(@name,\"db_versao_\") and "
+				+ "number(substring(@name,11)) < " + (version++) + "]//text()");
+		for (String node : nodes)
+			out.append(node);
+		return out.toString();
+	}
+
+	private String getBasePackage(File androidManifest)
+			throws GeradorException
+	{
+		try {
+			Pattern pat = Pattern.compile(
+					".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
+					Pattern.MULTILINE);
+			String manifestStr = new Scanner(androidManifest)
+				.findWithinHorizon(pat, 0);
+			Matcher mobj = pat.matcher(manifestStr);
+			if (mobj.find())
+				return mobj.group(1);
+			return null;
+		} catch (Exception e) {
+			throw new GeradorException(e);
+		}
+	}
+
+
+/*    private static String convertStreamToString(InputStream is)
+            throws IOException
+    {
+        /*
+         * To convert the InputStream to String we use the Reader.read(char[]
+         * buffer) method. We iterate until the Reader return -1 which means
+         * there's no more data to read. We use the StringWriter class to
+         * produce the string.
+         */
+/*        if (is != null) {
+            Writer writer = new StringWriter();
+
+            char[] buffer = new char[1024];
+            try {
+                Reader reader = new BufferedReader(
+                        new InputStreamReader(is,DEFAULT_ENCODING)
+                );
+                int n;
+                while ((n = reader.read(buffer)) != -1) {
+                    writer.write(buffer, 0, n);
+                }
+            } finally {
+                is.close();
+            }
+            return writer.toString();
+        } else {
+            return "";
+        }
+    }
+*/
 	protected static String getPacotePath(String pacote) {
 		return pacote.replaceAll("\\.", File.separator);
 	}
@@ -362,6 +481,8 @@ public class GeradorDeBeans {
 			);
 		}
 	}
+
+
 
 	/***********************************
 	 * Exemplos de uso das bibliotecas *
