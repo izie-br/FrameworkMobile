@@ -1,4 +1,4 @@
-package br.com.cds.mobile.geradores.mojo;
+package br.com.cds.mobile.geradores.util;
 
 import java.io.File;
 import java.util.HashMap;
@@ -11,7 +11,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
@@ -21,7 +20,6 @@ public class XMLUtil {
 		try {
 			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
 			Document doc = builder.parse(f);
-			Element root = doc.getDocumentElement();
 			XPathExpression exp = XPathFactory.newInstance().newXPath().compile(xpexp);
 			NodeList list = (NodeList)exp.evaluate(doc, XPathConstants.NODESET);
 			HashMap<String, String> out = new HashMap<String, String>();

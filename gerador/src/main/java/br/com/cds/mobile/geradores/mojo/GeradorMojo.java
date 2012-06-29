@@ -27,6 +27,8 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import br.com.cds.mobile.geradores.CodeModelBeanFactory;
 import br.com.cds.mobile.geradores.GeradorDeBeans;
+import br.com.cds.mobile.geradores.util.SQLiteUtil;
+import br.com.cds.mobile.geradores.util.XMLUtil;
 
 /**
  * @goal checar

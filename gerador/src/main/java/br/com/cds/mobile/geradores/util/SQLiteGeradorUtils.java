@@ -1,6 +1,5 @@
 package br.com.cds.mobile.geradores.util;
 
-import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.Date;
 
