@@ -1,7 +1,7 @@
 
 import java.io.Serializable;
 import android.database.SQLException;
-import br.com.cds.mobile.framework.JsonSerializable;
+import com.quantium.mobile.framework.JsonSerializable;
 import org.json.JSONException;
 import org.json.JSONObject;
 

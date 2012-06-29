@@ -1,7 +1,7 @@
 
 public class Constantes {
 
-	public static String LOG_DIR = "/data/br.com.cds.mobile.framework/logs/";
+	public static String LOG_DIR = "/data/com.quantium.mobile.framework/logs/";
 
 	public static final byte AMBIENTE_PRODUCAO = 1;
 	public static final byte AMBIENTE_HOMOLOGACAO = 2;

@@ -1,6 +1,6 @@
 
-import br.com.cds.mobile.framework.BaseApplication;
-import br.com.cds.mobile.framework.utils.AndroidUtils;
+import com.quantium.mobile.framework.BaseApplication;
+import com.quantium.mobile.framework.utils.AndroidUtils;
 
 import android.content.Context;
 import android.database.SQLException;

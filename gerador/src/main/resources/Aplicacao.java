@@ -1,6 +1,6 @@
 
-import br.com.cds.mobile.db.DB;
-import br.com.cds.mobile.framework.BaseApplication;
+import com.quantium.mobile.db.DB;
+import com.quantium.mobile.framework.BaseApplication;
 
 public class Aplicacao extends BaseApplication{
 
