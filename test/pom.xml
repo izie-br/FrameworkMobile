@@ -75,7 +75,7 @@
                 <execution>
                   <phase>generate-sources</phase>
                   <goals>
-                    <goal>checar</goal>
+                    <goal>gerar</goal>
                   </goals>
                 </execution>
               </executions>
@@ -136,7 +136,7 @@
                         <artifactId>gerador</artifactId>
                         <versionRange>[0.2-alpha,)</versionRange>
                         <goals>
-                          <goal>checar</goal>
+                          <goal>gerar</goal>
                         </goals>
                       </pluginExecutionFilter>
                       <action>

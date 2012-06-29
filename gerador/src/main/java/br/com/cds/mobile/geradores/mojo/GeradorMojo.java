@@ -26,7 +26,7 @@ import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 import br.com.cds.mobile.geradores.util.XMLUtil;
 
 /**
- * @goal checar
+ * @goal gerar
  * @requiresProject false
  */
 public class GeradorMojo extends AbstractMojo{
