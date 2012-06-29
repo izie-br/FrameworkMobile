@@ -170,16 +170,16 @@ public class GeradorMojo extends AbstractMojo{
     }
 
     public String getSqlTill(Integer version) throws MojoExecutionException{
-        StringBuilder sb = new StringBuilder();
-        Map<String, String> nodes = XMLUtil.getChildren(
-            getSqlResource(),
-            "//string[contains(@name,\"db_versao_\") and " +
-            "number(substring(@name,11)) < "+(version+1)+"]"
-        );
-        getLog().info(sb.toString());
         StringBuilder out = new StringBuilder();
-        for(String key : nodes.keySet())
-            out.append(nodes.get(key));
+        for (int i = 0; i <= version ; i++) {
+            Map<String, String> nodes = XMLUtil.getChildren(
+                getSqlResource(),
+                "//string[contains(@name,\"db_versao_\") and " +
+                "number(substring(@name,11)) = "+i+"]"
+            );
+            for(String key : nodes.keySet())
+                out.append(nodes.get(key));
+            }
         return out.toString();
     }
 
