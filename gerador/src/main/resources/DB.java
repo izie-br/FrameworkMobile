@@ -1,6 +1,4 @@
 
-import java.lang.ref.SoftReference;
-
 import br.com.cds.mobile.framework.BaseApplication;
 import br.com.cds.mobile.framework.utils.AndroidUtils;
 
