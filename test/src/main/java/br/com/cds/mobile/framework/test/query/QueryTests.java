@@ -2,6 +2,7 @@ package br.com.cds.mobile.framework.test.query;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import android.test.ActivityInstrumentationTestCase2;
 import br.com.cds.mobile.framework.query.Q;
@@ -17,26 +18,23 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 	}
 	
 	public void testQString(){
+		// dados para teste
 		Table t = new Table("tab");
 		Table.Column<String> colStr  = t.addColumn(String.class, "col_str");
 		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");
 		Table.Column<String> colStr2 = t.addColumn(String.class, "col_str_two");
 		Table.Column<Date> colDate = t.addColumn(Date.class, "col_date");
-		Q q = colDate.le(new Date()).and( colStr.eq("blah").or(colStr2.lt("blah2")) ).and(colInt.ge(2));
 
+		Q q = colDate.le(new Date()).and( colStr.eq("blah").or(colStr2.lt("blah2")) ).and(colInt.ge(2));
 		String selectString = q.select(new Table.Column<?>[] {colDate, colStr},new ArrayList<String>());
+
 		String qstrmatch =
 			// parentese de abertura, opcional neste caso
 			"\\s*\\(?\\s*" +
 				// "datetime(caldate) <= ?"
-				SQLiteUtils.dateTimeForColumn(
-						colDate.getTable().getName() + "\\." +
-						colDate.getName()
-				)
-					// nao esquecer os escapes dos parenteses
-					.replace("(", "\\(\\s*")
-					.replace(")", "\\s*\\)") +
-				"\\s*\\<=\\s*\\?\\s*" +
+				escapeRegex(SQLiteUtils.dateTimeForColumn(
+						colDate.getTable().getName() + "." + colDate.getName()
+				)) + "\\s*\\<=\\s*\\?\\s*" +
 				insensitiveRegex("AND") +
 				// "( colStr = ? OR colStrTwo < ? )"
 				"\\s*\\(\\s*" +
@@ -53,49 +51,45 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			colInt.getTable().getName() + "\\." +
 				colInt.getName() +
 				"\\s*\\>=\\s*\\?\\s*";
-//		assertTrue(qstring.matches(qstrmatch));
-		
+
 		String selectRegex =
 			"\\s*" + insensitiveRegex("select") + "\\s+" +
-				SQLiteUtils.dateTimeForColumn(
-						colDate.getTable().getName() + "\\." +
-						colDate.getName()
-				)
-					// nao esquecer os escapes dos parenteses
-					.replace("(", "\\(\\s*").replace(")", "\\s*\\)") +
-				"\\s*,\\s*" +
+				escapeRegex(SQLiteUtils.dateTimeForColumn(
+						colDate.getTable().getName() + "." + colDate.getName()
+				)) + "\\s*,\\s*" +
 				colStr.getTable().getName() + "\\." +colStr.getName() +
 			"\\s+" +insensitiveRegex("from") +"\\s+" + t.getName() +
 			"\\s+" + insensitiveRegex("as") + "\\s+" + t.getName() + "\\s+" +
 			insensitiveRegex("where") +"\\s+" +
 				qstrmatch;
+
 		assertTrue(selectString.matches(
 				selectRegex
 		));
 	}
 
 	public void testJoinQstring () {
+
 		Table table1 = new Table("tab_1");
 		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 		Table table2 = new Table("though_table");
 		Table.Column<Long> colTab2Id = table2.addColumn(Long.class, "id");
 		Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
+
 		Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
-//		String qstring = q.getQString();
-		String qstringRegex =
-			// datetime(though_table.date)<=?
-			"\\s*" +
-			SQLiteUtils.dateTimeForColumn(
-					colTab2Date.getTable().getName() + "\\." +
-						colTab2Date.getName()
-				).replace("(", "\\(\\s*").replace(")", "\\s*\\)") +
-			"\\s*\\<=\\s*\\?\\s*";
-//		assertTrue(qstring.matches(qstringRegex));
-//"  FROM tab_1 JOIN though_table AS though_table ON t1.id=though_table.id
 		String select = q.select(
 				new Table.Column<?> []{colTab1Id, colTab2Id},
 				new ArrayList<String>()
 		);
+
+		String qstringRegex =
+			// datetime(though_table.date)<=?
+			"\\s*" +
+			escapeRegex(SQLiteUtils.dateTimeForColumn(
+					colTab2Date.getTable().getName() + "." +
+					colTab2Date.getName()
+			)) + "\\s*\\<=\\s*\\?\\s*";
+
 		String selectRegex =
 			// SELECT
 			"\\s*" + insensitiveRegex("select") + "\\s+" +
@@ -130,6 +124,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			// WHERE
 			"\\s+" + insensitiveRegex("where") + "\\s+" +
 			qstringRegex;
+
 		assertTrue(select.matches(selectRegex));
 	}
 
@@ -161,7 +156,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			fail ("A query " +select + " eh absurda");
 		} catch (QueryParseException e) {
 			/* Aqui deve acontencer esta excecao mesmo. */
-			/* A condicao menor que NULL eh absurda */
+			/* A condicao "menor que" NULL eh absurda */
 		}
 	}
 
@@ -174,6 +169,16 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			sb.append(']');
 		}
 		return sb.toString();
+	}
+
+	private String escapeRegex(String str) {
+		return str
+//			.replaceAll(Pattern.quote("("), "\\(\\s*")
+//			.replaceAll(Pattern.quote(")"), "\\s*\\)")
+//			.replaceAll(Pattern.quote("."), "\\.");
+			.replace("(", "\\(\\s*")
+			.replace(")", "\\s*\\)")
+			.replace(".", "\\.");
 	}
 
 }
