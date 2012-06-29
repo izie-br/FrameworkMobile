@@ -1,6 +1,11 @@
 package br.com.cds.mobile.geradores.util;
 
+import java.io.File;
 import java.math.BigInteger;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.Date;
 
 public class SQLiteGeradorUtils {
@@ -11,6 +16,52 @@ public class SQLiteGeradorUtils {
 		"DataType \"%s\" sem uma classe java correspodente.\n ---FIXME---@%s::%s";
 	private static final String ERRO_METODO_PARA_CLASSE_JAVA_FORMAT =
 		"Classe \"%s\" sem um metodo do cursor correspodente.\n ---FIXME---@%s::%s";
+
+
+	private static final String DB_FILE_FMT = ".sample%s.db";
+
+	public static String getSchema(String sql) throws SQLException{
+		StringBuilder sb = new StringBuilder();
+		File dbFile = new File(String.format(DB_FILE_FMT, ""));
+		int i = 0;
+
+		while (dbFile.exists()) {
+			System.err.println(dbFile.getAbsolutePath() + " ja existe");
+			i++;
+			dbFile = new File(String.format(DB_FILE_FMT, "_"+i));
+		}
+
+		try {
+			// jdbc pode precisar disso
+			@SuppressWarnings("unused")
+			Class<?> klass = Class.forName("org.sqlite.JDBC");
+
+			Connection connection = DriverManager.getConnection(
+					"jdbc:sqlite:" + dbFile.getAbsolutePath()
+			);
+			// Statement statement = connection.createStatement();
+			// statement.setQueryTimeout(30);
+			String[] stms = sql.split(";");
+			for (String stm : stms) {
+				if (stm.matches("[\\s\\n]*"))
+					break;
+				connection.createStatement().executeUpdate(stm + ";");
+			}
+			ResultSet rs = connection.createStatement().executeQuery(
+					"select sql from sqlite_master;");
+			while (rs.next()) {
+				String sqlTab = rs.getString(rs.findColumn("sql"));
+				if (sqlTab != null)
+					sb.append(sqlTab).append(";");
+			}
+		} catch (ClassNotFoundException e) {
+			throw new RuntimeException(e);
+		}
+		finally{
+			dbFile.delete();
+		}
+		return sb.toString();
+	}
 
 
 	public static Class<?> classeJavaEquivalenteAoTipoSql(String sqlType){

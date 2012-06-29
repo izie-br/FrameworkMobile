@@ -22,7 +22,7 @@ import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
 import br.com.cds.mobile.geradores.GeradorDeBeans;
-import br.com.cds.mobile.geradores.util.SQLiteUtil;
+import br.com.cds.mobile.geradores.util.SQLiteGeradorUtils;
 import br.com.cds.mobile.geradores.util.XMLUtil;
 
 /**
@@ -159,7 +159,7 @@ public class GeradorMojo extends AbstractMojo{
 
     public String sqliteSchema(String sql){
         try {
-            return SQLiteUtil.getSchema(sql);
+            return SQLiteGeradorUtils.getSchema(sql);
         } catch (SQLException e) {
         	e.printStackTrace();
 			throw new RuntimeException(e);
