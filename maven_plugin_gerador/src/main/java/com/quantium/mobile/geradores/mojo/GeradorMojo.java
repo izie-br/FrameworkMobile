@@ -8,8 +8,9 @@ import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
 
-import br.com.cds.mobile.geradores.GeradorDeBeans;
-import br.com.cds.mobile.geradores.GeradorException;
+import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.GeradorException;
+
 
 /**
  * @goal gerar

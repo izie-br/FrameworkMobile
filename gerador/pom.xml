@@ -66,7 +66,7 @@
           <archive>
             <manifest>
               <addClasspath>true</addClasspath>
-              <mainClass>br.com.cds.mobile.geradores.GeradorDeBeans</mainClass>
+              <mainClass>com.quantium.mobile.geradores.GeradorDeBeans</mainClass>
             </manifest>
           </archive>
         </configuration>

@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="br.com.cds.mobile.framework.test" android:versionCode="1" android:versionName="0.2-alpha">
+  package="com.quantium.mobile.framework.test" android:versionCode="1" android:versionName="0.2-alpha">
 
   <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
 
@@ -17,7 +17,7 @@
     </activity>
   </application>
 
-  <instrumentation android:targetPackage="br.com.cds.mobile.framework.test"
+  <instrumentation android:targetPackage="com.quantium.mobile.framework.test"
     android:name="android.test.InstrumentationTestRunner" />
 
 </manifest>
