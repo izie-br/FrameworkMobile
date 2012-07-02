@@ -19,7 +19,6 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.util.ColunasUtils;
-import com.quantium.mobile.geradores.util.JavaBeanUtils;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.sun.codemodel.JTryBlock;
@@ -61,17 +60,14 @@ public class CodeModelDaoFactory {
 
 	private JCodeModel jcm;
 	private String dbClass;
-	private String genericBeanClass;
 	private String getDbStaticMethod;
 
 	public CodeModelDaoFactory(JCodeModel jcm,
-		String dbClass, String getDbStaticMethod,
-		String genericBeanClass
+		String dbClass, String getDbStaticMethod
 	) {
 		super();
 		this.jcm = jcm;
 		this.dbClass = dbClass;
-		this.genericBeanClass = genericBeanClass;
 		this.getDbStaticMethod = getDbStaticMethod;
 	}
 
@@ -1159,11 +1155,6 @@ public class CodeModelDaoFactory {
 	private JExpression getDbExpr(){
 		JClass dbclass = jcm.ref(dbClass);
 		return dbclass.staticInvoke(getDbStaticMethod);
-	}
-
-	private JClass getGenericBeanClass () {
-		JClass genericBean = jcm.ref(genericBeanClass);
-		return genericBean;
 	}
 
 	private JExpression boxify(JVar var){

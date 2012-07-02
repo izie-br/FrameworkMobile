@@ -212,10 +212,10 @@ public class GeradorDeBeans {
 				"." + DB_PACKAGE
 		);
 		String dbClass = pacoteDb + "." +DB_CLASS;
-		String genericBeanClass = pacote;
-		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
-			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
-		genericBeanClass += GENERIC_BEAN_CLASS;
+//		String genericBeanClass = pacote;
+//		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
+//			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
+//		genericBeanClass += GENERIC_BEAN_CLASS;
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
@@ -240,7 +240,7 @@ public class GeradorDeBeans {
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory =
-			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod,genericBeanClass);
+			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
 		CodeModelJsonSerializacaoFactory jsonFactory =
 			new CodeModelJsonSerializacaoFactory(jcm);
 
