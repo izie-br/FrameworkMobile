@@ -12,7 +12,7 @@ import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
-import com.quantium.mobile.geradores.util.ColunasUtils;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCodeModel;
@@ -47,7 +47,7 @@ public class CodeModelJsonSerializacaoFactory {
 		JTryBlock tryBlock = corpoMetodo._try();
 		JBlock corpo = tryBlock.body();
 		JVar jsonObj = corpo.decl(jcm.ref(JSONObject.class), "jsonObj", JExpr._new(jcm.ref(JSONObject.class)));
-		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
+		for(String coluna : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 			JInvocation setJsonField = jsonObj.invoke("put").arg(JExpr.lit(coluna));
@@ -86,7 +86,7 @@ public class CodeModelJsonSerializacaoFactory {
 		jsonObj = jsonToObjectWithPrototype.param(JSONObject.class, "json");
 		corpo = jsonToObjectWithPrototype.body();
 		JVar obj = corpo.decl(klass, "obj", JExpr.invoke("clone"));
-		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
+		for(String coluna : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JInvocation value;
 			value = jsonObj.invoke(SQLiteGeradorUtils.metodoGetDoJsonParaClasse(propriedade.getType()))

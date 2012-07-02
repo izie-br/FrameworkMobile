@@ -259,12 +259,12 @@ public class GeradorDeBeans {
 			} catch (JClassAlreadyExistsException e) {
 				throw new RuntimeException(e);
 			}
-			jbf.gerarConstantes(classeGerada, javaBeanSchema);
+			jbf.generateConstants(classeGerada, javaBeanSchema);
 			for(String coluna : javaBeanSchema.getColunas()){
 				Propriedade p =
 					javaBeanSchema.getPropriedade(coluna);
 				if(p!=null)
-					jbf.gerarPropriedade(classeGerada,p);
+					jbf.generateProperty(classeGerada,p);
 			}
 			jsonFactory.gerarMetodosDeSerializacaoJson(
 					classeGerada,
@@ -278,13 +278,13 @@ public class GeradorDeBeans {
 
 		// gera metodos de acesso a banco e ralacoes
 		for(SchemaXJClass schemaJclass : listClasses){
-			daoFactory.gerarAcessoDB(
+			daoFactory.generateSaveAndObjects(
 					schemaJclass.klass,
 					schemaJclass.schema
 			);
 			for(SchemaXJClass schemaJclassAssoc : listClasses){
 				// gerando relacoes
-				daoFactory.gerarRelacoes(
+				daoFactory.generateAssociationMethods(
 						schemaJclass.klass,
 						schemaJclass.schema,
 						schemaJclassAssoc.klass,
@@ -300,12 +300,12 @@ public class GeradorDeBeans {
 		daoFactory.generateDeleteMethods(map);
 
 		for(SchemaXJClass schemaXJClass : listClasses){
-			jbf.gerarSerialVersionUID(schemaXJClass.klass);
-			jbf.gerarMetodoClone(
+			jbf.generateSerialVersionUID(schemaXJClass.klass);
+			jbf.generateCloneMethod(
 					schemaXJClass.klass,
 					schemaXJClass.schema
 			);
-			jbf.gerarHashCodeAndEquals(
+			jbf.generateHashCodeAndEquals(
 					schemaXJClass.klass,
 					schemaXJClass.schema
 			);

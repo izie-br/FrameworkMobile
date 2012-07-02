@@ -10,7 +10,7 @@ import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
-import com.quantium.mobile.geradores.util.ColunasUtils;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
@@ -29,8 +29,10 @@ import com.sun.codemodel.JVar;
 
 public class CodeModelBeanFactory {
 
-	private static final String ERROR_CLONE_NOT_DEEP_COPY_WARNING = "Metodo clone parece nao fazer deep copy de %s da classe %s";
-	private static final String ERRO_MSG_ARGUMENTO_NULL = "argumento null passado para o metodo %s::%s";
+	private static final String ERROR_CLONE_NOT_DEEP_COPY_WARNING =
+			"Metodo clone parece nao fazer deep copy de %s da classe %s";
+	private static final String ERRO_MSG_ARGUMENTO_NULL =
+			"argumento null passado para o metodo %s::%s";
 
 	private JCodeModel jcm;
 
@@ -38,10 +40,46 @@ public class CodeModelBeanFactory {
 		this.jcm = jcm;
 	}
 
-	public void gerarSetter(JDefinedClass klass, String nomeCampo) {
+	/**
+	 * Nome da funcao setter
+	 * @param fieldName nome do campo em lowerCamelCase
+	 * @return nome do setter
+	 */
+	public static String setterMethodName(String fieldName) {
+		return "set" + Character.toUpperCase(fieldName.charAt(0)) +
+				fieldName.substring(1);
+	}
+
+	/**
+	 * Nome da funcao getter
+	 * @param fieldName nome do campo em lowerCamelCase
+	 * @return nome do getter
+	 */
+	public static String getterMethodName(JFieldVar field) {
+		return (
+				// if(campo.type()==Boolean)
+				(field.type().name().equalsIgnoreCase("boolean")) ?
+					// metodo = "isCampo"
+					"is" : 
+				// else
+					// metodo = "getCampo"
+					"get"
+			) +
+			Character.toUpperCase(field.name().charAt(0)) +
+			field.name().substring(1);
+	}
+
+
+	/**
+	 * Insere na classe especificada um metodo setter padrão para o
+	 * campo especificado.
+	 *
+	 * @param klass classe alvo
+	 * @param nomeCampo campo acessado
+	 */
+	public void generateSetter(JDefinedClass klass, String nomeCampo) {
 		JFieldVar campo = klass.fields().get(nomeCampo);
-		// nomeDoCampo -> NomeDoCampo
-		String nomeCampoCaptalizado = ""+Character.toUpperCase(campo.name().charAt(0))+campo.name().substring(1);
+		String setterMethodName = setterMethodName(campo.name());
 		/* ************************************
 		 *             SETTER                 *
 		 *                                    *
@@ -49,17 +87,21 @@ public class CodeModelBeanFactory {
 		 *     this.campo = campo;            *
 		 * }                                  *
 		 *************************************/
-		JMethod setter = klass.method(JMod.PUBLIC, jcm.VOID, "set"+nomeCampoCaptalizado);
+		JMethod setter = klass.method(JMod.PUBLIC, jcm.VOID, setterMethodName);
 		JVar parametroSetter = setter.param(campo.type(), campo.name());
-		JBlock corpo = setter.body();
-		// JExpr.refthis(campo.name()) == this.campo
-		corpo.assign(JExpr.refthis(campo.name()), parametroSetter);
+		// this.campo = campo;
+		setter.body().assign(JExpr.refthis(campo.name()), parametroSetter);
 	}
 
-	public void gerarGetter(JDefinedClass klass, String nomeCampo) {
+	/**
+	 * Insere na classe especificada um metodo getter padrão para o
+	 * campo especificado.
+	 *
+	 * @param klass classe alvo
+	 * @param nomeCampo campo acessado
+	 */
+	public void generateGetter(JDefinedClass klass, String nomeCampo) {
 		JFieldVar campo = klass.fields().get(nomeCampo);
-		// nomeDoCampo -> NomeDoCampo
-		String nomeCampoCaptalizado = ""+Character.toUpperCase(campo.name().charAt(0))+campo.name().substring(1);
 		/* ***************************
 		 *        GETTER             *
 		 *                           *
@@ -70,15 +112,7 @@ public class CodeModelBeanFactory {
 		JMethod getter = klass.method(
 			JMod.PUBLIC,
 			campo.type(),
-			(
-				// if(campo.type()==Boolean)
-				(campo.type().name().equals("boolean") || campo.type().name().equals("Boolean") ) ?
-					// metodo = "isCampo"
-					"is" : 
-				// else
-					// metodo = "getCampo"
-					"get"
-			) + nomeCampoCaptalizado
+			getterMethodName(campo)
 		);
 		JBlock corpo = getter.body();
 		corpo._return(campo);
@@ -92,17 +126,17 @@ public class CodeModelBeanFactory {
 	 * @param klass
 	 * @param javaBeanSchema
 	 */
-	public void gerarHashCodeAndEquals(JDefinedClass klass,JavaBeanSchema javaBeanSchema){
+	public void generateHashCodeAndEquals(JDefinedClass klass,JavaBeanSchema javaBeanSchema){
 		Collection<JFieldVar> camposUsados = new ArrayList<JFieldVar>();
 
-		for(String campoNome : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)) {
+		for(String campoNome : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)) {
 			JFieldVar campo = klass.fields().get(javaBeanSchema.getPropriedade(campoNome).getNome());
 			if(campo!=null && fieldNotTransientStaticFinal(campo))
 				camposUsados.add(campo);
 		}
 
-		gerarMetodoHashCode(klass, camposUsados);
-		gerarMetodoEquals(klass, camposUsados);
+		generateHashCodeMethod(klass, camposUsados);
+		generateEqualsMethod(klass, camposUsados);
 	}
 
 	/**
@@ -110,7 +144,7 @@ public class CodeModelBeanFactory {
 	 * @param klass
 	 * @param camposUsados
 	 */
-	private void gerarMetodoHashCode(JDefinedClass klass,
+	private void generateHashCodeMethod(JDefinedClass klass,
 			Collection<JFieldVar> camposUsados) {
 		String nome = "hashCode";
 		int valInicial = 1;
@@ -182,7 +216,7 @@ public class CodeModelBeanFactory {
 	 * @param klass
 	 * @param camposUsados
 	 */
-	private void gerarMetodoEquals(JDefinedClass klass,
+	private void generateEqualsMethod(JDefinedClass klass,
 			Collection<JFieldVar> camposUsados) {
 
 		/* ***************************************************
@@ -277,12 +311,14 @@ public class CodeModelBeanFactory {
 	 * que nao sao transient, static ou final
 	 * @param klass
 	 */
-	public void gerarSerialVersionUID(JDefinedClass klass){
+	public void generateSerialVersionUID(JDefinedClass klass){
 		Map<String, JFieldVar> fields = klass.fields();
 		long result = 1;
 		for(String key : fields.keySet()){
 			JFieldVar field = fields.get(key);
 			if(fieldNotTransientStaticFinal(field)){
+				// este algoritmo de gerar o numero e arbitrario
+				// esta linha pode ser alterada com algo que faca sentido
 				result = result*field.name().hashCode() + field.type().fullName().hashCode();
 			}
 		}
@@ -306,9 +342,9 @@ public class CodeModelBeanFactory {
 	 * @param propriedades
 	 * @return classeBean com propriedades econtradas
 	 */
-	public JDefinedClass gerarPropriedades(JDefinedClass classeBean, Collection<Propriedade> propriedades){
+	public JDefinedClass generateProperties(JDefinedClass classeBean, Collection<Propriedade> propriedades){
 		for(Propriedade propriedade: propriedades){
-			gerarPropriedade(classeBean, propriedade);
+			generateProperty(classeBean, propriedade);
 		}
 		return classeBean;
 	}
@@ -318,16 +354,15 @@ public class CodeModelBeanFactory {
 	 * @param classeBean
 	 * @param propriedade
 	 */
-	public void gerarPropriedade(JDefinedClass classeBean, Propriedade propriedade) {
-		JType tipo = getTipo(propriedade.getType());
+	public void generateProperty(JDefinedClass classeBean, Propriedade propriedade) {
+		JType tipo = jcmType(propriedade.getType());
 		// campos privados
 		classeBean.field(JMod.PRIVATE, tipo, propriedade.getNome());
 		// getters e setters
-		// mas se for o id, gerar apenas o getter
 		if(propriedade.isSet())
-			gerarSetter(classeBean, propriedade.getNome());
+			generateSetter(classeBean, propriedade.getNome());
 		if(propriedade.isGet())
-			gerarGetter(classeBean, propriedade.getNome());
+			generateGetter(classeBean, propriedade.getNome());
 	}
 
 	/**
@@ -336,8 +371,13 @@ public class CodeModelBeanFactory {
 	 * @return classe gerada
 	 * @throws JClassAlreadyExistsException
 	 */
-	public JDefinedClass generateClass(String basePackage, String genPackage, String name)
-			throws JClassAlreadyExistsException {
+	public JDefinedClass generateClass(
+			String basePackage,
+			String genPackage,
+			String name
+	)
+		throws JClassAlreadyExistsException
+	{
 		/* *********************************************************
 		 * package nome.completo.do.pacote;                        *
 		 *                                                         *
@@ -345,28 +385,41 @@ public class CodeModelBeanFactory {
 		 *                                                         *
 		 * }                                                       *
 		 **********************************************************/
-		JDefinedClass classeBean = jcm._class(
+		String pack = (
+				// if package em branco
+				(basePackage == null || basePackage.matches("\\s*")) ?
+					// append ""
+					"" :
+				// else
+					(basePackage + ".")
+			) + (
+			// if package em branco
+				(genPackage == null || genPackage.matches("\\s*")) ?
+					// append ""
+					"" :
+				// else
+				(genPackage + ".")
+		);
+		JDefinedClass beanClass = jcm._class(
 				JMod.PUBLIC,
-				basePackage + (
-					(genPackage == null || genPackage.matches("\\s*")) ?
-						"" :
-						("." + genPackage)
-				) + "." + name,
+				pack + name,
 				ClassType.CLASS
 		);
 		JClass genericBean = jcm.ref(basePackage + "." + GeradorDeBeans.GENERIC_BEAN_CLASS);
-		JClass jsonSerializable = jcm.ref(JsonSerializable.class).narrow(classeBean);
-		classeBean._implements(jsonSerializable);
-		classeBean._extends(genericBean);
-		return classeBean;
+		JClass jsonSerializable = jcm.ref(JsonSerializable.class).narrow(beanClass);
+		beanClass._implements(jsonSerializable);
+		beanClass._extends(genericBean);
+
+		return beanClass;
 	}
 
 	/**
 	 * Gera as constantes com nomes das colunas e da tabela
+	 *
 	 * @param klass
 	 * @param javaBeanSchema
 	 */
-	public void gerarConstantes(JDefinedClass klass, JavaBeanSchema javaBeanSchema) {
+	public void generateConstants(JDefinedClass klass, JavaBeanSchema javaBeanSchema) {
 		JClass tableClass = jcm.ref(Table.class);
 		JFieldVar table = klass.field(
 			JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
@@ -376,7 +429,7 @@ public class CodeModelBeanFactory {
 					JExpr.lit(javaBeanSchema.getTabela().getNome())
 			)
 		);
-		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
+		for(String coluna : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)){
 			if(coluna==null)
 				continue;
 			Class<?> type = javaBeanSchema.getPropriedade(coluna).getType();
@@ -398,7 +451,7 @@ public class CodeModelBeanFactory {
 	 * @param klass
 	 * @param javaBeanSchema
 	 */
-	public void gerarMetodoClone(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+	public void generateCloneMethod(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		/* **********************************************
 		 * public Klass clone() {                       *
 		 *     klass obj;                               *
@@ -434,7 +487,7 @@ public class CodeModelBeanFactory {
 			.body()
 			._return(JExpr._null());
 
-		for(String coluna : ColunasUtils.colunasOrdenadasDoJavaBeanSchema(javaBeanSchema)){
+		for(String coluna : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 
@@ -446,7 +499,7 @@ public class CodeModelBeanFactory {
 			//	);
 
 			// usar o valor obtido com o clone binario da interface cloneable
-			if(campo.type().isPrimitive()||campo.type().equals(getTipo(String.class))) {
+			if(campo.type().isPrimitive()||campo.type().equals(jcmType(String.class))) {
 				continue;
 			}
 
@@ -493,7 +546,7 @@ public class CodeModelBeanFactory {
 	 * @param klass
 	 * @return
 	 */
-	public JType getTipo(Class<?> klass){
+	public JType jcmType(Class<?> klass){
 		if(klass==null)
 			throw new RuntimeException(String.format(
 					ERRO_MSG_ARGUMENTO_NULL,

@@ -11,10 +11,10 @@ import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;
 
 
-public class ColunasUtils {
+public class ColumnsUtils {
 
 
-	private static final class ComparadorPorTipoENome implements
+	private static final class TypeAndNameComparator implements
 			Comparator<TabelaSchema.Coluna> {
 		@Override
 		public int compare(Coluna col1, Coluna col2) {
@@ -24,12 +24,13 @@ public class ColunasUtils {
 		}
 	}
 
-	public static List<String> colunasOrdenadasDoJavaBeanSchema(
-			JavaBeanSchema javaBeanSchema) {
+	public static List<String> orderedColumnsFromJavaBeanSchema(
+			JavaBeanSchema javaBeanSchema
+	) {
 
 		Set<TabelaSchema.Coluna> setOrdenado = 
 			new TreeSet<TabelaSchema.Coluna>(
-				new ComparadorPorTipoENome()
+				new TypeAndNameComparator()
 			);
 		setOrdenado.addAll(javaBeanSchema.getTabela().getColunas());
 
