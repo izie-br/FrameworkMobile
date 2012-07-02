@@ -5,6 +5,7 @@
 CREATE TABLE tb_document (
     id integer NOT NULL PRIMARY KEY,
     title varchar(79) NOT NULL,
+    created_at timestamp NOT NULL,
     id_author integer,
     text text NOT NULL
 );

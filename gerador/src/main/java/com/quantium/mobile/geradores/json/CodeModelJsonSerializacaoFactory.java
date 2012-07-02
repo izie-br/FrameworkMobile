@@ -150,13 +150,10 @@ public class CodeModelJsonSerializacaoFactory {
 					SQLiteGeradorUtils.metodoOptDoJsonParaClasse(
 						propriedade.getType()
 					)
-				).arg(coluna)
-				.arg(klass.fields().get(propriedade.getNome()));
+				).arg(coluna);
 			if(propriedade.getNome().equals(primaryKeyNome)){
 				// obj.id = json.optLong("id", 0L);
-				value = jsonObj.invoke(SQLiteGeradorUtils.metodoOptDoJsonParaClasse(propriedade.getType()))
-					.arg(coluna)
-					.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));
+				value = value.arg(JExpr.lit(CodeModelDaoFactory.ID_PADRAO));
 			} else if(propriedade.getType().equals(Date.class)){
 				/*
 				 *     obj.data = DateUtil.stringToDate(
@@ -164,7 +161,14 @@ public class CodeModelJsonSerializacaoFactory {
 				 *     );
 				 */
 				value = jcm.ref(DateUtil.class).staticInvoke("stringToDate")
-					.arg(value);
+					.arg(
+						value.arg(
+							jcm.ref(DateUtil.class).staticInvoke("dateToString")
+							.arg(klass.fields().get(propriedade.getNome()))
+						)
+					);
+			} else {
+				value = value.arg(klass.fields().get(propriedade.getNome()));
 			}
 			corpo.assign(
 					obj.ref(klass.fields().get(propriedade.getNome())),

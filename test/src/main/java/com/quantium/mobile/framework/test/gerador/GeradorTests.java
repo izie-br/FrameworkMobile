@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.test.gerador;
 
 import java.util.Collection;
+import java.util.Date;
 import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
@@ -204,6 +205,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Document document = new Document();
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
+		document.setCreatedAt(new Date(0));
 		return document;
 	}
 
