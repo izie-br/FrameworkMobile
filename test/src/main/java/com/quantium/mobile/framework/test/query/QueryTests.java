@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.test.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
 import java.util.regex.Pattern;
 
@@ -10,6 +11,7 @@ import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
+import com.quantium.mobile.framework.test.gen.Author;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -159,6 +161,35 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			/* A condicao "menor que" NULL eh absurda */
 		}
 	}
+
+	public void testLikeAndGlob(){
+		Author author1 = new Author();
+		author1.setName("um nome");
+		assertTrue(author1.save());
+		Author author2 = new Author();
+		author2.setName("outro nome");
+		assertTrue(author2.save());
+		Author author3 = new Author();
+		author3.setName("outro");
+		assertTrue(author3.save());
+		// buscas com LIKE
+		Collection<Author> authors = Author.objects()
+			.filter(Q.like(Author.NAME,"%no_e"))
+			.all();
+		assertNotNull(authors);
+		assertEquals(2, authors.size());
+		assertTrue(authors.contains(author1));
+		assertTrue(authors.contains(author2));
+		// buscas com GLOB
+		authors = Author.objects()
+			.filter(Q.glob(Author.NAME,"*[nm]?[mw]e"))
+			.all();
+		assertNotNull(authors);
+		assertEquals(2, authors.size());
+		assertTrue(authors.contains(author1));
+		assertTrue(authors.contains(author2));
+	}
+
 
 	public String insensitiveRegex(String str) {
 		StringBuilder sb = new StringBuilder();

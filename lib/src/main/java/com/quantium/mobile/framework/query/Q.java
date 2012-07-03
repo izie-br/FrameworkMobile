@@ -6,7 +6,9 @@ import java.util.List;
 
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 
-
+/**
+ * Classe geradora de querystrings.
+ */
 public final class Q {
 
     private static final String NULL_ARGUMENT_EXCEPTION_FMT =
@@ -19,10 +21,23 @@ public final class Q {
     private QNode root;
 
 
+    /**
+     * Busca simples por tabela sem filtros.
+     * @param table tabela
+     */
     public Q (Table table) {
         this.table = table;
     }
 
+    /**
+     * <p>Gera uma queryString &quot;column op ?&quot;.</p>
+     * <p>O argumento tambem é armazenado.</p>
+     * <p>Exemplo: &quot;id = ?&quot;, com argumento long &quot;1&quot;</p>
+     *
+     * @param colum coluna
+     * @param op operador Op1x1
+     * @param arg argumento
+     */
     public <T> Q (Table.Column<T> column, Op1x1 op, T arg){
         this.table = column.getTable();
         init1x1(column, op, arg);
@@ -36,6 +51,16 @@ public final class Q {
         this.root = node;
     }
 
+    /**
+     * <p>
+     *   Gera uma queryString &quot;column1 op coluna2&quot; ou então um
+     *   &quot;inner join table2 on table1.column1 op table2.coluna2&quot;.
+     * </p>
+     *
+     * @param colum coluna
+     * @param op operador Op1x1
+     * @param otherColumn outra coluna
+     */
     public <T> Q (
         Table.Column<T> column,
         Op1x1 op,
@@ -53,6 +78,12 @@ public final class Q {
         }
     }
 
+    /**
+     * <p>Gera uma queryString &quot;column op&quot;</p>
+     *
+     * @param colum coluna
+     * @param op operador OpUnary
+     */
     public Q (Table.Column<?> column, OpUnary op) {
         QNodeUnary node = new QNodeUnary ();
         node.column = column;
@@ -60,7 +91,10 @@ public final class Q {
         this.root = node;
     }
 
-
+    /**
+     * Força agrupamento em um fragmento querystring, envolvendo-o com
+     * perênteses.
+     */
     public Q (Q q){
         this.table = q.table;
         if (q.joins != null)
@@ -72,6 +106,10 @@ public final class Q {
         }
     }
 
+    /**
+     * Usa o operador NOT em um fragmento querystring, envolvendo-o com
+     * perênteses.
+     */
     public static Q not (Q q){
         Q out = new Q(q);
         // alterar se o o construtor "Q (Q)" for alterado
@@ -80,11 +118,50 @@ public final class Q {
         return q;
     }
 
+    /**
+     * <p>Faz a busca por texto com operador LIKE.</p>
+     * <p>Exemplo: &quot;colunm LIKE ?&quot;</p>
+     *
+     * @param colum coluna
+     * @param pattern expressao
+     */
+    public static Q like ( Table.Column<String> column, String pattern) {
+        return new Q(column, Op1x1.LIKE, pattern);
+    }
 
+    /**
+     * <p>Faz a busca por texto com operador GLOB (unix-like).</p>
+     * <p>Exemplo: &quot;colunm GLOB ?&quot;</p>
+     *
+     * @param colum coluna
+     * @param pattern expressao
+     */
+    public static Q glob ( Table.Column<String> column, String pattern) {
+        return new Q(column, Op1x1.GLOB, pattern);
+    }
+
+    /*
+     * <p>Faz a busca por texto com operador REGEXP.</p>
+     * <p>Exemplo: &quot;colunm REGEXP ?&quot;</p>
+     *
+     * @param colum coluna
+     * @param pattern expressao
+     *
+    public static Q regexp( Table.Column<String> column, String pattern) {
+        return new Q(column, Op1x1.REGEXP, pattern);
+    }
+     */
+
+    /**
+     * Combina dois fragmentos de querystring usando o operador AND.
+     */
     public Q and (Q q) {
         return mergeQs (this, " AND ", q);
     }
 
+    /**
+     * Combina dois fragmentos de querystring usando o operador OR.
+     */
     public Q or (Q q) {
         return mergeQs (this, " OR ", q);
     }
@@ -279,6 +356,9 @@ public final class Q {
         Table.Column<?> column;
     }
 
+    /**
+     * Operadores unarios. Operam uma coluna.
+     */
     public static enum OpUnary {
         ISNULL, NOTNULL;
 
@@ -289,9 +369,13 @@ public final class Q {
         }
     }
 
+    /**
+     * Operadores 1x1. Operam uma coluna com outra coluna, ou coluna com
+     * uma argumento.
+     */
     public static enum Op1x1 {
 
-        NE, EQ, LT, GT, LE, GE /*, IN*/;
+        NE, EQ, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
 
         public String toString() throws QueryParseException {
             return
@@ -300,11 +384,14 @@ public final class Q {
                 this == LT     ?  "<"      :
                 this == GT     ?  ">"      :
                 this == LE     ?  "<="     :
-                /* this == GE ?*/ ">="     ;
-                /* this == LIKE             ?  " LIKE " : */
+                this == GE     ?  ">="     :
+                this == LIKE   ?  " LIKE " :
+             /* this == GLOB   ?*/" GLOB " ;
+             /* this == REGEXP ? " REGEXP "; */
                 /*this == IN   ?  " IN " ; */
         }
     }
+
 
 
 }
