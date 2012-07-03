@@ -205,7 +205,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Document document = new Document();
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
-		document.setCreatedAt(new Date(0));
+		Date now = new Date();
+		document.setCreatedAt( new Date(
+			now.getYear(), now.getMonth(), now.getDate(),
+			now.getHours(), now.getMinutes()//, now.getSeconds()
+		));
 		return document;
 	}
 

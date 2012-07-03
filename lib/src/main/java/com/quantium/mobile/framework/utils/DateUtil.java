@@ -22,7 +22,10 @@ public class DateUtil {
 	private static int STRING_TO_DATE_DIA[] = {8,10};
 	private static int STRING_TO_DATE_HORAS[] = {11,13};
 	private static int STRING_TO_DATE_MINUTOS[] = {14,16};
-	private static int STRING_TO_DATE_SEGUNDOS[] = {17};
+	private static int STRING_TO_DATE_SEGUNDOS[] = {17,19};
+
+	public static final int FORMATO_TIMESTAMP_LENGTH =
+		STRING_TO_DATE_SEGUNDOS[1];
 
 	public static Date adicionaMeses(Date date, int meses) {
 		long atual = date.getTime();
@@ -117,7 +120,7 @@ public class DateUtil {
 				STRING_TO_DATE_DIA[0], STRING_TO_DATE_DIA[1]
 		));
 		int horas = 0, minutos = 0, segundos = 0;
-		if(dateString.length()>=FORMATO_TIMESTAMP.length()){
+		if(dateString.length()>=FORMATO_TIMESTAMP_LENGTH){
 			horas = Integer.parseInt(dateString.substring(
 					STRING_TO_DATE_HORAS[0], STRING_TO_DATE_HORAS[1]
 			));
