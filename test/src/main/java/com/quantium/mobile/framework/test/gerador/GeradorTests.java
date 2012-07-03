@@ -107,7 +107,17 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		} catch (JSONException e) {
 			fail(e.getLocalizedMessage());
 		}
-		
+		// A classe document tem um campo date mais "desafiador"
+		Document doc = randomDocument();
+		json = doc.toJson();
+		assertNotNull(json);
+		try {
+			Document docDesserialized = new Document()
+				.jsonToObjectWithPrototype(json);
+			assertEquals(doc, docDesserialized);
+		} catch (JSONException e) {
+			fail(e.getLocalizedMessage());
+		}
 	}
 
 	public void testGenericBean() {

@@ -95,7 +95,7 @@ public class CodeModelJsonSerializacaoFactory {
 			else {
 				JExpression value = campo;
 				if(propriedade.getType().equals(Date.class)){
-					value = jcm.ref(DateUtil.class).staticInvoke("dateToString").arg(value);
+					value = jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(value);
 				}
 				/*
 				 * jsonObj.put("campo", campo);
@@ -163,7 +163,7 @@ public class CodeModelJsonSerializacaoFactory {
 				value = jcm.ref(DateUtil.class).staticInvoke("stringToDate")
 					.arg(
 						value.arg(
-							jcm.ref(DateUtil.class).staticInvoke("dateToString")
+							jcm.ref(DateUtil.class).staticInvoke("timestampToString")
 							.arg(klass.fields().get(propriedade.getNome()))
 						)
 					);

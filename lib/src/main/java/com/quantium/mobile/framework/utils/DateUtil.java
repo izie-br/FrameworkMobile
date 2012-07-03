@@ -89,6 +89,8 @@ public class DateUtil {
 
 	@SuppressWarnings("deprecation")
 	public static String timestampToString(Date date){
+		if (date == null)
+			return null;
 		return String.format(FORMATO_TIMESTAMP,
 				date.getYear()+1900,
 				date.getMonth()+1,
@@ -101,6 +103,8 @@ public class DateUtil {
 
 	@SuppressWarnings("deprecation")
 	public static String dateToString(Date date){
+		if (date == null)
+			return null;
 		return String.format(FORMATO_DATE,
 				date.getYear()+1900,
 				date.getMonth()+1,
@@ -110,6 +114,8 @@ public class DateUtil {
 
 	@SuppressWarnings("deprecation")
 	public static Date stringToDate(String dateString){
+		if (dateString == null)
+			return null;
 		int ano = Integer.parseInt(dateString.substring(
 				STRING_TO_DATE_ANO[0], STRING_TO_DATE_ANO[1]
 		)) - 1900;
