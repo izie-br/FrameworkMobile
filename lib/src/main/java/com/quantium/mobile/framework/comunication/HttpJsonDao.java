@@ -3,6 +3,7 @@ package com.quantium.mobile.framework.comunication;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -52,7 +53,8 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			"text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 
 	private static final String JSON_TOKEN_EXCEPTION_FMT =
-		"caractere(s) %s esperado, %s encontrado";
+		"caractere(s) %s esperado, %s encontrado."+
+		"Continuacao da resposta:\n%s";
 	private String url;
 	private T prototype;
 	private Iterator<T> iterator;
@@ -369,7 +371,9 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			if (c != '{')
 				throw new JSONException(String.format(
 					JSON_TOKEN_EXCEPTION_FMT,
-					"{",""+c
+					"{",
+					""+c,
+					nextChars(512, reader)
 				));
 
 			// key
@@ -378,7 +382,9 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			case 0:
 				throw new JSONException(String.format(
 					JSON_TOKEN_EXCEPTION_FMT,
-					"<jsonkey>", "<0>"
+					"<jsonkey>",
+					"<0>",
+					nextChars(512, reader)
 				));
 			case '}':
 				return false;
@@ -400,7 +406,9 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			default:
 				throw new JSONException(String.format(
 					JSON_TOKEN_EXCEPTION_FMT,
-					"=, => ou : ",""+c
+					"=, => ou : ",
+					""+c,
+					nextChars(512, reader)
 				));
 			}
 
@@ -420,7 +428,12 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 					return true;
 				}
 				if (c != '{')
-					throw new JSONException("json incompleto");
+					throw new JSONException(String.format(
+						JSON_TOKEN_EXCEPTION_FMT,
+						"{",
+						""+c,
+						nextChars(512, reader)
+					));
 				keysToArrayIndex++;
 				continue;
 			}
@@ -440,6 +453,29 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			}
 		} // for
 	}
+
+	private String nextChars(int quantity, Reader reader) {
+		char buffer[] = new char[quantity];
+		int readCount = 0;
+		int lastCount = 0;
+		while (lastCount >= 0) {
+			try {
+				lastCount = reader.read(
+					buffer,
+					readCount,
+					buffer.length - readCount
+				);
+			} catch (IOException e) {
+				return new String(buffer, 0, readCount) +
+					"<IOException>";
+			}
+			if (lastCount < 0 || readCount >= quantity)
+				break;
+			readCount += lastCount;
+		}
+		return new String(buffer, 0, readCount);
+	}
+
 
 	protected String getUserAgent() {
 		return USER_AGENT;
