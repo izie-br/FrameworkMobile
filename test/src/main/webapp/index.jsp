@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <%@ taglib prefix="tags" tagdir="/WEB-INF/tags" %>
-<%@ page contentType="text/html; charset=UTF-8" %>
+<%@ page contentType="text/plain; charset=UTF-8" %>
 <%@ page import="org.json.JSONObject" %>
 
 <c:set var="query" value="query" scope="page" />
