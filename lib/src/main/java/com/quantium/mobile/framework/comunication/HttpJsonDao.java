@@ -51,6 +51,8 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			"text/html,application/xml,application/xhtml+xml," +
 			"text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5";
 
+	private static final String JSON_TOKEN_EXCEPTION_FMT =
+		"caractere(s) %s esperado, %s encontrado";
 	private String url;
 	private T prototype;
 	private Iterator<T> iterator;
@@ -365,13 +367,19 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 		for(;;) {
 			// chave de abertura
 			if (c != '{')
-				throw new JSONException("json incompleto");
+				throw new JSONException(String.format(
+					JSON_TOKEN_EXCEPTION_FMT,
+					"{",""+c
+				));
 
 			// key
 			c = tokener.nextClean();
 			switch (c) {
 			case 0:
-				throw new JSONException("json incompleto");
+				throw new JSONException(String.format(
+					JSON_TOKEN_EXCEPTION_FMT,
+					"<jsonkey>", "<0>"
+				));
 			case '}':
 				return false;
 			default:
@@ -390,7 +398,10 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends GenericComunicac
 			case ':':
 				break;
 			default:
-				throw new JSONException("json incompleto");
+				throw new JSONException(String.format(
+					JSON_TOKEN_EXCEPTION_FMT,
+					"=, => ou : ",""+c
+				));
 			}
 
 			// conferir se eh uma das chaves que levam aos objetos
