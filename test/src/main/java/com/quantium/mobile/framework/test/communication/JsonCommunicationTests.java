@@ -14,7 +14,7 @@ import com.quantium.mobile.framework.test.TestActivity;
 public class JsonCommunicationTests extends
 ActivityInstrumentationTestCase2<TestActivity> {
 
-	private static final String URL = "http://10.0.2.2:9090/";
+	private static final String URL = "http://10.0.2.2:9091/";
 
 	private static final String CLASSNAME_PARAM = "classname";
 	private static final String METHOD_PARAM = "method";
