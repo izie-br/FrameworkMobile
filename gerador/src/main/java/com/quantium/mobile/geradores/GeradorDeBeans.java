@@ -188,6 +188,8 @@ public class GeradorDeBeans {
 	{
 
 		String pacote = getBasePackage(androidManifestFile);
+		conferirArquivosCustomSrc(pacote, pastaSrc);
+
 		Integer dbVersion = getDBVersion(pastaSrc, pacote);
 		if(dbVersion==null)
 			throw new GeradorException("versao do banco nao encontrada");
@@ -205,7 +207,6 @@ public class GeradorDeBeans {
 			}
 		}
 
-		conferirArquivosCustomSrc(pacote, pastaSrc);
 		String pacoteDb = pacote + (
 			(DB_PACKAGE == null || DB_PACKAGE.matches("\\s*")) ?
 				"" :
@@ -560,6 +561,7 @@ public class GeradorDeBeans {
 					@Override public void visit(Select arg0) {}
 				});
 			}
+			reader.close();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
