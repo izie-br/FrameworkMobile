@@ -62,13 +62,13 @@ public class SqlTabelaSchemaFactory {
 			/*
 			 * inserindo o nome da tabela aqui
 			 */
-			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(ct.getTable().getName());
+			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(ct.getTable().getName().toLowerCase());
 			// colunas
 			@SuppressWarnings("unchecked")
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
 			int primaryKeyCount = 0;
 			for(ColumnDefinition colunaDefinition :  columnDefinitions){
-				String nomeColuna = colunaDefinition.getColumnName();
+				String nomeColuna = colunaDefinition.getColumnName().toLowerCase();
 				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(
 						colunaDefinition.getColDataType().getDataType()
 				);
