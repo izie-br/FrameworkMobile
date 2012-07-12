@@ -376,7 +376,7 @@ public class GeradorDeBeans {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
 				+ "contains(@name,\"db_versao_\") and "
-				+ "number(substring(@name,11)) < " + (version++) + "]//text()");
+				+ "number(substring(@name,11)) < " + (++version) + "]//text()");
 		for (String node : nodes)
 			out.append(node);
 		return out.toString();
