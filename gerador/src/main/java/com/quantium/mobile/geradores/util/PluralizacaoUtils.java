@@ -10,8 +10,9 @@ public class PluralizacaoUtils {
 	@SuppressWarnings("serial")
 	private static List<PluralizacaoUtils.Regra> regras = new ArrayList<PluralizacaoUtils.Regra>(){
 		{
-			add(new Regra("(.*)ao$", "$1oes"));
-			add(new Regra("(.*[rsz])$", "$1es"));
+			//add(new Regra("(.*)ao$", "$1oes"));
+			//add(new Regra("(.*[r])$", "$1es"));
+			add(new Regra("(.*[sz])$", "$1es"));
 			add(new Regra("(.*)$", "$1s"));
 		}
 	};
