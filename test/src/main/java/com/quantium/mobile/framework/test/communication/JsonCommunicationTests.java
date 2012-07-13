@@ -7,7 +7,7 @@ import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
-import com.quantium.mobile.framework.comunication.HttpJsonDao;
+import com.quantium.mobile.framework.communication.HttpJsonDao;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
 

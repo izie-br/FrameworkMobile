@@ -1,4 +1,4 @@
-package com.quantium.mobile.framework.comunication;
+package com.quantium.mobile.framework.communication;
 
 import java.io.IOException;
 import java.io.InputStream;
