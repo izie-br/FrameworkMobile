@@ -8,6 +8,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.communication.HttpJsonDao;
+import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
 
@@ -26,21 +27,21 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		new HttpJsonDao<Author>(new Author())
-			.setURL(URL)
-			.setParameter(METHOD_PARAM, "clear")
-			.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName())
-			.send();
+		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
+		dao.setURL(URL);
+		dao.setParameter(METHOD_PARAM, "clear");
+		dao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		dao.send();
 	}
 
 	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		new HttpJsonDao<Author>(new Author())
-		.setURL(URL)
-			.setParameter(METHOD_PARAM, "clear")
-			.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName())
-		.send();
+		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
+		dao.setURL(URL);
+		dao.setParameter(METHOD_PARAM, "clear");
+		dao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		dao.send();
 	}
 
 	public void testEnviarJson(){
@@ -74,18 +75,18 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
 		HttpJsonDao<Author> authorsDao =
-			new HttpJsonDao<Author>(new Author())
-				.setURL(URL)
-				.setParameter(METHOD_PARAM, "insert")
-				.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName())
-				.setBodyKey("json")
-				.setKeysToObjectArray("list")
-				.setIterator(list.iterator());
+			new HttpJsonDao<Author>(new Author());
+			authorsDao.setURL(URL);
+			authorsDao.setParameter(METHOD_PARAM, "insert");
+			authorsDao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+			authorsDao.setSerializedBodyParameter("json");
+			authorsDao.setKeysToObjectList("list");
+			authorsDao.setIterator(list.iterator());
 
 
 		Iterator<Author> received = null;
 		try {
-			received = authorsDao.send();
+			received = authorsDao.send().getIterator();
 		} catch (FrameworkException e) {
 			fail(e.getMessage());
 		}
@@ -103,14 +104,14 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		saveOnServer(list);
 
-		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author())
-				.setURL(URL)
-				.setParameter(METHOD_PARAM, "query")
-				.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName())
-				.setKeysToObjectArray("list");
+		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author());
+		authorsDao.setURL(URL);
+		authorsDao.setParameter(METHOD_PARAM, "query");
+		authorsDao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		authorsDao.setKeysToObjectList("list");
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.send();
+			it = authorsDao.send().getIterator();
 		} catch (FrameworkException e) {
 			fail();
 		}

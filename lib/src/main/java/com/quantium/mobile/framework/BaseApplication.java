@@ -4,7 +4,6 @@ import com.quantium.mobile.framework.sync.Synchronizer;
 
 import android.app.Application;
 import android.content.Context;
-import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 
 // TODO refatorar o sincronizador e serviceConnection
@@ -12,7 +11,7 @@ public abstract class BaseApplication extends Application{
 
 	private static BaseApplication instance;
 	private static Synchronizer sincronizador;
-	private static ServiceConnection serviceConnection;
+//	private static ServiceConnection serviceConnection;
 
 	public abstract int dbVersion();
 
@@ -52,6 +51,7 @@ public abstract class BaseApplication extends Application{
 		BaseApplication.sincronizador = sincronizador;
 	}
 
+/*
 	public static ServiceConnection getServiceConnection() {
 		return serviceConnection;
 	}
@@ -59,5 +59,5 @@ public abstract class BaseApplication extends Application{
 	public static void setServiceConnection(ServiceConnection serviceConnection) {
 		BaseApplication.serviceConnection = serviceConnection;
 	}
-
+*/
 }

@@ -1,6 +1,6 @@
 package com.quantium.mobile.framework.communication;
 
-public interface MudancaEstadoComunicacaoListener {
+public interface ConnectionStatusChangeListener {
 	public void onConectado();
 
 	public void onDesconectado();
