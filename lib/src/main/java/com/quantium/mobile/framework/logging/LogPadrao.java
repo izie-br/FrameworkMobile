@@ -72,7 +72,14 @@ public class LogPadrao {
 	 * @param t
 	 */
 	public static void e(Throwable t){
-		e(getStackTrace(t));
+		String stackTrace = getStackTrace(t);
+		e (
+			(stackTrace == null) ?
+				//
+				"Exception sem stack trace" :
+				//
+				stackTrace
+		);
 	}
 
 	/**

@@ -1,9 +1,8 @@
 package com.quantium.mobile.framework.communication;
 
-import java.util.Iterator;
 import java.util.Map;
 
-public abstract class SerializedCommunication<T> extends GenericCommunication{
+public abstract class SerializedCommunication extends GenericCommunication{
 
 	/**
 	 * Remove o mapa de parametros do corpo anterior e troca pelo mapa
@@ -11,7 +10,7 @@ public abstract class SerializedCommunication<T> extends GenericCommunication{
 	 *
 	 * @param parameters novo mapa de parametros
 	 */
-	public abstract void setSerializedBodyExtraData(Map<String,Object> bodyParameters);
+	public abstract void setSerializedBodyData(Map<String,Object> bodyParameters);
 
 	/**
 	 * Altera o parametro para onde vai o corpo
@@ -27,12 +26,5 @@ public abstract class SerializedCommunication<T> extends GenericCommunication{
 	 * @param keys
 	 */
 	public abstract void setKeysToObjectList(String...keysToObject);
-
-	/**
-	 *p Armazena um iterador de objetos para enviar
-	 *
-	 * @param iterator iterador de colecao de objetos pare enviar
-	 */
-	public abstract void setIterator(Iterator<T> iterator);
 
 }

@@ -23,7 +23,7 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 
-public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommunication<T> {
+public class HttpJsonDao<T extends JsonSerializable<T>> extends ObjectListCommunication<T> {
 
 	private static final String ACCEPT_HEADER ="application/json";
 
@@ -86,7 +86,7 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommun
 		this.getParameters().put(key, value);
 	}
 
-	public void setSerializedBodyExtraData (Map<String,Object> bodyParameters) {
+	public void setSerializedBodyData (Map<String,Object> bodyParameters) {
 		this.bodyParameters = bodyParameters;
 	}
 
@@ -114,12 +114,27 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommun
 		return this.parameters;
 	}
 
-	public SerializedCommunicationResponse<T> send () throws FrameworkException{
+	private static void putSerializedBodyParameters(
+			JSONObject target,
+			Map<?,?> parameters,
+			String except
+	)
+			throws JSONException
+	{
+		for (Object key : parameters.keySet()){
+			if (key != except){
+				target.put(key.toString(), parameters.get(key));
+			}
+		}
+
+	}
+
+	public ObjectListCommunicationResponse<T> send () throws FrameworkException{
 		try{
 			HttpResponse response = null;
-			int connectionTries = 1;
+			int connectionTries = 0;
 			for(;;){
-				Exception exceptions [] = new Exception[CONNECTION_RETRY_COUNT+1];
+				String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
 				try{
 					JSONArray jsonarray = null;
 					if (iterator != null ){
@@ -132,13 +147,24 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommun
 							json = jsonarray.toString();
 						} else {
 							JSONObject obj = new JSONObject();
+							Map<?,?> bodyMap = bodyParameters;
 							JSONObject current = obj;
 							for (int i = 0; ; i++) {
+								if (bodyMap != null ){
+									putSerializedBodyParameters(obj, bodyMap, keysToObjectArray[i]);
+									Object innerMap = bodyMap.get(keysToObjectArray[i]);
+									bodyMap = (innerMap != null && innerMap instanceof Map) ?
+											//
+											(Map<?,?>)innerMap :
+											//
+											null;
+								}
+
 								if (i == keysToObjectArray.length -1) {
 									current.put(keysToObjectArray[i], jsonarray);
 									break;
 								}
-									current = new JSONObject();
+								current = new JSONObject();
 								obj.put(keysToObjectArray[i], current);
 							}
 							json = obj.toString();
@@ -147,9 +173,9 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommun
 					}
 					response = post(url, getParameters());
 				} catch (RuntimeException e){
-					exceptions[connectionTries] = e;
+					exceptions[connectionTries] = LogPadrao.getStackTrace(e);
+					connectionTries++;
 				}
-				connectionTries++;
 				if(response!=null)
 					break;
 				if(connectionTries>CONNECTION_RETRY_COUNT){

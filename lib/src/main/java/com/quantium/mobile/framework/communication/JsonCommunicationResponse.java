@@ -13,7 +13,7 @@ import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.JsonToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
-public class JsonCommunicationResponse<T extends JsonSerializable<T>> implements SerializedCommunicationResponse<T>{
+public class JsonCommunicationResponse<T extends JsonSerializable<T>> implements ObjectListCommunicationResponse<T>{
 
 	private static final String JSON_TOKEN_EXCEPTION_FMT =
 			"caractere(s) '%s' esperado, '%s' encontrado."+

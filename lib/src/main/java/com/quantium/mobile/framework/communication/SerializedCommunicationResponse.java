@@ -1,9 +1,11 @@
 package com.quantium.mobile.framework.communication;
 
-import java.util.Iterator;
+import java.io.Reader;
+import java.util.Map;
 
-public interface SerializedCommunicationResponse<T> extends CommunicationResponse {
+interface SerializedCommunicationResponse {
 
-	void setKeysToObjectList(String...keysToObject);
-	Iterator<T> getIterator();
+	public Reader getReader();
+	public Map<String, Object> getResponseMap();
+
 }
