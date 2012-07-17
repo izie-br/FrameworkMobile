@@ -57,6 +57,15 @@ public class LogPadrao {
 	 * @param args argumentos da string formato
 	 */
 	public static void e(String message, Object...args){
+		if (message == null) {
+			message = "Erro sem mensagem";
+			if(args!=null&&args.length>0) {
+				message += " com argumentos";
+				for (int i = 0; i < args.length; i++)
+					message += " %s ";
+			}
+			
+		}
 		if(args!=null&&args.length>0)
 			message = String.format(message, args);
 		Log.e(getTag(),message);

@@ -2,7 +2,9 @@ package com.quantium.mobile.framework.communication;
 
 import java.util.Map;
 
-public abstract class SerializedCommunication extends GenericCommunication{
+import com.quantium.mobile.framework.FrameworkException;
+
+public interface SerializedCommunication {
 
 	/**
 	 * Remove o mapa de parametros do corpo anterior e troca pelo mapa
@@ -19,12 +21,7 @@ public abstract class SerializedCommunication extends GenericCommunication{
 	 */
 	public abstract void setSerializedBodyParameter(String parameter);
 
-	/**
-	 * Altera as chaves para o array de objetos no corpo
-	 * da resposta.
-	 *
-	 * @param keys
-	 */
-	public abstract void setKeysToObjectList(String...keysToObject);
+
+	public SerializedCommunicationResponse send () throws FrameworkException;
 
 }

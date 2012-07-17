@@ -2,7 +2,15 @@ package com.quantium.mobile.framework.communication;
 
 import java.util.Iterator;
 
-public abstract class ObjectListCommunication<T> extends SerializedCommunication{
+public interface ObjectListCommunication<T> extends SerializedCommunication{
+
+	/**
+	 * Altera as chaves para o array de objetos no corpo
+	 * da resposta.
+	 *
+	 * @param keys
+	 */
+	public abstract void setKeysToObjectList(String...keysToObject);
 
 	/**
 	 *p Armazena um iterador de objetos para enviar

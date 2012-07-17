@@ -8,6 +8,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.communication.HttpJsonDao;
+import com.quantium.mobile.framework.communication.ObjectListCommunicationResponse;
 import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
@@ -86,7 +87,9 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		Iterator<Author> received = null;
 		try {
-			received = authorsDao.send().getIterator();
+			ObjectListCommunicationResponse<Author> response = authorsDao.send();
+			response.setKeysToObjectList("list");
+			received = response.getIterator();
 		} catch (FrameworkException e) {
 			fail(e.getMessage());
 		}
@@ -111,7 +114,9 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		authorsDao.setKeysToObjectList("list");
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.send().getIterator();
+			ObjectListCommunicationResponse<Author> response = authorsDao.send();
+			response.setKeysToObjectList("list");
+			it = response.getIterator();
 		} catch (FrameworkException e) {
 			fail();
 		}

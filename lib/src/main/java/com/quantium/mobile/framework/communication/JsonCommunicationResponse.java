@@ -13,28 +13,31 @@ import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.JsonToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
-public class JsonCommunicationResponse<T extends JsonSerializable<T>> implements ObjectListCommunicationResponse<T>{
+public class JsonCommunicationResponse implements SerializedCommunicationResponse{
 
 	private static final String JSON_TOKEN_EXCEPTION_FMT =
 			"caractere(s) '%s' esperado, '%s' encontrado."+
 			"Continuacao da resposta:\n%s";
 
-	public JsonCommunicationResponse(
-			Reader reader,
-			T prototype,
-			String...keysToObjectList
-	){
+	public JsonCommunicationResponse(Reader reader, String...keys){
 		this.reader = reader;
-		this.prototype = prototype;
-		this.keysToObjectList = keysToObjectList;
+		this.keysToObjectList = keys;
 	}
 
 	private String keysToObjectList[];
-	private T prototype;
 	private Reader reader;
+	private JsonSerializable<?> prototype;
 
 	private Map<String,Object> map;
-	private Iterator<T> iterator;
+	private Iterator<?> iterator;
+
+	public void setPrototype(JsonSerializable<?> prototype) {
+		this.prototype = prototype;
+	}
+
+	public void setIterator(Iterator<?> iterator) {
+		this.iterator = iterator;
+	}
 
 	@Override
 	public Reader getReader() {
@@ -54,26 +57,26 @@ public class JsonCommunicationResponse<T extends JsonSerializable<T>> implements
 		return map;
 	}
 
-	@Override
-	public void setKeysToObjectList(String... keysToObject) {
+	protected void setKeysToObjectList(String... keysToObject) {
 		this.keysToObjectList = keysToObject;
 	}
 
-	@Override
-	public Iterator<T> getIterator() {
+	protected Iterator<?> getIterator() {
 		checkOutput();
 		return iterator;
 	}
 
-	private Iterator<T> parseResponse(
+	private Iterator<?> parseResponse(
 			Map<String, Object> responseOutput
 	){
 		try {
 			fillResponseOutput(keysToObjectList, responseOutput, reader);
-			return new JsonToObjectIterator<T>(
+			@SuppressWarnings({ "unchecked", "rawtypes" })
+			JsonToObjectIterator iter = new JsonToObjectIterator(
 					reader,
 					prototype
 			);
+			return iter;
 		} catch (JSONException e) {
 			LogPadrao.e(e);
 			throw new RuntimeException(e);

@@ -114,7 +114,6 @@ public abstract class GenericCommunication {
 	 */
 	public abstract void setURL (String url);
 
-
 	public String getUserAgent(){
 		return USER_AGENT;
 	}
