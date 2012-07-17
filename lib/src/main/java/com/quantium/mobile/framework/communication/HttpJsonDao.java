@@ -199,16 +199,6 @@ public class HttpJsonDao<T extends JsonSerializable<T>> extends SerializedCommun
 		return prototype.jsonToObjectWithPrototype(jsonObject);
 	}
 
-	protected JSONObject objetosToJson(Iterator<T> objetos) throws JSONException {
-		JSONObject jsonObject = new JSONObject();
-		JSONArray jsonArray = new JSONArray();
-		while( objetos.hasNext()) {
-			jsonArray.put(objetoToJson(objetos.next()));
-		}
-		jsonObject.put("list", jsonArray);
-		return jsonObject;
-	}
-
 	protected JSONObject objetoToJson(T objeto){
 		return objeto.toJson();
 	}

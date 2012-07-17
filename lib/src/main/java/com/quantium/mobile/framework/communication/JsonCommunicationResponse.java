@@ -65,7 +65,7 @@ public class JsonCommunicationResponse<T extends JsonSerializable<T>> implements
 		return iterator;
 	}
 
-	public Iterator<T> parseResponse(
+	private Iterator<T> parseResponse(
 			Map<String, Object> responseOutput
 	){
 		try {
