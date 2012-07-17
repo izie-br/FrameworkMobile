@@ -155,7 +155,8 @@ public class JsonCommunication extends GenericCommunication
 				}
 			}
 			return new JsonCommunicationResponse(
-					getReader(response)
+					getReader(response),
+					keysToObjectList
 			);
 		} catch (JSONException e) {
 			LogPadrao.e(e);

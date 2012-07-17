@@ -87,9 +87,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		Iterator<Author> received = null;
 		try {
-			ObjectListCommunicationResponse<Author> response = authorsDao.send();
-			response.setKeysToObjectList("list");
-			received = response.getIterator();
+			received = authorsDao.send().getIterator();
 		} catch (FrameworkException e) {
 			fail(e.getMessage());
 		}
@@ -114,9 +112,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		authorsDao.setKeysToObjectList("list");
 		Iterator<Author> it = null;
 		try {
-			ObjectListCommunicationResponse<Author> response = authorsDao.send();
-			response.setKeysToObjectList("list");
-			it = response.getIterator();
+			it = authorsDao.send().getIterator();
 		} catch (FrameworkException e) {
 			fail();
 		}
