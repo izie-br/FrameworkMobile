@@ -17,7 +17,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 
 	private static final String JSON_TOKEN_EXCEPTION_FMT =
 			"caractere(s) '%s' esperado, '%s' encontrado."+
-			"Continuacao da resposta:\n%s";
+			" Continuacao da resposta:\n%s";
 
 	public JsonCommunicationResponse(Reader reader, String...keys){
 		this.reader = reader;
@@ -71,12 +71,15 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	){
 		try {
 			fillResponseOutput(keysToObjectList, responseOutput, reader);
-			@SuppressWarnings({ "unchecked", "rawtypes" })
-			JsonToObjectIterator iter = new JsonToObjectIterator(
-					reader,
-					prototype
-			);
-			return iter;
+			if (prototype != null) {
+				@SuppressWarnings({ "unchecked", "rawtypes" })
+				JsonToObjectIterator iter = new JsonToObjectIterator(
+						reader,
+						prototype
+				);
+				return iter;
+			}
+			return null;
 		} catch (JSONException e) {
 			LogPadrao.e(e);
 			throw new RuntimeException(e);
@@ -106,21 +109,26 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	{
 		FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
 		int keysToArrayIndex = 0;
-		char c;
+		char c= tokener.nextClean();
 		String key;
-		c = tokener.nextClean();
-		if (keysToArray == null || keysToArray.length == 0)
+		if (
+				prototype != null &&
+				(keysToArray == null || keysToArray.length == 0)
+		) {
 			return (c=='[');
-		for(;;) {
-			// chave de abertura
-			if (c != '{')
-				throw new JSONException(String.format(
-					JSON_TOKEN_EXCEPTION_FMT,
-					"{",
-					""+c,
-					nextChars(512, reader)
-				));
+		}
 
+		// chave de abertura
+		if (c != '{') {
+			throw new JSONException(String.format(
+				JSON_TOKEN_EXCEPTION_FMT,
+				"{",
+				""+c,
+				nextChars(512, reader)
+			));
+		}
+
+		for(;;) {
 			// key
 			c = tokener.nextClean();
 			switch (c) {
@@ -158,7 +166,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 			}
 
 			// conferir se eh uma das chaves que levam aos objetos
-			if ( key.equals(keysToArray[keysToArrayIndex]) ) {
+			if ( keysToArray != null && key.equals(keysToArray[keysToArrayIndex]) ) {
 				if (responseOutput != null) {
 					HashMap<String, Object> newObject =
 						new HashMap<String, Object>(2);

@@ -28,7 +28,7 @@ public class JsonCommunication extends GenericCommunication
 	private String url;
 	private Map<String,String> parameters;
 	private Map<String,Object> bodyParameters;
-	private String body = "json";
+	private String body;
 	private String keysToObjectList [];
 	private String charset = StringUtil.DEFAULT_ENCODING;
 
@@ -103,13 +103,14 @@ public class JsonCommunication extends GenericCommunication
 			Map<String, String> params = getParameters();
 
 			if (
+					body != null &&
 					objectList != null &&
 					(keysToObjectList == null || keysToObjectList.length ==0)
 			) {
 				params.put(body,objectList.toString());
 				if (params != null && params.size() > 0)
 					LogPadrao.e("parametros ignorados no envio");
-			} else {
+			} else if (body != null) {
 				JSONObject obj = new JSONObject();
 				Map<?,?> bodyMap = bodyParameters;
 				JSONObject current = obj;

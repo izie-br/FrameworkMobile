@@ -1,14 +1,18 @@
 package com.quantium.mobile.framework.test.communication;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Iterator;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.HttpJsonDao;
-import com.quantium.mobile.framework.communication.ObjectListCommunicationResponse;
+import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
@@ -43,6 +47,32 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		dao.setParameter(METHOD_PARAM, "clear");
 		dao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
 		dao.send();
+	}
+
+	public void testJsonCommunication() {
+		JsonCommunication jsonComm = new JsonCommunication();
+		String param1 = "param1";
+		String param2 = "param2";
+		String val1 = "val1";
+		String val2 = "val2";
+		jsonComm.setURL(URL);
+		HashMap<String,String> params = new HashMap();
+		params.put(METHOD_PARAM, "echo");
+		params.put("param1", "val1");
+		params.put("param2", "val2");
+		jsonComm.setParameters(params);
+		try {
+			Map<String,Object> map = jsonComm.send().getResponseMap();
+			Iterator<String> iterator = params.keySet().iterator();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				String value = map.get(key).toString();
+				assertEquals (params.get(key), value);
+			}
+			assertEquals(map.size(), params.size());
+		} catch (Exception e) {
+			fail (LogPadrao.getStackTrace(e));
+		}
 	}
 
 	public void testEnviarJson(){
@@ -81,7 +111,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 			authorsDao.setParameter(METHOD_PARAM, "insert");
 			authorsDao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
 			authorsDao.setSerializedBodyParameter("json");
-			authorsDao.setKeysToObjectList("list");
+			authorsDao.setKeysToObjectList("objects","list");
 			authorsDao.setIterator(list.iterator());
 
 
