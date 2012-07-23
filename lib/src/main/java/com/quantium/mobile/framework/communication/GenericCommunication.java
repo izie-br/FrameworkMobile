@@ -31,7 +31,7 @@ import com.quantium.mobile.framework.Tarefa;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
 
-public abstract class GenericCommunication {
+public abstract class GenericCommunication implements Communication {
 
 	private static final int DEFAULT_BUFFER = 1024;
 	protected static final int CONNECTION_RETRY_COUNT = 5;
@@ -84,34 +84,28 @@ public abstract class GenericCommunication {
 
 	public abstract String getAcceptHeader();
 
-	/**
-	 * Altera o encoding da comunicação
-	 *
-	 * @param charset charset (default "UTF-8")
+	/* (non-Javadoc)
+	 * @see com.quantium.mobile.framework.communication.Communication#setCharset(java.lang.String)
 	 */
+	@Override
 	public abstract void setCharset (String charset);
 
-	/**
-	 * Remove o mapa de parametros anterior e troca pelo mapa
-	 * de parametros especificado.
-	 *
-	 * @param parameters novo mapa de parametros
+	/* (non-Javadoc)
+	 * @see com.quantium.mobile.framework.communication.Communication#setParameters(java.util.Map)
 	 */
+	@Override
 	public abstract void setParameters (Map<String,String> parameters);
 
-	/**
-	 * Adiciona ou altera o parametro de especificado.
-	 *
-	 * @param key chave (nome do parametro)
-	 * @param value valor do parametro
+	/* (non-Javadoc)
+	 * @see com.quantium.mobile.framework.communication.Communication#setParameter(java.lang.String, java.lang.String)
 	 */
+	@Override
 	public abstract void setParameter (String key, String value);
 
-	/**
-	 * Altera a url completa da requisicao
-	 *
-	 * @param url URL
+	/* (non-Javadoc)
+	 * @see com.quantium.mobile.framework.communication.Communication#setURL(java.lang.String)
 	 */
+	@Override
 	public abstract void setURL (String url);
 
 	public String getUserAgent(){

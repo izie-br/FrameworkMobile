@@ -4,7 +4,7 @@ import java.util.Map;
 
 import com.quantium.mobile.framework.FrameworkException;
 
-public interface SerializedCommunication {
+public interface SerializedCommunication extends Communication{
 
 	/**
 	 * Remove o mapa de parametros do corpo anterior e troca pelo mapa
