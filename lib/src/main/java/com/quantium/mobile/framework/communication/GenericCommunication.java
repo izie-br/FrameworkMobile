@@ -84,30 +84,6 @@ public abstract class GenericCommunication implements Communication {
 
 	public abstract String getAcceptHeader();
 
-	/* (non-Javadoc)
-	 * @see com.quantium.mobile.framework.communication.Communication#setCharset(java.lang.String)
-	 */
-	@Override
-	public abstract void setCharset (String charset);
-
-	/* (non-Javadoc)
-	 * @see com.quantium.mobile.framework.communication.Communication#setParameters(java.util.Map)
-	 */
-	@Override
-	public abstract void setParameters (Map<String,String> parameters);
-
-	/* (non-Javadoc)
-	 * @see com.quantium.mobile.framework.communication.Communication#setParameter(java.lang.String, java.lang.String)
-	 */
-	@Override
-	public abstract void setParameter (String key, String value);
-
-	/* (non-Javadoc)
-	 * @see com.quantium.mobile.framework.communication.Communication#setURL(java.lang.String)
-	 */
-	@Override
-	public abstract void setURL (String url);
-
 	public String getUserAgent(){
 		return USER_AGENT;
 	}
