@@ -76,11 +76,9 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 			Map<String, Object> responseOutput
 	){
 		try {
-			LogPadrao.d("squi");
+			JSONObject json = new FrameworkJSONTokener(reader).nextJSONObject();
 			if(keysToObjectList != null && keysToObjectList.length >0) {
-				JSONObject json = new FrameworkJSONTokener(reader).nextJSONObject();
-				LogPadrao.d("json:: %s", json.toString());
-				JSONArray array = extractJSONArrayAndMap(json, keysToObjectList, responseOutput);
+				JSONArray array = extractJSONArray(json, keysToObjectList);
 				reader = new InputStreamReader(
 						new ByteArrayInputStream(
 								array.toString().getBytes("UTF-8")
@@ -88,6 +86,7 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 						"UTF-8"
 				);
 			}
+			desserializeJsonObject(json, responseOutput);
 			if (prototype != null) {
 				@SuppressWarnings({ "unchecked", "rawtypes" })
 				JsonToObjectIterator iter = new JsonToObjectIterator(
@@ -107,10 +106,9 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 		}
 	}
 
-	private static JSONArray extractJSONArrayAndMap (
+	private static JSONArray extractJSONArray (
 			JSONObject json,
-			String keysToObjectList[],
-			Map<String, Object> responseOutput
+			String keysToObjectList[]
 	)
 			throws JSONException
 	{
@@ -124,14 +122,13 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 		return array;
 	}
 
-	private static void jsonToMap (JSONObject json, Map<String, Object> out)
+	private static void desserializeJsonObject (JSONObject json, Map<String, Object> out)
 			throws JSONException
 	{
 		@SuppressWarnings("unchecked")
 		Iterator<String> it = json.keys();
 		while (it.hasNext()){
 			String key = it.next();
-			LogPadrao.d("%s encontrada", key);
 			out.put(
 					key,
 					desserializeJsonValue(json.get(key))
@@ -146,7 +143,7 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 			return desserializeJsonArray( (JSONArray)value );
 		if (value instanceof JSONObject) {
 			Map<String,Object> map = new HashMap<String, Object>();
-			jsonToMap( (JSONObject)value, map);
+			desserializeJsonObject( (JSONObject)value, map);
 			return map;
 		}
 		return value;

@@ -4,7 +4,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
-import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -13,7 +12,6 @@ import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.HttpJsonDao;
 import com.quantium.mobile.framework.communication.JsonCommunication;
-import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
 
@@ -56,17 +54,19 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		String val1 = "val1";
 		String val2 = "val2";
 		jsonComm.setURL(URL);
-		HashMap<String,String> params = new HashMap();
+		HashMap<String,String> params = new HashMap<String, String>();
 		params.put(METHOD_PARAM, "echo");
-		params.put("param1", "val1");
-		params.put("param2", "val2");
+		params.put(param1, val1);
+		params.put(param2, val2);
 		jsonComm.setParameters(params);
 		try {
 			Map<String,Object> map = jsonComm.send().getResponseMap();
 			Iterator<String> iterator = params.keySet().iterator();
 			while (iterator.hasNext()) {
 				String key = iterator.next();
-				String value = map.get(key).toString();
+				Object object = map.get(key);
+				assertNotNull(key + " eh null", object);
+				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
 			assertEquals(map.size(), params.size());

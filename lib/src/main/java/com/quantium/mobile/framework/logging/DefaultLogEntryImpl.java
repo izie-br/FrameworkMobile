@@ -63,7 +63,7 @@ public class DefaultLogEntryImpl implements LogEntry{
 	}
 
 	private static synchronized PrintWriter getLog() throws IOException{
-		@SuppressWarnings("resource")
+		@SuppressWarnings("all")
 		PrintWriter fileLogPw = (fileLog == null) ? null : fileLog.get();
 		if (fileLogPw == null) {
 			fileLogPw = FileUtil.openFileToAppend(getLogFolder()+getLogFileName());
