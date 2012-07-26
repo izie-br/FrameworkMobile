@@ -68,10 +68,13 @@ public class HttpJsonDao<T extends JsonSerializable<T>>
 		super._setKeysToObjectList(keys);
 	}
 
+	@SuppressWarnings("unchecked")
 	@Override
 	public ObjectListCommunicationResponse<T> send () throws FrameworkException{
-		SerializedCommunicationResponse superResponse = super.send();
-		return new HttpJsonDaoResponse<T>(superResponse.getReader(), prototype);
+		JsonCommunicationResponse<T> resp =
+				(JsonCommunicationResponse<T>) super.send();
+		resp.setPrototype(prototype);
+		return resp;
 	}
 
 }

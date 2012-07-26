@@ -155,7 +155,7 @@ public class JsonCommunication extends GenericCommunication
 					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
 				}
 			}
-			return new JsonCommunicationResponse(
+			return new JsonCommunicationResponse<Object>(
 					getReader(response),
 					keysToObjectList
 			);

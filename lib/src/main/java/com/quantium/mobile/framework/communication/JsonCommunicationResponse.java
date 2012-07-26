@@ -1,53 +1,57 @@
 package com.quantium.mobile.framework.communication;
 
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.InputStreamReader;
 import java.io.Reader;
+import java.io.UnsupportedEncodingException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import com.quantium.mobile.framework.FrameworkJSONTokener;
 import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.JsonToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
-public class JsonCommunicationResponse implements SerializedCommunicationResponse{
-
-	private static final String JSON_TOKEN_EXCEPTION_FMT =
-			"caractere(s) '%s' esperado, '%s' encontrado."+
-			" Continuacao da resposta:\n%s";
-
-	public JsonCommunicationResponse(Reader reader, String...keys){
-		this.reader = reader;
-		this.keysToObjectList = keys;
-	}
+public class JsonCommunicationResponse<T> implements ObjectListCommunicationResponse<T>{
 
 	private String keysToObjectList[];
 	private Reader reader;
 	private JsonSerializable<?> prototype;
 
 	private Map<String,Object> map;
-	private Iterator<?> iterator;
+	private Iterator<T> iterator;
+
+	public JsonCommunicationResponse(Reader reader, String...keys){
+		this.reader = reader;
+		this.keysToObjectList = keys;
+	}
+
 
 	public void setPrototype(JsonSerializable<?> prototype) {
 		this.prototype = prototype;
 	}
 
-	public void setIterator(Iterator<?> iterator) {
-		this.iterator = iterator;
-	}
+//	public void setIterator(Iterator<?> iterator) {
+//		this.iterator = iterator;
+//	}
 
 	@Override
 	public Reader getReader() {
 		return reader;
 	}
 
+	@SuppressWarnings("unchecked")
 	private void checkOutput() {
 		if (map == null && iterator == null) {
 			map = new HashMap<String, Object>();
-			iterator = parseResponse(map);
+			iterator = (Iterator<T>) parseResponse(map);
 		}
 	}
 
@@ -57,11 +61,13 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 		return map;
 	}
 
-	protected void setKeysToObjectList(String... keysToObject) {
+	@Override
+	public void setKeysToObjectList(String... keysToObject) {
 		this.keysToObjectList = keysToObject;
 	}
 
-	protected Iterator<?> getIterator() {
+	@Override
+	public Iterator<T> getIterator() {
 		checkOutput();
 		return iterator;
 	}
@@ -70,7 +76,18 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 			Map<String, Object> responseOutput
 	){
 		try {
-			fillResponseOutput(keysToObjectList, responseOutput, reader);
+			LogPadrao.d("squi");
+			if(keysToObjectList != null && keysToObjectList.length >0) {
+				JSONObject json = new FrameworkJSONTokener(reader).nextJSONObject();
+				LogPadrao.d("json:: %s", json.toString());
+				JSONArray array = extractJSONArrayAndMap(json, keysToObjectList, responseOutput);
+				reader = new InputStreamReader(
+						new ByteArrayInputStream(
+								array.toString().getBytes("UTF-8")
+						),
+						"UTF-8"
+				);
+			}
 			if (prototype != null) {
 				@SuppressWarnings({ "unchecked", "rawtypes" })
 				JsonToObjectIterator iter = new JsonToObjectIterator(
@@ -83,150 +100,66 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 		} catch (JSONException e) {
 			LogPadrao.e(e);
 			throw new RuntimeException(e);
+		} catch (UnsupportedEncodingException e) {
+			// impossivel
+			LogPadrao.e(e);
+			throw new RuntimeException(e);
 		}
-		
 	}
 
-	/**
-	 * <p>
-	 *   Preenche o Map responseOutput com os dados do JSON anteriores ao 
-	 *   array de objetos lido pelo iterador.
-	 * </p>
-	 * <p>
-	 *   Alem disso, este metodo move a posicao de leitura do stream para
-	 *   o array de objetos da request, indicadao pelas keysToArray.
-	 * </p>
-	 *
-	 * @param keysToArray  chaves do json que levam ate o array de objetos
-	 * @param responseOutput  map para excrever o conteudo da resposta
-	 * @param reader  reader do stream recebido do servidor
-	 */
-	private boolean fillResponseOutput (
-			String[] keysToArray,
-			Map<String,Object> responseOutput,
-			Reader reader
-	) throws JSONException
+	private static JSONArray extractJSONArrayAndMap (
+			JSONObject json,
+			String keysToObjectList[],
+			Map<String, Object> responseOutput
+	)
+			throws JSONException
 	{
-		FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
-		int keysToArrayIndex = 0;
-		char c= tokener.nextClean();
-		String key;
-		if (
-				prototype != null &&
-				(keysToArray == null || keysToArray.length == 0)
-		) {
-			return (c=='[');
+		JSONObject current = json;
+		for (int i = 0; i < keysToObjectList.length -1; i++){
+			current = current.getJSONObject(keysToObjectList[i]);
 		}
-
-		// chave de abertura
-		if (c != '{') {
-			throw new JSONException(String.format(
-				JSON_TOKEN_EXCEPTION_FMT,
-				"{",
-				""+c,
-				nextChars(512, reader)
-			));
-		}
-
-		for(;;) {
-			// key
-			c = tokener.nextClean();
-			switch (c) {
-			case 0:
-				throw new JSONException(String.format(
-					JSON_TOKEN_EXCEPTION_FMT,
-					"<jsonkey>",
-					"<0>",
-					nextChars(512, reader)
-				));
-			case '}':
-				return false;
-			default:
-				tokener.back();
-				key = tokener.nextValue().toString();
-			}
-
-			// espacador ":", "=" ou "=>"
-			c = tokener.nextClean();
-			switch (c) {
-			case '=':
-				if (tokener.next() != '>') {
-					tokener.back();
-				}
-				/* fall through */
-			case ':':
-				break;
-			default:
-				throw new JSONException(String.format(
-					JSON_TOKEN_EXCEPTION_FMT,
-					"=, => ou : ",
-					""+c,
-					nextChars(512, reader)
-				));
-			}
-
-			// conferir se eh uma das chaves que levam aos objetos
-			if ( keysToArray != null && key.equals(keysToArray[keysToArrayIndex]) ) {
-				if (responseOutput != null) {
-					HashMap<String, Object> newObject =
-						new HashMap<String, Object>(2);
-					responseOutput.put(key, newObject );
-					responseOutput = newObject;
-				}
-				c = tokener.nextClean();
-				if (
-					keysToArrayIndex == (keysToArray.length -1) &&
-					c == '['
-				){
-					return true;
-				}
-				if (c != '{')
-					throw new JSONException(String.format(
-						JSON_TOKEN_EXCEPTION_FMT,
-						"{",
-						""+c,
-						nextChars(512, reader)
-					));
-				keysToArrayIndex++;
-				continue;
-			}
-			responseOutput.put(key, tokener.nextValue());
-			switch (tokener.nextClean()) {
-			case ';':
-			case ',':
-				if (tokener.nextClean() == '}') {
-					return false;
-				}
-				tokener.back();
-				break;
-			case '}':
-				return false;
-			default:
-				throw new JSONException("json incompleto");
-			}
-		} // for
+		String key = keysToObjectList[keysToObjectList.length -1];
+		JSONArray array = current.getJSONArray(key);
+		current.remove(key);
+		return array;
 	}
 
-	private String nextChars(int quantity, Reader reader) {
-		char buffer[] = new char[quantity];
-		int readCount = 0;
-		int lastCount = 0;
-		while (lastCount >= 0) {
-			try {
-				lastCount = reader.read(
-					buffer,
-					readCount,
-					buffer.length - readCount
-				);
-			} catch (IOException e) {
-				return new String(buffer, 0, readCount) +
-					"<IOException>";
-			}
-			if (lastCount < 0 || readCount >= quantity)
-				break;
-			readCount += lastCount;
+	private static void jsonToMap (JSONObject json, Map<String, Object> out)
+			throws JSONException
+	{
+		@SuppressWarnings("unchecked")
+		Iterator<String> it = json.keys();
+		while (it.hasNext()){
+			String key = it.next();
+			LogPadrao.d("%s encontrada", key);
+			out.put(
+					key,
+					desserializeJsonValue(json.get(key))
+			);
 		}
-		return new String(buffer, 0, readCount);
+	}
+
+	private static Object desserializeJsonValue (Object value)
+			throws JSONException
+	{
+		if (value instanceof JSONArray)
+			return desserializeJsonArray( (JSONArray)value );
+		if (value instanceof JSONObject) {
+			Map<String,Object> map = new HashMap<String, Object>();
+			jsonToMap( (JSONObject)value, map);
+			return map;
+		}
+		return value;
+	}
+
+	private static List<Object> desserializeJsonArray(JSONArray jsonArray)
+			throws JSONException
+	{
+		List<Object> list = new ArrayList<Object>();
+		for (int i=0; i < jsonArray.length(); i++){
+			list.add(desserializeJsonValue(jsonArray.get(i)));
+		}
+		return list;
 	}
 
 }

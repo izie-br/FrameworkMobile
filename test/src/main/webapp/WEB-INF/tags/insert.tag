@@ -10,7 +10,7 @@
 <%
     String classname = map.get ("classname").toString ();
     String dataparameter = map.get ("dataparameter").toString ();
-    String keystoarray = (String) map.get ("keystoarray");
+    String keystoarray []= map.get ("keystoarray").toString().split("\\.");
 
     @SuppressWarnings ("unchecked")
     org.json.JSONArray savedObjects =
@@ -25,9 +25,9 @@
 
     if (keystoarray == null)
              jsonArray = new org.json.JSONArray (dataStr);
-    else if (keystoarray instanceof String ) {
+    else {
         org.json.JSONObject jsonObject = new org.json.JSONObject(dataStr);
-        for (String key : keystoarray.split("\\.") ) {
+        for (String key : keystoarray ) {
             Object obj = jsonObject.get (key);
             if (obj instanceof org.json.JSONArray ) {
                 jsonArray = (org.json.JSONArray)obj;
@@ -41,7 +41,17 @@
     }
     if (keystoarray != null) {
         org.json.JSONObject json = new org.json.JSONObject ();
-        json.put (keystoarray, jsonArray);
+        org.json.JSONObject current = json;
+        for (int i=0; i < keystoarray.length; i++) {
+            String key = keystoarray[i];
+            if (i == keystoarray.length -1) {
+                current.put(key, jsonArray);
+            } else {
+                org.json.JSONObject last = current;
+                current = new org.json.JSONObject();
+                last.put(key, current);
+            }
+        }
         out.println (json.toString ());
     } else {
         out.println (jsonArray.toString ());
