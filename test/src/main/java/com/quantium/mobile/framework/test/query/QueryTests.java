@@ -3,7 +3,6 @@ package com.quantium.mobile.framework.test.query;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
-import java.util.regex.Pattern;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.query.Q;

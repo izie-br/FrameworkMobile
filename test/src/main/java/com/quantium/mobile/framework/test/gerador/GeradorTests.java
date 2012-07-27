@@ -8,7 +8,6 @@ import org.apache.commons.lang.RandomStringUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import android.R.color;
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.test.GenericBean;
 import com.quantium.mobile.framework.test.TestActivity;
