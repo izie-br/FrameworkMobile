@@ -3,7 +3,7 @@ package com.quantium.mobile.framework.test.server;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class QueryServerBean extends BaseServerBean {
+public class Query extends BaseServerBean {
 
 	public static final String keystoarray [] = { "list" };
 

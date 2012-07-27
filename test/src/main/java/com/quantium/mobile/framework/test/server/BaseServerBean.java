@@ -2,10 +2,27 @@ package com.quantium.mobile.framework.test.server;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Map;
 
-public class BaseServerBean {
+public abstract class BaseServerBean {
 
 	private Object application;
+	private Map<?,?> map;
+
+	public Map<?,?> getMap() {
+		return map;
+	}
+
+	public void setMap(Map<?,?> map) {
+		this.map = map;
+		mapValues();
+	}
+
+	public String getParameter(String name) {
+		String values[] = (String[])getMap().get(name);
+		return (values != null && values.length >0)? values[0] : null;
+
+	}
 
 	public Object getApplication() {
 		return application;
@@ -45,5 +62,28 @@ public class BaseServerBean {
 		catch (InvocationTargetException e) { throw new RuntimeException(e); }
 		catch (IllegalAccessException e)    { throw new RuntimeException(e); }
 	}
+
+	private void mapValues(){
+		if (map == null)
+			return;
+		for (Object keyObj :map.keySet()) {
+			String key = keyObj.toString();
+			String methodName =
+					"set" +
+					Character.toUpperCase(key.charAt(0)) +
+					key.substring(1);
+			try {
+				Method m = this.getClass().getMethod(methodName, String.class);
+				m.setAccessible(true);
+				m.invoke(this, getParameter(key));
+			}
+			catch (SecurityException e) {}
+			catch (NoSuchMethodException e) {}
+			catch (InvocationTargetException e) {}
+			catch (IllegalAccessException e) {}
+		}
+	}
+
+	public abstract String getResponse();
 
 }

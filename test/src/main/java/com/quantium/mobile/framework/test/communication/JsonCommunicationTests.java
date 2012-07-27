@@ -14,6 +14,7 @@ import com.quantium.mobile.framework.communication.HttpJsonDao;
 import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.ObjectListCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.server.RouterBean;
 import com.quantium.mobile.framework.test.TestActivity;
 
 public class JsonCommunicationTests extends
@@ -21,9 +22,6 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 	private static final String URL = "http://10.0.2.2:9091/";
 
-	private static final String CLASSNAME_PARAM = "classname";
-	private static final String METHOD_PARAM = "method";
-	
 	public JsonCommunicationTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
@@ -33,8 +31,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		super.setUp();
 		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
 		dao.setURL(URL);
-		dao.setParameter(METHOD_PARAM, "clear");
-		dao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		dao.setParameter(RouterBean.METHOD_PARAM, "clear");
+		dao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 		dao.send();
 	}
 
@@ -43,8 +41,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		super.tearDown();
 		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
 		dao.setURL(URL);
-		dao.setParameter(METHOD_PARAM, "clear");
-		dao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		dao.setParameter(RouterBean.METHOD_PARAM, "clear");
+		dao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 		dao.send();
 	}
 
@@ -57,7 +55,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		jsonComm.setURL(URL);
 		HashMap<String,String> params = new HashMap<String, String>();
-		params.put(METHOD_PARAM, "echo");
+		params.put(RouterBean.METHOD_PARAM, "echo");
 		params.put(param1, val1);
 		params.put(param2, val2);
 		jsonComm.setParameters(params);
@@ -110,8 +108,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		HttpJsonDao<Author> authorsDao =
 			new HttpJsonDao<Author>(new Author());
 			authorsDao.setURL(URL);
-			authorsDao.setParameter(METHOD_PARAM, "insert");
-			authorsDao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+			authorsDao.setParameter(RouterBean.METHOD_PARAM, "insert");
+			authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 			authorsDao.setSerializedBodyParameter("json");
 			authorsDao.setKeysToObjectList("objects","list");
 			authorsDao.setIterator(list.iterator());
@@ -149,8 +147,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author());
 		authorsDao.setURL(URL);
-		authorsDao.setParameter(METHOD_PARAM, "query");
-		authorsDao.setParameter(CLASSNAME_PARAM, Author.class.getSimpleName());
+		authorsDao.setParameter(RouterBean.METHOD_PARAM, "query");
+		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 		authorsDao.setKeysToObjectList("list");
 		Iterator<Author> it = null;
 		try {

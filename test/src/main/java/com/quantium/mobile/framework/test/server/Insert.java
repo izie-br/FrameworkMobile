@@ -20,11 +20,11 @@ public class Insert extends BaseServerBean {
 		this.classname = classname;
 	}
 
-	public String getData() {
+	public String getJson() {
 		return dataStr;
 	}
 
-	public void setData(String data) {
+	public void setJson(String data) {
 		this.dataStr = data;
 	}
 
