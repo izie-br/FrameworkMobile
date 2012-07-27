@@ -2,6 +2,7 @@
 <%@ page contentType="text/plain; charset=UTF-8" %>
 
 <% pageContext.setAttribute("applicationObj", application); %>
+<% pageContext.setAttribute("requestObj", request.getParameterMap()); %>
 
 <c:choose>
 
@@ -27,25 +28,27 @@
   </c:when>
 
   <c:when test="${param.method == 'clear'}">
-    <%
-      String classname = request.getParameter("classname");
-      application.removeAttribute (classname);
-    %>
+    <jsp:useBean id="clear"
+        class="com.quantium.mobile.framework.test.server.Clear"
+        scope="page">
+      <c:set target="${clear}" property="application" value="${applicationObj}" />
+      <c:set target="${clear}" property="classname" value="${param.classname}" />
+    </jsp:useBean>
+    <c:out value="${clear.response}" escapeXml="false" />
   </c:when>
 
   <c:when test="${param.method == 'echo'}">
-    <%
-      org.json.JSONObject json = new org.json.JSONObject();
-      for (Object keyObj : request.getParameterMap().keySet()) {
-          String key = keyObj.toString();
-          json.put(key, request.getParameter(key));
-      }
-      out.println(json.toString());
-    %>
+    <jsp:useBean id="echo"
+        class="com.quantium.mobile.framework.test.server.Echo"
+        scope="page">
+      <c:set target="${echo}" property="application" value="${applicationObj}" />
+      <c:set target="${echo}" property="map" value="${requestObj}" />
+    </jsp:useBean>
+    <c:out value="${echo.response}" escapeXml="false" />
   </c:when>
 
   <c:otherwise>
-    <c:out value="&quot;${request.method}&quot; method nao encontrado" />
+    <c:out value="&quot;${request.method}&quot; metodo nao encontrado" />
   </c:otherwise>
 
 </c:choose>

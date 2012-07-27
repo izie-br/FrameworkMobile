@@ -1,12 +1,14 @@
 package com.quantium.mobile.framework.test.server;
 
+import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
-public class Insert {
+public class Insert extends BaseServerBean {
+
 	private static final String keystoarray [] = { "objects", "list" };
 
 
-	private Object application;
 	private String dataStr;
 	private String classname;
 
@@ -18,14 +20,6 @@ public class Insert {
 		this.classname = classname;
 	}
 
-	public Object getApplication() {
-		return application;
-	}
-
-	public void setApplication(Object application) {
-		this.application = application;
-	}
-
 	public String getData() {
 		return dataStr;
 	}
@@ -35,58 +29,54 @@ public class Insert {
 	}
 
 	public String getResponse() {
-		if (application == null)
-			throw new RuntimeException("application NULL");
-		org.json.JSONArray savedObjects;
-			savedObjects = (org.json.JSONArray) ServerBeanUtils.getAttribute(
-					application,
-					classname
-			);
-    if (savedObjects == null ) {
-        savedObjects = new org.json.JSONArray ();
-        ServerBeanUtils.setAttribute(application,classname, savedObjects);
-    }
+		JSONArray savedObjects;
+			savedObjects = (JSONArray) getAttribute(classname);
+		if (savedObjects == null ) {
+			savedObjects = new JSONArray ();
+			setAttribute(classname, savedObjects);
+		}
 		try {
-    org.json.JSONArray jsonArray = null;
-
-    if (keystoarray == null)
-             jsonArray = new org.json.JSONArray (dataStr);
-    else {
-        org.json.JSONObject jsonObject = new org.json.JSONObject(dataStr);
-        for (String key : keystoarray ) {
-            Object obj = jsonObject.get (key);
-            if (obj instanceof org.json.JSONArray ) {
-                jsonArray = (org.json.JSONArray)obj;
-                break;
-            }
-            jsonObject = (org.json.JSONObject)obj;
-        }
-    }
-    for (int i = 0; i < jsonArray.length (); i++) {
-        savedObjects.put (jsonArray.get (i));
-    }
-    if (keystoarray != null) {
-        org.json.JSONObject json = new org.json.JSONObject ();
-        json.put("status","success");
-        org.json.JSONObject current = json;
-        for (int i=0; i < keystoarray.length; i++) {
-            String key = keystoarray[i];
-            if (i == keystoarray.length -1) {
-                current.put("quantity", jsonArray.length());
-                current.put(key, jsonArray);
-            } else {
-                org.json.JSONObject last = current;
-                current = new org.json.JSONObject();
-                last.put(key, current);
-            }
-        }
-        return json.toString ();
-    } else {
-        return jsonArray.toString ();
-    }
+			JSONArray jsonArray = null;
+			
+			if (keystoarray == null)
+				jsonArray = new JSONArray (dataStr);
+			else {
+				JSONObject jsonObject =
+						new JSONObject(dataStr);
+				for (String key : keystoarray ) {
+					Object obj = jsonObject.get (key);
+					if (obj instanceof JSONArray ) {
+						jsonArray = (JSONArray)obj;
+						break;
+					}
+					jsonObject = (JSONObject)obj;
+				}
+			}
+			for (int i = 0; i < jsonArray.length (); i++) {
+				savedObjects.put (jsonArray.get (i));
+			}
+			if (keystoarray != null) {
+				JSONObject json = new JSONObject ();
+				json.put("status","success");
+				JSONObject current = json;
+				for (int i=0; i < keystoarray.length; i++) {
+					String key = keystoarray[i];
+					if (i == keystoarray.length -1) {
+						current.put("quantity", jsonArray.length());
+						current.put(key, jsonArray);
+					} else {
+						JSONObject last = current;
+						current = new JSONObject();
+						last.put(key, current);
+					}
+				}
+				return json.toString ();
+			} else {
+				return jsonArray.toString ();
+			}
 		}catch (JSONException e) {
 			throw new RuntimeException(e);
 		}
-    }
+	}
 
 }
