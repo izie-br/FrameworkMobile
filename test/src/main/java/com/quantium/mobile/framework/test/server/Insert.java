@@ -1,26 +1,52 @@
-<%@ attribute name="classname" required="true" %>
-<%@ attribute name="dataparameter" required="true" %>
-<%@ attribute name="keystoarray" %>
-<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+package com.quantium.mobile.framework.test.server;
 
-<jsp:useBean id="map" class="java.util.HashMap" />
-<c:set target="${map}" property="classname" value="${classname}" />
-<c:set target="${map}" property="dataparameter" value="${dataparameter}" />
-<c:set target="${map}" property="keystoarray" value="${keystoarray}" />
-<%
-    String classname = map.get ("classname").toString ();
-    String dataparameter = map.get ("dataparameter").toString ();
-    String keystoarray []= map.get ("keystoarray").toString().split("\\.");
+import org.json.JSONException;
 
-    @SuppressWarnings ("unchecked")
-    org.json.JSONArray savedObjects =
-        (org.json.JSONArray) application.getAttribute (classname);
+public class Insert {
+	private static final String keystoarray [] = { "objects", "list" };
+
+
+	private Object application;
+	private String dataStr;
+	private String classname;
+
+	public String getClassname() {
+		return classname;
+	}
+
+	public void setClassname(String classname) {
+		this.classname = classname;
+	}
+
+	public Object getApplication() {
+		return application;
+	}
+
+	public void setApplication(Object application) {
+		this.application = application;
+	}
+
+	public String getData() {
+		return dataStr;
+	}
+
+	public void setData(String data) {
+		this.dataStr = data;
+	}
+
+	public String getResponse() {
+		if (application == null)
+			throw new RuntimeException("application NULL");
+		org.json.JSONArray savedObjects;
+			savedObjects = (org.json.JSONArray) ServerBeanUtils.getAttribute(
+					application,
+					classname
+			);
     if (savedObjects == null ) {
         savedObjects = new org.json.JSONArray ();
-        application.setAttribute (classname, savedObjects);
+        ServerBeanUtils.setAttribute(application,classname, savedObjects);
     }
-
-    String dataStr = request.getParameter (dataparameter);
+		try {
     org.json.JSONArray jsonArray = null;
 
     if (keystoarray == null)
@@ -54,8 +80,13 @@
                 last.put(key, current);
             }
         }
-        out.println (json.toString ());
+        return json.toString ();
     } else {
-        out.println (jsonArray.toString ());
+        return jsonArray.toString ();
     }
-%>
+		}catch (JSONException e) {
+			throw new RuntimeException(e);
+		}
+    }
+
+}

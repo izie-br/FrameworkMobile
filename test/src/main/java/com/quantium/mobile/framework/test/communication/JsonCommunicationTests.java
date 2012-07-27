@@ -6,7 +6,6 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.json.JSONArray;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
