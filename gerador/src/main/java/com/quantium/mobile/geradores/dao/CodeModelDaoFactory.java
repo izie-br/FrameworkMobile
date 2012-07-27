@@ -867,24 +867,28 @@ public class CodeModelDaoFactory {
 						klassA.staticRef(throughTableA)
 					);
 
+					JClass throughTypeToA = jcm.ref (javaBeanSchemaA.getPropriedade (m2m.getReferenciaA ()).getType ());
+					JClass genericThroughToA = jcm.ref(Table.Column.class).narrow(throughTypeToA);
 					JFieldVar throughTableKeyToA = klassA.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
-						Table.Column.class,
+						genericThroughToA,
 						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (
 							m2m.getTabelaJuncao ().getNome () +
 							"_" + (m2m.getKeyToA ()))),
 						throughTableA.invoke ("addColumn")
-							.arg (JExpr.dotclass (jcm.ref (javaBeanSchemaA.getPropriedade (m2m.getReferenciaA ()).getType ())))
+							.arg (JExpr.dotclass (throughTypeToA))
 							.arg (m2m.getKeyToA ())
 					);
+					JClass throughTypeToB = jcm.ref(javaBeanSchemaB.getPropriedade (m2m.getReferenciaB ()).getType ());
+					JClass genericThroughToB = jcm.ref(Table.Column.class).narrow(throughTypeToB);
 					JFieldVar throughTableKeyToB = klassB.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
-						Table.Column.class,
+						genericThroughToB,
 						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase(
 							m2m.getTabelaJuncao ().getNome () +
 							"_" + (m2m.getKeyToB ()))),
 						throughTableB.invoke ("addColumn")
-							.arg (JExpr.dotclass (jcm.ref (javaBeanSchemaB.getPropriedade (m2m.getReferenciaB ()).getType ())))
+							.arg (JExpr.dotclass (throughTypeToB))
 							.arg (m2m.getKeyToB ())
 					);
 
