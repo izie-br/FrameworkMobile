@@ -41,10 +41,12 @@
     }
     if (keystoarray != null) {
         org.json.JSONObject json = new org.json.JSONObject ();
+        json.put("status","success");
         org.json.JSONObject current = json;
         for (int i=0; i < keystoarray.length; i++) {
             String key = keystoarray[i];
             if (i == keystoarray.length -1) {
+                current.put("quantity", jsonArray.length());
                 current.put(key, jsonArray);
             } else {
                 org.json.JSONObject last = current;

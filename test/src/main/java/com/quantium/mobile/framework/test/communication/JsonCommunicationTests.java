@@ -6,12 +6,14 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.json.JSONArray;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.HttpJsonDao;
 import com.quantium.mobile.framework.communication.JsonCommunication;
+import com.quantium.mobile.framework.communication.ObjectListCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.TestActivity;
 
@@ -53,6 +55,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		String param2 = "param2";
 		String val1 = "val1";
 		String val2 = "val2";
+
 		jsonComm.setURL(URL);
 		HashMap<String,String> params = new HashMap<String, String>();
 		params.put(METHOD_PARAM, "echo");
@@ -114,10 +117,20 @@ ActivityInstrumentationTestCase2<TestActivity> {
 			authorsDao.setKeysToObjectList("objects","list");
 			authorsDao.setIterator(list.iterator());
 
-
 		Iterator<Author> received = null;
 		try {
-			received = authorsDao.send().getIterator();
+			ObjectListCommunicationResponse<Author> resp = authorsDao.send();
+			Map<String, Object> responseMap = resp.getResponseMap();
+			assertEquals("success", responseMap.get("status"));
+
+			@SuppressWarnings("unchecked")
+			HashMap<String, Object> objectsMap =
+					(HashMap<String, Object>) responseMap.get("objects");
+			assertNotNull(objectsMap);
+			assertEquals(list.size(), objectsMap.get("quantity"));
+			assertNull(objectsMap.get("list"));
+
+			received = resp.getIterator();
 		} catch (FrameworkException e) {
 			fail(e.getMessage());
 		}

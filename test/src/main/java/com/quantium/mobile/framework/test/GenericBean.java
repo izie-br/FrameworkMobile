@@ -3,10 +3,10 @@ package com.quantium.mobile.framework.test;
 
 import java.io.Serializable;
 import android.database.SQLException;
-import com.quantium.mobile.framework.JsonSerializable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("serial")
 public abstract class GenericBean
     implements Serializable, Cloneable
 {
