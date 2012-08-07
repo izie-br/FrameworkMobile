@@ -57,6 +57,8 @@ public class StreamJsonIterator implements Iterator<JSONObject> {
 				char c = current.nextClean();
 				if(c==0)
 					return null;
+				if(c==']')
+					return null;
 				if(c=='{')
 					break;
 			}                   /* Encontrar a primeira '{' */

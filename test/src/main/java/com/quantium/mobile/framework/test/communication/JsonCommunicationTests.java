@@ -125,6 +125,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 					(HashMap<String, Object>) responseMap.get("objects");
 			assertNotNull(objectsMap);
 			assertEquals(list.size(), objectsMap.get("quantity"));
+			// TODO resolver esta "feature"
+			//      o objeto nao eh removido do json
 //			assertNull(objectsMap.get("list"));
 
 		} catch (FrameworkException e) {
