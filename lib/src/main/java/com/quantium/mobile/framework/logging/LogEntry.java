@@ -2,8 +2,8 @@ package com.quantium.mobile.framework.logging;
 
 public interface LogEntry extends Cloneable{
 
-	String LEVEL_ERROR = "erro";
-	String LEVEL_INFO = "info";
+	public static final String LEVEL_ERROR = "erro";
+	public static final String LEVEL_INFO = "info";
 
 
 	boolean save();

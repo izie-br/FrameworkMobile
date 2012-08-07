@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.communication;
 
+import java.util.Iterator;
 import java.util.Map;
 
 import com.quantium.mobile.framework.FrameworkException;
@@ -21,7 +22,8 @@ public interface SerializedCommunication extends Communication{
 	 */
 	public abstract void setSerializedBodyParameter(String parameter);
 
+	public void setIterator(Iterator<?> iterator, String...keysToObjectList);
 
-	public SerializedCommunicationResponse send () throws FrameworkException;
+	public SerializedCommunicationResponse post () throws FrameworkException;
 
 }

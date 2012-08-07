@@ -10,6 +10,7 @@ public enum ErrorCode{
 	LOG_FILE_REMOVED_BEFORE_COMPLETE_READ,
 	NETWORK_COMMUNICATION_ERROR;
 
+	@Override
 	public String toString() {
 		return super.toString().toLowerCase();
 	}

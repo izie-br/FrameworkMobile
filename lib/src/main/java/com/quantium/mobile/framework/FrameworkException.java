@@ -5,7 +5,7 @@ import com.quantium.mobile.framework.utils.AndroidUtils;
 
 import android.content.Context;
 
-public class FrameworkException extends Exception{
+public class FrameworkException extends RuntimeException{
 
 	private static final long serialVersionUID = -3674527184457040180L;
 
@@ -44,10 +44,6 @@ public class FrameworkException extends Exception{
 			return message;
 		}
 		return context.getString(id);
-	}
-
-	public RuntimeException asRuntimeException(){
-		return new RuntimeException(this);
 	}
 
 }

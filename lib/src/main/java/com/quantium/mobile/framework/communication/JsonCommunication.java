@@ -3,8 +3,10 @@ package com.quantium.mobile.framework.communication;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
@@ -17,6 +19,7 @@ import org.json.JSONObject;
 
 import com.quantium.mobile.framework.ErrorCode;
 import com.quantium.mobile.framework.FrameworkException;
+import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.StringUtil;
 
@@ -29,15 +32,8 @@ public class JsonCommunication extends GenericCommunication
 	private Map<String,String> parameters;
 	private Map<String,Object> bodyParameters;
 	private String body;
-	private String keysToObjectList [];
+	private CommunicationObjectList lists [];
 	private String charset = StringUtil.DEFAULT_ENCODING;
-
-	protected void _setKeysToObjectList(String keys[]) {
-		this.keysToObjectList = keys;
-	}
-	protected JSONArray objectList(){
-		return null;
-	}
 
 	public void setCharset (String charset) {
 		this.charset = charset;
@@ -61,6 +57,21 @@ public class JsonCommunication extends GenericCommunication
 
 	public void setURL (String url) {
 		this.url = url;
+	}
+
+	public void setIterator(Iterator<?> iterator, String...keysToObjectList) {
+		if (iterator == null /*|| ! iterator.hasNext()*/)
+			return;
+		int listSize = lists == null ? 0 : lists.length;
+		CommunicationObjectList newlists[] = new CommunicationObjectList[listSize +1];
+		if (listSize > 0){
+			System.arraycopy(lists, 0, newlists, 0, listSize);
+		}
+		CommunicationObjectList list = new CommunicationObjectList();
+		list.iterator = iterator;
+		list.keys = keysToObjectList;
+		newlists[listSize] = list;
+		lists = newlists;
 	}
 
 	public Map<String,Object> getBodyParameters(){
@@ -95,49 +106,14 @@ public class JsonCommunication extends GenericCommunication
 
 	}
 
-	public SerializedCommunicationResponse send () throws FrameworkException{
+	public SerializedCommunicationResponse post () throws FrameworkException{
 		try{
 			HttpResponse response = null;
 			String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
-			JSONArray objectList = objectList();
 			Map<String, String> params = getParameters();
 
-			if (
-					body != null &&
-					objectList != null &&
-					(keysToObjectList == null || keysToObjectList.length ==0)
-			) {
-				params.put(body,objectList.toString());
-				if (params != null && params.size() > 0)
-					LogPadrao.e("parametros ignorados no envio");
-			} else if (body != null) {
-				JSONObject obj = new JSONObject();
-				Map<?,?> bodyMap = bodyParameters;
-				JSONObject current = obj;
-				if (keysToObjectList == null || keysToObjectList.length ==0) {
-					if (bodyMap != null )
-						putSerializedBodyParameters(obj, bodyMap, null);
-				} else {
-					for (int i = 0; ; i++) {
-						if (bodyMap != null ){
-							putSerializedBodyParameters(obj, bodyMap, keysToObjectList[i]);
-							Object innerMap = bodyMap.get(keysToObjectList[i]);
-							bodyMap = (innerMap != null && innerMap instanceof Map) ?
-									//
-									(Map<?,?>)innerMap :
-									//
-									null;
-						}
-	
-						if (i == (keysToObjectList.length -1)) {
-							current.put(keysToObjectList[i], objectList);
-							break;
-						}
-						current = new JSONObject();
-						obj.put(keysToObjectList[i], current);
-					}
-				}
-				params.put(body, obj.toString());
+			if (body != null){
+				params.put(body, jsonRequestString());
 			}
 			int connectionTries = 0;
 			for(;;){
@@ -155,9 +131,8 @@ public class JsonCommunication extends GenericCommunication
 					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
 				}
 			}
-			return new JsonCommunicationResponse<Object>(
-					getReader(response),
-					keysToObjectList
+			return new JsonCommunicationResponse(
+					getReader(response)
 			);
 		} catch (JSONException e) {
 			LogPadrao.e(e);
@@ -168,7 +143,7 @@ public class JsonCommunication extends GenericCommunication
 		}
 	}
 
-	protected InputStreamReader getReader ( HttpResponse response)
+	protected Reader getReader ( HttpResponse response)
 			throws IOException
 	{
 		HttpEntity entity = response.getEntity();
@@ -190,6 +165,63 @@ public class JsonCommunication extends GenericCommunication
 			return null;
 		}
 	}
+
+	public String jsonRequestString() throws JSONException{
+			JSONObject obj = new JSONObject();
+			Map<?,?> bodyMap = bodyParameters;
+			JSONObject current = obj;
+
+			String keysToObjectList []= lists == null ? null :lists[0].keys;
+			LogPadrao.d("json:: %d", lists == null ? 0 : lists.length);
+
+			if (keysToObjectList == null || keysToObjectList.length ==0) {
+				if (bodyMap != null )
+					putSerializedBodyParameters(obj, bodyMap, null);
+//				else
+//					LogPadrao.e("ignorando iterador");
+			} else {
+				for (int i = 0; ; i++) {
+					if (bodyMap != null ){
+						putSerializedBodyParameters(obj, bodyMap, keysToObjectList[i]);
+						Object innerMap = bodyMap.get(keysToObjectList[i]);
+						bodyMap = (innerMap != null && innerMap instanceof Map) ?
+								//
+								(Map<?,?>)innerMap :
+								//
+								null;
+					}
+
+					if (i == (keysToObjectList.length -1)) {
+						current.put(keysToObjectList[i], getJsonArray(lists[0].iterator));
+						break;
+					}
+					current = new JSONObject();
+					obj.put(keysToObjectList[i], current);
+				}
+			}
+			return obj.toString();
+
+		}
+
+		private JSONArray getJsonArray(Iterator<?> iterator){
+			JSONArray array = new JSONArray();
+			while (iterator.hasNext()){
+				Object obj = iterator.next();
+				if (! (obj instanceof JsonSerializable) ){
+					LogPadrao.e("%s %s nao eh jsonserializable", obj.getClass().getName(), obj.toString());
+				} else {
+					JsonSerializable<?> jsonObj = (JsonSerializable<?>)obj;
+					array.put(jsonObj.toJson());
+				}
+			}
+			return array;
+		}
+
+	private static class CommunicationObjectList {
+			String keys [];
+			Iterator<?> iterator;
+		}
+
 
 	public String getAcceptHeader() {
 		return ACCEPT_HEADER;

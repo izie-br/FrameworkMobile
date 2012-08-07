@@ -33,6 +33,7 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 
 public abstract class GenericCommunication implements Communication {
 
+	private static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
 	private static final int DEFAULT_BUFFER = 1024;
 	protected static final int CONNECTION_RETRY_COUNT = 5;
 	private static final int SO_TIMEOUT = 90000;
@@ -66,9 +67,9 @@ public abstract class GenericCommunication implements Communication {
 		// execucao dos listeners
 		for (ConnectionStatusChangeListener listener : connectionListeners) {
 			if (connected)
-				listener.onConectado();
+				listener.onConnected();
 			else
-				listener.onDesconectado();
+				listener.onDisconnected();
 		}
 	}
 
@@ -97,7 +98,7 @@ public abstract class GenericCommunication implements Communication {
 	}
 
 	public String getContentType() {
-		return "application/x-www-form-urlencoded";
+		return DEFAULT_CONTENT_TYPE;
 	}
 
 	public HttpResponse post(String url, Map<String, String> parametros)

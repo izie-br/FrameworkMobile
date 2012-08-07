@@ -1,9 +1,7 @@
 package com.quantium.mobile.framework.communication;
 
-import java.io.ByteArrayInputStream;
-import java.io.InputStreamReader;
 import java.io.Reader;
-import java.io.UnsupportedEncodingException;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
@@ -19,108 +17,155 @@ import com.quantium.mobile.framework.JsonSerializable;
 import com.quantium.mobile.framework.JsonToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
-public class JsonCommunicationResponse<T> implements ObjectListCommunicationResponse<T>{
+public class JsonCommunicationResponse implements SerializedCommunicationResponse{
 
-	private String keysToObjectList[];
 	private Reader reader;
-	private JsonSerializable<?> prototype;
 
-	private Map<String,Object> map;
-	private Iterator<T> iterator;
+	private JSONObject json;
 
-	public JsonCommunicationResponse(Reader reader, String...keys){
+	public JsonCommunicationResponse(Reader reader){
 		this.reader = reader;
-		this.keysToObjectList = keys;
 	}
-
-
-	public void setPrototype(JsonSerializable<?> prototype) {
-		this.prototype = prototype;
-	}
-
-//	public void setIterator(Iterator<?> iterator) {
-//		this.iterator = iterator;
-//	}
 
 	@Override
 	public Reader getReader() {
 		return reader;
 	}
 
-	@SuppressWarnings("unchecked")
 	private void checkOutput() {
-		if (map == null && iterator == null) {
-			map = new HashMap<String, Object>();
-			iterator = (Iterator<T>) parseResponse(map);
+		if (json == null ) {
+			try {
+				json = new FrameworkJSONTokener(reader).nextJSONObject();
+			} catch (JSONException e) {
+				LogPadrao.e(e);
+			}
 		}
 	}
 
 	@Override
 	public Map<String, Object> getResponseMap() {
 		checkOutput();
+		Map<String, Object> map = new HashMap<String, Object>();
+		try {
+			desserializeJsonObject(json, map);
+		} catch (JSONException e) {
+			LogPadrao.e(e);
+			return null;
+		}
 		return map;
 	}
 
 	@Override
-	public void setKeysToObjectList(String... keysToObject) {
-		this.keysToObjectList = keysToObject;
+	@SuppressWarnings({ "unchecked", "rawtypes" })
+	public <T> Iterator<T> getIterator(T prototype, String... keysToObjectList) {
+		if ( !( prototype instanceof JsonSerializable) )
+			return null;
+		checkOutput();
+		try {
+			if(keysToObjectList != null && keysToObjectList.length >0) {
+				int l = keysToObjectList.length;
+				Object current = json;
+				JSONObject last = json;
+				String key = null;
+				for (int i = 0; i < l; i++) {
+					key = keysToObjectList[i];
+					last = (JSONObject)current;
+					current = last.get(key);
+				}
+				
+				if (key != null)
+					last.remove(key);
+				return new JsonToObjectIterator(
+						new StringReader(current.toString()),
+						(JsonSerializable)prototype
+				);
+			}
+		}catch (Exception e){
+			LogPadrao.e(e);
+		}
+		return null;
 	}
+
 
 	@Override
-	public Iterator<T> getIterator() {
+	public Iterator<Object> getIterator(String... keysToObjectList) {
+//		if ( !( prototype instanceof JsonSerializable) )
+//			return null;
+//		checkOutput();
+//		try {
+//			if(keysToObjectList != null && keysToObjectList.length >0) {
+//				Object current = json;
+//				JSONObject last = json;
+//				String key = null;
+//				for (int i = 0; i < keysToObjectList.length; i++) {
+//					key = keysToObjectList[i];
+//					last = (JSONObject)current;
+//					current = last.get(key);
+//				}
+//				return new Json
+//			}
+//		}catch (Exception e){
+//			LogPadrao.e(e);
+//		}
+		return null;
+	}
+
+/*	private JSONArray getJsonAray(String... keysToObjectList){
 		checkOutput();
-		return iterator;
-	}
-
-	private Iterator<?> parseResponse(
-			Map<String, Object> responseOutput
-	){
 		try {
-			JSONObject json = new FrameworkJSONTokener(reader).nextJSONObject();
 			if(keysToObjectList != null && keysToObjectList.length >0) {
-				JSONArray array = extractJSONArray(json, keysToObjectList);
-				reader = new InputStreamReader(
-						new ByteArrayInputStream(
-								array.toString().getBytes("UTF-8")
-						),
-						"UTF-8"
-				);
+				Object current = json;
+				JSONObject last = json;
+				String key = null;
+				for (int i = 0; i < keysToObjectList.length; i++) {
+					key = keysToObjectList[i];
+					last = (JSONObject)current;
+					current = last.get(key);
+				}
+				return (JSONArray) current;
 			}
-			desserializeJsonObject(json, responseOutput);
-			if (prototype != null) {
-				@SuppressWarnings({ "unchecked", "rawtypes" })
-				JsonToObjectIterator iter = new JsonToObjectIterator(
-						reader,
-						prototype
-				);
-				return iter;
-			}
-			return null;
-		} catch (JSONException e) {
+		}catch (Exception e){
 			LogPadrao.e(e);
-			throw new RuntimeException(e);
-		} catch (UnsupportedEncodingException e) {
-			// impossivel
-			LogPadrao.e(e);
-			throw new RuntimeException(e);
 		}
+		return null;
 	}
+*/
+//	private Iterator<?> parseResponse(
+//			Map<String, Object> responseOutput
+//	){
+//		try {
+//			JSONObject json = new FrameworkJSONTokener(reader).nextJSONObject();
+//			desserializeJsonObject(json, responseOutput);
+//			if (prototype != null) {
+//				@SuppressWarnings({ "unchecked", "rawtypes" })
+//				JsonToObjectIterator iter = new JsonToObjectIterator(
+//						reader,
+//						prototype
+//				);
+//				return iter;
+//			}
+//			return null;
+//		} catch (JSONException e) {
+//			LogPadrao.e(e);
+//			throw new RuntimeException(e);
+//		}
+//	}
 
-	private static JSONArray extractJSONArray (
-			JSONObject json,
-			String keysToObjectList[]
-	)
-			throws JSONException
-	{
-		JSONObject current = json;
-		for (int i = 0; i < keysToObjectList.length -1; i++){
-			current = current.getJSONObject(keysToObjectList[i]);
-		}
-		String key = keysToObjectList[keysToObjectList.length -1];
-		JSONArray array = current.getJSONArray(key);
-		current.remove(key);
-		return array;
-	}
+//	private static JSONArray extractJSONArray (
+//			JSONObject json,
+//			String keysToObjectList[]
+//	)
+//			throws JSONException
+//	{
+//		JSONObject current = json;
+//		for (int i = 0; i < keysToObjectList.length -1; i++){
+//			current = current.getJSONObject(keysToObjectList[i]);
+//		}
+//		String key = keysToObjectList[keysToObjectList.length -1];
+//		JSONArray array = current.getJSONArray(key);
+//		current.remove(key);
+//		return array;
+//	}
 
 	private static void desserializeJsonObject (JSONObject json, Map<String, Object> out)
 			throws JSONException
@@ -158,5 +203,6 @@ public class JsonCommunicationResponse<T> implements ObjectListCommunicationResp
 		}
 		return list;
 	}
+
 
 }

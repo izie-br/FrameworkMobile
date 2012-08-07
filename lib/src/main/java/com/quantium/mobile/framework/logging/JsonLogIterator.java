@@ -58,7 +58,7 @@ public class JsonLogIterator implements Iterator<JSONObject>{
 				// conferir se o metodo clearAllLogs foi chamado incorretamente
 				throw new FrameworkException(
 							ErrorCode.LOG_FILE_REMOVED_BEFORE_COMPLETE_READ
-						).asRuntimeException();
+						);
 			}
 		}
 		try {

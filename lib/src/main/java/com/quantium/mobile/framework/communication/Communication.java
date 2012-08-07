@@ -2,6 +2,8 @@ package com.quantium.mobile.framework.communication;
 
 import java.util.Map;
 
+import com.quantium.mobile.framework.FrameworkException;
+
 public interface Communication {
 
 	/**
@@ -34,4 +36,5 @@ public interface Communication {
 	 */
 	public abstract void setURL(String url);
 
+	public Object post () throws FrameworkException;
 }

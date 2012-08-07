@@ -10,9 +10,9 @@ import org.apache.commons.lang.RandomStringUtils;
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.framework.communication.HttpJsonDao;
 import com.quantium.mobile.framework.communication.JsonCommunication;
-import com.quantium.mobile.framework.communication.ObjectListCommunicationResponse;
+import com.quantium.mobile.framework.communication.SerializedCommunication;
+import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.server.RouterBean;
 import com.quantium.mobile.framework.test.TestActivity;
@@ -29,21 +29,21 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	@Override
 	protected void setUp() throws Exception {
 		super.setUp();
-		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
-		dao.setURL(URL);
-		dao.setParameter(RouterBean.METHOD_PARAM, "clear");
-		dao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		dao.send();
+		clear();
+	}
+
+	private void clear() {
+		SerializedCommunication comm = new JsonCommunication();
+		comm.setURL(URL);
+		comm.setParameter(RouterBean.METHOD_PARAM, "clear");
+		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
+		comm.post();
 	}
 
 	@Override
 	protected void tearDown() throws Exception {
 		super.tearDown();
-		HttpJsonDao<Author> dao = new HttpJsonDao<Author>(new Author());
-		dao.setURL(URL);
-		dao.setParameter(RouterBean.METHOD_PARAM, "clear");
-		dao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		dao.send();
+		clear();
 	}
 
 	public void testJsonCommunication() {
@@ -60,7 +60,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		params.put(param2, val2);
 		jsonComm.setParameters(params);
 		try {
-			Map<String,Object> map = jsonComm.send().getResponseMap();
+			Map<String,Object> map = jsonComm.post().getResponseMap();
 			Iterator<String> iterator = params.keySet().iterator();
 			while (iterator.hasNext()) {
 				String key = iterator.next();
@@ -105,29 +105,28 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
-		HttpJsonDao<Author> authorsDao =
-			new HttpJsonDao<Author>(new Author());
-			authorsDao.setURL(URL);
-			authorsDao.setParameter(RouterBean.METHOD_PARAM, "insert");
-			authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-			authorsDao.setSerializedBodyParameter("json");
-			authorsDao.setKeysToObjectList("objects","list");
-			authorsDao.setIterator(list.iterator());
+		SerializedCommunication comm = new JsonCommunication();
+		comm.setURL(URL);
+		comm.setParameter(RouterBean.METHOD_PARAM, "insert");
+		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
+		comm.setSerializedBodyParameter("json");
+		comm.setIterator(list.iterator(),"objects","list");
 
 		Iterator<Author> received = null;
 		try {
-			ObjectListCommunicationResponse<Author> resp = authorsDao.send();
+			SerializedCommunicationResponse resp = comm.post();
 			Map<String, Object> responseMap = resp.getResponseMap();
 			assertEquals("success", responseMap.get("status"));
+
+			received = resp.getIterator(new Author(), "objects","list");
 
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> objectsMap =
 					(HashMap<String, Object>) responseMap.get("objects");
 			assertNotNull(objectsMap);
 			assertEquals(list.size(), objectsMap.get("quantity"));
-			assertNull(objectsMap.get("list"));
+//			assertNull(objectsMap.get("list"));
 
-			received = resp.getIterator();
 		} catch (FrameworkException e) {
 			fail(e.getMessage());
 		}
@@ -145,14 +144,13 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		saveOnServer(list);
 
-		HttpJsonDao<Author> authorsDao = new HttpJsonDao<Author>(new Author());
+		SerializedCommunication authorsDao = new JsonCommunication();
 		authorsDao.setURL(URL);
 		authorsDao.setParameter(RouterBean.METHOD_PARAM, "query");
 		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		authorsDao.setKeysToObjectList("list");
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.send().getIterator();
+			it = authorsDao.post().getIterator(new Author(), "list");
 		} catch (FrameworkException e) {
 			fail();
 		}

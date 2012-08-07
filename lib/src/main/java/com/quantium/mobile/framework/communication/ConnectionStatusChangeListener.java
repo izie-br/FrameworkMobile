@@ -1,7 +1,7 @@
 package com.quantium.mobile.framework.communication;
 
 public interface ConnectionStatusChangeListener {
-	public void onConectado();
+	public void onConnected();
 
-	public void onDesconectado();
+	public void onDisconnected();
 }

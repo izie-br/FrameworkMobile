@@ -75,7 +75,7 @@ public class Insert extends BaseServerBean {
 				return jsonArray.toString ();
 			}
 		}catch (JSONException e) {
-			throw new RuntimeException(e);
+			throw new RuntimeException(((String[])getMap().get("json"))[0]);
 		}
 	}
 

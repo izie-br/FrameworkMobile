@@ -6,7 +6,7 @@ import android.content.SharedPreferences;
 
 public abstract class BaseApplication extends Application{
 
-	private static BaseApplication instance;
+	protected static BaseApplication instance;
 
 	public abstract int dbVersion();
 
