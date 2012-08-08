@@ -14,6 +14,9 @@ public final class Q {
     private static final String NULL_ARGUMENT_EXCEPTION_FMT =
         "Operador %s operando coluna %s com argumento %s";
 
+    public static final OrderByAsc ASC = OrderByAsc.ASC;
+    public static final OrderByAsc DESC = OrderByAsc.DESC;
+
     private Table table;
     // pode ser NULL
     private ArrayList<InnerJoin> joins;
@@ -392,6 +395,8 @@ public final class Q {
         }
     }
 
-
+    public static enum OrderByAsc {
+        ASC, DESC
+    }
 
 }

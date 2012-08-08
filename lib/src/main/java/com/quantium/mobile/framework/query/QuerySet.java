@@ -11,7 +11,7 @@ public abstract class QuerySet<T>{
 	private Q q;
 //	private String where;
 //	private List<String> selectionArgs;
-//	private String orderBy;
+	private String orderBy;
 
 //	private String groupBy;
 //	private String having;
@@ -28,6 +28,33 @@ public abstract class QuerySet<T>{
 	protected abstract Table getTabela();
 
 	protected abstract SQLiteDatabase getDb();
+
+	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
+		if (column != null) {
+			this.orderBy =
+					( (this.orderBy == null) ? "" : this.orderBy ) +
+					" " + column.getTable().getName() +
+					"." + column.getName() +
+					" " + asc.toString();
+		}
+		return this;
+	}
+
+	public QuerySet<T> orderBy(Table.Column<?> column){
+		return orderBy(column, Q.ASC);
+	}
+
+	public QuerySet<T> limit (int limit){
+		if (limit > 0)
+			this.limit = limit;
+		return this;
+	}
+
+	public QuerySet<T> offset (int offset){
+		if (offset > 0)
+			this.offset = offset;
+		return this;
+	}
 
 	public QuerySet<T> filter(Q q){
 		if (q==null)
@@ -123,8 +150,11 @@ public abstract class QuerySet<T>{
 			args = new String[listArg.size()];
 			listArg.toArray(args);
 		}
+		String orderByLocal = orderBy == null  ? "" : (" " + orderBy + " ");
 		Cursor cursor = getDb().rawQuery(
-				qstr +" " +limitStr,
+				qstr +
+				orderByLocal +
+				" " +limitStr,
 				args
 		);
 		return cursor;
