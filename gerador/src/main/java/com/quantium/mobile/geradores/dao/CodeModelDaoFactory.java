@@ -8,6 +8,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
@@ -133,19 +134,41 @@ public class CodeModelDaoFactory {
 	public void generateSaveMethod(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		/* **********************************************************
 		 * public boolean save() throws SQLException {              *
+		 *   save(Save.INSERT_IF_NULL_PK);                          *
+		 * }                                                        *
+		 *                                                          *
+		 * public boolean save(int flags) throws SQLException {     *
 		 *   ContentValues cv = new ContentValues();                *
+		 *   boolean insertIfNotExists =                            *
+		 *     flags == Save.INSERT_IF_NOT_EXISTS;                  *
+		 *   boolean insert = (insertIfNotExists) ?                 *
+		 *       (                                                  *
+		 *         db.compileStatement("SELECT COUNT(*) FROM table")*
+		 *          .simpleQueryForLong() == 0                      *
+		 *       ) :                                                *
+		 *       (id == ID_PADRAO);                                 *
 		 *   cv.put(ClasseBean.CAMPO,this.campo);                   *
 		 *   cv.put(*);                                             *
-		 *   if(id==ID_PADRAO)                                             *
+		 *   if(insert) {                                           *
+		 *     if (insertIfNotExists)                               *
+		 *     cv.put(ClasseBean.ID,this.id);                       *
 		 *     db.insertOrThrow(getTabela(), null, contentValues);  *
-		 *   else                                                   *
+		 *   } else {                                               *
 		 *     db.update(getTabela(), contentValues,                *
 		 *         getColunaId() + "=?", new String[] { "" + id }); *
+		 *   }                                                      *
 		 *   return true;                                           *
 		 * }                                                        *
 		 ***********************************************************/
+		JMethod saveOverload = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
+		saveOverload._throws(SQLException.class);
+		saveOverload.body()._return(
+			JExpr.invoke("save")
+				.arg(jcm.ref(Save.class).staticRef("INSERT_IF_NULL_PK"))
+		);
 		JMethod save = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
 		save._throws(SQLException.class);
+		JVar flags = save.param(jcm.INT, "flags");
 		JBlock corpo = save.body();
 
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
@@ -166,7 +189,6 @@ public class CodeModelDaoFactory {
 		 * cv.put(*);
 		 */
 		JVar contentValues = generateContentValues(klass, fields, corpo);
-
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
 
 		if(primaryKey==null){
@@ -175,11 +197,28 @@ public class CodeModelDaoFactory {
 			);
 			return;
 		}
-		// if(id==ID_PADRAO)   => nova entidade  => insert
 		JFieldVar pkVar = klass.fields().get(primaryKey.getNome());
 		JFieldVar id = pkVar;
-		JConditional ifIdNull = corpo._if(
-				id.eq(JExpr.lit(ID_PADRAO)));
+		JVar insertIfNotExists = corpo.decl(
+			jcm.BOOLEAN, "insertIfNotExists",
+			flags.eq(jcm.ref(Save.class).staticRef("INSERT_IF_NOT_EXISTS")));
+		// TODO tratar id's nao numericos
+		JVar insert = corpo.decl(
+			jcm.BOOLEAN, "insert",
+			JOp.cond(insertIfNotExists,
+					db.invoke("compileStatement").arg(
+						JExpr.lit(
+							"SELECT COUNT(*) FROM " +
+							javaBeanSchema.getTabela().getNome() +
+							" WHERE " + primaryKey.getNome() + "="
+						).plus(pkVar)
+					).invoke("simpleQueryForLong").eq(JExpr.lit(0)),
+					id.eq(JExpr.lit(ID_PADRAO))
+			)
+		);
+		JConditional ifIdNull = corpo._if(insert);
+
+		// if(id==ID_PADRAO)   => nova entidade  => insert
 		/* **************************************
 		 * if(id==ID_PADRAO){                   *
 		 *      int value = db.insertOrThrow(   *
@@ -204,6 +243,9 @@ public class CodeModelDaoFactory {
 		 *          contentValues               *
 		 *      );                              *
 		 ***************************************/
+		thenBlock._if(insertIfNotExists)._then().add(contentValues.invoke("put")
+					.arg(JExpr.lit(primaryKey.getNome()))
+					.arg(pkVar));
 		JExpression valueExpr = db.invoke("insertOrThrow")
 			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
 			.arg(JExpr._null())
