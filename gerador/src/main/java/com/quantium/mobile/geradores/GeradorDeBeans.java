@@ -258,8 +258,8 @@ public class GeradorDeBeans {
 		CodeModelJsonSerializacaoFactory jsonFactory =
 			new CodeModelJsonSerializacaoFactory(jcm);
 
-		ArrayList<SchemaXJClass> listClasses =
-			new ArrayList<GeradorDeBeans.SchemaXJClass>();
+		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
+				new HashMap<JavaBeanSchema, JDefinedClass>();
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
@@ -284,46 +284,34 @@ public class GeradorDeBeans {
 					classeGerada,
 					javaBeanSchema
 			);
-			SchemaXJClass schemaXjclass= new SchemaXJClass();
-			schemaXjclass.klass = classeGerada;
-			schemaXjclass.schema = javaBeanSchema;
-			listClasses.add(schemaXjclass);
+			mapClasses.put(javaBeanSchema, classeGerada);
 		}
 
 		// gera metodos de acesso a banco e ralacoes
-		for(SchemaXJClass schemaJclass : listClasses){
+		for(JavaBeanSchema schema : mapClasses.keySet()){
 			daoFactory.generateSaveAndObjects(
-					schemaJclass.klass,
-					schemaJclass.schema
-			);
-			for(SchemaXJClass schemaJclassAssoc : listClasses){
+					mapClasses.get(schema), schema);
+			for(JavaBeanSchema schemaAssoc : mapClasses.keySet()){
 				// gerando relacoes
 				daoFactory.generateAssociationMethods(
-						schemaJclass.klass,
-						schemaJclass.schema,
-						schemaJclassAssoc.klass,
-						schemaJclassAssoc.schema
-				);
+						mapClasses.get(schema), schema,
+						mapClasses.get(schemaAssoc), schemaAssoc);
 			}
 			props.setProperty(PROPERTIY_DB_VERSION, ((Integer)dbVersion).toString());
 		}
 
 		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
-		for(SchemaXJClass schemaJclass : listClasses){
-			map.put(schemaJclass.schema, schemaJclass.klass);
+		for(JavaBeanSchema schema : mapClasses.keySet()){
+			map.put(schema, mapClasses.get(schema));
 		}
 		daoFactory.generateDeleteMethods(map);
 
-		for(SchemaXJClass schemaXJClass : listClasses){
-			jbf.generateSerialVersionUID(schemaXJClass.klass);
+		for(JavaBeanSchema schema : mapClasses.keySet()){
+			jbf.generateSerialVersionUID(mapClasses.get(schema));
 			jbf.generateCloneMethod(
-					schemaXJClass.klass,
-					schemaXJClass.schema
-			);
+					mapClasses.get(schema), schema);
 			jbf.generateHashCodeAndEquals(
-					schemaXJClass.klass,
-					schemaXJClass.schema
-			);
+					mapClasses.get(schema), schema);
 		}
 
 		String pastaGen = (pacote + "."+ pacoteGen)
@@ -558,11 +546,6 @@ public class GeradorDeBeans {
 		String property = properties
 				.getProperty(PROPERTIY_IGNORED);
 		return property == null ? new String[0] : property.split("[\\|,]");
-	}
-
-	private static class SchemaXJClass{
-		JDefinedClass klass;
-		JavaBeanSchema schema;
 	}
 
 	private static void deleteFolderR(File f) throws IOException {
