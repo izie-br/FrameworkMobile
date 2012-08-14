@@ -2,6 +2,7 @@ package com.quantium.mobile.geradores;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -17,10 +18,10 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
@@ -62,6 +63,9 @@ import com.sun.codemodel.JVar;
 
 public class GeradorDeBeans {
 
+	public static final String PROPERTIY_DB_VERSION = "dbVersion";
+	public static final String PROPERTIY_IGNORED = "ignore";
+
 	public static final String DB_CLASS = "DB";
 	public static final String DB_RESOURCE_FILE = "/DB.java";
 	public static final String DB_PACKAGE = "db";
@@ -88,7 +92,7 @@ public class GeradorDeBeans {
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					GeradorDeBeans.class.getName()+ " " +
-					"androidManifest arquivo_sql pastaSrc"
+					"androidManifest arquivo_sql pastaSrc [properties]"
 			);
 			return;
 		}
@@ -96,14 +100,12 @@ public class GeradorDeBeans {
 		String manifest = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
+		String properties = (args.length >3) ? args[3] : "generator.xml";
 
 		try {
 			new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
-				new File(manifest),
-				new File (arquivo),
-				pastaSrc,
-				"gen"
-			);
+				new File(manifest), new File (arquivo),
+				pastaSrc, "gen", new File(properties) );
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -179,20 +181,30 @@ public class GeradorDeBeans {
 	}
 
 	public void gerarBeansWithJsqlparserAndCodeModel(
-			File androidManifestFile,
-			File sqlResource,
-			String pastaSrc,
-			String pacoteGen
-	)
-			throws IOException, FileNotFoundException, GeradorException
-	{
+			File androidManifestFile, File sqlResource, String pastaSrc,
+			String pacoteGen, File properties )
+			throws IOException, FileNotFoundException, GeradorException {
 
 		String pacote = getBasePackage(androidManifestFile);
 		conferirArquivosCustomSrc(pacote, pastaSrc);
 
+		PropertiesLocal props = getProperties(properties);
+		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
+				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
+				0;
+
 		Integer dbVersion = getDBVersion(pastaSrc, pacote);
 		if(dbVersion==null)
 			throw new GeradorException("versao do banco nao encontrada");
+
+		/*
+		 * Se a versao do banco é a mesma, finaliza o gerador
+		 */
+		LoggerUtil.getLog().info(
+				"Last dbVersion:" + propertyVersion +
+				" current dbVersion" + dbVersion);
+		if (propertyVersion == (int)dbVersion)
+			return;
 //		String basePackage = getBasePackage();
 //		if(basePackage!=null)
 //			getLog().info("package "+basePackage);
@@ -220,7 +232,7 @@ public class GeradorDeBeans {
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(new StringReader(val));
+				getTabelasDoSchema(new StringReader(val), props);
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(
@@ -292,6 +304,7 @@ public class GeradorDeBeans {
 						schemaJclassAssoc.schema
 				);
 			}
+			props.setProperty(PROPERTIY_DB_VERSION, ((Integer)dbVersion).toString());
 		}
 
 		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
@@ -328,6 +341,7 @@ public class GeradorDeBeans {
 
 		//pastaGenFolder.mkdirs();
 		jcm.build(new File(pastaSrc));
+		props.save();
 	}
 
 	public Integer getDBVersion(String srcFolder, String basePackage)
@@ -361,6 +375,53 @@ public class GeradorDeBeans {
 		mobj.find();
 		Integer ver = Integer.parseInt(mobj.group(versionNumberGroup));
 		return ver;
+	}
+
+	private static class PropertiesLocal extends Properties{
+		private static final long serialVersionUID = -3878975503573330508L;
+
+		private File f;
+
+		private PropertiesLocal(File f) {
+			super();
+			if (f == null ){
+				throw new IllegalArgumentException("file is null");
+			}
+			this.f = f;
+			try{
+				if (!f.exists()){
+					if (f.createNewFile())
+						this.save();
+					else
+						throw new RuntimeException("Could not create " + f.getAbsolutePath());
+				}
+				FileInputStream fis = new FileInputStream(f);
+				if (f.getName().endsWith(".xml")){
+					this.loadFromXML(fis);
+				}
+				else
+					this.load(fis);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			} catch (IOException e) {
+				e.printStackTrace();
+				throw new RuntimeException(e);
+			}
+		}
+
+		private void save() throws FileNotFoundException, IOException {
+			FileOutputStream fos = new FileOutputStream(f);
+			if (f.getName().endsWith(".xml"))
+				this.storeToXML(fos, null);
+			else
+				this.store(fos, null);
+		}
+
+	}
+
+	public PropertiesLocal getProperties(File f){
+		return new PropertiesLocal(f);
 	}
 
 	public String sqliteSchema(String sql) {
@@ -435,13 +496,18 @@ public class GeradorDeBeans {
 		return pacote.replaceAll("\\.", File.separator);
 	}
 
-	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input)
+	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input, Properties props)
 			throws IOException
 	{
 		BufferedReader reader = new BufferedReader(input);
 		Collection<TabelaSchema> tabelas =
 			new ArrayList<TabelaSchema>();
 		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
+		Pattern createTablePattern = Pattern.compile(
+				"CREATE\\s+(TEMP\\w*\\s+)?TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?(\\w+)",
+				Pattern.CASE_INSENSITIVE |
+				Pattern.MULTILINE
+			);
 		for(;;){
 			StringBuilder sb = new StringBuilder();
 			int c;
@@ -454,19 +520,20 @@ public class GeradorDeBeans {
 					break;
 			}
 			String createTableStatement = sb.toString();
+			String ignoredTables [] = getIgnoredTables(props);
 			if(
-				Pattern.compile(
-					"create\\s+view",
-					Pattern.CASE_INSENSITIVE |
-					Pattern.MULTILINE
-				).matcher(createTableStatement).find()
-			)
-				continue;
-			if(
-				createTableStatement==null ||
-				createTableStatement.matches("^[\\s\\n]*$")
+					createTableStatement==null ||
+					createTableStatement.matches("^[\\s\\n]*$")
 			){
 				break;
+			}
+			Matcher mobj = createTablePattern.matcher(createTableStatement);
+			if(
+					!mobj.find() ||
+					checkIfIgnored( mobj.group(3), ignoredTables)
+			){
+				LoggerUtil.getLog().info("IGNORED::" +sb.toString());
+				continue;
 			}
 			TabelaSchema tabela =
 				factory.gerarTabelaSchema(createTableStatement);
@@ -474,6 +541,22 @@ public class GeradorDeBeans {
 			LoggerUtil.getLog().info("tabela: " +tabela.getNome());
 		}
 		return tabelas;
+	}
+
+	private static boolean checkIfIgnored(String table, String ignored[]){
+		if (ignored == null)
+			return false;
+		for (String str : ignored){
+			if(table.equalsIgnoreCase(str))
+				return true;
+		}
+		return false;
+	}
+
+	private static String [] getIgnoredTables(Properties properties){
+		return properties
+				.getProperty(PROPERTIY_IGNORED)
+				.split("[\\|,]");
 	}
 
 	private static class SchemaXJClass{

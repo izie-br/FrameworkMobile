@@ -76,7 +76,8 @@ public class GeradorMojo extends AbstractMojo{
                     getAndroidManifest(),
                     getSqlResource(),
                     basedir+getSrcFolder(),
-                    "gen"
+                    "gen",
+                    new File("generator.xml")
             );
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());

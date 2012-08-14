@@ -3,14 +3,14 @@
 
     <string name="db_versao_1">
 CREATE TABLE tb_document (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     title varchar(79) NOT NULL,
     created_at timestamp NOT NULL,
     id_author integer,
     text text NOT NULL
 );
 CREATE TABLE tb_author (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
     UNIQUE (name)
 );
@@ -21,12 +21,12 @@ CREATE TABLE tb_score (
     PRIMARY KEY(id_author,id_document)
 );
 CREATE TABLE tb_customer (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
     UNIQUE (name)
 );
 CREATE TABLE tb_customer_join_document (
-    id integer NOT NULL PRIMARY KEY,
+    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     id_customer INTEGER NOT NULL,
     id_document INTEGER NOT NULL
 );
