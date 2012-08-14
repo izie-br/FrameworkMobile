@@ -28,6 +28,22 @@ public class GeradorMojo extends AbstractMojo{
     /**
      * @parameter
      */
+    private String config;
+
+    private File getConfigResource(){
+        File resource;
+        if (config != null)
+            resource = new File(config);
+        else
+            resource = new File(
+                basedir + "/" +
+                GeradorDeBeans.DEFAULT_GENERATOR_CONFIG);
+        return resource;
+    }
+
+    /**
+     * @parameter
+     */
     private String sqlResource;
 
     public File getSqlResource() throws MojoExecutionException{
@@ -77,7 +93,7 @@ public class GeradorMojo extends AbstractMojo{
                     getSqlResource(),
                     basedir+getSrcFolder(),
                     "gen",
-                    new File("generator.xml")
+                    getConfigResource()
             );
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());

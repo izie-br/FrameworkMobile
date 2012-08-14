@@ -63,6 +63,7 @@ import com.sun.codemodel.JVar;
 
 public class GeradorDeBeans {
 
+	public static final String DEFAULT_GENERATOR_CONFIG = "generator.xml";
 	public static final String PROPERTIY_DB_VERSION = "dbVersion";
 	public static final String PROPERTIY_IGNORED = "ignore";
 
@@ -100,7 +101,7 @@ public class GeradorDeBeans {
 		String manifest = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
-		String properties = (args.length >3) ? args[3] : "generator.xml";
+		String properties = (args.length >3) ? args[3] : DEFAULT_GENERATOR_CONFIG;
 
 		try {
 			new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
@@ -554,9 +555,9 @@ public class GeradorDeBeans {
 	}
 
 	private static String [] getIgnoredTables(Properties properties){
-		return properties
-				.getProperty(PROPERTIY_IGNORED)
-				.split("[\\|,]");
+		String property = properties
+				.getProperty(PROPERTIY_IGNORED);
+		return property == null ? new String[0] : property.split("[\\|,]");
 	}
 
 	private static class SchemaXJClass{
