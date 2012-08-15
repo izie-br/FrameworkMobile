@@ -1,10 +1,10 @@
 
 import java.io.Serializable;
 import android.database.SQLException;
-import com.quantium.mobile.framework.JsonSerializable;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+@SuppressWarnings("serial")
 public abstract class GenericBean
     implements Serializable, Cloneable
 {
@@ -13,4 +13,9 @@ public abstract class GenericBean
         throws JSONException;
     public abstract boolean save() throws SQLException;
     public abstract boolean delete();
+
+    protected int onPreSave(int flags){
+        return flags;
+    }
+
 }

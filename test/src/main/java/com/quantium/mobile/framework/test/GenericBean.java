@@ -15,4 +15,9 @@ public abstract class GenericBean
         throws JSONException;
     public abstract boolean save() throws SQLException;
     public abstract boolean delete();
+
+    protected int onPreSave(int flags){
+        return flags;
+    }
+
 }
