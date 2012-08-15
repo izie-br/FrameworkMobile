@@ -171,7 +171,7 @@ public class CodeModelDaoFactory {
 		JVar flags = save.param(jcm.INT, "flags");
 		JBlock corpo = save.body();
 
-		corpo.assign(flags, JExpr._super().invoke("onPreSave").arg(flags));
+		corpo.assign(flags, JExpr.invoke("onPreSave").arg(flags));
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 
 		Map<String, JFieldVar> fields = new LinkedHashMap<String, JFieldVar>();
