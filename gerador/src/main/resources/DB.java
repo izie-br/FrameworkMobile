@@ -1,5 +1,8 @@
+import java.util.ArrayList;
+import java.util.regex.Pattern;
 
 import com.quantium.mobile.framework.BaseApplication;
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.AndroidUtils;
 
 import android.content.Context;
@@ -64,7 +67,7 @@ public class DB extends SQLiteOpenHelper{
 	}
 
 	public void executaScript(String sql, SQLiteDatabase db) throws SQLException{
-		String[] sqlArray = sql.toString().split(";");
+		String[] sqlArray = splitSql(sql);
 		db.beginTransaction();
 		try {
 			execMultipleSQL(db, sqlArray);
@@ -74,6 +77,32 @@ public class DB extends SQLiteOpenHelper{
 		}
 		sqlArray = null;
 		sql = null;
+	}
+
+	//TODO este metodo nao funciona com string com ponto-e-virgula;
+	private String[] splitSql(String sql) {
+		String sqlArray [] = sql.toString().split(";");
+		ArrayList<String> list = new ArrayList<String>();
+		Pattern triggerPat = Pattern.compile("create\\s+trigger",Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
+		Pattern triggerEnd = Pattern.compile("\\send\\s*$",Pattern.CASE_INSENSITIVE);
+		for (int i=0; i<sqlArray.length;i++){
+			int last = i;
+			if (triggerPat.matcher(sqlArray[i]).find()){
+				int j = i;
+				do{
+					j++;
+					sqlArray[i] += ";"+ sqlArray[j];
+					sqlArray[j] = null;
+				}while (j < (sqlArray.length-1) &&
+						!triggerEnd.matcher(sqlArray[i]).find() );
+				i = j;
+			}
+			list.add(sqlArray[last]);
+			LogPadrao.d(sqlArray[last]);
+		}
+		String out [] = new String[list.size()];
+		list.toArray(out);
+		return out;
 	}
 
 

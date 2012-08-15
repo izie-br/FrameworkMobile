@@ -9,6 +9,9 @@ CREATE TABLE tb_document (
     id_author integer,
     text text NOT NULL
 );
+CREATE TRIGGER tb_document_on_insert AFTER INSERT ON tb_document BEGIN
+  UPDATE tb_document SET id = new.id WHERE id = new.id;
+END;
 CREATE TABLE tb_author (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
