@@ -7,6 +7,8 @@ import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class SQLiteGeradorUtils {
 
@@ -41,6 +43,14 @@ public class SQLiteGeradorUtils {
 			);
 			// Statement statement = connection.createStatement();
 			// statement.setQueryTimeout(30);
+			Pattern pat = Pattern.compile("CREATE\\s+TRIGGER\\s+.*?\\sEND\\s*;",Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
+			Matcher matcher = pat.matcher(sql);
+			StringBuffer sqlsb = new StringBuffer();
+			while (matcher.find()){
+				matcher.appendReplacement(sqlsb, "");
+			}
+			matcher.appendTail(sqlsb);
+			sql = sqlsb.toString();
 			String[] stms = sql.split(";");
 			for (String stm : stms) {
 				if (stm.matches("[\\s\\n]*"))
