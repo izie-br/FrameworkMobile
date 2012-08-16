@@ -21,6 +21,7 @@ public class JsonCommunicationTests extends
 ActivityInstrumentationTestCase2<TestActivity> {
 
 	private static final String URL = "http://10.0.2.2:9091/";
+	private static final String PLAIN_TEXT_URL = URL + "text_plain.jsp";
 
 	public JsonCommunicationTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
@@ -158,6 +159,23 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		}
 		
 		comparaAuthors(list, it);
+	}
+
+	public void testPlainTextCommunication(){
+		SerializedCommunication comm = new JsonCommunication(){
+			@Override
+			public String getContentType() {
+				return "text/plain";
+			}
+		};
+		Map<String,Object> map = new HashMap<String, Object>();
+		String param1 = "param1";
+		String val1 = "val1";
+		map.put(param1,val1);
+		comm.setSerializedBodyData(map);
+		comm.setURL(PLAIN_TEXT_URL);
+		Map<String,Object> respMap = comm.post().getResponseMap();
+		assertEquals(val1, respMap.get(param1));
 	}
 
 }

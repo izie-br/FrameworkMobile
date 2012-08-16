@@ -19,6 +19,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -33,7 +34,8 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 
 public abstract class GenericCommunication implements Communication {
 
-	private static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
+	protected static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
+	protected static final String BODY_ONLY_PARAMETER = "body";
 	private static final int DEFAULT_BUFFER = 1024;
 	protected static final int CONNECTION_RETRY_COUNT = 5;
 	private static final int SO_TIMEOUT = 90000;
@@ -101,7 +103,7 @@ public abstract class GenericCommunication implements Communication {
 		return DEFAULT_CONTENT_TYPE;
 	}
 
-	public HttpResponse post(String url, Map<String, String> parametros)
+	protected HttpResponse post(String url, Map<String, String> parametros)
 	throws IOException
 	{
 		HttpResponse response = null;
@@ -111,21 +113,26 @@ public abstract class GenericCommunication implements Communication {
 			HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
 			HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
 			HttpClient httpclient = new DefaultHttpClient(httpParameters);
+			String contentType = getContentType();
+
 			HttpPost httpPost = new HttpPost(url);
 			httpPost.setHeader("User-Agent", getUserAgent());
 			httpPost.setHeader("Accept", getAcceptHeader());
-			httpPost.setHeader("Content-Type", getContentType());
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-			if (parametros != null) {
-				Iterator<String> iterator = parametros.keySet().iterator();
-				while (iterator.hasNext()) {
-					String chave = iterator.next();
-					String valor = parametros.get(chave);
-					nameValuePairs.add(new BasicNameValuePair(chave, valor));
+			httpPost.setHeader("Content-Type", contentType);
+			if (contentType.equals(DEFAULT_CONTENT_TYPE)){
+				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+				if (parametros != null) {
+					Iterator<String> iterator = parametros.keySet().iterator();
+					while (iterator.hasNext()) {
+						String chave = iterator.next();
+						String valor = parametros.get(chave);
+						nameValuePairs.add(new BasicNameValuePair(chave, valor));
+					}
 				}
+				httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+			} else {
+				httpPost.setEntity(new StringEntity(parametros.get(BODY_ONLY_PARAMETER)));
 			}
-			// TODO criar um entity aqui
-			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 
 			response = httpclient.execute(httpPost);
 		} catch (IOException e) {

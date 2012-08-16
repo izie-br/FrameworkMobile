@@ -112,6 +112,9 @@ public class JsonCommunication extends GenericCommunication
 			String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
 			Map<String, String> params = getParameters();
 
+			// refazer isso
+			if (!DEFAULT_CONTENT_TYPE.equals(getContentType()))
+				body = BODY_ONLY_PARAMETER;
 			if (body != null){
 				params.put(body, jsonRequestString());
 			}
