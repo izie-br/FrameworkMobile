@@ -16,11 +16,19 @@ public interface SerializedCommunication extends Communication{
 	public abstract void setSerializedBodyData(Map<String,Object> bodyParameters);
 
 	/**
-	 * Altera o parametro para onde vai o corpo
+	 * Altera o parametro para onde o corpo sera inserido
 	 *
 	 * @param body chave onde vai o corpo
 	 */
 	public abstract void setSerializedBodyParameter(String parameter);
+
+	/**
+	 * Adiciona um par key/value ao corpo serializado
+	 * 
+	 * @param key
+	 * @param value
+	 */
+	public abstract void setSerializedParameter(String key, Object value);
 
 	public void setIterator(Iterator<?> iterator, String...keysToObjectList);
 

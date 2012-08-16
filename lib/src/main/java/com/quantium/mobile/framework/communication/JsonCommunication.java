@@ -51,6 +51,13 @@ public class JsonCommunication extends GenericCommunication
 		this.bodyParameters = bodyParameters;
 	}
 
+	@Override
+	public void setSerializedParameter(String key, Object value) {
+		if (this.bodyParameters == null)
+			bodyParameters = new HashMap<String, Object>();
+		bodyParameters.put(key, value);
+	}
+
 	public void setSerializedBodyParameter(String body) {
 		this.body = body;
 	}
