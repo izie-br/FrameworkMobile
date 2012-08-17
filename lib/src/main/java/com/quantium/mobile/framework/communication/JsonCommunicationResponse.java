@@ -55,6 +55,10 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 		return map;
 	}
 
+	public JSONObject getJson(){
+		return json;
+	}
+
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> Iterator<T> getIterator(T prototype, String... keysToObjectList) {
