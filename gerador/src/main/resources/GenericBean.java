@@ -12,6 +12,7 @@ public abstract class GenericBean
     public abstract GenericBean jsonToObjectWithPrototype(JSONObject json)
         throws JSONException;
     public abstract boolean save() throws SQLException;
+    public abstract boolean save(int flags) throws SQLException;
     public abstract boolean delete();
 
     protected int onPreSave(int flags){
