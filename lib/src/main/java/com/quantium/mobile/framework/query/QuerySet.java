@@ -150,7 +150,7 @@ public abstract class QuerySet<T>{
 			args = new String[listArg.size()];
 			listArg.toArray(args);
 		}
-		String orderByLocal = orderBy == null  ? "" : (" " + orderBy + " ");
+		String orderByLocal = orderBy == null  ? "" : (" ORDER BY " + orderBy + " ");
 		Cursor cursor = getDb().rawQuery(
 				qstr +
 				orderByLocal +
