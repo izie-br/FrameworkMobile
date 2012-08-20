@@ -133,10 +133,6 @@ public class CodeModelDaoFactory {
 	 */
 	public void generateSaveMethod(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		/* **********************************************************
-		 * public boolean save() throws SQLException {              *
-		 *   save(Save.INSERT_IF_NULL_PK);                          *
-		 * }                                                        *
-		 *                                                          *
 		 * public boolean save(int flags) throws SQLException {     *
 		 *   ContentValues cv = new ContentValues();                *
 		 *   boolean insertIfNotExists =                            *
@@ -160,12 +156,6 @@ public class CodeModelDaoFactory {
 		 *   return true;                                           *
 		 * }                                                        *
 		 ***********************************************************/
-		JMethod saveOverload = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
-		saveOverload._throws(SQLException.class);
-		saveOverload.body()._return(
-			JExpr.invoke("save")
-				.arg(jcm.ref(Save.class).staticRef("INSERT_IF_NULL_PK"))
-		);
 		JMethod save = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
 		save._throws(SQLException.class);
 		JVar flags = save.param(jcm.INT, "flags");
@@ -202,7 +192,8 @@ public class CodeModelDaoFactory {
 		JFieldVar id = pkVar;
 		JVar insertIfNotExists = corpo.decl(
 			jcm.BOOLEAN, "insertIfNotExists",
-			flags.eq(jcm.ref(Save.class).staticRef("INSERT_IF_NOT_EXISTS")));
+			flags.band(jcm.ref(Save.class).staticRef("INSERT_IF_NOT_EXISTS"))
+				.gt(JExpr.lit(0)));
 		// TODO tratar id's nao numericos
 		JVar insert = corpo.decl(
 			jcm.BOOLEAN, "insert",
