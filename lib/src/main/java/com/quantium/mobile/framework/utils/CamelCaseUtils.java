@@ -109,6 +109,19 @@ public class CamelCaseUtils {
 				"(?<=[A-Za-z])(?=[^A-Za-z])"), " ");
 	}
 
+	public static boolean camelEquals(String obj1, String obj2){
+		return (obj1==null)?
+			(obj2==null) :
+			(anyToLowerCamelCase(obj1)) .equals (anyToLowerCamelCase(obj2));
+	}
+
+	//TODO testear essa bagaca!!!!!!!!!!!!!!!
+	private static String anyToLowerCamelCase(String obj){
+		if (obj.matches("^[A-Z_\\s]*$"))
+			obj = obj.toLowerCase();
+		return toLowerCamelCase(obj);
+	}
+
 //	public static String underscoreToCamelCase(String s) {
 //		if (s.equals("id")) {
 //			return s;
