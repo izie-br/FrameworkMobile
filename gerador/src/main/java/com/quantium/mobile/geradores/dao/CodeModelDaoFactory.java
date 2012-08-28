@@ -891,13 +891,13 @@ public class CodeModelDaoFactory {
 					JFieldVar throughTableA = klassA.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
 						Table.class,
-						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
+						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.toLowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
 						JExpr._new (jcm.ref (Table.class)).arg (m2m.getTabelaJuncao ().getNome ())
 					);
 					JFieldVar throughTableB = klassB.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
 						Table.class,
-						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
+						"TABLE_" + CamelCaseUtils.camelToUpper (CamelCaseUtils.toLowerCamelCase (m2m.getTabelaJuncao ().getNome ())),
 						klassA.staticRef(throughTableA)
 					);
 
@@ -906,7 +906,7 @@ public class CodeModelDaoFactory {
 					JFieldVar throughTableKeyToA = klassA.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
 						genericThroughToA,
-						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase (
+						CamelCaseUtils.camelToUpper (CamelCaseUtils.toLowerCamelCase (
 							m2m.getTabelaJuncao ().getNome () +
 							"_" + (m2m.getKeyToA ()))),
 						throughTableA.invoke ("addColumn")
@@ -918,7 +918,7 @@ public class CodeModelDaoFactory {
 					JFieldVar throughTableKeyToB = klassB.field(
 						JMod.PUBLIC|JMod.STATIC|JMod.FINAL,
 						genericThroughToB,
-						CamelCaseUtils.camelToUpper (CamelCaseUtils.tolowerCamelCase(
+						CamelCaseUtils.camelToUpper (CamelCaseUtils.toLowerCamelCase(
 							m2m.getTabelaJuncao ().getNome () +
 							"_" + (m2m.getKeyToB ()))),
 						throughTableB.invoke ("addColumn")
@@ -1019,7 +1019,7 @@ public class CodeModelDaoFactory {
 		JFieldVar campo = klassA.field(
 				JMod.PRIVATE|JMod.TRANSIENT,
 				klassB,
-				CamelCaseUtils.tolowerCamelCase(klassB.name())
+				CamelCaseUtils.toLowerCamelCase(klassB.name())
 		);
 		/* ***********************************************
 		 *   //getter de associacao "to-one"             *

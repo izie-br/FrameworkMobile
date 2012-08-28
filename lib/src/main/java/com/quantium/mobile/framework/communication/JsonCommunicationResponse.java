@@ -2,20 +2,17 @@ package com.quantium.mobile.framework.communication;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
-import java.util.List;
 import java.util.Map;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.quantium.mobile.framework.FrameworkJSONTokener;
-import com.quantium.mobile.framework.JsonSerializable;
-import com.quantium.mobile.framework.JsonToObjectIterator;
+import com.quantium.mobile.framework.MapSerializable;
+import com.quantium.mobile.framework.MapToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.JSONUtils;
 
 public class JsonCommunicationResponse implements SerializedCommunicationResponse{
 
@@ -45,14 +42,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	@Override
 	public Map<String, Object> getResponseMap() {
 		checkOutput();
-		Map<String, Object> map = new HashMap<String, Object>();
-		try {
-			desserializeJsonObject(json, map);
-		} catch (JSONException e) {
-			LogPadrao.e(e);
-			return null;
-		}
-		return map;
+		return JSONUtils.desserializeJsonObject(json);
 	}
 
 	public JSONObject getJson(){
@@ -62,7 +52,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	public <T> Iterator<T> getIterator(T prototype, String... keysToObjectList) {
-		if ( !( prototype instanceof JsonSerializable) )
+		if ( !( prototype instanceof MapSerializable) )
 			return null;
 		checkOutput();
 		try {
@@ -79,9 +69,9 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 				
 				if (key != null)
 					last.remove(key);
-				return new JsonToObjectIterator(
+				return new MapToObjectIterator(
 						new StringReader(current.toString()),
-						(JsonSerializable)prototype
+						(MapSerializable) prototype
 				);
 			}
 		}catch (Exception e){
@@ -170,43 +160,5 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 //		current.remove(key);
 //		return array;
 //	}
-
-	private static void desserializeJsonObject (JSONObject json, Map<String, Object> out)
-			throws JSONException
-	{
-		@SuppressWarnings("unchecked")
-		Iterator<String> it = json.keys();
-		while (it.hasNext()){
-			String key = it.next();
-			out.put(
-					key,
-					desserializeJsonValue(json.get(key))
-			);
-		}
-	}
-
-	private static Object desserializeJsonValue (Object value)
-			throws JSONException
-	{
-		if (value instanceof JSONArray)
-			return desserializeJsonArray( (JSONArray)value );
-		if (value instanceof JSONObject) {
-			Map<String,Object> map = new HashMap<String, Object>();
-			desserializeJsonObject( (JSONObject)value, map);
-			return map;
-		}
-		return value;
-	}
-
-	private static List<Object> desserializeJsonArray(JSONArray jsonArray)
-			throws JSONException
-	{
-		List<Object> list = new ArrayList<Object>();
-		for (int i=0; i < jsonArray.length(); i++){
-			list.add(desserializeJsonValue(jsonArray.get(i)));
-		}
-		return list;
-	}
-
 
 }

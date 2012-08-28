@@ -3,9 +3,9 @@ package com.quantium.mobile.framework;
 import java.io.Reader;
 import java.util.Iterator;
 
-import org.json.JSONException;
+import com.quantium.mobile.framework.utils.JSONUtils;
 
-public class JsonToObjectIterator<T extends JsonSerializable<T>> implements Iterator<T>{
+public class MapToObjectIterator<T extends MapSerializable<T>> implements Iterator<T>{
 
 	private static final String ERR_PROTOTYPE_NULL = "Prototipo nao pode ser null";
 
@@ -13,7 +13,7 @@ public class JsonToObjectIterator<T extends JsonSerializable<T>> implements Iter
 	StreamJsonIterator jsonIterator;
 	private T prototype;
 
-	public JsonToObjectIterator(Reader reader,T prototype) {
+	public MapToObjectIterator(Reader reader,T prototype) {
 		jsonIterator = new StreamJsonIterator(reader);
 		this.prototype = prototype;
 		if(prototype==null)
@@ -27,11 +27,8 @@ public class JsonToObjectIterator<T extends JsonSerializable<T>> implements Iter
 
 	@Override
 	public T next() {
-		try {
-			return prototype.jsonToObjectWithPrototype(jsonIterator.next());
-		} catch (JSONException e) {
-			throw new RuntimeException(e);   /* impossivel */
-		}
+		return prototype.mapToObjectWithPrototype(
+				JSONUtils.desserializeJsonObject(jsonIterator.next()));
 	}
 
 	@Override

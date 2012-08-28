@@ -23,7 +23,7 @@ public class CamelCaseUtils {
 	 * @param input entrada
 	 * @return string em lowerCamelCase
 	 */
-	public static String tolowerCamelCase(String input){
+	public static String toLowerCamelCase(String input){
 		StringBuilder out = new StringBuilder();
 		// indice do "iterador"
 		int i = 0;
@@ -70,7 +70,7 @@ public class CamelCaseUtils {
 	 * @return string em UowerCamelCase
 	 */
 	public static String toUpperCamelCase(String input){
-		String lcc = tolowerCamelCase(input);
+		String lcc = toLowerCamelCase(input);
 		return ""+Character.toUpperCase(lcc.charAt(0))+lcc.substring(1);
 	}
 

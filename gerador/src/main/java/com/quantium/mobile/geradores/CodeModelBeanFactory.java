@@ -5,8 +5,7 @@ import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
 
-
-import com.quantium.mobile.framework.JsonSerializable;
+import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
@@ -406,7 +405,7 @@ public class CodeModelBeanFactory {
 				ClassType.CLASS
 		);
 		JClass genericBean = jcm.ref(basePackage + "." + GeradorDeBeans.GENERIC_BEAN_CLASS);
-		JClass jsonSerializable = jcm.ref(JsonSerializable.class).narrow(beanClass);
+		JClass jsonSerializable = jcm.ref(MapSerializable.class).narrow(beanClass);
 		beanClass._implements(jsonSerializable);
 		beanClass._extends(genericBean);
 

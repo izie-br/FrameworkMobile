@@ -14,7 +14,7 @@ public class CamelCaseFilter extends TabelaSchemaFilter{
 	public Propriedade getPropriedade(String coluna) {
 		Propriedade p=  super.getPropriedade(coluna);
 		return new Propriedade(
-				CamelCaseUtils.tolowerCamelCase(p.getNome()),
+				CamelCaseUtils.toLowerCamelCase(p.getNome()),
 				p.getType(),
 				p.isGet(),
 				p.isSet()
