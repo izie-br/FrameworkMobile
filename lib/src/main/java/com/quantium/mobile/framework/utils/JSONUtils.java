@@ -60,5 +60,20 @@ public class JSONUtils {
 		return list;
 	}
 
+	public static JSONObject mapToJson(Map<String,Object> map){
+		JSONObject json = new JSONObject();
+		for (Map.Entry<String, Object> entry : map.entrySet()){
+			String key = entry.getKey();
+			Object value = entry.getValue();
+			if (key != null && value != null)
+				try {
+					json.put(key, value);
+				} catch (JSONException e) {
+					LogPadrao.e(e);
+					throw new RuntimeException(e);
+				}
+		}
+		return json;
+	}
 
 }

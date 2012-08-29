@@ -21,6 +21,7 @@ import com.quantium.mobile.framework.ErrorCode;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.JSONUtils;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunication extends GenericCommunication
@@ -218,10 +219,10 @@ public class JsonCommunication extends GenericCommunication
 			while (iterator.hasNext()){
 				Object obj = iterator.next();
 				if (! (obj instanceof MapSerializable) ){
-					LogPadrao.e("%s %s nao eh jsonserializable", obj.getClass().getName(), obj.toString());
+					LogPadrao.e("%s %s nao eh MapSerializable", obj.getClass().getName(), obj.toString());
 				} else {
 					MapSerializable<?> jsonObj = (MapSerializable<?>)obj;
-					array.put(jsonObj.toMap());
+					array.put(JSONUtils.mapToJson(jsonObj.toMap()));
 				}
 			}
 			return array;

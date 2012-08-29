@@ -1,6 +1,10 @@
 package com.quantium.mobile.framework.utils;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 public class CamelCaseUtils {
 
@@ -23,7 +27,17 @@ public class CamelCaseUtils {
 	 * @param input entrada
 	 * @return string em lowerCamelCase
 	 */
-	public static String toLowerCamelCase(String input){
+	public static String toLowerCamelCase(String obj){
+		if (obj.matches(getUpperCaseRegex()))
+			obj = obj.toLowerCase();
+		return underscoresToLowerCamelCase(obj);
+	}
+
+	private static String getUpperCaseRegex() {
+		return "^[A-Z" + String.copyValueOf(WHITESPACE_EXTRA) + "\\s]*$";
+	}
+
+	private static String underscoresToLowerCamelCase(String input){
 		StringBuilder out = new StringBuilder();
 		// indice do "iterador"
 		int i = 0;
@@ -36,7 +50,7 @@ public class CamelCaseUtils {
 		}
 		// conferir se a string esta vazia
 		if(i==input.length()-1)
-			throw new RuntimeException(String.format("nome \"%s\" eh vazio",input));
+			return null;
 		// primeira letra lowercase
 		out.append(Character.toLowerCase(input.charAt(i)));
 		i++;
@@ -87,7 +101,7 @@ public class CamelCaseUtils {
 		}
 		// conferir se a string esta vazia
 		if(i==input.length()-1)
-			throw new RuntimeException(String.format("nome \"%s\" eh vazio",input));
+			return null;
 		// adicionar a primeira letra
 		out.append(Character.toUpperCase(input.charAt(i)));
 		i++;
@@ -112,14 +126,96 @@ public class CamelCaseUtils {
 	public static boolean camelEquals(String obj1, String obj2){
 		return (obj1==null)?
 			(obj2==null) :
-			(anyToLowerCamelCase(obj1)) .equals (anyToLowerCamelCase(obj2));
+			(toLowerCamelCase(obj1)) .equals (toLowerCamelCase(obj2));
 	}
 
-	//TODO testear essa bagaca!!!!!!!!!!!!!!!
-	private static String anyToLowerCamelCase(String obj){
-		if (obj.matches("^[A-Z_\\s]*$"))
-			obj = obj.toLowerCase();
-		return toLowerCamelCase(obj);
+	public static class AnyCamelMap<V> implements Map<String,V>{
+
+		private Map<String,V> map;
+
+		public AnyCamelMap(Map<String, V> map) {
+			if (map==null)
+				this.map = new HashMap<String, V>();
+			else{
+				this.map = map;
+				for (String k : map.keySet()){
+					V value = map.remove(k);
+					this.put(k, value);
+				}
+			}
+		}
+
+		public AnyCamelMap() {
+			this(null);
+		}
+
+		@Override
+		public int size() {
+			return map.size();
+		}
+
+		@Override
+		public boolean isEmpty() {
+			return map.isEmpty();
+		}
+
+		@Override
+		public boolean containsKey(Object key) {
+			return (key instanceof String) &&
+					map.containsKey(toLowerCamelCase((String)key));
+		}
+
+		@Override
+		public boolean containsValue(Object value) {
+			return map.containsValue(value);
+		}
+
+		@Override
+		public V get(Object key) {
+			return (key instanceof String)?
+					map.get(toLowerCamelCase((String)key)) :
+					null;
+		}
+
+		@Override
+		public V put(String key, V value) {
+			return map.put(toLowerCamelCase(key), value);
+		}
+
+		@Override
+		public V remove(Object key) {
+			return (key instanceof String)?
+					map.remove(toLowerCamelCase((String)key)):
+					null;
+		}
+
+		@Override
+		public void putAll(Map<? extends String, ? extends V> m) {
+			for (String k: m.keySet()){
+				this.put(k, m.get(k));
+			}
+		}
+
+		@Override
+		public void clear() {
+			map.clear();
+		}
+
+		@Override
+		public Set<String> keySet() {
+			return map.keySet();
+		}
+
+		@Override
+		public Collection<V> values() {
+			return map.values();
+		}
+
+		@Override
+		public Set<java.util.Map.Entry<String, V>> entrySet() {
+			return map.entrySet();
+		}
+
 	}
 
 //	public static String underscoreToCamelCase(String s) {

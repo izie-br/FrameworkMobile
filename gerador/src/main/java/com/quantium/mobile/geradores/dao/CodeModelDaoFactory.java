@@ -57,7 +57,6 @@ public class CodeModelDaoFactory {
 
 	// o valor 0 nao pode ser uma PK no sqlite
 	public static final long ID_PADRAO = 0;
-	// SQL's
 
 	private JCodeModel jcm;
 	private String dbClass;

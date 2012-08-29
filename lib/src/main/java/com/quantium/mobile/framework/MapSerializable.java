@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface MapSerializable<T> {
 
-	T mapToObjectWithPrototype(Map<String, Object> map);
+	T mapToObject(Map<String, Object> map);
 	Map<String,Object> toMap();
 
 }

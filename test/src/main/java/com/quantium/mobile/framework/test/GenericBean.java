@@ -2,9 +2,10 @@ package com.quantium.mobile.framework.test;
 
 
 import java.io.Serializable;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.database.SQLException;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.quantium.mobile.framework.Save;
 
@@ -12,9 +13,13 @@ import com.quantium.mobile.framework.Save;
 public abstract class GenericBean
     implements Serializable, Cloneable
 {
-    public abstract JSONObject toJson();
-    public abstract GenericBean jsonToObjectWithPrototype(JSONObject json)
-        throws JSONException;
+    public abstract Map<String,Object> toMap(Map<String,Object> map);
+
+    public Map<String,Object> toMap(){
+        return toMap(new HashMap<String, Object>());
+    }
+
+    public abstract GenericBean mapToObject(Map<String,Object> json);
     public abstract boolean save(int flags) throws SQLException;
     public abstract boolean delete();
 

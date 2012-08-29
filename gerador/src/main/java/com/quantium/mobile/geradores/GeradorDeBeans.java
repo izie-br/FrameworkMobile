@@ -43,7 +43,7 @@ import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
-import com.quantium.mobile.geradores.json.CodeModelJsonSerializacaoFactory;
+import com.quantium.mobile.geradores.json.CodeModelMapSerializationFactory;
 import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
@@ -255,8 +255,8 @@ public class GeradorDeBeans {
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory =
 			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
-		CodeModelJsonSerializacaoFactory jsonFactory =
-			new CodeModelJsonSerializacaoFactory(jcm);
+		CodeModelMapSerializationFactory jsonFactory =
+			new CodeModelMapSerializationFactory(jcm);
 
 		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
 				new HashMap<JavaBeanSchema, JDefinedClass>();
@@ -280,7 +280,7 @@ public class GeradorDeBeans {
 				if(p!=null)
 					jbf.generateProperty(classeGerada,p);
 			}
-			jsonFactory.gerarMetodosDeSerializacaoJson(
+			jsonFactory.generateMapSerializationMethods(
 					classeGerada,
 					javaBeanSchema
 			);

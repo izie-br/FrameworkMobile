@@ -27,7 +27,7 @@ public class MapToObjectIterator<T extends MapSerializable<T>> implements Iterat
 
 	@Override
 	public T next() {
-		return prototype.mapToObjectWithPrototype(
+		return prototype.mapToObject(
 				JSONUtils.desserializeJsonObject(jsonIterator.next()));
 	}
 

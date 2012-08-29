@@ -2,11 +2,10 @@ package com.quantium.mobile.framework.test.gerador;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.test.GenericBean;
@@ -86,37 +85,27 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 //			assertTrue(authorsFromDb.contains(author));
 	}
 
-	public void testJsonSerialization(){
+	public void testMapSerialization(){
 		Author author = randomAuthor();
 		assertTrue(author.save());
 		assertTrue(author.getId()>0);
-		JSONObject json = author.toJson();
-		assertNotNull(json);
-		try {
-			Author authorDesserialized = new Author().jsonToObjectWithPrototype(json);
-			assertEquals(author, authorDesserialized);
-		} catch (JSONException e) {
-			fail(e.getLocalizedMessage());
-		}
+		Map<String, Object> map = author.toMap();
+		assertNotNull(map);
+		Author authorDesserialized =
+				new Author().mapToObject(map);
+		assertEquals(author, authorDesserialized);
 		Author authorIdNull = randomAuthor();
-		JSONObject jsonIdNull = authorIdNull.toJson();
-		try {
-			Author authorIdNullDesserialized = new Author().jsonToObjectWithPrototype(jsonIdNull);
-			assertEquals(authorIdNull, authorIdNullDesserialized);
-		} catch (JSONException e) {
-			fail(e.getLocalizedMessage());
-		}
+		Map<String, Object> mapIdNull = authorIdNull.toMap();
+		Author authorIdNullDesserialized =
+				new Author().mapToObject(mapIdNull);
+		assertEquals(authorIdNull, authorIdNullDesserialized);
 		// A classe document tem um campo date mais "desafiador"
 		Document doc = randomDocument();
-		json = doc.toJson();
-		assertNotNull(json);
-		try {
-			Document docDesserialized = new Document()
-				.jsonToObjectWithPrototype(json);
-			assertEquals(doc, docDesserialized);
-		} catch (JSONException e) {
-			fail(e.getLocalizedMessage());
-		}
+		map = doc.toMap();
+		assertNotNull(map);
+		Document docDesserialized = new Document()
+			.mapToObject(map);
+		assertEquals(doc, docDesserialized);
 	}
 
 	public void testGenericBean() {
