@@ -160,13 +160,40 @@ public class CodeModelMapSerializationFactory {
 						.arg(JExpr.cast(jcm.ref(String.class),value));
 			}
 			body.assign(temp, value);
-			body.assign(obj.ref(fieldVar),
+			if (Number.class.isAssignableFrom(propriedade.getType())){
+				body.assign(obj.ref(fieldVar),
+						// (temp == null)? (Class)campo: ((Number)campo).longValue();
+						JOp.cond(temp.ne(JExpr._null()),
+								((JExpression)JExpr.cast(jcm.ref(Number.class),temp))
+									.invoke(numberCastoToMethod(propriedade.getType())),
+								alt) );
+			} else {
+				body.assign(obj.ref(fieldVar),
 						// (temp == null)? (Class)campo: campo;
 						JOp.cond(temp.ne(JExpr._null()),
 								JExpr.cast(jcm.ref(propriedade.getType()),temp),
 								alt) );
+			}
 		}
 		body._return(obj);
+	}
+
+	private static String numberCastoToMethod(Class<?> klass){
+		if (klass.getSimpleName().equals("Long"))
+			return "longValue";
+		if (klass.getSimpleName().equals("Ingeget"))
+			return "intValue";
+		if (klass.getSimpleName().equals("Short"))
+			return "shortValue";
+		if (klass.getSimpleName().equals("Byte"))
+			return "byteValue";
+		if (klass.getSimpleName().equals("Double"))
+			return "doubleValue";
+		if (klass.getSimpleName().equals("Float"))
+			return "floatValue";
+		throw new RuntimeException(
+				klass.getName() + " nao mapeada em " +
+				new Object(){}.getClass().getEnclosingMethod().getName());
 	}
 
 }
