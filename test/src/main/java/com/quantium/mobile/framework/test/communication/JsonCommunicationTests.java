@@ -14,6 +14,7 @@ import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.SerializedCommunication;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.server.Echo;
 import com.quantium.mobile.framework.test.server.RouterBean;
 import com.quantium.mobile.framework.test.TestActivity;
 
@@ -70,7 +71,9 @@ ActivityInstrumentationTestCase2<TestActivity> {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
-			assertEquals(map.size(), params.size());
+			Object obj = map.remove(Echo.ERROR_KEY);
+			assertNull(obj);
+			assertEquals(params.size() ,map.size());
 		} catch (Exception e) {
 			fail (LogPadrao.getStackTrace(e));
 		}

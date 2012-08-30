@@ -5,6 +5,8 @@ import org.json.JSONObject;
 
 public class Echo extends BaseServerBean {
 
+	public static final String ERROR_KEY = "error";
+
 	public String getResponse() {
 		JSONObject json = new JSONObject();
 		if (getMap() == null)
@@ -17,8 +19,12 @@ public class Echo extends BaseServerBean {
 				throw new RuntimeException(e);
 			}
 		}
+		try {
+			json.put(ERROR_KEY,JSONObject.NULL);
+		} catch (JSONException e) {
+			e.printStackTrace();
+		}
 		return json.toString();
-
 	}
 
 }

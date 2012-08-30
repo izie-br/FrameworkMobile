@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.utils;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -41,6 +42,10 @@ public class JSONUtils {
 		if (value instanceof JSONObject) {
 			return desserializeJsonObject( (JSONObject)value, new HashMap<String, Object>());
 		}
+		if ( JSONObject.NULL.getClass().getSimpleName().equals(
+				value.getClass().getSimpleName()) ){
+			return null;
+		}
 		return value;
 	}
 
@@ -67,13 +72,32 @@ public class JSONUtils {
 			Object value = entry.getValue();
 			if (key != null && value != null)
 				try {
-					json.put(key, value);
+						json.put(key, parseToJson(value));
 				} catch (JSONException e) {
 					LogPadrao.e(e);
 					throw new RuntimeException(e);
 				}
 		}
 		return json;
+	}
+
+	public static JSONArray collectionToJson(Collection<?> collection){
+		Iterator<?> it = collection.iterator();
+		JSONArray array = new JSONArray();
+		while (it.hasNext()){
+			array.put(parseToJson(it.next()));
+		}
+		return array;
+	}
+
+	@SuppressWarnings({ "rawtypes", "unchecked" })
+	private static Object parseToJson(Object obj){
+		return
+			(obj instanceof Map)?
+				mapToJson((Map)obj) :
+			(obj instanceof Collection) ?
+				collectionToJson((Collection)obj) :
+				obj;
 	}
 
 }
