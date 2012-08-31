@@ -88,6 +88,7 @@ public final class Q {
      * @param op operador OpUnary
      */
     public Q (Table.Column<?> column, OpUnary op) {
+        this.table = column.getTable();
         QNodeUnary node = new QNodeUnary ();
         node.column = column;
         node.op = op;
