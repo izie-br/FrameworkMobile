@@ -8,10 +8,10 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 public class CameCaseUtilsTests extends
 		ActivityInstrumentationTestCase2<TestActivity> {
 
-	public static final String LOWER_CAMEL_TEST = "inUsuarioAtivo";
-	public static final String UPPER_CAMEL_TEST = "InUsuarioAtivo";
-	public static final String LOWER_UNDERSCORE_TEST = "in_usuario_ativo";
-	public static final String UPPER_UNDERSCORE_TEST = "IN_USUARIO_ATIVO";
+	public static final String LOWER_CAMEL_TEST = "inUsuarioAtivoI18n";
+	public static final String UPPER_CAMEL_TEST = "InUsuarioAtivoI18n";
+	public static final String LOWER_UNDERSCORE_TEST = "in_usuario_ativo_i18n";
+	public static final String UPPER_UNDERSCORE_TEST = "IN_USUARIO_ATIVO_I18N";
 
 	public CameCaseUtilsTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);

@@ -34,7 +34,7 @@ public class CamelCaseUtils {
 	}
 
 	private static String getUpperCaseRegex() {
-		return "^[A-Z" + String.copyValueOf(WHITESPACE_EXTRA) + "\\s]*$";
+		return "^[A-Z0-9" + String.copyValueOf(WHITESPACE_EXTRA) + "\\s]*$";
 	}
 
 	private static String underscoresToLowerCamelCase(String input){
