@@ -3,6 +3,10 @@ package com.quantium.mobile.geradores.mojo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.maven.plugin.AbstractMojo;
@@ -29,6 +33,34 @@ public class GeradorMojo extends AbstractMojo{
      * @parameter
      */
     private String config;
+
+    /**
+     * @parameter
+     */
+    private List<String> ignore;
+
+    private String getIgnored(){
+        if (ignore == null || ignore.size() < 1)
+            return null;
+        StringBuilder sb = new StringBuilder();
+        Iterator<String> it = ignore.iterator();
+        for (;;){
+            sb.append(it.next());
+            if (!it.hasNext())
+                break;
+            sb.append(',');
+        }
+        return sb.toString();
+    }
+
+    /**
+     * @parameter
+     */
+    private Map<String,String> serializationAlias;
+
+    private Map<String,String> getAliases(){
+        return serializationAlias;
+    }
 
     private File getConfigResource(){
         File resource;
@@ -87,13 +119,23 @@ public class GeradorMojo extends AbstractMojo{
         MavenLogAppender.startPluginLog(this);
         Logger log = Logger.getLogger(getClass().getName());
         log.info("iniciando gerador");
+
+        Properties defaultProperties = new Properties();
+        String ignored = getIgnored();
+        if (ignored != null)
+            defaultProperties.put(GeradorDeBeans.PROPERTIY_IGNORED,ignored);
+        Map<String, String> aliases = getAliases();
+        if (aliases != null)
+            defaultProperties.put(GeradorDeBeans.PROPERTIY_SERIALIZATION_ALIAS,
+                                  aliases);
         try {
             new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
                     getAndroidManifest(),
                     getSqlResource(),
                     basedir+getSrcFolder(),
                     "gen",
-                    getConfigResource()
+                    getConfigResource(),
+                    defaultProperties
             );
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());

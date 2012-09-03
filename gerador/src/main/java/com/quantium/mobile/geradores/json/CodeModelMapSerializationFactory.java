@@ -93,7 +93,9 @@ public class CodeModelMapSerializationFactory {
 			else {
 				JExpression value = campo;
 				if(propriedade.getType().equals(Date.class)){
-					value = jcm.ref(DateUtil.class).staticInvoke(DATEUTILS_TO_STRING_METHOD).arg(value);
+					value = jcm.ref(DateUtil.class)
+							.staticInvoke(DATEUTILS_TO_STRING_METHOD)
+							.arg(value);
 				}
 				/*
 				 * map.put("campo", campo);

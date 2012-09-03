@@ -65,6 +65,9 @@
               <groupId>com.quantium.mobile.framework</groupId>
               <artifactId>maven-plugin-gerador</artifactId>
               <version>0.2-alpha</version>
+              <configuration>
+                      <ignore><ignore>sqlite_sequence</ignore></ignore>
+              </configuration>
               <executions>
                 <execution>
                   <phase>generate-sources</phase>

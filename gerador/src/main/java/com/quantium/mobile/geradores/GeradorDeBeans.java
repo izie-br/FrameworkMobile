@@ -66,6 +66,7 @@ public class GeradorDeBeans {
 	public static final String DEFAULT_GENERATOR_CONFIG = "generator.xml";
 	public static final String PROPERTIY_DB_VERSION = "dbVersion";
 	public static final String PROPERTIY_IGNORED = "ignore";
+	public static final String PROPERTIY_SERIALIZATION_ALIAS = "alias";
 
 	public static final String DB_CLASS = "DB";
 	public static final String DB_RESOURCE_FILE = "/DB.java";
@@ -98,6 +99,7 @@ public class GeradorDeBeans {
 			return;
 		}
 
+		Properties defaultProperties = new Properties();
 		String manifest = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
@@ -106,7 +108,7 @@ public class GeradorDeBeans {
 		try {
 			new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
 				new File(manifest), new File (arquivo),
-				pastaSrc, "gen", new File(properties) );
+				pastaSrc, "gen", new File(properties), defaultProperties);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -183,13 +185,13 @@ public class GeradorDeBeans {
 
 	public void gerarBeansWithJsqlparserAndCodeModel(
 			File androidManifestFile, File sqlResource, String pastaSrc,
-			String pacoteGen, File properties )
+			String pacoteGen, File properties, Properties defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException {
 
 		String pacote = getBasePackage(androidManifestFile);
 		conferirArquivosCustomSrc(pacote, pastaSrc);
 
-		PropertiesLocal props = getProperties(properties);
+		PropertiesLocal props = getProperties(defaultProperties, properties);
 		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
@@ -371,8 +373,8 @@ public class GeradorDeBeans {
 
 		private File f;
 
-		private PropertiesLocal(File f) {
-			super();
+		private PropertiesLocal(Properties defaults, File f) {
+			super(defaults);
 			if (f == null ){
 				throw new IllegalArgumentException("file is null");
 			}
@@ -409,8 +411,8 @@ public class GeradorDeBeans {
 
 	}
 
-	public PropertiesLocal getProperties(File f){
-		return new PropertiesLocal(f);
+	public PropertiesLocal getProperties(Properties defaults, File f){
+		return new PropertiesLocal(defaults, f);
 	}
 
 	public String sqliteSchema(String sql) {
