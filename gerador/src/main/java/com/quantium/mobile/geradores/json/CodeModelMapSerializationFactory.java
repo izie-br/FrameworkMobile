@@ -1,6 +1,7 @@
 package com.quantium.mobile.geradores.json;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
@@ -31,9 +32,14 @@ public class CodeModelMapSerializationFactory {
 	private static final String DATEUTILS_TO_STRING_METHOD = "timestampToString";
 
 	JCodeModel jcm;
+	Map<String,String> aliases;
 
-	public CodeModelMapSerializationFactory(JCodeModel jcm) {
+	public CodeModelMapSerializationFactory(
+			JCodeModel jcm, Map<String,String> serializationAliases) {
 		this.jcm = jcm;
+		this.aliases = (serializationAliases == null)?
+				new HashMap<String, String>() :
+				serializationAliases;
 	}
 
 	/**
@@ -80,7 +86,8 @@ public class CodeModelMapSerializationFactory {
 			JFieldVar campo = klass.fields().get(propriedade.getNome());
 
 			// map.put("campo", ...
-			JInvocation setJsonField = map.invoke("put").arg(JExpr.lit(coluna));
+			JInvocation setJsonField = map.invoke("put")
+					.arg(JExpr.lit(getAlias(klass.name(),coluna)));
 			if(propriedade.getNome().equals(primaryKeyNome)){
 				/*
 				 * if (id!= 0L) {
@@ -145,7 +152,8 @@ public class CodeModelMapSerializationFactory {
 		for(String coluna : ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema)){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 
-			JExpression value = mapAnyCamelCase.invoke("get").arg(coluna);
+			JExpression value = mapAnyCamelCase.invoke("get")
+					.arg(JExpr.lit(getAlias(klass.name(),coluna)));
 			JFieldVar fieldVar = klass.fields().get(propriedade.getNome());
 			JExpression alt = JExpr._this().ref(fieldVar);
 
@@ -178,6 +186,16 @@ public class CodeModelMapSerializationFactory {
 			}
 		}
 		body._return(obj);
+	}
+
+	private String getAlias(String classname, String field){
+		String name = classname + '.' + field;
+		for (String k : aliases.keySet()){
+			if ( name.equalsIgnoreCase(k)){
+				return aliases.get(k);
+			}
+		}
+		return field;
 	}
 
 	private static String numberCastoToMethod(Class<?> klass){

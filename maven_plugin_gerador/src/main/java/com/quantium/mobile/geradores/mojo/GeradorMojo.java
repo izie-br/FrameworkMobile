@@ -3,10 +3,10 @@ package com.quantium.mobile.geradores.mojo;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 
 import org.apache.log4j.Logger;
 import org.apache.maven.plugin.AbstractMojo;
@@ -120,7 +120,7 @@ public class GeradorMojo extends AbstractMojo{
         Logger log = Logger.getLogger(getClass().getName());
         log.info("iniciando gerador");
 
-        Properties defaultProperties = new Properties();
+        Map<String,Object> defaultProperties = new HashMap<String,Object>();
         String ignored = getIgnored();
         if (ignored != null)
             defaultProperties.put(GeradorDeBeans.PROPERTIY_IGNORED,ignored);

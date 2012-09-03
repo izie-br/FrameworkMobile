@@ -99,7 +99,7 @@ public class GeradorDeBeans {
 			return;
 		}
 
-		Properties defaultProperties = new Properties();
+		Map<String,Object> defaultProperties = new HashMap<String,Object>();
 		String manifest = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
@@ -185,13 +185,13 @@ public class GeradorDeBeans {
 
 	public void gerarBeansWithJsqlparserAndCodeModel(
 			File androidManifestFile, File sqlResource, String pastaSrc,
-			String pacoteGen, File properties, Properties defaultProperties)
+			String pacoteGen, File properties, Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException {
 
 		String pacote = getBasePackage(androidManifestFile);
 		conferirArquivosCustomSrc(pacote, pastaSrc);
 
-		PropertiesLocal props = getProperties(defaultProperties, properties);
+		PropertiesLocal props = getProperties(properties);
 		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
@@ -235,7 +235,9 @@ public class GeradorDeBeans {
 		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(new StringReader(val), props);
+				getTabelasDoSchema(
+						new StringReader(val),
+						(String)defaultProperties.get(PROPERTIY_IGNORED));
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 		factory.addFiltroFactory(
@@ -257,8 +259,12 @@ public class GeradorDeBeans {
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
 		CodeModelDaoFactory daoFactory =
 			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
+		@SuppressWarnings("unchecked")
+		Map<String,String> serializationAliases =
+			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);
 		CodeModelMapSerializationFactory jsonFactory =
-			new CodeModelMapSerializationFactory(jcm);
+			new CodeModelMapSerializationFactory(
+					jcm, serializationAliases);
 
 		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
 				new HashMap<JavaBeanSchema, JDefinedClass>();
@@ -373,8 +379,8 @@ public class GeradorDeBeans {
 
 		private File f;
 
-		private PropertiesLocal(Properties defaults, File f) {
-			super(defaults);
+		private PropertiesLocal(File f) {
+			super();
 			if (f == null ){
 				throw new IllegalArgumentException("file is null");
 			}
@@ -411,8 +417,8 @@ public class GeradorDeBeans {
 
 	}
 
-	public PropertiesLocal getProperties(Properties defaults, File f){
-		return new PropertiesLocal(defaults, f);
+	public PropertiesLocal getProperties(File f){
+		return new PropertiesLocal(f);
 	}
 
 	public String sqliteSchema(String sql) {
@@ -487,7 +493,7 @@ public class GeradorDeBeans {
 		return pacote.replaceAll("\\.", File.separator);
 	}
 
-	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input, Properties props)
+	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input, String ignored)
 			throws IOException
 	{
 		BufferedReader reader = new BufferedReader(input);
@@ -511,7 +517,7 @@ public class GeradorDeBeans {
 					break;
 			}
 			String createTableStatement = sb.toString();
-			String ignoredTables [] = getIgnoredTables(props);
+			String ignoredTables [] = getIgnoredTables(ignored);
 			if(
 					createTableStatement==null ||
 					createTableStatement.matches("^[\\s\\n]*$")
@@ -544,10 +550,8 @@ public class GeradorDeBeans {
 		return false;
 	}
 
-	private static String [] getIgnoredTables(Properties properties){
-		String property = properties
-				.getProperty(PROPERTIY_IGNORED);
-		return property == null ? new String[0] : property.split("[\\|,]");
+	private static String [] getIgnoredTables(String ignored){
+		return ignored == null ? new String[0] : ignored.split("[\\|,]");
 	}
 
 	private static void deleteFolderR(File f) throws IOException {

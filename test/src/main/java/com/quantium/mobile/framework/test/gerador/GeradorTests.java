@@ -2,10 +2,12 @@ package com.quantium.mobile.framework.test.gerador;
 
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.test.GenericBean;
@@ -106,6 +108,16 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Document docDesserialized = new Document()
 			.mapToObject(map);
 		assertEquals(doc, docDesserialized);
+	}
+
+	public void testSerializationAlias(){
+		int idDocument = 9;
+		Map<String,Object> map = new HashMap<String, Object>();
+		// idDocmuent eh o alias de document.id
+		// ver no pom.xml
+		map.put("id_document", idDocument);
+		Document document = new Document().mapToObject(map);
+		assertEquals(idDocument, document.getId());
 	}
 
 	public void testGenericBean() {

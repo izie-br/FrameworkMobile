@@ -66,7 +66,12 @@
               <artifactId>maven-plugin-gerador</artifactId>
               <version>0.2-alpha</version>
               <configuration>
-                      <ignore><ignore>sqlite_sequence</ignore></ignore>
+                  <ignore>
+                       <ignore>sqlite_sequence</ignore>
+                  </ignore>
+                  <serializationAlias>
+                       <document.id>id_document</document.id>
+                  </serializationAlias>
               </configuration>
               <executions>
                 <execution>
