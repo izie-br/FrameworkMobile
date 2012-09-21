@@ -359,7 +359,7 @@ public class GeradorDeBeans {
 		} catch (FileNotFoundException e) {
 			throw new GeradorException(e);
 		}
-		Pattern dbVersionPattern = Pattern.compile("DB_VERSAO\\s*=\\s*([^;])+;");
+		Pattern dbVersionPattern = Pattern.compile("DB_VERSAO\\s*=\\s*([^;]+);");
 		int versionNumberGroup = 1;
 		String s = scan.findWithinHorizon(dbVersionPattern, 0);
 		if (s == null) {
