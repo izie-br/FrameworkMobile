@@ -4,12 +4,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityInstrumentationTestCase2;
+
+import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
+import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.test.gen.Author;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
@@ -18,6 +22,16 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
 	
+	public Session getSession(){
+		return new Session() {
+			
+			@Override
+			public SQLiteDatabase getDb() {
+				return DB.getDb();
+			}
+		};
+	}
+
 	public void testQString(){
 		// dados para teste
 		Table t = new Table("tab");
@@ -164,15 +178,15 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 	public void testLikeAndGlob(){
 		Author author1 = new Author();
 		author1.setName("um nome");
-		assertTrue(author1.save());
+		assertTrue(author1.save(getSession()));
 		Author author2 = new Author();
 		author2.setName("outro nome");
-		assertTrue(author2.save());
+		assertTrue(author2.save(getSession()));
 		Author author3 = new Author();
 		author3.setName("outro");
-		assertTrue(author3.save());
+		assertTrue(author3.save(getSession()));
 		// buscas com LIKE
-		Collection<Author> authors = Author.objects()
+		Collection<Author> authors = Author.objects(getSession())
 			.filter(Q.like(Author.NAME,"%no_e"))
 			.all();
 		assertNotNull(authors);
@@ -180,7 +194,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
 		// buscas com GLOB
-		authors = Author.objects()
+		authors = Author.objects(getSession())
 			.filter(Q.glob(Author.NAME,"*[nm]?[mw]e"))
 			.all();
 		assertNotNull(authors);

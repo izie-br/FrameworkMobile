@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.quantium.mobile.framework.Save;
+import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
@@ -20,6 +21,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
+import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.sun.codemodel.JTryBlock;
@@ -55,6 +57,8 @@ public class CodeModelDaoFactory {
 //	private static final String CONSTANTE_NAO_ENCONTRADA_FORMAT =
 //			"%s nao encontrada em %s.";
 
+	private static final String SESSION_FIELD = "_session";
+
 	// o valor 0 nao pode ser uma PK no sqlite
 	public static final long ID_PADRAO = 0;
 
@@ -72,6 +76,14 @@ public class CodeModelDaoFactory {
 		this.getDbStaticMethod = getDbStaticMethod;
 	}
 
+	private JFieldVar getSessionExpr(JDefinedClass klass){
+		JFieldVar session = klass.fields().get(SESSION_FIELD);
+		if (session != null)
+			return session;
+		session = klass.field(JMod.PRIVATE, Session.class, SESSION_FIELD);
+		return session;
+	}
+
 	/**
 	 * <p>
 	 *   Gera os metodos de insert/update/delete,
@@ -85,6 +97,7 @@ public class CodeModelDaoFactory {
 		JDefinedClass klass,
 		JavaBeanSchema javaBeanSchema
 	){
+		getSessionExpr(klass);
 		// inicializando a PK para o valor padrao (NULL, 0, etc...)
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 		if(primaryKey!=null){
@@ -132,7 +145,8 @@ public class CodeModelDaoFactory {
 	 */
 	public void generateSaveMethod(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		/* **********************************************************
-		 * public boolean save(int flags) throws SQLException {     *
+		 * public boolean save(Session session, int flags)          *
+		 *                                throws SQLException {     *
 		 *   ContentValues cv = new ContentValues();                *
 		 *   boolean insertIfNotExists =                            *
 		 *     flags == Save.INSERT_IF_NOT_EXISTS;                  *
@@ -157,9 +171,11 @@ public class CodeModelDaoFactory {
 		 ***********************************************************/
 		JMethod save = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
 		save._throws(SQLException.class);
+		JVar session = save.param(Session.class, "session");
 		JVar flags = save.param(jcm.INT, "flags");
 		JBlock corpo = save.body();
 
+		corpo.assign(JExpr.refthis(SESSION_FIELD), session);
 		corpo.assign(flags, JExpr.invoke("onPreSave").arg(flags));
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 
@@ -179,7 +195,7 @@ public class CodeModelDaoFactory {
 		 * cv.put(*);
 		 */
 		JVar contentValues = generateContentValues(klass, fields, corpo);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",session.invoke("getDb"));
 
 		if(primaryKey==null){
 			generateSaveMethodForCompoundPrimaryKeyBeans(
@@ -354,6 +370,7 @@ public class CodeModelDaoFactory {
 				klass,
 				"obj",
 				klass.staticInvoke("objects")
+						.arg(getSessionExpr(klass))
 					.invoke("filter")
 						.arg(getQForPrimaryKeys(klass, javaBeanSchema))
 					.invoke("first")
@@ -560,7 +577,7 @@ public class CodeModelDaoFactory {
 		 *     try {
 		 *         db.beginTransaction();
 		 */
-		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr(klass));
 		body.directStatement("synchronized (" + db.name() +") {");
 		JTryBlock tryCatch = body._try();
 		JBlock tryBody = tryCatch.body();
@@ -734,7 +751,8 @@ public class CodeModelDaoFactory {
 		JClass queryset = jcm.ref(QuerySet.class);
 		JDefinedClass qsInner = generateQuerySet(klass,javaBeanSchema,queryset);
 		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset.narrow(klass), "objects");
-		metodoObjects.body()._return(JExpr._new(qsInner.narrow(klass)).arg(JExpr._new(klass)));
+		JVar session = metodoObjects.param(Session.class, "session");
+		metodoObjects.body()._return(JExpr._new(qsInner.narrow(klass)).arg(session).arg(JExpr._new(klass)));
 	}
 
 	private JDefinedClass generateQuerySet(
@@ -759,6 +777,7 @@ public class CodeModelDaoFactory {
 	){
 
 		List<String> colunasEmOrdem = ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema);
+		JFieldVar session = querySetInner.field(JMod.PRIVATE, Session.class, "session");
 		/*
 		 * prototipo
 		 */
@@ -767,8 +786,11 @@ public class CodeModelDaoFactory {
 		 * Construtor
 		 */
 		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
+		JVar sessionparam = construtor.param(Session.class, "session");
 		JVar prototipoparam = construtor.param(generic, "prototipo");
-		construtor.body().assign(JExpr.refthis(prototipo.name()), prototipoparam);
+		JBlock body = construtor.body();
+		body.assign(JExpr.refthis(session.name()), sessionparam);
+		body.assign(JExpr.refthis(prototipo.name()), prototipoparam);
 
 		/* ***********************
 		 * Override              *
@@ -780,7 +802,7 @@ public class CodeModelDaoFactory {
 				JMod.PROTECTED, jcm.ref(SQLiteDatabase.class), "getDb"
 		);
 		getDb.annotate(java.lang.Override.class);
-		getDb.body()._return(getDbExpr());
+		getDb.body()._return(session.invoke("getDb"));
 
 		/* ********************************
 		 * Override                       *
@@ -853,6 +875,11 @@ public class CodeModelDaoFactory {
 					valor
 			);
 		}
+		JFieldVar beansession = klass.fields().get(SESSION_FIELD);
+		if (beansession != null)
+			corpo.assign(bean.ref(beansession), session);
+		else
+			LoggerUtil.getLog().error(klass.name()+ " sem instancia de sessao");
 		corpo._return(bean);
 
 	}
@@ -1056,6 +1083,7 @@ public class CodeModelDaoFactory {
 		 *  Associada.objects().filter(Vendedor.ID +"=?",idVendedor) *
 		 ************************************************************/
 		JInvocation invokeQuery = klassB.staticInvoke("objects")
+				.arg(getSessionExpr(klassA))
 			// .filter
 			.invoke("filter")
 			// Vendedor.ID +"=?"
@@ -1144,6 +1172,7 @@ public class CodeModelDaoFactory {
 		);
 		JBlock body = getKlassB.body();
 		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
+				.arg(getSessionExpr(klassA))
 			.invoke("filter");
 		if (columnThroughTableToA == null || columnThroughTableToB == null) {
 			/*
@@ -1248,7 +1277,7 @@ public class CodeModelDaoFactory {
 		);
 
 		// SQLiteDatabase db = DB.getDb();
-		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr(klassA));
 
 		// db.insertOrThrow(Classe.THROUGH_TABLE_CLASSE_ID.getName(), null, contentValues);
 		JExpression valueExpr = db.invoke("insertOrThrow")
@@ -1311,7 +1340,7 @@ public class CodeModelDaoFactory {
 		}
 
 		// SQLiteDatabase db = DB.getDb();
-		db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr());
+		db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr(klassA));
 
 		// Cursor cursor = db.query( ... )
 		JVar cursor = body.decl(
@@ -1391,9 +1420,8 @@ public class CodeModelDaoFactory {
 
 	}
 
-	private JExpression getDbExpr(){
-		JClass dbclass = jcm.ref(dbClass);
-		return dbclass.staticInvoke(getDbStaticMethod);
+	private JExpression getDbExpr(JDefinedClass klass){
+		return getSessionExpr(klass).invoke("getDb");
 	}
 
 	private JExpression boxify(JVar var){

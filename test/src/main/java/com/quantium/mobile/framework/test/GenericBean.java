@@ -8,6 +8,7 @@ import java.util.Map;
 import android.database.SQLException;
 
 import com.quantium.mobile.framework.Save;
+import com.quantium.mobile.framework.Session;
 
 @SuppressWarnings("serial")
 public abstract class GenericBean
@@ -20,11 +21,11 @@ public abstract class GenericBean
     }
 
     public abstract GenericBean mapToObject(Map<String,Object> json);
-    public abstract boolean save(int flags) throws SQLException;
+    public abstract boolean save(Session session, int flags) throws SQLException;
     public abstract boolean delete();
 
-    public boolean save() throws SQLException{
-        return save(Save.INSERT_IF_NULL_PK);
+    public boolean save(Session session) throws SQLException{
+        return save(session, Save.INSERT_IF_NULL_PK);
     }
 
     protected int onPreSave(int flags){

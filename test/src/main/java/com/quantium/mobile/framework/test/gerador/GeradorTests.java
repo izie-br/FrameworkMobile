@@ -7,11 +7,14 @@ import java.util.Map;
 import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.json.JSONObject;
 
+import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityInstrumentationTestCase2;
+
+import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.test.GenericBean;
 import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.Customer;
 import com.quantium.mobile.framework.test.gen.Document;
@@ -23,17 +26,27 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
 
+	public Session getSession(){
+		return new Session() {
+			
+			@Override
+			public SQLiteDatabase getDb() {
+				return DB.getDb();
+			}
+		};
+	}
+
 	public void testInsertUpdateDelete(){
-		int count = Author.objects().all().size();
+		int count = Author.objects(getSession()).all().size();
 		Author author = randomAuthor();
-		assertTrue(author.save());
+		assertTrue(author.save(getSession()));
 		long id  = author.getId();
 		assertTrue(id>0);
 		author.setName(RandomStringUtils.random(40));
-		author.save();
+		author.save(getSession());
 		assertEquals(id, author.getId());
 		assertTrue(author.delete());
-		int countAfter = Author.objects().all().size();
+		int countAfter = Author.objects(getSession()).all().size();
 		assertEquals(count, countAfter);
 	}
 
@@ -49,13 +62,13 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			Author author = new Author();
 			// para garantir strings diferentes, o comprimento varia com "i"
 			author.setName(RandomStringUtils.random(20+i));
-			assertTrue(author.save());
+			assertTrue(author.save(getSession()));
 			assertTrue(author.getId()>0);
 			authors[i] = author;
 		}
 		// buscando no banco e conferindo se a quantidadee eh igual ou supperior
 		// aos inseridos
-		Collection<Author> authorsFromDb = Author.objects().all();
+		Collection<Author> authorsFromDb = Author.objects(getSession()).all();
 		assertTrue(authorsFromDb.size()>=authors.length);
 		for(Author author : authors){
 			assertTrue( authorsFromDb.contains(author) );
@@ -63,7 +76,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		// buscando um a um por nome e conferindo se eh encontrado
 		for(Author author : authors){
 			Author authorFromDb = Author
-					.objects()
+					.objects(getSession())
 					.filter(Author.ID.eq(author.getId()))
 					.first();
 			assertEquals(author, authorFromDb);
@@ -89,7 +102,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testMapSerialization(){
 		Author author = randomAuthor();
-		assertTrue(author.save());
+		assertTrue(author.save(getSession()));
 		assertTrue(author.getId()>0);
 		Map<String, Object> map = author.toMap();
 		assertNotNull(map);
@@ -124,11 +137,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author obj = randomAuthor();
 		try {
 			GenericBean genericObj = obj;
-			assertTrue(genericObj.save());
+			assertTrue(genericObj.save(getSession()));
 			assertTrue(obj.getId()>0);
 			long id = obj.getId();
 			assertTrue(genericObj.delete());
-			Author fromDb = Author.objects().filter(Author.ID.eq(id)).first();
+			Author fromDb = Author.objects(getSession()).filter(Author.ID.eq(id)).first();
 			assertNull(fromDb);
 		} catch (ClassCastException e) {
 			fail ("Beans nao herdam da classe " + GenericBean.class.getSimpleName());
@@ -137,20 +150,20 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testDeleteCascade () {
 		Author author = randomAuthor();
-		assertTrue(author.save());
+		assertTrue(author.save(getSession()));
 
 		Document document = randomDocument();
 		document.setAuthor(author);
-		assertTrue(document.save());
+		assertTrue(document.save(getSession()));
 
 		Score score = new Score();
 		score.setAuthor(author);
 		score.setDocument(document);
 		score.setScore( (new Random().nextInt())%100 );
-		assertTrue(score.save());
+		assertTrue(score.save(getSession()));
 
 		Customer customer = randomCustomer();
-		assertTrue(customer.save());
+		assertTrue(customer.save(getSession()));
 
 		// adicionar os documentos oa customer
 		//    e a busca pelo queryset deve achar este
@@ -160,13 +173,13 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 		// A author, ao ser "deletado" deve desaparecer do banco
 		assertTrue(author.delete());
-		Author authorFromDb = Author.objects().first();
+		Author authorFromDb = Author.objects(getSession()).first();
 		assertNull(authorFromDb);
 
 		// Score tem relacao many-to-one para document e author
 		//    ambas com chave NOT NULL
 		//    e deve ser removida ao remover o author (veja acima)
-		Collection<Score> scoresDb = Score.objects()
+		Collection<Score> scoresDb = Score.objects(getSession())
 				.all();
 		assertEquals(0, scoresDb.size());
 //		Score scoreDb = scoresDb.iterator().next();
@@ -199,7 +212,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		assertEquals(0, documents.size());
 
 		customer.delete();
-		customer = Customer.objects()
+		customer = Customer.objects(getSession())
 				.filter(Customer.ID.eq(customer.getId()))
 				.first();
 		assertNull(customer);
