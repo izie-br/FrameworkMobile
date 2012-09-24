@@ -39,6 +39,7 @@ import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
 
+import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.geradores.dao.CodeModelDaoFactory;
 import com.quantium.mobile.geradores.filters.CamelCaseFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
@@ -264,6 +265,7 @@ public class GeradorDeBeans {
 		try {
 			modelFacade = jcm._class(JMod.PUBLIC|JMod.ABSTRACT,
 					pacote+'.'+pacoteGen+".ModelFacade", ClassType.CLASS);
+			modelFacade._implements(Session.class);
 		} catch (JClassAlreadyExistsException e) {
 			throw new RuntimeException(e);
 		}

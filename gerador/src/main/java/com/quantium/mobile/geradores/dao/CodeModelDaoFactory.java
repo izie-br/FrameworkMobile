@@ -10,6 +10,7 @@ import java.util.Map;
 
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
@@ -21,7 +22,6 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
-import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.sun.codemodel.JTryBlock;
@@ -40,6 +40,7 @@ import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
@@ -47,6 +48,7 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JOp;
 import com.sun.codemodel.JPrimitiveType;
+import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 
@@ -73,14 +75,6 @@ public class CodeModelDaoFactory {
 		this.modelFacade = modelFacade;
 	}
 
-	private JFieldVar getSessionExpr(JDefinedClass klass){
-		JFieldVar session = klass.fields().get(SESSION_FIELD);
-		if (session != null)
-			return session;
-		session = klass.field(JMod.PRIVATE, Session.class, SESSION_FIELD);
-		return session;
-	}
-
 	/**
 	 * <p>
 	 *   Gera os metodos de insert/update/delete,
@@ -94,7 +88,6 @@ public class CodeModelDaoFactory {
 		JDefinedClass klass,
 		JavaBeanSchema javaBeanSchema
 	){
-		getSessionExpr(klass);
 		// inicializando a PK para o valor padrao (NULL, 0, etc...)
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 		if(primaryKey!=null){
@@ -166,14 +159,26 @@ public class CodeModelDaoFactory {
 		 *   return true;                                           *
 		 * }                                                        *
 		 ***********************************************************/
-		JMethod save = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "save");
+		String saveMethodName = "save" + klass.name();
+		String onPreSaveMethodName = "onPreSave"+klass.name();
+		JMethod saveDefault = modelFacade.method(JMod.PUBLIC, jcm.BOOLEAN,
+				saveMethodName);
+		saveDefault.body()._return(JExpr.invoke(saveMethodName)
+				.arg(saveDefault.param(klass, "bean"))
+				.arg(jcm.ref(Save.class).staticRef("INSERT_IF_NULL_PK")));
+
+		JMethod onPreSave = modelFacade.method(JMod.PROTECTED, jcm.INT, onPreSaveMethodName);
+		onPreSave.param(klass, "bean");
+		onPreSave.body()._return(onPreSave.param(jcm.INT, "flags"));
+
+		JMethod save = modelFacade.method(JMod.PUBLIC, jcm.BOOLEAN,
+				saveMethodName);
 		save._throws(SQLException.class);
-		JVar session = save.param(Session.class, "session");
+		JVar bean = save.param(klass, "bean");
 		JVar flags = save.param(jcm.INT, "flags");
 		JBlock corpo = save.body();
 
-		corpo.assign(JExpr.refthis(SESSION_FIELD), session);
-		corpo.assign(flags, JExpr.invoke("onPreSave").arg(flags));
+		corpo.assign(flags, JExpr.invoke(onPreSaveMethodName).arg(bean).arg(flags));
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 
 		Map<String, JFieldVar> fields = new LinkedHashMap<String, JFieldVar>();
@@ -191,18 +196,16 @@ public class CodeModelDaoFactory {
 		 * cv.put(ClasseBean.CAMPO,this.campo);
 		 * cv.put(*);
 		 */
-		JExpression bean = JExpr._this();
 		JVar contentValues = generateContentValues(bean, fields, corpo);
-		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",session.invoke("getDb"));
+		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",JExpr.invoke("getDb"));
 
 		if(primaryKey==null){
 			generateSaveMethodForCompoundPrimaryKeyBeans(
-					klass, javaBeanSchema, corpo, db, contentValues
+					klass, bean, javaBeanSchema, corpo, db, contentValues
 			);
 			return;
 		}
 		JFieldVar pkVar = klass.fields().get(primaryKey.getNome());
-		JFieldVar id = pkVar;
 		JVar insertIfNotExists = corpo.decl(
 			jcm.BOOLEAN, "insertIfNotExists",
 			flags.band(jcm.ref(Save.class).staticRef("INSERT_IF_NOT_EXISTS"))
@@ -216,9 +219,9 @@ public class CodeModelDaoFactory {
 							"SELECT COUNT(*) FROM " +
 							javaBeanSchema.getTabela().getNome() +
 							" WHERE " + primaryKey.getNome() + "="
-						).plus(pkVar)
+						).plus(bean.ref(pkVar))
 					).invoke("simpleQueryForLong").eq(JExpr.lit(0)),
-					id.eq(JExpr.lit(ID_PADRAO))
+					bean.ref(pkVar).eq(JExpr.lit(ID_PADRAO))
 			)
 		);
 		JConditional ifIdNull = corpo._if(insert);
@@ -250,9 +253,9 @@ public class CodeModelDaoFactory {
 		 ***************************************/
 		thenBlock._if(insertIfNotExists)._then().add(contentValues.invoke("put")
 					.arg(JExpr.lit(primaryKey.getNome()))
-					.arg(pkVar));
+					.arg(bean.ref(pkVar)));
 		JExpression valueExpr = db.invoke("insertOrThrow")
-			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
+			.arg(JExpr.lit(javaBeanSchema.getTabela().getNome()))
 			.arg(JExpr._null())
 			.arg(contentValues);
 		JVar valueId = thenBlock.decl(jcm.LONG, "value",valueExpr);
@@ -264,7 +267,7 @@ public class CodeModelDaoFactory {
 		 ***************************************/
 		JConditional ifInsertOk = thenBlock._if(valueId.gt(JExpr.lit(0)));
 		JBlock ifInsertOkBlock = ifInsertOk._then();
-		ifInsertOkBlock.assign(id, valueId);
+		ifInsertOkBlock.assign(bean.ref(pkVar), valueId);
 		ifInsertOkBlock._return(JExpr.lit(true));
 		/* **************************************
 		 *      } else {                        *
@@ -284,7 +287,7 @@ public class CodeModelDaoFactory {
 		 * }                                     *
 		 ****************************************/
 		JBlock elseBlock = ifIdNull._else();
-		generateUpdateBlock(klass, javaBeanSchema, elseBlock, db, contentValues);
+		generateUpdateBlock(klass, bean, javaBeanSchema, elseBlock, db, contentValues);
 	}
 
 	private JVar generateContentValues(
@@ -328,6 +331,7 @@ public class CodeModelDaoFactory {
 
 	private void generateUpdateBlock(
 			JDefinedClass klass,
+			JExpression bean,
 			JavaBeanSchema javaBeanSchema,
 			JBlock block,
 			JVar db,
@@ -345,15 +349,16 @@ public class CodeModelDaoFactory {
 		 *                                   *
 		 ************************************/
 		JVar value = block.decl(jcm.INT, "value", db.invoke("update")
-			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
+			.arg(JExpr.lit(javaBeanSchema.getTabela().getNome()))
 			.arg(contentValues)
 			.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
-			.arg(getPrimaryKeysArray(klass, javaBeanSchema)));
+			.arg(getPrimaryKeysArray(klass, bean, javaBeanSchema)));
 		block._return(value.gt(JExpr.lit(0)));
 	}
 
 	private void generateSaveMethodForCompoundPrimaryKeyBeans(
 		JDefinedClass klass,
+		JExpression bean,
 		JavaBeanSchema javaBeanSchema,
 		JBlock block,
 		JVar db,
@@ -367,10 +372,8 @@ public class CodeModelDaoFactory {
 		JVar obj =  block.decl(
 				klass,
 				"obj",
-				klass.staticInvoke("objects")
-						.arg(getSessionExpr(klass))
-					.invoke("filter")
-						.arg(getQForPrimaryKeys(klass, javaBeanSchema))
+				JExpr.invoke("query" + PluralizacaoUtils.pluralizar(klass.name()))
+						.arg(getQForPrimaryKeys(bean, klass, javaBeanSchema))
 					.invoke("first")
 		);
 		/*
@@ -383,14 +386,14 @@ public class CodeModelDaoFactory {
 		JConditional ifExist =  block._if(obj.eq(JExpr._null()));
 		JBlock thenBlock = ifExist._then();
 		JExpression valueExpr = db.invoke("insertOrThrow")
-			.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
+			.arg(JExpr.lit(javaBeanSchema.getTabela().getNome()))
 			.arg(JExpr._null())
 			.arg(contentValues);
 		JVar valueId = thenBlock.decl(jcm.LONG, "value",valueExpr);
 		// return (value > 0);
 		thenBlock._return(valueId.gt(JExpr.lit(0)));
 
-		generateUpdateBlock(klass, javaBeanSchema, ifExist._else(), db, contentValues);
+		generateUpdateBlock(klass, bean, javaBeanSchema, ifExist._else(), db, contentValues);
 	}
 
 	/**
@@ -418,16 +421,16 @@ public class CodeModelDaoFactory {
 	 * @param javaBeanSchema
 	 * @return JExpression de array com primary key(s)
 	 */
-	private JExpression getPrimaryKeysArray(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
+	private JExpression getPrimaryKeysArray(JDefinedClass klass,
+			JExpression bean, JavaBeanSchema javaBeanSchema){
 		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
 		JArray sqlArgs = JExpr.newArray(jcm.ref(String.class));
 		while(primarykeys.hasNext()){
 			String primarykey = primarykeys.next();
-			sqlArgs = sqlArgs
-					.add(boxify(klass.fields().get(
-							javaBeanSchema.getPropriedade(primarykey).getNome()
-					))
-					.invoke("toString"));
+			JFieldVar f = klass.fields().get(javaBeanSchema.getPropriedade(primarykey).getNome());
+			sqlArgs = sqlArgs.add(
+						boxify(f.type(),bean.ref(f))
+							.invoke("toString"));
 		}
 		return sqlArgs;
 	}
@@ -441,17 +444,17 @@ public class CodeModelDaoFactory {
 	 * @return JExpression de Q para busca por PK's
 	 */
 	private JInvocation getQForPrimaryKeys (
-		JDefinedClass klass, JavaBeanSchema javaBeanSchema
+		JExpression bean, JDefinedClass klass,
+		JavaBeanSchema javaBeanSchema
 	) {
 		Iterator<String> primarykeys = javaBeanSchema.getPrimaryKeyColumns().iterator();
 		JInvocation q = null;
 		while(primarykeys.hasNext()){
 			String primarykey = primarykeys.next();
 			JInvocation pkEqInvocation = 
-				klass.fields()
-					.get(javaBeanSchema.getConstante(primarykey))
+				klass.staticRef(javaBeanSchema.getConstante(primarykey))
 					.invoke("eq")
-						.arg(klass.fields().get(javaBeanSchema.getPropriedade(primarykey).getNome()));
+						.arg(bean.ref(javaBeanSchema.getPropriedade(primarykey).getNome()));
 				q =
 					// if
 					(q == null ) ?
@@ -552,10 +555,10 @@ public class CodeModelDaoFactory {
 		 *        return true;
 		 *    }
 		 */
-		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
+		JMethod delete = modelFacade.method(JMod.PUBLIC, jcm.BOOLEAN, "delete" + klass.name());
 		JBlock body = delete.body();
 
-		JExpression bean = JExpr._this();
+		JVar bean = delete.param(klass, "bean");
 		/*
 		 * if (!(id!= 0L)) {
 		 *     return false;
@@ -577,7 +580,6 @@ public class CodeModelDaoFactory {
 		 *         db.beginTransaction();
 		 */
 		JVar db = body.decl(jcm.ref(SQLiteDatabase.class),"db",getDbExpr(klass));
-		body.directStatement("synchronized (" + db.name() +") {");
 		JTryBlock tryCatch = body._try();
 		JBlock tryBody = tryCatch.body();
 		tryBody.add(db.invoke("beginTransaction"));
@@ -598,6 +600,7 @@ public class CodeModelDaoFactory {
 					associatedSchema = associatedSchemas.get(tableNameA);
 				}
 				generateAssociatedDelete(
+					bean,
 					klass, javaBeanSchema,
 					associatedClass, associatedSchema,
 					association,
@@ -611,11 +614,11 @@ public class CodeModelDaoFactory {
 			jcm.INT,
 			"affected",
 			db.invoke("delete")
-				.arg(klass.fields().get(javaBeanSchema.getConstanteDaTabela()).invoke("getName"))
+				.arg(JExpr.lit(javaBeanSchema.getTabela().getNome()))
 				// ID+"=?"
 				.arg(getPrimaryKeysQueryString(klass, javaBeanSchema))
 				// new String[]{id}
-				.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+				.arg(getPrimaryKeysArray(klass, bean, javaBeanSchema))
 		);
 
 		/*
@@ -637,8 +640,6 @@ public class CodeModelDaoFactory {
 			db.invoke("endTransaction")
 		);
 
-		// fechando JExpr.direct("synchronized (db) {");
-		body.directStatement("}");
 
 		body._return(JExpr.lit(true));
 	}
@@ -655,6 +656,7 @@ public class CodeModelDaoFactory {
 	 * @param db
 	 */
 	private void generateAssociatedDelete (
+		JExpression bean,
 		JDefinedClass klass, JavaBeanSchema javaBeanSchema,
 		JDefinedClass associatedClass, JavaBeanSchema associatedSchema,
 		Associacao association,
@@ -695,7 +697,7 @@ public class CodeModelDaoFactory {
 						.arg(JExpr.lit(one2many.getTabelaB().getNome()))
 						.arg(contentValues)
 						.arg( JExpr.lit(one2many.getKeyToA() + "=?") )
-						.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+						.arg(getPrimaryKeysArray(klass, bean, javaBeanSchema))
 				);
 			} else {
 				/* 
@@ -706,11 +708,11 @@ public class CodeModelDaoFactory {
 				JForEach foreach = body.forEach(
 						associatedClass,
 						"obj",
-						JExpr.invoke(methodGetMany(associatedSchema))
+						bean.invoke(methodGetMany(associatedSchema))
 							.invoke("all")
 				);
 				foreach.body().add(
-						foreach.var().invoke("delete")
+						JExpr.invoke("delete" + associatedClass.name()).arg(foreach.var())
 				);
 			}
 		}
@@ -735,7 +737,7 @@ public class CodeModelDaoFactory {
 				db.invoke("delete")
 					.arg(JExpr.lit(many2many.getTabelaJuncao().getNome()))
 					.arg( JExpr.lit(throughTableKey+ "=?") )
-					.arg(getPrimaryKeysArray(klass, javaBeanSchema))
+					.arg(getPrimaryKeysArray(klass, bean, javaBeanSchema))
 			);
 		}
 	}
@@ -749,9 +751,17 @@ public class CodeModelDaoFactory {
 	public void generateObjectsMethod(JDefinedClass klass, JavaBeanSchema javaBeanSchema){
 		JClass queryset = jcm.ref(QuerySet.class);
 		JDefinedClass qsInner = generateQuerySet(klass,javaBeanSchema,queryset);
-		JMethod metodoObjects = klass.method(JMod.PUBLIC|JMod.STATIC,queryset.narrow(klass), "objects");
-		JVar session = metodoObjects.param(Session.class, "session");
-		metodoObjects.body()._return(JExpr._new(qsInner.narrow(klass)).arg(session).arg(JExpr._new(klass)));
+		JClass querysetnarrow = queryset.narrow(klass);
+		JMethod query = modelFacade.method(JMod.PUBLIC,querysetnarrow,
+				"query" + PluralizacaoUtils.pluralizar(klass.name()));
+		JVar q = query.param(Q.class, "q");
+		JBlock body = query.body();
+		JVar querysetInst = body.decl(querysetnarrow, "queryset",
+				JExpr._new(qsInner.narrow(klass))
+				.arg(JExpr._this()).arg(JExpr._new(klass)));
+		body._if(q.eq(JExpr._null()))
+			._then()._return(querysetInst);
+		body._return(querysetInst.invoke("filter").arg(q));
 	}
 
 	private JDefinedClass generateQuerySet(
@@ -776,7 +786,7 @@ public class CodeModelDaoFactory {
 	){
 
 		List<String> colunasEmOrdem = ColumnsUtils.orderedColumnsFromJavaBeanSchema(javaBeanSchema);
-		JFieldVar session = querySetInner.field(JMod.PRIVATE, Session.class, "session");
+		JFieldVar session = querySetInner.field(JMod.PRIVATE, modelFacade, "session");
 		/*
 		 * prototipo
 		 */
@@ -785,7 +795,7 @@ public class CodeModelDaoFactory {
 		 * Construtor
 		 */
 		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
-		JVar sessionparam = construtor.param(Session.class, "session");
+		JVar sessionparam = construtor.param(modelFacade, "session");
 		JVar prototipoparam = construtor.param(generic, "prototipo");
 		JBlock body = construtor.body();
 		body.assign(JExpr.refthis(session.name()), sessionparam);
@@ -848,11 +858,21 @@ public class CodeModelDaoFactory {
 		 **************************************************/
 		JMethod cursorToObject = querySetInner.method(
 				JMod.PROTECTED, generic, "cursorToObject");
-		cursorToObject.annotate(java.lang.Override.class);
 		JVar cursor = cursorToObject.param(android.database.Cursor.class, "cursor");
+		JInvocation val = prototipo.invoke("cursorToObject")
+				.arg(cursor).arg(session);
+		cursorToObject.body()._return(JExpr.cast(generic, val));
+		cursorToObject.annotate(java.lang.SuppressWarnings.class).param("value","unchecked");
+
+
+		cursorToObject = klass.method(
+				JMod.PUBLIC, klass, "cursorToObject");
+		cursor = cursorToObject.param(android.database.Cursor.class, "cursor");
+		sessionparam = cursorToObject.param(modelFacade, "session");
 		JBlock corpo = cursorToObject.body();
-		JVar bean = corpo.decl(generic, "objeto", JExpr.cast(generic,prototipo.invoke("clone")));
-		bean.annotate(java.lang.SuppressWarnings.class).param("value","unchecked");
+		JVar bean = corpo.decl(klass, "objeto", JExpr.cast(klass,
+				JExpr._this().invoke("clone")));
+		corpo.assign( bean.ref(getSessionExpr(klass)), sessionparam );
 		for(String coluna : colunasEmOrdem){
 			Propriedade propriedade = javaBeanSchema.getPropriedade(coluna);
 
@@ -874,13 +894,16 @@ public class CodeModelDaoFactory {
 					valor
 			);
 		}
-		JFieldVar beansession = klass.fields().get(SESSION_FIELD);
-		if (beansession != null)
-			corpo.assign(bean.ref(beansession), session);
-		else
-			LoggerUtil.getLog().error(klass.name()+ " sem instancia de sessao");
 		corpo._return(bean);
 
+	}
+
+	public synchronized JFieldVar getSessionExpr(JDefinedClass klass){
+		JFieldVar session = klass.fields().get(SESSION_FIELD);
+		if (session != null)
+			return session;
+		session = klass.field(JMod.NONE, modelFacade, SESSION_FIELD);
+		return session;
 	}
 
 	/**
@@ -1081,10 +1104,7 @@ public class CodeModelDaoFactory {
 		/* ***********************************************************
 		 *  Associada.objects().filter(Vendedor.ID +"=?",idVendedor) *
 		 ************************************************************/
-		JInvocation invokeQuery = klassB.staticInvoke("objects")
-				.arg(getSessionExpr(klassA))
-			// .filter
-			.invoke("filter")
+		JInvocation invokeQuery = getSessionExpr(klassA).invoke("query" + PluralizacaoUtils.pluralizar(klassB.name()))
 			// Vendedor.ID +"=?"
 			.arg(
 					klassB.staticRef(klassB.fields().get(
@@ -1170,9 +1190,9 @@ public class CodeModelDaoFactory {
 				getAssociatedName
 		);
 		JBlock body = getKlassB.body();
-		JInvocation invokeAssociadaObjects = klassB.staticInvoke("objects")
-				.arg(getSessionExpr(klassA))
-			.invoke("filter");
+		JExpression session = getSessionExpr(klassA);
+		JInvocation invokeAssociadaObjects = session.invoke(
+				"query" + PluralizacaoUtils.pluralizar(klassB.name()));
 		if (columnThroughTableToA == null || columnThroughTableToB == null) {
 			/*
 			 * Caso OneToMany
@@ -1227,9 +1247,6 @@ public class CodeModelDaoFactory {
 			String columnRefB, JFieldVar columnThroughTableToB,
 			JFieldVar throughTable
 	) {
-		String getterReferenceB = "get" +
-			Character.toUpperCase( columnRefB.charAt (0)) +
-			columnRefB.substring (1);
 		/*
 		 * public boolean addAssociada(Associada obj) {
 		 *     if (id == 0)
@@ -1241,17 +1258,18 @@ public class CodeModelDaoFactory {
 		 *     long value = db.insertOrThrow(Classe.THROUGH_TABLE_CLASSE_ID.getName(), null, contentValues);
 		 *     return (value > 0);
 		 */
-		JMethod addMethod = klassA.method(
+		JMethod addMethod = modelFacade.method(
 			JMod.PUBLIC,
 			jcm.BOOLEAN,
-			"add" + javaBeanSchemaB.getNome()
+			"add" + javaBeanSchemaB.getNome() + "To" + javaBeanSchemaA.getNome()
 		);
-		JVar obj = addMethod.param(klassB, "obj");
+		JVar obj = addMethod.param(klassB, javaBeanSchemaB.getNome());
+		JVar bean = addMethod.param(klassA, javaBeanSchemaA.getNome());
 		JBlock body = addMethod.body();
 		String pkName = javaBeanSchemaA.getPrimaryKey().getNome();
 		if (pkName != null) {
 			JFieldVar pk = klassA.fields().get(pkName);
-			body._if (pk.eq (JExpr.lit (ID_PADRAO)))
+			body._if (bean.ref(pk).eq (JExpr.lit (ID_PADRAO)))
 				._then()._return (JExpr.lit(false));
 		}
 		/* ********************************************
@@ -1266,13 +1284,14 @@ public class CodeModelDaoFactory {
 		// contentValues.put(Classe.THROUGH_TABLE_CLASSE_ID.getName(), id);
 		body.add (contentValues.invoke ("put")
 			.arg (klassA.staticRef (columnThroughTableToA).invoke ("getName"))
-			.arg (referenceA)
+			.arg (bean.ref(referenceA))
 		);
 
+		JFieldVar referenceB = klassB.fields().get(columnRefB);
 		// contentValues.put(Associada.THROUGH_TABLE_ASSOCIADA_ID.getName(), obj.getId());
 		body.add (contentValues.invoke ("put")
 			.arg (klassB.staticRef (columnThroughTableToB).invoke ("getName"))
-			.arg (obj.invoke (getterReferenceB))
+			.arg (obj.ref(referenceB))
 		);
 
 		// SQLiteDatabase db = DB.getDb();
@@ -1323,18 +1342,19 @@ public class CodeModelDaoFactory {
 		 *     return (affected == 1);
 		 * }
 		 */
-		JMethod removeMethod = klassA.method(
+		JMethod removeMethod = modelFacade.method(
 			JMod.PUBLIC,
 			jcm.BOOLEAN,
-			"remove" + javaBeanSchemaB.getNome()
+			"remove" + javaBeanSchemaB.getNome()+ "From" + javaBeanSchemaA.getNome()
 		);
 		obj = removeMethod.param(klassB, "obj");
+		bean = removeMethod.param(klassA, "bean");
 		body = removeMethod.body();
 		if (pkName != null) {
 			// if (id == 0L) 
 			//     return false;
 			JFieldVar pk = klassA.fields().get(pkName);
-			body._if (pk.eq (JExpr.lit (ID_PADRAO)))
+			body._if (bean.ref(pk).eq (JExpr.lit (ID_PADRAO)))
 				._then()._return (JExpr.lit(false));
 		}
 
@@ -1346,7 +1366,7 @@ public class CodeModelDaoFactory {
 			jcm.ref(Cursor.class),
 			"cursor",
 			db.invoke("query")
-				.arg(throughTable.invoke("getName"))
+				.arg(klassA.staticRef(throughTable).invoke("getName"))
 				.arg(JExpr.direct("new String[]{\"rowid\"}"))
 				.arg(klassA.staticRef(
 					columnThroughTableToA).invoke("getName")
@@ -1355,10 +1375,10 @@ public class CodeModelDaoFactory {
 					.plus(JExpr.lit("=?"))
 				)
 				.arg(JExpr.newArray(jcm.ref(String.class))
-					.add(boxify(referenceA).invoke("toString"))
+					.add(boxify(referenceA.type(), bean.ref(referenceA)).invoke("toString"))
 					.add(((JExpression)JExpr.cast(
 						jcm.ref(javaBeanSchemaB.getPropriedade(columnRefB).getType()),
-						obj.invoke(getterReferenceB)
+						obj.ref(referenceB)
 					)).invoke("toString"))
 				)
 				.arg(JExpr._null())
@@ -1420,12 +1440,20 @@ public class CodeModelDaoFactory {
 	}
 
 	private JExpression getDbExpr(JDefinedClass klass){
-		return getSessionExpr(klass).invoke("getDb");
+		return JExpr.invoke("getDb");
 	}
 
 	private JExpression boxify(JVar var){
 		if(var.type().isPrimitive()){
 			JPrimitiveType primType= (JPrimitiveType)var.type();
+			return JExpr.cast(primType.boxify(), var);
+		}
+		return var;
+	}
+
+	private JExpression boxify(JType type, JFieldRef var){
+		if(type.isPrimitive()){
+			JPrimitiveType primType= (JPrimitiveType)type;
 			return JExpr.cast(primType.boxify(), var);
 		}
 		return var;
