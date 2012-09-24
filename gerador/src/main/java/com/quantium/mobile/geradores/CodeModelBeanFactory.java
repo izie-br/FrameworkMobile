@@ -356,7 +356,7 @@ public class CodeModelBeanFactory {
 	public void generateProperty(JDefinedClass classeBean, Propriedade propriedade) {
 		JType tipo = jcmType(propriedade.getType());
 		// campos privados
-		classeBean.field(JMod.PRIVATE, tipo, propriedade.getNome());
+		classeBean.field(JMod.NONE, tipo, propriedade.getNome());
 		// getters e setters
 		if(propriedade.isSet())
 			generateSetter(classeBean, propriedade.getNome());

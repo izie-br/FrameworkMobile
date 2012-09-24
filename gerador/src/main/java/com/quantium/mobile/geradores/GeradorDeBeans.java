@@ -23,6 +23,8 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.management.RuntimeErrorException;
+
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.StatementVisitor;
@@ -257,8 +259,17 @@ public class GeradorDeBeans {
 
 		JCodeModel jcm = new JCodeModel();
 		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
+
+		JDefinedClass modelFacade;
+		try {
+			modelFacade = jcm._class(JMod.PUBLIC|JMod.ABSTRACT,
+					pacote+'.'+pacoteGen+".ModelFacade", ClassType.CLASS);
+		} catch (JClassAlreadyExistsException e) {
+			throw new RuntimeException(e);
+		}
+
 		CodeModelDaoFactory daoFactory =
-			new CodeModelDaoFactory(jcm,dbClass,dbStaticMethod);
+			new CodeModelDaoFactory(jcm, modelFacade);
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =
 			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);

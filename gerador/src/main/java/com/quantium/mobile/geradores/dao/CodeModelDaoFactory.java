@@ -63,17 +63,14 @@ public class CodeModelDaoFactory {
 	public static final long ID_PADRAO = 0;
 
 	private JCodeModel jcm;
-	private String dbClass;
-	private String getDbStaticMethod;
+	private JDefinedClass modelFacade;
 
 	public CodeModelDaoFactory(
 		JCodeModel jcm,
-		String dbClass,
-		String getDbStaticMethod
+		JDefinedClass modelFacade
 	) {
 		this.jcm = jcm;
-		this.dbClass = dbClass;
-		this.getDbStaticMethod = getDbStaticMethod;
+		this.modelFacade = modelFacade;
 	}
 
 	private JFieldVar getSessionExpr(JDefinedClass klass){
@@ -194,7 +191,8 @@ public class CodeModelDaoFactory {
 		 * cv.put(ClasseBean.CAMPO,this.campo);
 		 * cv.put(*);
 		 */
-		JVar contentValues = generateContentValues(klass, fields, corpo);
+		JExpression bean = JExpr._this();
+		JVar contentValues = generateContentValues(bean, fields, corpo);
 		JVar db = corpo.decl(jcm.ref(SQLiteDatabase.class),"db",session.invoke("getDb"));
 
 		if(primaryKey==null){
@@ -290,7 +288,7 @@ public class CodeModelDaoFactory {
 	}
 
 	private JVar generateContentValues(
-			JDefinedClass klass,
+			JExpression bean,
 			Map<String,JFieldVar> fields,
 			JBlock body
 	) {
@@ -308,14 +306,14 @@ public class CodeModelDaoFactory {
 					// if campo instanceof Date
 					(field.type().name().equals("Date")) ?
 							// value = DateUtil.timestampToString(date)
-							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(field) :
+							jcm.ref(DateUtil.class).staticInvoke("timestampToString").arg(bean.ref(field)) :
 					// if campo instanceof Boolean
 					(field.type().name().equals("boolean") || field.name().equals("Boolean") ) ?
 							// value = (campoBool? 1 : 0)
-							JOp.cond(field, JExpr.lit(1),JExpr.lit(0)):
+							JOp.cond(bean.ref(field), JExpr.lit(1),JExpr.lit(0)):
 					// else
 							// value = campo
-							field;
+					bean.ref(field);
 			/* ****************************************
 			 *   cv.put("campo", <expressao value>);  *
 			 *****************************************/
@@ -557,6 +555,7 @@ public class CodeModelDaoFactory {
 		JMethod delete = klass.method(JMod.PUBLIC, jcm.BOOLEAN, "delete");
 		JBlock body = delete.body();
 
+		JExpression bean = JExpr._this();
 		/*
 		 * if (!(id!= 0L)) {
 		 *     return false;
@@ -564,9 +563,9 @@ public class CodeModelDaoFactory {
 		 */
 		JExpression ifexpr = null;
 		for (String pk : javaBeanSchema.getPrimaryKeyColumns()) {
-			JExpression expr = klass.fields().get(
+			JExpression expr = bean.ref(klass.fields().get(
 					javaBeanSchema.getPropriedade(pk).getNome()
-			).eq(JExpr.lit(ID_PADRAO));
+			)).eq(JExpr.lit(ID_PADRAO));
 			ifexpr = (ifexpr == null) ? expr : ifexpr.cor(expr);
 		}
 		body._if(ifexpr)._then()._return(JExpr.lit(false));
