@@ -178,6 +178,7 @@ public class CodeModelDaoFactory {
 		JVar flags = save.param(jcm.INT, "flags");
 		JBlock corpo = save.body();
 
+		corpo.assign(bean.ref(getSessionExpr(klass)), JExpr._this());
 		corpo.assign(flags, JExpr.invoke(onPreSaveMethodName).arg(bean).arg(flags));
 		Propriedade primaryKey = javaBeanSchema.getPrimaryKey();
 

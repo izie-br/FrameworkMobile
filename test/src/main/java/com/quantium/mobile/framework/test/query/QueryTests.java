@@ -11,27 +11,20 @@ import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
+import com.quantium.mobile.framework.test.ModelFacadeImpl;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.gen.ModelFacade;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
 
+	ModelFacade facade = new ModelFacadeImpl();
 	public QueryTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
 	
-	public Session getSession(){
-		return new Session() {
-			
-			@Override
-			public SQLiteDatabase getDb() {
-				return DB.getDb();
-			}
-		};
-	}
-
 	public void testQString(){
 		// dados para teste
 		Table t = new Table("tab");
@@ -178,24 +171,24 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 	public void testLikeAndGlob(){
 		Author author1 = new Author();
 		author1.setName("um nome");
-		assertTrue(author1.save(getSession()));
+		assertTrue(facade.saveAuthor(author1));
 		Author author2 = new Author();
 		author2.setName("outro nome");
-		assertTrue(author2.save(getSession()));
+		assertTrue(facade.saveAuthor(author2));
 		Author author3 = new Author();
 		author3.setName("outro");
-		assertTrue(author3.save(getSession()));
+		assertTrue(facade.saveAuthor(author3));
 		// buscas com LIKE
-		Collection<Author> authors = Author.objects(getSession())
-			.filter(Q.like(Author.NAME,"%no_e"))
+		Collection<Author> authors = facade.queryAuthors(
+				Q.like(Author.NAME,"%no_e"))
 			.all();
 		assertNotNull(authors);
 		assertEquals(2, authors.size());
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
 		// buscas com GLOB
-		authors = Author.objects(getSession())
-			.filter(Q.glob(Author.NAME,"*[nm]?[mw]e"))
+		authors = facade.queryAuthors(
+				Q.glob(Author.NAME,"*[nm]?[mw]e"))
 			.all();
 		assertNotNull(authors);
 		assertEquals(2, authors.size());
