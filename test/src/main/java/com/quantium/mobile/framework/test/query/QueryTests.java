@@ -4,17 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
 
-import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.ModelFacadeImpl;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
-import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.ModelFacade;
 

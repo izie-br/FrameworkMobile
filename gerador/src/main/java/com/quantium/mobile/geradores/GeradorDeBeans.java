@@ -23,8 +23,6 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.management.RuntimeErrorException;
-
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
 import net.sf.jsqlparser.statement.StatementVisitor;
@@ -225,17 +223,10 @@ public class GeradorDeBeans {
 			}
 		}
 
-		String pacoteDb = pacote + (
-			(DB_PACKAGE == null || DB_PACKAGE.matches("\\s*")) ?
-				"" :
-				"." + DB_PACKAGE
-		);
-		String dbClass = pacoteDb + "." +DB_CLASS;
 //		String genericBeanClass = pacote;
 //		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
 //			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
 //		genericBeanClass += GENERIC_BEAN_CLASS;
-		String dbStaticMethod = "getDb";
 
 		Collection<TabelaSchema> tabelasBanco =
 				getTabelasDoSchema(

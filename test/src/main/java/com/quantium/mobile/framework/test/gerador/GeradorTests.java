@@ -8,14 +8,10 @@ import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
 
-import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.quantium.mobile.framework.Session;
-import com.quantium.mobile.framework.test.GenericBean;
 import com.quantium.mobile.framework.test.ModelFacadeImpl;
 import com.quantium.mobile.framework.test.TestActivity;
-import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.Customer;
 import com.quantium.mobile.framework.test.gen.Document;
