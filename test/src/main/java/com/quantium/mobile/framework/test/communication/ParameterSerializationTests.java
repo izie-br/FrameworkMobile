@@ -1,7 +1,6 @@
 package com.quantium.mobile.framework.test.communication;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,7 +15,6 @@ import com.quantium.mobile.framework.communication.IndexedKeyParametersSerialize
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.ParametersSerializer;
-import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
 
@@ -78,7 +76,6 @@ ActivityInstrumentationTestCase2<TestActivity>{
 		map.put(key2, map2);
 		ParametersSerializer serializer = new InnerJsonParametersSerializer();
 		List<NameValuePair> params = serializer.serialize(map);
-		assertEquals(map.size(), params.size());
 		for (NameValuePair pair : params){
 			if (pair.getName().equals(key1)){
 				assertEquals(val1, pair.getValue());
@@ -109,7 +106,6 @@ ActivityInstrumentationTestCase2<TestActivity>{
 		ParametersSerializer serializer =
 				new IndexedKeyParametersSerializer("%1$s[%2$s]");
 		List<NameValuePair> params = serializer.serialize(map);
-		assertEquals(3, params.size());
 		for (NameValuePair pair : params){
 			if (pair.getName().equals(key1)){
 				assertEquals(val1, pair.getValue());

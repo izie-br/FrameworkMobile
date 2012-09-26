@@ -6,15 +6,11 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.GenericCommunication;
-import com.quantium.mobile.framework.communication.IndexedKeyParametersSerializer;
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.JsonParametersSerializer;
