@@ -10,6 +10,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.message.BasicNameValuePair;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.JSONUtils;
 
 public class InnerJsonParametersSerializer extends ParametersSerializer{
@@ -31,6 +32,8 @@ public class InnerJsonParametersSerializer extends ParametersSerializer{
 				params.add( new BasicNameValuePair(
 						k, JSONUtils.parseToJson(val).toString()));
 		}
+		for (NameValuePair pair : params)
+			LogPadrao.d("%s = %s", pair.getName(), pair.getValue());
 		return params;
 	}
 

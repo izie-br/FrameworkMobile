@@ -14,7 +14,10 @@ import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.GenericCommunication;
+import com.quantium.mobile.framework.communication.IndexedKeyParametersSerializer;
+import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonCommunication;
+import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.server.Echo;
@@ -113,20 +116,14 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
 		GenericCommunication comm = new JsonCommunication();
 		comm.setURL(URL);
+		comm.setParameterSerializer(new InnerJsonParametersSerializer());
 		comm.setParameter(RouterBean.METHOD_PARAM, "insert");
 		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		JSONArray jsonlist = new JSONArray();
-		JSONObject objects = new JSONObject();
-		JSONObject jsonBody = new JSONObject();
-		try {
-			for (Author author: list)
-				jsonlist.put(new JSONObject(author.toMap()));
-			objects.put("list", jsonlist);
-			jsonBody.put("objects", objects);
-		} catch (JSONException e) {
-			fail(e.getMessage());
-		}
-		comm.setParameter("json", jsonBody.toString());
+		HashMap<String, Object> objects = new HashMap<String, Object>();
+		HashMap<String, Object> jsonBody = new HashMap<String, Object>();
+		objects.put("list", list);
+		jsonBody.put("objects", objects);
+		comm.setParameter("json", jsonBody);
 
 		Iterator<Author> received = null;
 		try {
@@ -176,21 +173,17 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		comparaAuthors(list, it);
 	}
 
-/*	public void testPlainTextCommunication(){
-		SerializedCommunication comm = new JsonCommunication(){
-			@Override
-			public String getContentType() {
-				return "text/plain";
-			}
-		};
-		Map<String,Object> map = new HashMap<String, Object>();
+	public void testJsonPlainTextCommunication(){
+		GenericCommunication comm = new JsonCommunication();
+		comm.setContentType("application/json");
+		comm.setParameterSerializer(new JsonParametersSerializer());
+		Map<String,Object> map = comm.getParameters();
 		String param1 = "param1";
 		String val1 = "val1";
 		map.put(param1,val1);
-		comm.setSerializedBodyData(map);
 		comm.setURL(PLAIN_TEXT_URL);
 		Map<String,Object> respMap = comm.post().getResponseMap();
 		assertEquals(val1, respMap.get(param1));
 	}
-*/
+
 }

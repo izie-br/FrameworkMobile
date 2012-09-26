@@ -6,22 +6,16 @@ import java.io.InputStreamReader;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.zip.GZIPInputStream;
 
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import com.quantium.mobile.framework.ErrorCode;
 import com.quantium.mobile.framework.FrameworkException;
-import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.framework.utils.JSONUtils;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunication extends GenericCommunication
@@ -30,7 +24,7 @@ public class JsonCommunication extends GenericCommunication
 
 	private String url;
 	private Map<String,Object> parameters;
-	private CommunicationObjectList lists [];
+//	private CommunicationObjectList lists [];
 	private String charset = StringUtil.DEFAULT_ENCODING;
 
 	public void setCharset (String charset) {
@@ -70,20 +64,20 @@ public class JsonCommunication extends GenericCommunication
 		this.url = url;
 	}
 
-	public void setIterator(Iterator<?> iterator, String...keysToObjectList) {
-		if (iterator == null /*|| ! iterator.hasNext()*/)
-			return;
-		int listSize = lists == null ? 0 : lists.length;
-		CommunicationObjectList newlists[] = new CommunicationObjectList[listSize +1];
-		if (listSize > 0){
-			System.arraycopy(lists, 0, newlists, 0, listSize);
-		}
-		CommunicationObjectList list = new CommunicationObjectList();
-		list.iterator = iterator;
-		list.keys = keysToObjectList;
-		newlists[listSize] = list;
-		lists = newlists;
-	}
+//	public void setIterator(Iterator<?> iterator, String...keysToObjectList) {
+//		if (iterator == null /*|| ! iterator.hasNext()*/)
+//			return;
+//		int listSize = lists == null ? 0 : lists.length;
+//		CommunicationObjectList newlists[] = new CommunicationObjectList[listSize +1];
+//		if (listSize > 0){
+//			System.arraycopy(lists, 0, newlists, 0, listSize);
+//		}
+//		CommunicationObjectList list = new CommunicationObjectList();
+//		list.iterator = iterator;
+//		list.keys = keysToObjectList;
+//		newlists[listSize] = list;
+//		lists = newlists;
+//	}
 
 //	public Map<String,Object> getBodyParameters(){
 //		if (this.bodyParameters == null)
@@ -91,25 +85,25 @@ public class JsonCommunication extends GenericCommunication
 //		return this.bodyParameters;
 //	}
 //
-	private static void putSerializedBodyParameters(
-			JSONObject target,
-			Map<?,?> parameters,
-			String except
-	)
-			throws JSONException
-	{
-		for (Object key : parameters.keySet()){
-			if (key.equals(except)){
-				LogPadrao.e(
-						"parametro ignorado %s",
-						parameters.get(key).toString()
-				);
-			} else {
-				target.put(key.toString(), parameters.get(key));
-			}
-		}
-
-	}
+//	private static void putSerializedBodyParameters(
+//			JSONObject target,
+//			Map<?,?> parameters,
+//			String except
+//	)
+//			throws JSONException
+//	{
+//		for (Object key : parameters.keySet()){
+//			if (key.equals(except)){
+//				LogPadrao.e(
+//						"parametro ignorado %s",
+//						parameters.get(key).toString()
+//				);
+//			} else {
+//				target.put(key.toString(), parameters.get(key));
+//			}
+//		}
+//
+//	}
 
 	
 
@@ -228,24 +222,24 @@ public class JsonCommunication extends GenericCommunication
 //
 //		}
 
-		private JSONArray getJsonArray(Iterator<?> iterator){
-			JSONArray array = new JSONArray();
-			while (iterator.hasNext()){
-				Object obj = iterator.next();
-				if (! (obj instanceof MapSerializable) ){
-					LogPadrao.e("%s %s nao eh MapSerializable", obj.getClass().getName(), obj.toString());
-				} else {
-					MapSerializable<?> jsonObj = (MapSerializable<?>)obj;
-					array.put(JSONUtils.mapToJson(jsonObj.toMap()));
-				}
-			}
-			return array;
-		}
-
-	private static class CommunicationObjectList {
-			String keys [];
-			Iterator<?> iterator;
-		}
+//		private JSONArray getJsonArray(Iterator<?> iterator){
+//			JSONArray array = new JSONArray();
+//			while (iterator.hasNext()){
+//				Object obj = iterator.next();
+//				if (! (obj instanceof MapSerializable) ){
+//					LogPadrao.e("%s %s nao eh MapSerializable", obj.getClass().getName(), obj.toString());
+//				} else {
+//					MapSerializable<?> jsonObj = (MapSerializable<?>)obj;
+//					array.put(JSONUtils.mapToJson(jsonObj.toMap()));
+//				}
+//			}
+//			return array;
+//		}
+//
+//	private static class CommunicationObjectList {
+//			String keys [];
+//			Iterator<?> iterator;
+//		}
 
 
 	public String getAcceptHeader() {

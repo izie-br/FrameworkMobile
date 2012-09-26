@@ -8,6 +8,7 @@ import org.apache.http.NameValuePair;
 import org.apache.http.entity.StringEntity;
 
 import com.quantium.mobile.framework.utils.JSONUtils;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonParametersSerializer extends ParametersSerializer{
 
@@ -20,7 +21,7 @@ public class JsonParametersSerializer extends ParametersSerializer{
 	@Override
 	public HttpEntity getEntity(Map<String, Object> map) throws Exception {
 		Object json = JSONUtils.parseToJson(map);
-		return new StringEntity(json.toString());
+		return new StringEntity(json.toString(), StringUtil.DEFAULT_ENCODING);
 	}
 
 	

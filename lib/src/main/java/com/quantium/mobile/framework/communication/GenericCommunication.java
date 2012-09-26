@@ -50,6 +50,7 @@ public abstract class GenericCommunication implements Communication {
 	private static ConnectionStatusChangeListener connectionListeners[];
 	private ParametersSerializer serializer =
 			new IndexedKeyParametersSerializer("%1$s.%2$s");
+	private String contentType = DEFAULT_CONTENT_TYPE;
 
 	/**
 	 * Retorna o estado da conexao
@@ -108,7 +109,11 @@ public abstract class GenericCommunication implements Communication {
 	}
 
 	public String getContentType() {
-		return DEFAULT_CONTENT_TYPE;
+		return contentType;
+	}
+
+	public void setContentType(String contentType) {
+		this.contentType = contentType;
 	}
 
 	public ParametersSerializer getParameterSerializer(){
