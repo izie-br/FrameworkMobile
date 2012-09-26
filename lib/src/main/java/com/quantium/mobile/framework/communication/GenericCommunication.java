@@ -5,21 +5,27 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.commons.codec.EncoderException;
+import org.apache.commons.codec.net.URLCodec;
+import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.StringEntity;
+import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
@@ -41,6 +47,9 @@ public abstract class GenericCommunication implements Communication {
 	private static final int SO_TIMEOUT = 90000;
 	private static final int CONNECTION_TIMEOUT = 15000;
 	protected static final String USER_AGENT = "quantium_mobile";
+
+	public static final byte GET = 0;
+	public static final byte POST = 1;
 
 	private static boolean connected = true;
 	private static ConnectionStatusChangeListener connectionListeners[];
@@ -103,8 +112,57 @@ public abstract class GenericCommunication implements Communication {
 		return DEFAULT_CONTENT_TYPE;
 	}
 
+	protected HttpResponse get(String url, Map<String, String> parametros)
+			throws IOException
+	{
+		HttpResponse response = null;
+		HttpParams httpParameters = new BasicHttpParams();
+		HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
+		HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
+		HttpClient httpclient = new DefaultHttpClient(httpParameters);
+		String contentType = getContentType();
+
+		HttpGet httpGet = new HttpGet();
+		httpGet.setHeader("User-Agent", getUserAgent());
+		httpGet.setHeader("Accept", getAcceptHeader());
+		httpGet.setHeader("Content-Type", contentType);
+		StringBuilder urlAndQstr = new StringBuilder(url);
+		boolean first = true;
+		URLCodec codec = new URLCodec();
+		if (parametros != null) {
+			Iterator<String> iterator = parametros.keySet().iterator();
+			while (iterator.hasNext()) {
+				String chave = iterator.next();
+				String valor = parametros.get(chave);
+				if (chave == null || valor == null)
+					continue;
+				//
+				urlAndQstr.append( (first)? '?' : '&');
+				first = false;
+				//
+				try {
+					urlAndQstr.append(codec.encode(chave));
+					urlAndQstr.append('=');
+					urlAndQstr.append(codec.encode(valor));
+				} catch (EncoderException e) {
+					throw new IOException(e);
+				}
+			}
+		}
+		response = httpclient.execute(httpGet);
+		return response;
+	}
+
 	protected HttpResponse post(String url, Map<String, String> parametros)
 	throws IOException
+	{
+		HttpResponse response = execute(POST, url, parametros);
+		return response;
+	}
+
+	protected HttpResponse execute(byte method, String url,
+			Map<String, String> parametros)
+			throws IOException
 	{
 		HttpResponse response = null;
 
@@ -115,24 +173,12 @@ public abstract class GenericCommunication implements Communication {
 			HttpClient httpclient = new DefaultHttpClient(httpParameters);
 			String contentType = getContentType();
 
-			HttpPost httpPost = new HttpPost(url);
+			HttpRequestBase httpPost = requestForMethod(method);
+			httpPost.setURI(URI.create(url));
 			httpPost.setHeader("User-Agent", getUserAgent());
 			httpPost.setHeader("Accept", getAcceptHeader());
 			httpPost.setHeader("Content-Type", contentType);
-			if (contentType.equals(DEFAULT_CONTENT_TYPE)){
-				List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
-				if (parametros != null) {
-					Iterator<String> iterator = parametros.keySet().iterator();
-					while (iterator.hasNext()) {
-						String chave = iterator.next();
-						String valor = parametros.get(chave);
-						nameValuePairs.add(new BasicNameValuePair(chave, valor));
-					}
-				}
-				httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
-			} else {
-				httpPost.setEntity(new StringEntity(parametros.get(BODY_ONLY_PARAMETER)));
-			}
+			setRequestParameters(method, httpPost, parametros, contentType);
 
 			response = httpclient.execute(httpPost);
 		} catch (IOException e) {
@@ -143,6 +189,60 @@ public abstract class GenericCommunication implements Communication {
 		return response;
 	}
 
+	protected void setRequestParameters(byte method, HttpRequestBase httpRequest,
+			Map<String, String> parametros, String contentType)
+			throws UnsupportedEncodingException {
+		if (method == GET) {
+			HttpGet httpGet = (HttpGet)httpRequest;
+			URI uri = httpGet.getURI();
+			String url = String.format(
+					"%s://%s%s",
+					uri.getScheme(), uri.getAuthority(), uri.getPath());
+			StringBuilder urlAndQstr = new StringBuilder(url);
+			boolean first = true;
+			URLCodec codec = new URLCodec();
+			if (parametros != null) {
+				Iterator<String> iterator = parametros.keySet().iterator();
+				while (iterator.hasNext()) {
+					String chave = iterator.next();
+					String valor = parametros.get(chave);
+					if (chave == null || valor == null)
+						continue;
+					//
+					urlAndQstr.append( (first)? '?' : '&');
+					first = false;
+					//
+					try {
+						urlAndQstr.append(codec.encode(chave));
+						urlAndQstr.append('=');
+						urlAndQstr.append(codec.encode(valor));
+					} catch (EncoderException e) {
+						throw new RuntimeException(e);
+					}
+				}
+			}
+			httpGet.setURI(URI.create(urlAndQstr.toString()));
+		}
+		else{
+			HttpEntityEnclosingRequest httpPost = (HttpEntityEnclosingRequest)httpRequest;
+			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+			if (parametros != null) {
+				Iterator<String> iterator = parametros.keySet().iterator();
+				while (iterator.hasNext()) {
+					String chave = iterator.next();
+					String valor = parametros.get(chave);
+					nameValuePairs.add(new BasicNameValuePair(chave, valor));
+				}
+			}
+			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
+		}
+	}
+
+	private static HttpRequestBase requestForMethod(byte method){
+		if (method == GET)
+			return new HttpGet();
+		return new HttpPost();
+	}
 
 	public static boolean downloadFile(
 			String urlString, String path, String arquivo,

@@ -164,7 +164,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		comparaAuthors(list, it);
 	}
 
-	public void testPlainTextCommunication(){
+/*	public void testPlainTextCommunication(){
 		SerializedCommunication comm = new JsonCommunication(){
 			@Override
 			public String getContentType() {
@@ -180,5 +180,5 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		Map<String,Object> respMap = comm.post().getResponseMap();
 		assertEquals(val1, respMap.get(param1));
 	}
-
+*/
 }
