@@ -25,14 +25,11 @@ import com.quantium.mobile.framework.utils.JSONUtils;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunication extends GenericCommunication
-		implements SerializedCommunication
 {
 	private static final String ACCEPT_HEADER ="application/json";
 
 	private String url;
-	private Map<String,String> parameters;
-	private Map<String,Object> bodyParameters;
-	private String body;
+	private Map<String,Object> parameters;
 	private CommunicationObjectList lists [];
 	private String charset = StringUtil.DEFAULT_ENCODING;
 
@@ -40,28 +37,34 @@ public class JsonCommunication extends GenericCommunication
 		this.charset = charset;
 	}
 
-	public void setParameters (Map<String,String> parameters) {
-		this.parameters = parameters;
+//	public void setParameters (Map<String,Object> parameters) {
+//		this.parameters = parameters;
+//	}
+
+	public Map<String,Object> getParameters(){
+		if (this.parameters == null)
+			this.parameters = new HashMap<String,Object>(2);
+		return this.parameters;
 	}
 
-	public void setParameter (String key, String value) {
+	public void setParameter (String key, Object value) {
 		this.getParameters().put(key, value);
 	}
 
-	public void setSerializedBodyData (Map<String,Object> bodyParameters) {
-		this.bodyParameters = bodyParameters;
-	}
+//	public void setSerializedBodyData (Map<String,Object> bodyParameters) {
+//		this.bodyParameters = bodyParameters;
+//	}
+//
+//	@Override
+//	public void setSerializedParameter(String key, Object value) {
+//		if (this.bodyParameters == null)
+//			bodyParameters = new HashMap<String, Object>();
+//		bodyParameters.put(key, value);
+//	}
 
-	@Override
-	public void setSerializedParameter(String key, Object value) {
-		if (this.bodyParameters == null)
-			bodyParameters = new HashMap<String, Object>();
-		bodyParameters.put(key, value);
-	}
-
-	public void setSerializedBodyParameter(String body) {
-		this.body = body;
-	}
+//	public void setSerializedBodyParameter(String body) {
+//		this.body = body;
+//	}
 
 	public void setURL (String url) {
 		this.url = url;
@@ -82,18 +85,12 @@ public class JsonCommunication extends GenericCommunication
 		lists = newlists;
 	}
 
-	public Map<String,Object> getBodyParameters(){
-		if (this.bodyParameters == null)
-			this.bodyParameters = new HashMap<String,Object>(2);
-		return this.bodyParameters;
-	}
-
-	public Map<String,String> getParameters(){
-		if (this.parameters == null)
-			this.parameters = new HashMap<String,String>(2);
-		return this.parameters;
-	}
-
+//	public Map<String,Object> getBodyParameters(){
+//		if (this.bodyParameters == null)
+//			this.bodyParameters = new HashMap<String,Object>(2);
+//		return this.bodyParameters;
+//	}
+//
 	private static void putSerializedBodyParameters(
 			JSONObject target,
 			Map<?,?> parameters,
@@ -114,22 +111,39 @@ public class JsonCommunication extends GenericCommunication
 
 	}
 
-	public SerializedCommunicationResponse post () throws FrameworkException{
+	
+
+	public SerializedCommunicationResponse post()throws FrameworkException{
+		return execute(POST);
+	}
+
+	public SerializedCommunicationResponse get()throws FrameworkException{
+		return execute(GET);
+	}
+
+	private SerializedCommunicationResponse execute (byte method)
+			throws FrameworkException{
 		try{
 			HttpResponse response = null;
 			String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
-			Map<String, String> params = getParameters();
+			Map<String, Object> rawparams = getParameters();
 
-			// refazer isso
-			if (!DEFAULT_CONTENT_TYPE.equals(getContentType()))
-				body = BODY_ONLY_PARAMETER;
-			if (body != null){
-				params.put(body, jsonRequestString());
-			}
+//			if (body != null){
+//				params.put(body, jsonRequestString());
+//			}
 			int connectionTries = 0;
 			for(;;){
 				try{
-					response = post(url, params);
+					switch(method){
+					case GET:
+						response = get(url, rawparams);
+						break;
+					case POST:
+						response = post(url, rawparams);
+						break;
+					default:
+						LogPadrao.e("metodo http incorreto");
+					}
 				} catch (RuntimeException e){
 					exceptions[connectionTries] = LogPadrao.getStackTrace(e);
 					connectionTries++;
@@ -145,12 +159,12 @@ public class JsonCommunication extends GenericCommunication
 			return new JsonCommunicationResponse(
 					getReader(response)
 			);
-		} catch (JSONException e) {
-			LogPadrao.e(e);
-			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
+//		} catch (JSONException e) {
+//			LogPadrao.e(e);
+//			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION, e);
 		} catch (IOException e) {
 			LogPadrao.e(e);
-			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION);
+			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION, e);
 		}
 	}
 
@@ -177,42 +191,42 @@ public class JsonCommunication extends GenericCommunication
 		}
 	}
 
-	public String jsonRequestString() throws JSONException{
-			JSONObject obj = new JSONObject();
-			Map<?,?> bodyMap = bodyParameters;
-			JSONObject current = obj;
-
-			String keysToObjectList []= lists == null ? null :lists[0].keys;
-			LogPadrao.d("json:: %d", lists == null ? 0 : lists.length);
-
-			if (keysToObjectList == null || keysToObjectList.length ==0) {
-				if (bodyMap != null )
-					putSerializedBodyParameters(obj, bodyMap, null);
-//				else
-//					LogPadrao.e("ignorando iterador");
-			} else {
-				for (int i = 0; ; i++) {
-					if (bodyMap != null ){
-						putSerializedBodyParameters(obj, bodyMap, keysToObjectList[i]);
-						Object innerMap = bodyMap.get(keysToObjectList[i]);
-						bodyMap = (innerMap != null && innerMap instanceof Map) ?
-								//
-								(Map<?,?>)innerMap :
-								//
-								null;
-					}
-
-					if (i == (keysToObjectList.length -1)) {
-						current.put(keysToObjectList[i], getJsonArray(lists[0].iterator));
-						break;
-					}
-					current = new JSONObject();
-					obj.put(keysToObjectList[i], current);
-				}
-			}
-			return obj.toString();
-
-		}
+//	public String jsonRequestString() throws JSONException{
+//			JSONObject obj = new JSONObject();
+//			Map<?,?> bodyMap = bodyParameters;
+//			JSONObject current = obj;
+//
+//			String keysToObjectList []= lists == null ? null :lists[0].keys;
+//			LogPadrao.d("json:: %d", lists == null ? 0 : lists.length);
+//
+//			if (keysToObjectList == null || keysToObjectList.length ==0) {
+//				if (bodyMap != null )
+//					putSerializedBodyParameters(obj, bodyMap, null);
+////				else
+////					LogPadrao.e("ignorando iterador");
+//			} else {
+//				for (int i = 0; ; i++) {
+//					if (bodyMap != null ){
+//						putSerializedBodyParameters(obj, bodyMap, keysToObjectList[i]);
+//						Object innerMap = bodyMap.get(keysToObjectList[i]);
+//						bodyMap = (innerMap != null && innerMap instanceof Map) ?
+//								//
+//								(Map<?,?>)innerMap :
+//								//
+//								null;
+//					}
+//
+//					if (i == (keysToObjectList.length -1)) {
+//						current.put(keysToObjectList[i], getJsonArray(lists[0].iterator));
+//						break;
+//					}
+//					current = new JSONObject();
+//					obj.put(keysToObjectList[i], current);
+//				}
+//			}
+//			return obj.toString();
+//
+//		}
 
 		private JSONArray getJsonArray(Iterator<?> iterator){
 			JSONArray array = new JSONArray();

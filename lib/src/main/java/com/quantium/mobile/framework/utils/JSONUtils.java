@@ -11,6 +11,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
 public class JSONUtils {
@@ -91,10 +92,12 @@ public class JSONUtils {
 	}
 
 	@SuppressWarnings({ "rawtypes", "unchecked" })
-	private static Object parseToJson(Object obj){
+	public static Object parseToJson(Object obj){
 		return
 			(obj instanceof Map)?
 				mapToJson((Map)obj) :
+			(obj instanceof MapSerializable)?
+				mapToJson(((MapSerializable)obj).toMap()) :
 			(obj instanceof Collection) ?
 				collectionToJson((Collection)obj) :
 				obj;

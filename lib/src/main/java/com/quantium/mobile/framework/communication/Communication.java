@@ -1,7 +1,5 @@
 package com.quantium.mobile.framework.communication;
 
-import java.util.Map;
-
 import com.quantium.mobile.framework.FrameworkException;
 
 public interface Communication {
@@ -14,20 +12,12 @@ public interface Communication {
 	public abstract void setCharset(String charset);
 
 	/**
-	 * Remove o mapa de parametros anterior e troca pelo mapa
-	 * de parametros especificado.
-	 *
-	 * @param parameters novo mapa de parametros
-	 */
-	public abstract void setParameters(Map<String, String> parameters);
-
-	/**
 	 * Adiciona ou altera o parametro de especificado.
 	 *
 	 * @param key chave (nome do parametro)
 	 * @param value valor do parametro
 	 */
-	public abstract void setParameter(String key, String value);
+	public abstract void setParameter(String key, Object value);
 
 	/**
 	 * Altera a url completa da requisicao
@@ -36,5 +26,6 @@ public interface Communication {
 	 */
 	public abstract void setURL(String url);
 
-	public Object post () throws FrameworkException;
+	public SerializedCommunicationResponse post () throws FrameworkException;
+	public SerializedCommunicationResponse get () throws FrameworkException;
 }

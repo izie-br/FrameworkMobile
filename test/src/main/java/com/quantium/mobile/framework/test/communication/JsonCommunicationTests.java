@@ -6,12 +6,15 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
 import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.communication.JsonCommunication;
-import com.quantium.mobile.framework.communication.SerializedCommunication;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.server.Echo;
@@ -35,7 +38,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	private void clear() {
-		SerializedCommunication comm = new JsonCommunication();
+		GenericCommunication comm = new JsonCommunication();
 		comm.setURL(URL);
 		comm.setParameter(RouterBean.METHOD_PARAM, "clear");
 		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
@@ -56,11 +59,10 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		String val2 = "val2";
 
 		jsonComm.setURL(URL);
-		HashMap<String,String> params = new HashMap<String, String>();
+		Map<String,Object> params = jsonComm.getParameters();
 		params.put(RouterBean.METHOD_PARAM, "echo");
 		params.put(param1, val1);
 		params.put(param2, val2);
-		jsonComm.setParameters(params);
 		try {
 			Map<String,Object> map = jsonComm.post().getResponseMap();
 			Iterator<String> iterator = params.keySet().iterator();
@@ -109,12 +111,22 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
-		SerializedCommunication comm = new JsonCommunication();
+		GenericCommunication comm = new JsonCommunication();
 		comm.setURL(URL);
 		comm.setParameter(RouterBean.METHOD_PARAM, "insert");
 		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		comm.setSerializedBodyParameter("json");
-		comm.setIterator(list.iterator(),"objects","list");
+		JSONArray jsonlist = new JSONArray();
+		JSONObject objects = new JSONObject();
+		JSONObject jsonBody = new JSONObject();
+		try {
+			for (Author author: list)
+				jsonlist.put(new JSONObject(author.toMap()));
+			objects.put("list", jsonlist);
+			jsonBody.put("objects", objects);
+		} catch (JSONException e) {
+			fail(e.getMessage());
+		}
+		comm.setParameter("json", jsonBody.toString());
 
 		Iterator<Author> received = null;
 		try {
@@ -150,7 +162,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 
 		saveOnServer(list);
 
-		SerializedCommunication authorsDao = new JsonCommunication();
+		GenericCommunication authorsDao = new JsonCommunication();
 		authorsDao.setURL(URL);
 		authorsDao.setParameter(RouterBean.METHOD_PARAM, "query");
 		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());

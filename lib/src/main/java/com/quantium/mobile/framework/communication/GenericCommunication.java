@@ -5,13 +5,11 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.ProtocolException;
 import java.net.URI;
 import java.net.URL;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -22,12 +20,10 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.message.BasicNameValuePair;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
@@ -41,7 +37,6 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 public abstract class GenericCommunication implements Communication {
 
 	protected static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
-	protected static final String BODY_ONLY_PARAMETER = "body";
 	private static final int DEFAULT_BUFFER = 1024;
 	protected static final int CONNECTION_RETRY_COUNT = 5;
 	private static final int SO_TIMEOUT = 90000;
@@ -53,6 +48,8 @@ public abstract class GenericCommunication implements Communication {
 
 	private static boolean connected = true;
 	private static ConnectionStatusChangeListener connectionListeners[];
+	private ParametersSerializer serializer =
+			new IndexedKeyParametersSerializer("%1$s.%2$s");
 
 	/**
 	 * Retorna o estado da conexao
@@ -95,6 +92,8 @@ public abstract class GenericCommunication implements Communication {
 	}
 
 	public abstract String getAcceptHeader();
+	public abstract Map<String, Object> getParameters();
+	public abstract void setParameter(String key, Object value);
 
 	public String getUserAgent(){
 		return USER_AGENT;
@@ -112,48 +111,22 @@ public abstract class GenericCommunication implements Communication {
 		return DEFAULT_CONTENT_TYPE;
 	}
 
-	protected HttpResponse get(String url, Map<String, String> parametros)
+	public ParametersSerializer getParameterSerializer(){
+		return serializer;
+	}
+
+	public void setParameterSerializer(ParametersSerializer s){
+		this.serializer = s;
+	}
+
+	protected HttpResponse get(String url, Map<String, Object> parametros)
 			throws IOException
 	{
-		HttpResponse response = null;
-		HttpParams httpParameters = new BasicHttpParams();
-		HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
-		HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
-		HttpClient httpclient = new DefaultHttpClient(httpParameters);
-		String contentType = getContentType();
-
-		HttpGet httpGet = new HttpGet();
-		httpGet.setHeader("User-Agent", getUserAgent());
-		httpGet.setHeader("Accept", getAcceptHeader());
-		httpGet.setHeader("Content-Type", contentType);
-		StringBuilder urlAndQstr = new StringBuilder(url);
-		boolean first = true;
-		URLCodec codec = new URLCodec();
-		if (parametros != null) {
-			Iterator<String> iterator = parametros.keySet().iterator();
-			while (iterator.hasNext()) {
-				String chave = iterator.next();
-				String valor = parametros.get(chave);
-				if (chave == null || valor == null)
-					continue;
-				//
-				urlAndQstr.append( (first)? '?' : '&');
-				first = false;
-				//
-				try {
-					urlAndQstr.append(codec.encode(chave));
-					urlAndQstr.append('=');
-					urlAndQstr.append(codec.encode(valor));
-				} catch (EncoderException e) {
-					throw new IOException(e);
-				}
-			}
-		}
-		response = httpclient.execute(httpGet);
+		HttpResponse response = execute(GET, url, parametros);
 		return response;
 	}
 
-	protected HttpResponse post(String url, Map<String, String> parametros)
+	protected HttpResponse post(String url, Map<String, Object> parametros)
 	throws IOException
 	{
 		HttpResponse response = execute(POST, url, parametros);
@@ -161,7 +134,7 @@ public abstract class GenericCommunication implements Communication {
 	}
 
 	protected HttpResponse execute(byte method, String url,
-			Map<String, String> parametros)
+			Map<String, Object> parametros)
 			throws IOException
 	{
 		HttpResponse response = null;
@@ -177,22 +150,28 @@ public abstract class GenericCommunication implements Communication {
 			httpPost.setURI(URI.create(url));
 			httpPost.setHeader("User-Agent", getUserAgent());
 			httpPost.setHeader("Accept", getAcceptHeader());
-			httpPost.setHeader("Content-Type", contentType);
-			setRequestParameters(method, httpPost, parametros, contentType);
+			ParametersSerializer serializer = getParameterSerializer();
+			setRequestParameters(method, httpPost, parametros, contentType, serializer);
 
 			response = httpclient.execute(httpPost);
 		} catch (IOException e) {
 			GenericCommunication.setConnected(false);
 			throw e;
+		} catch (Exception e){
+			LogPadrao.e(e);
+			throw new RuntimeException(e);
 		}
 		GenericCommunication.setConnected(true);
 		return response;
 	}
 
-	protected void setRequestParameters(byte method, HttpRequestBase httpRequest,
-			Map<String, String> parametros, String contentType)
-			throws UnsupportedEncodingException {
-		if (method == GET) {
+	protected void setRequestParameters(
+			byte method, HttpRequestBase httpRequest,
+			Map<String, Object> parametros, String contentType,
+			ParametersSerializer serializer)
+			throws Exception {
+		switch(method){
+		case GET:
 			HttpGet httpGet = (HttpGet)httpRequest;
 			URI uri = httpGet.getURI();
 			String url = String.format(
@@ -202,10 +181,12 @@ public abstract class GenericCommunication implements Communication {
 			boolean first = true;
 			URLCodec codec = new URLCodec();
 			if (parametros != null) {
-				Iterator<String> iterator = parametros.keySet().iterator();
+				List<NameValuePair> paramlist = serializer.serialize(parametros);
+				Iterator<NameValuePair> iterator = paramlist.iterator();
 				while (iterator.hasNext()) {
-					String chave = iterator.next();
-					String valor = parametros.get(chave);
+					NameValuePair pair = iterator.next();
+					String chave = pair.getName();
+					String valor = pair.getValue();
 					if (chave == null || valor == null)
 						continue;
 					//
@@ -222,19 +203,13 @@ public abstract class GenericCommunication implements Communication {
 				}
 			}
 			httpGet.setURI(URI.create(urlAndQstr.toString()));
-		}
-		else{
+			break;
+		default:
 			HttpEntityEnclosingRequest httpPost = (HttpEntityEnclosingRequest)httpRequest;
-			List<NameValuePair> nameValuePairs = new ArrayList<NameValuePair>();
+			httpPost.setHeader("Content-Type", contentType);
 			if (parametros != null) {
-				Iterator<String> iterator = parametros.keySet().iterator();
-				while (iterator.hasNext()) {
-					String chave = iterator.next();
-					String valor = parametros.get(chave);
-					nameValuePairs.add(new BasicNameValuePair(chave, valor));
-				}
+				httpPost.setEntity(serializer.getEntity(parametros));
 			}
-			httpPost.setEntity(new UrlEncodedFormEntity(nameValuePairs));
 		}
 	}
 
