@@ -161,7 +161,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.post().getIterator(new Author(), "list");
+			it = authorsDao.get().getIterator(new Author(), "list");
 		} catch (FrameworkException e) {
 			fail();
 		}
