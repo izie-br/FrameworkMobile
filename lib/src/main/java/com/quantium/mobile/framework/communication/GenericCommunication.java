@@ -148,7 +148,7 @@ public abstract class GenericCommunication implements Communication {
 			HttpParams httpParameters = new BasicHttpParams();
 			HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
 			HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
-			HttpClient httpclient = new DefaultHttpClient(httpParameters);
+			HttpClient httpclient = getHttpClient(httpParameters);
 			String contentType = getContentType();
 
 			HttpRequestBase httpPost = requestForMethod(method);
@@ -168,6 +168,11 @@ public abstract class GenericCommunication implements Communication {
 		}
 		GenericCommunication.setConnected(true);
 		return response;
+	}
+
+	public HttpClient getHttpClient(HttpParams httpParameters) {
+		HttpClient httpclient = new DefaultHttpClient(httpParameters);
+		return httpclient;
 	}
 
 	protected void setRequestParameters(
