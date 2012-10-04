@@ -137,6 +137,14 @@ public class GeradorMojo extends AbstractMojo{
                     getConfigResource(),
                     defaultProperties
             );
+            new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
+                    getAndroidManifest(),
+                    getSqlResource(),
+                    basedir+getSrcFolder(),
+                    "gen",
+                    getConfigResource(),
+                    defaultProperties
+            );
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());
         } catch (IOException e) {

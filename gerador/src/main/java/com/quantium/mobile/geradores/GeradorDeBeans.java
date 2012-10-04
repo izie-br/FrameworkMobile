@@ -9,8 +9,10 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.io.Reader;
 import java.io.StringReader;
+import java.io.Writer;
 import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -22,6 +24,11 @@ import java.util.Properties;
 import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.runtime.RuntimeConstants;
 
 import net.sf.jsqlparser.parser.CCJSqlParserManager;
 import net.sf.jsqlparser.statement.Statement;
@@ -36,8 +43,8 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-
 import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.dao.CodeModelDaoFactory;
 import com.quantium.mobile.geradores.filters.CamelCaseFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
@@ -297,6 +304,7 @@ public class GeradorDeBeans {
 					javaBeanSchema
 			);
 			mapClasses.put(javaBeanSchema, classeGerada);
+
 		}
 
 		// gera metodos de acesso a banco e ralacoes
@@ -342,7 +350,190 @@ public class GeradorDeBeans {
 
 		//pastaGenFolder.mkdirs();
 		jcm.build(new File(pastaSrc));
-		props.save();
+		//props.save();
+	}
+
+	public void generateBeansWithJsqlparserAndVelocity(
+			File androidManifestFile, File sqlResource, String pastaSrc,
+			String pacoteGen, File properties, Map<String,Object> defaultProperties)
+			throws IOException, FileNotFoundException, GeradorException {
+		String pacote = getBasePackage(androidManifestFile);
+		conferirArquivosCustomSrc(pacote, pastaSrc);
+
+		PropertiesLocal props = getProperties(properties);
+		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
+				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
+				0;
+
+		Integer dbVersion = getDBVersion(pastaSrc, pacote);
+		if(dbVersion==null)
+			throw new GeradorException("versao do banco nao encontrada");
+
+		/*
+		 * Se a versao do banco é a mesma, finaliza o gerador
+		 */
+		LoggerUtil.getLog().info(
+				"Last dbVersion:" + propertyVersion +
+				" current dbVersion" + dbVersion);
+		if (propertyVersion == (int)dbVersion)
+			return;
+//		String basePackage = getBasePackage();
+//		if(basePackage!=null)
+//			getLog().info("package "+basePackage);
+		String val = getSqlTill(sqlResource,dbVersion);
+		if(val!=null){
+			val = sqliteSchema(val);
+			BufferedReader reader = new BufferedReader(new StringReader(val));
+			String line = reader.readLine();
+			while (line != null) {
+				LoggerUtil.getLog().info(line);
+				line = reader.readLine();
+			}
+		}
+
+//		String genericBeanClass = pacote;
+//		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
+//			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
+//		genericBeanClass += GENERIC_BEAN_CLASS;
+
+		Collection<TabelaSchema> tabelasBanco =
+				getTabelasDoSchema(
+						new StringReader(val),
+						(String)defaultProperties.get(PROPERTIY_IGNORED));
+
+		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
+		factory.addFiltroFactory(
+			new PrefixoTabelaFilter.Factory("tb_"));
+		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
+				"{COLUMN=id}_{TABLE}"
+		));
+		factory.addFiltroFactory(
+			new CamelCaseFilter.Factory());
+
+		// gerando os JavaBeanSchemas
+		Collection<JavaBeanSchema> javaBeanSchemas =
+			new ArrayList<JavaBeanSchema>();
+		for(TabelaSchema tabela : tabelasBanco)
+			javaBeanSchemas.add(
+				factory.javaBeanSchemaParaTabela(tabela));
+
+		@SuppressWarnings("unchecked")
+		Map<String,String> serializationAliases =
+			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);
+
+//		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
+//				new HashMap<JavaBeanSchema, JDefinedClass>();
+		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
+			if( javaBeanSchema.isNonEntityTable())
+				continue;
+			JDefinedClass classeGerada;
+//			try {
+//				classeGerada = jbf.generateClass(
+//					pacote,
+//					pacoteGen,
+//					javaBeanSchema.getNome()
+//				);
+//			} catch (JClassAlreadyExistsException e) {
+//				throw new RuntimeException(e);
+//			}
+//			mapClasses.put(javaBeanSchema, classeGerada);
+			VelocityEngine ve = new VelocityEngine();
+			ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+				      org.apache.velocity.runtime.log.Log4JLogChute.class.getName() );
+			ve.setProperty("runtime.log.logsystem.log4j.logger",
+                    LoggerUtil.LOG_NAME);
+//			ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
+//					"classpath");
+			ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+			ve.setProperty("class.resource.loader.class",
+					"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+			ve.init();
+			Template t = ve.getTemplate("DAO.java");
+			VelocityContext parentctx = new VelocityContext();
+			VelocityContext ctx = new VelocityContext(parentctx);
+			List<ClassField> fields = new ArrayList<GeradorDeBeans.ClassField>();
+			List<ClassField> pks = new ArrayList<GeradorDeBeans.ClassField>();
+			JavaBeanSchema schema1 = javaBeanSchemas.iterator().next();
+			for (String col : schema1.getColunas()){
+				String classname = schema1.getPropriedade(col).getType().getSimpleName();
+				ClassField f = new ClassField(classname, col);
+				if (schema1.getPropriedade(col).getNome().equals(schema1.getPrimaryKey().getNome())){
+					pks.add(f);
+				}
+				fields.add(f);
+			}
+			parentctx.put("package", "com.quantium.mobile.framework.test.gen");
+			parentctx.put("defaultId", 0);
+			ctx.put("Class", schema1.getNome()+"DAO");
+			ctx.put("Target", schema1.getNome());
+			ctx.put("target", "bean");
+			ctx.put("fields", fields);
+			ctx.put("table", schema1.getTabela().getNome());
+			if (pks.size()==1)
+				ctx.put("primaryKey", pks.get(0));
+			ctx.put("primaryKeys", pks);
+			Writer w = new OutputStreamWriter(new FileOutputStream("dao.txt"), "UTF-8");
+			t.merge(ctx, w);
+			w.close();
+
+		}
+
+//		// gera metodos de acesso a banco e ralacoes
+//		for(JavaBeanSchema schema : mapClasses.keySet()){
+//			daoFactory.generateSaveAndObjects(
+//					mapClasses.get(schema), schema);
+//			for(JavaBeanSchema schemaAssoc : mapClasses.keySet()){
+//				// gerando relacoes
+//				daoFactory.generateAssociationMethods(
+//						mapClasses.get(schema), schema,
+//						mapClasses.get(schemaAssoc), schemaAssoc);
+//			}
+//			props.setProperty(PROPERTIY_DB_VERSION, ((Integer)dbVersion).toString());
+//		}
+
+//		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
+//		for(JavaBeanSchema schema : mapClasses.keySet()){
+//			map.put(schema, mapClasses.get(schema));
+//		}
+
+		String pastaGen = (pacote + "."+ pacoteGen)
+				.replaceAll("\\.", File.separator);
+		File pastaGenFolder = new File(pastaSrc, pastaGen);
+		if(pastaGenFolder.exists()){
+			LoggerUtil.getLog().info("Deletando " + pastaGenFolder.getAbsolutePath());
+			//TODO
+			//deleteFolderR(pastaGenFolder);
+		} else {
+			LoggerUtil.getLog().info(
+				"Pasta " +
+				pastaGenFolder.getAbsolutePath() +
+				" nao encontrada"
+			);
+		}
+
+		//pastaGenFolder.mkdirs();
+		//props.save();
+	}
+
+	public class ClassField {
+		String klass;
+		String lowerAndUnderscores;
+		public ClassField(String klass, String lowerAndUnderscores){
+			this.klass = klass;
+			this.lowerAndUnderscores = lowerAndUnderscores;
+		}
+		public String getKlass(){
+			return klass;
+		}
+		public String getLowerCamel(){
+			return CamelCaseUtils.toLowerCamelCase(lowerAndUnderscores);
+		}
+		public String getLowerAndUnderscores(){
+			return lowerAndUnderscores;
+		}
+		public String getUpperAndUndescores(){
+			return CamelCaseUtils.camelToUpper(getLowerCamel());
+		}
 	}
 
 	public Integer getDBVersion(String srcFolder, String basePackage)

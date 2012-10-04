@@ -4,11 +4,12 @@ import org.apache.log4j.Logger;
 
 public class LoggerUtil {
 
-    private static Logger log;
+    public static final String LOG_NAME = "com.quantium.mobile.geradores";
+	private static Logger log;
 
     public static Logger getLog () {
         if (log == null)
-            log = Logger.getLogger("com.quantium.mobile.geradores");
+            log = Logger.getLogger(LOG_NAME);
         return log;
     }
 
