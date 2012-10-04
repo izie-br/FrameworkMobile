@@ -14,19 +14,17 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeradorDeBeans;
-import com.quantium.mobile.geradores.GeradorDeBeans.ClassField;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
-import com.quantium.mobile.geradores.javabean.Propriedade;
 
 public class VelocityDaoFactory {
 
-	private VelocityEngine ve;
+	//private VelocityEngine ve;
 	private File targetDirectory;
 	private Template template;
 	private VelocityContext parentCtx;
 
 	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, String _package){
-		this.ve = ve;
+		//this.ve = ve;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate("DAO.java");
 		parentCtx = new VelocityContext();
@@ -91,7 +89,7 @@ public class VelocityDaoFactory {
 		public String getLowerAndUnderscores(){
 			return lowerAndUnderscores;
 		}
-		public String getUpperAndUndescores(){
+		public String getUpperAndUnderscores(){
 			return CamelCaseUtils.camelToUpper(getLowerCamel());
 		}
 	}

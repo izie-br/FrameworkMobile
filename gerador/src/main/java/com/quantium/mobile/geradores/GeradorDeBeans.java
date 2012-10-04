@@ -442,7 +442,7 @@ public class GeradorDeBeans {
 //			mapClasses.put(javaBeanSchema, classeGerada);
 			VelocityEngine ve = new VelocityEngine();
 			ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
-				      org.apache.velocity.runtime.log.Log4JLogChute.class.getName() );
+				      LoggerUtil.class.getName() );
 			ve.setProperty("runtime.log.logsystem.log4j.logger",
                     LoggerUtil.LOG_NAME);
 //			ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
