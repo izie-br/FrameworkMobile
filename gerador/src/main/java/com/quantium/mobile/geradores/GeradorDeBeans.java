@@ -46,6 +46,7 @@ import net.sf.jsqlparser.statement.update.Update;
 import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.dao.CodeModelDaoFactory;
+import com.quantium.mobile.geradores.dao.VelocityDaoFactory;
 import com.quantium.mobile.geradores.filters.CamelCaseFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
@@ -81,6 +82,8 @@ public class GeradorDeBeans {
 	public static final String DB_PACKAGE = "db";
 	public static final String GENERIC_BEAN_CLASS = "GenericBean";
 	public static final String GENERIC_BEAN_PACKAGE = null;
+
+	public static final long DEFAULT_ID = 0;
 
 	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
 		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
@@ -448,33 +451,40 @@ public class GeradorDeBeans {
 			ve.setProperty("class.resource.loader.class",
 					"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 			ve.init();
-			Template t = ve.getTemplate("DAO.java");
-			VelocityContext parentctx = new VelocityContext();
-			VelocityContext ctx = new VelocityContext(parentctx);
-			List<ClassField> fields = new ArrayList<GeradorDeBeans.ClassField>();
-			List<ClassField> pks = new ArrayList<GeradorDeBeans.ClassField>();
-			JavaBeanSchema schema1 = javaBeanSchemas.iterator().next();
-			for (String col : schema1.getColunas()){
-				String classname = schema1.getPropriedade(col).getType().getSimpleName();
-				ClassField f = new ClassField(classname, col);
-				if (schema1.getPropriedade(col).getNome().equals(schema1.getPrimaryKey().getNome())){
-					pks.add(f);
-				}
-				fields.add(f);
-			}
-			parentctx.put("package", "com.quantium.mobile.framework.test.gen");
-			parentctx.put("defaultId", 0);
-			ctx.put("Class", schema1.getNome()+"DAO");
-			ctx.put("Target", schema1.getNome());
-			ctx.put("target", "bean");
-			ctx.put("fields", fields);
-			ctx.put("table", schema1.getTabela().getNome());
-			if (pks.size()==1)
-				ctx.put("primaryKey", pks.get(0));
-			ctx.put("primaryKeys", pks);
-			Writer w = new OutputStreamWriter(new FileOutputStream("dao.txt"), "UTF-8");
-			t.merge(ctx, w);
-			w.close();
+			File tempdir = new File("tempgen");
+			if (tempdir.exists())
+				deleteFolderR(tempdir);
+			tempdir.mkdir();
+			VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir, pacote+ "."+ pacoteGen);
+			for (JavaBeanSchema schema : javaBeanSchemas)
+				vdaof.generateDAOImplementationClasses(schema);
+//			Template t = ve.getTemplate("DAO.java");
+//			VelocityContext parentctx = new VelocityContext();
+//			VelocityContext ctx = new VelocityContext(parentctx);
+//			List<ClassField> fields = new ArrayList<GeradorDeBeans.ClassField>();
+//			List<ClassField> pks = new ArrayList<GeradorDeBeans.ClassField>();
+//			JavaBeanSchema schema1 = javaBeanSchemas.iterator().next();
+//			for (String col : schema1.getColunas()){
+//				String classname = schema1.getPropriedade(col).getType().getSimpleName();
+//				ClassField f = new ClassField(classname, col);
+//				if (schema1.getPropriedade(col).getNome().equals(schema1.getPrimaryKey().getNome())){
+//					pks.add(f);
+//				}
+//				fields.add(f);
+//			}
+//			parentctx.put("package", "com.quantium.mobile.framework.test.gen");
+//			parentctx.put("defaultId", 0);
+//			ctx.put("Class", schema1.getNome()+"DAO");
+//			ctx.put("Target", schema1.getNome());
+//			ctx.put("target", "bean");
+//			ctx.put("fields", fields);
+//			ctx.put("table", schema1.getTabela().getNome());
+//			if (pks.size()==1)
+//				ctx.put("primaryKey", pks.get(0));
+//			ctx.put("primaryKeys", pks);
+//			Writer w = new OutputStreamWriter(new FileOutputStream("dao.txt"), "UTF-8");
+//			t.merge(ctx, w);
+//			w.close();
 
 		}
 
