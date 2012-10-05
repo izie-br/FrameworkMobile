@@ -13,9 +13,9 @@ import com.quantium.mobile.framework.utils.DateUtil;
 
 
 #if ($implementation)
-public class ${Class} extends $BaseClass
+public class ${Klass} extends $BaseClass
 #else
-public abstract class ${Class}
+public abstract class ${Klass}
 #end
 {
 
@@ -23,7 +23,7 @@ public abstract class ${Class}
     private Session session;
     private DAOFactory factory;
 
-    public ${Class}(Session session, DAOFactory factory){
+    public ${Klass}(Session session, DAOFactory factory){
         this.session = session;
         this.factory = factory;
     }

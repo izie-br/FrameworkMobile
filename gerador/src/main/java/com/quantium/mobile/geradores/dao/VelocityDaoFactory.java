@@ -12,7 +12,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 
@@ -56,7 +56,7 @@ public class VelocityDaoFactory {
 		String filename = classname + ".java";
 		File file = new File(targetDirectory, filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
-		ctx.put("Class", classname);
+		ctx.put("Klass", classname);
 		ctx.put("BaseClass", base);
 		ctx.put("implementation", implementation);
 		ctx.put("Target", targetclass);
@@ -64,12 +64,12 @@ public class VelocityDaoFactory {
 		        Character.toLowerCase(targetclass.charAt(0)) +
 		        targetclass.substring(1));
 		ctx.put("table", schema.getTabela().getNome());
-		List<ClassField> fields = new ArrayList<ClassField>();
-		List<ClassField> pks = new ArrayList<ClassField>();
+		List<Column> fields = new ArrayList<Column>();
+		List<Column> pks = new ArrayList<Column>();
 		for (String col : schema.getColunas()){
 			String klassname = schema.getPropriedade(col)
 					.getType().getSimpleName();
-			ClassField f = new ClassField(klassname, col);
+			Column f = new Column(klassname, col);
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
 					pks.add(f);
@@ -86,27 +86,5 @@ public class VelocityDaoFactory {
 		template.merge(ctx, w);
 		w.close();
 	}
-
-	public class ClassField {
-		String klass;
-		String lowerAndUnderscores;
-		public ClassField(String klass, String lowerAndUnderscores){
-			this.klass = klass;
-			this.lowerAndUnderscores = lowerAndUnderscores;
-		}
-		public String getKlass(){
-			return klass;
-		}
-		public String getLowerCamel(){
-			return CamelCaseUtils.toLowerCamelCase(lowerAndUnderscores);
-		}
-		public String getLowerAndUnderscores(){
-			return lowerAndUnderscores;
-		}
-		public String getUpperAndUnderscores(){
-			return CamelCaseUtils.camelToUpper(getLowerCamel());
-		}
-	}
-
 
 }

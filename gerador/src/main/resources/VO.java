@@ -1,13 +1,19 @@
 package $package;
 
 import java.util.Map;
+#foreach ($field in $fields)
+#if ( $field.Klass.equals("Date") )
+import java.util.Date;
+#break
+#end##if
+#end##foreach
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.Session;
-import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.test.GenericBean;
+import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import ${basePackage}.GenericBean;
 
-public class $Class extends GenericBean implements MapSerializable<${Class}>{
+public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
     public final static Table _TABLE = new Table("${table}");
 #foreach ($field in $fields)
@@ -32,25 +38,28 @@ public class $Class extends GenericBean implements MapSerializable<${Class}>{
     }
 
 #end
+    @Override
     public Map<String, Object> toMap(Map<String, Object> map) {
 #foreach ($field in $fields)
-#if (primaryKeys.contains($field)
+#if ($primaryKeys.contains($field))
         if (${field.LowerCamel} != ${defaultId}) {
-            map.put("#{field.LowerAndUnderscores}", ${field.LowerCamel});
+            map.put("${field.LowerAndUnderscores}", ${field.LowerCamel});
         }
 #else
-        map.put("#{field.LowerAndUnderscores}", ${field.LowerCamel});
+        map.put("${field.LowerAndUnderscores}", ${field.LowerCamel});
+#end
 #end
         return map;
     }
 
-    public Author mapToObject(Map<String, Object> map)
+    @Override
+    public $Klass mapToObject(Map<String, Object> map)
         throws ClassCastException
     {
         CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =
             new CamelCaseUtils.AnyCamelMap<Object>();
         mapAnyCamelCase.putAll(map);
-        Author obj = clone();
+        $Klass obj = clone();
         Object temp;
 #foreach ($field in $fields)
 #if ($primaryKeys.contains($field))
@@ -59,14 +68,67 @@ public class $Class extends GenericBean implements MapSerializable<${Class}>{
 #set ($fallback = "this.${field.LowerCamel}")
 #end
         temp = mapAnyCamelCase.get("${field.LowerCamel}");
-#if (${field.Class} == "Long" || ${field.Class} == "Double")
+#if (${field.Klass} == "Long" || ${field.Klass} == "Double")
         obj.${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
-#elseif (${field.Class} == "Boolean")
+#elseif (${field.Klass} == "Boolean")
         obj.${field.LowerCamel} = ((temp!= null)?((Boolean) temp): ${fallback});
 #else
-        obj.${field.LowerCamel} = ((temp!= null)? ((${field.Class})temp): ${fallback});
+        obj.${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
 #end##if
 #end##foreach
         return obj;
     }
+
+    @Override
+    public $Klass clone() {
+        $Klass obj;
+        try {
+            obj = ((${Klass}) super.clone());
+#foreach ($field in $fields)
+#if ($field.Klass == "Date")
+            obj.${field.LowerCamel} = new Date(${field.LowerCamel}.getTime());
+#end
+#end
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+        return obj;
+    }
+
+    @Override
+    public int hashCode() {
+        int value = 1;
+#foreach ($field in $fields)
+#if ($field.Klass.equals("Boolean"))
+        value += (${field.LowerCamel}) ? 1 : 0;
+#elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
+        value +=(int) ${field.LowerCamel};
+#else
+        value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
+#end##if
+#end##foreach
+        return value;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == null) {
+            return false;
+        }
+        if ( !(obj instanceof ${Klass}) ) {
+            return false;
+        }
+        ${Klass} other = ((${Klass}) obj);
+#foreach ($field in $fields)
+#if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
+        if(${field.LowerCamel} == other.${field.LowerCamel})
+            return false;
+#else
+        if( ( ${field.LowerCamel}==null)? (other.${field.LowerCamel} != null) :  !${field.LowerCamel}.equals(other.${field.LowerCamel}) )
+            return false;
+#end##if
+#end##foreach
+        return true;
+    }
+
 }

@@ -59,6 +59,7 @@ import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.geradores.util.XMLUtil;
+import com.quantium.mobile.geradores.vo.VelocityVOFactory;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -443,12 +444,14 @@ public class GeradorDeBeans {
 		ve.setProperty("class.resource.loader.class",
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
-		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir, pacote+ "."+ pacoteGen);
+		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir,
+				pacote+ "."+ pacoteGen);
+		VelocityVOFactory vvof = new VelocityVOFactory(ve, tempdir,
+				pacote, pacote+'.'+pacoteGen);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
-			JDefinedClass classeGerada;
 //			try {
 //				classeGerada = jbf.generateClass(
 //					pacote,
@@ -461,6 +464,7 @@ public class GeradorDeBeans {
 //			mapClasses.put(javaBeanSchema, classeGerada);
 			vdaof.generateDAOAbstractClasses(javaBeanSchema);
 			vdaof.generateDAOImplementationClasses(javaBeanSchema);
+			vvof.generateVOClass(javaBeanSchema);
 		}
 
 		String pastaGen = (pacote + "."+ pacoteGen)
@@ -484,26 +488,6 @@ public class GeradorDeBeans {
 		//props.save();
 	}
 
-	public class ClassField {
-		String klass;
-		String lowerAndUnderscores;
-		public ClassField(String klass, String lowerAndUnderscores){
-			this.klass = klass;
-			this.lowerAndUnderscores = lowerAndUnderscores;
-		}
-		public String getKlass(){
-			return klass;
-		}
-		public String getLowerCamel(){
-			return CamelCaseUtils.toLowerCamelCase(lowerAndUnderscores);
-		}
-		public String getLowerAndUnderscores(){
-			return lowerAndUnderscores;
-		}
-		public String getUpperAndUndescores(){
-			return CamelCaseUtils.camelToUpper(getLowerCamel());
-		}
-	}
 
 	public Integer getDBVersion(String srcFolder, String basePackage)
 			throws GeradorException {

@@ -1,0 +1,97 @@
+package com.quantium.mobile.geradores.vo;
+
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+
+import org.apache.velocity.Template;
+import org.apache.velocity.VelocityContext;
+import org.apache.velocity.app.VelocityEngine;
+
+import com.quantium.mobile.geradores.Column;
+import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.filters.associacao.Associacao;
+import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
+import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
+import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.javabean.Propriedade;
+
+public class VelocityVOFactory {
+
+	private Template template;
+	private File targetDirectory;
+	private VelocityContext parentCtx;
+
+	public VelocityVOFactory(VelocityEngine ve, File targetDirectory,
+	                         String basePackage, String genPackage)
+	{
+		this.template = ve.getTemplate("VO.java");
+		this.targetDirectory = targetDirectory;
+		this.parentCtx = new VelocityContext();
+		this.parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
+		this.parentCtx.put("package", genPackage);
+		this.parentCtx.put("basePackage", basePackage);
+	}
+
+	public void generateVOClass(JavaBeanSchema schema) throws IOException{
+		String classname = schema.getNome();
+		String filename = classname + ".java";
+		File file = new File(targetDirectory, filename);
+		VelocityContext ctx = new VelocityContext(parentCtx);
+		ctx.put("table", schema.getTabela().getNome());
+		ctx.put("Klass", classname);
+		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
+		List<Column> fields = new ArrayList<Column>();
+		List<Column> pks = new ArrayList<Column>();
+		for (String col : schema.getColunas()){
+			String klassname = schema.getPropriedade(col)
+					.getType().getSimpleName();
+			Column f = new Column(klassname, col);
+			for (String pk : schema.getPrimaryKeyColumns()){
+				if (col.equals(pk))
+					pks.add(f);
+			}
+			fields.add(f);
+		}
+		ctx.put("fields", fields);
+		if (pks.size()==1)
+			ctx.put("primaryKey", pks.get(0));
+		ctx.put("primaryKeys", pks);
+		Writer w = new OutputStreamWriter(
+				new FileOutputStream(file),
+				"UTF-8");
+		template.merge(ctx, w);
+		w.close();
+	}
+
+	private long generateSerialUID(JavaBeanSchema schema){
+		long result = 1;
+		Collection<String> columns = schema.getColunas();
+		for(String key : columns){
+			Propriedade prop = schema.getPropriedade(key);
+			// este e o algoritmo de gerar o numero arbitrario
+			// esta linha pode ser alterada com algo que faca sentido
+			result = result*prop.getNome().hashCode() +
+			         prop.getType().getName().hashCode();
+		}
+		for (Associacao assoc : schema.getAssociacoes()){
+			String other = assoc.getTabelaA().getNome();
+			boolean hasmany = assoc instanceof AssociacaoManyToMany;
+			if (other.equals(schema.getTabela().getNome())){
+				other = assoc.getTabelaB().getNome();
+				if (assoc instanceof AssociacaoOneToMany)
+					hasmany = true;
+			}
+			// este e o algoritmo de gerar o numero arbitrario
+			// esta linha pode ser alterada com algo que faca sentido
+			result += other.hashCode() + (hasmany? result : 0);
+		}
+		return result;
+	}
+
+}

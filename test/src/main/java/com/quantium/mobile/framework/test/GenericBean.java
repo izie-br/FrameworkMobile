@@ -15,6 +15,8 @@ public abstract class GenericBean
         return toMap(new HashMap<String, Object>());
     }
 
+    public void triggerObserver(String column){}
+
     public abstract GenericBean mapToObject(Map<String,Object> json);
 
 }
