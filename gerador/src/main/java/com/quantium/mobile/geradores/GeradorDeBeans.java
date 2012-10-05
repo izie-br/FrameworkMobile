@@ -14,6 +14,7 @@ import java.io.Reader;
 import java.io.StringReader;
 import java.io.Writer;
 import java.math.BigDecimal;
+import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -426,6 +427,24 @@ public class GeradorDeBeans {
 
 //		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
 //				new HashMap<JavaBeanSchema, JDefinedClass>();
+
+		File tempdir = new File("tempgen");
+		if (tempdir.exists())
+			deleteFolderR(tempdir);
+		tempdir.mkdir();
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+			      LoggerUtil.class.getName() );
+		ve.setProperty("runtime.log.logsystem.log4j.logger",
+                LoggerUtil.LOG_NAME);
+//		ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
+//				"classpath");
+		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		ve.setProperty("class.resource.loader.class",
+				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		ve.init();
+		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir, pacote+ "."+ pacoteGen);
+
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
@@ -440,71 +459,9 @@ public class GeradorDeBeans {
 //				throw new RuntimeException(e);
 //			}
 //			mapClasses.put(javaBeanSchema, classeGerada);
-			VelocityEngine ve = new VelocityEngine();
-			ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
-				      LoggerUtil.class.getName() );
-			ve.setProperty("runtime.log.logsystem.log4j.logger",
-                    LoggerUtil.LOG_NAME);
-//			ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
-//					"classpath");
-			ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-			ve.setProperty("class.resource.loader.class",
-					"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-			ve.init();
-			File tempdir = new File("tempgen");
-			if (tempdir.exists())
-				deleteFolderR(tempdir);
-			tempdir.mkdir();
-			VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir, pacote+ "."+ pacoteGen);
-			for (JavaBeanSchema schema : javaBeanSchemas)
-				vdaof.generateDAOImplementationClasses(schema);
-//			Template t = ve.getTemplate("DAO.java");
-//			VelocityContext parentctx = new VelocityContext();
-//			VelocityContext ctx = new VelocityContext(parentctx);
-//			List<ClassField> fields = new ArrayList<GeradorDeBeans.ClassField>();
-//			List<ClassField> pks = new ArrayList<GeradorDeBeans.ClassField>();
-//			JavaBeanSchema schema1 = javaBeanSchemas.iterator().next();
-//			for (String col : schema1.getColunas()){
-//				String classname = schema1.getPropriedade(col).getType().getSimpleName();
-//				ClassField f = new ClassField(classname, col);
-//				if (schema1.getPropriedade(col).getNome().equals(schema1.getPrimaryKey().getNome())){
-//					pks.add(f);
-//				}
-//				fields.add(f);
-//			}
-//			parentctx.put("package", "com.quantium.mobile.framework.test.gen");
-//			parentctx.put("defaultId", 0);
-//			ctx.put("Class", schema1.getNome()+"DAO");
-//			ctx.put("Target", schema1.getNome());
-//			ctx.put("target", "bean");
-//			ctx.put("fields", fields);
-//			ctx.put("table", schema1.getTabela().getNome());
-//			if (pks.size()==1)
-//				ctx.put("primaryKey", pks.get(0));
-//			ctx.put("primaryKeys", pks);
-//			Writer w = new OutputStreamWriter(new FileOutputStream("dao.txt"), "UTF-8");
-//			t.merge(ctx, w);
-//			w.close();
-
+			vdaof.generateDAOAbstractClasses(javaBeanSchema);
+			vdaof.generateDAOImplementationClasses(javaBeanSchema);
 		}
-
-//		// gera metodos de acesso a banco e ralacoes
-//		for(JavaBeanSchema schema : mapClasses.keySet()){
-//			daoFactory.generateSaveAndObjects(
-//					mapClasses.get(schema), schema);
-//			for(JavaBeanSchema schemaAssoc : mapClasses.keySet()){
-//				// gerando relacoes
-//				daoFactory.generateAssociationMethods(
-//						mapClasses.get(schema), schema,
-//						mapClasses.get(schemaAssoc), schemaAssoc);
-//			}
-//			props.setProperty(PROPERTIY_DB_VERSION, ((Integer)dbVersion).toString());
-//		}
-
-//		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
-//		for(JavaBeanSchema schema : mapClasses.keySet()){
-//			map.put(schema, mapClasses.get(schema));
-//		}
 
 		String pastaGen = (pacote + "."+ pacoteGen)
 				.replaceAll("\\.", File.separator);
@@ -521,6 +478,8 @@ public class GeradorDeBeans {
 			);
 		}
 
+		for (File f : tempdir.listFiles())
+			copyFile(f, new File(pastaGenFolder, f.getName()));
 		//pastaGenFolder.mkdirs();
 		//props.save();
 	}
@@ -769,6 +728,29 @@ public class GeradorDeBeans {
 				"Failed to delete file: " + f
 			);
 		}
+	}
+
+	public static void copyFile(File sourceFile, File destFile) throws IOException {
+	    if(!destFile.exists()) {
+	        destFile.createNewFile();
+	    }
+
+	    FileChannel source = null;
+	    FileChannel destination = null;
+
+	    try {
+	        source = new FileInputStream(sourceFile).getChannel();
+	        destination = new FileOutputStream(destFile).getChannel();
+	        destination.transferFrom(source, 0, source.size());
+	    }
+	    finally {
+	        if(source != null) {
+	            source.close();
+	        }
+	        if(destination != null) {
+	            destination.close();
+	        }
+	    }
 	}
 
 

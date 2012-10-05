@@ -23,24 +23,42 @@ public class VelocityDaoFactory {
 	private Template template;
 	private VelocityContext parentCtx;
 
-	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, String _package){
+	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, String genPackage){
 		//this.ve = ve;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate("DAO.java");
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
-		parentCtx.put("package", _package);
+		parentCtx.put("package", genPackage);
+		//parentCtx.put("basePackage", basePackage);
+	}
+
+	public void generateDAOAbstractClasses(JavaBeanSchema schema)
+			throws IOException
+	{
+		generate(schema, "DAO", "GenericDAO", false);
 	}
 
 	public void generateDAOImplementationClasses(JavaBeanSchema schema)
 			throws IOException
 	{
+		generate(schema, "DAOImpl", schema.getNome()+"DAO", true);
+	}
+
+	private void generate(JavaBeanSchema schema, String suffix,
+	                      String base, boolean implementation)
+			throws IOException
+	{
+		if (schema.isNonEntityTable())
+			return;
 		String targetclass = schema.getNome();
-		String classname = targetclass + "DAOimpl";
+		String classname = targetclass + suffix;
 		String filename = classname + ".java";
 		File file = new File(targetDirectory, filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Class", classname);
+		ctx.put("BaseClass", base);
+		ctx.put("implementation", implementation);
 		ctx.put("Target", targetclass);
 		ctx.put("target",
 		        Character.toLowerCase(targetclass.charAt(0)) +
@@ -67,10 +85,6 @@ public class VelocityDaoFactory {
 				"UTF-8");
 		template.merge(ctx, w);
 		w.close();
-	}
-
-	public void generateDAOAbstractClasses(){
-		
 	}
 
 	public class ClassField {

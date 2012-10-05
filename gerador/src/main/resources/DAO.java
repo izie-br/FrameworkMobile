@@ -6,30 +6,45 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.DateUtil;
 
-public class $Class extends $BaseClass {
 
+#if ($implementation)
+public class ${Class} extends $BaseClass
+#else
+public abstract class ${Class}
+#end
+{
+
+#if ($implementation)
     private Session session;
     private DAOFactory factory;
 
-    public ${Class}(Session session){
+    public ${Class}(Session session, DAOFactory factory){
         this.session = session;
+        this.factory = factory;
     }
 
-    public boolean save($Target ${target}{
+#end
+    public#if (!$implementation) abstract#end boolean save($Target ${target}) throws SQLException#if ($implementation) {
         return save(${target}, Save.INSERT_IF_NULL_PK);
-    }
+    }#else;#end
 
-    public boolean save($Target ${target}, int flags)
-        throws SQLException
-    {
+    public#if (!$implementation) abstract#end boolean save($Target ${target}, int flags) throws SQLException#if ($implementation) {
         ${target}._session = this.session;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
+#if ($field.Klass == "Date")
+        contentValues.put("${field.LowerAndUnderscores}",
+                          DateUtil.timestampToString(${target}.${field.LowerCamel}));
+## #elseif (($field.Klass == "Boolean")
+##         contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
+#else
         contentValues.put("${field.LowerAndUnderscores}", ${target}.${field.LowerCamel});
+#end
 #end
         SQLiteDatabase db = this.session.getDb();
 #set ($compoundPk = $primaryKeys.size() > 1)
@@ -49,7 +64,7 @@ public class $Class extends $BaseClass {
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         boolean insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
         if (insertIfNotExists){
-            Cursor cursor = getDb().rawQuery(
+            Cursor cursor = this.session.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores} = ?",
                 new String[]{ ((${primaryKey.Klass})${target}.${primaryKey.LowerCamel}).toString()});
                 insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
@@ -69,29 +84,32 @@ public class $Class extends $BaseClass {
 ##Ou entao escreve:      AND campo = ?
 ##
                 "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end ((${key.Klass})${key.LowerCamel}).toString()#end});
+                new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end ((${key.Klass})${target}.${key.LowerCamel}).toString()#end});
             return (value > 0);
         }
-    }
+    }#else;#end
 
-    public QuerySet<${Target}> query() {
+
+    public#if (!$implementation) abstract#end QuerySet<${Target}> query()#if ($implementation) {
         return query(null);
-    }
+    }#else;#end
 
-    public QuerySet<${Target}> query(Q q) {
-        QuerySet<${Target}> queryset = new ${Target}.QuerySetImpl<${Target}>(this, new ${Target}());
+
+    public#if (!$implementation) abstract#end QuerySet<${Target}> query(Q q)#if ($implementation) {
+        QuerySet<${Target}> queryset =
+            new ${Target}.QuerySetImpl<${Target}>(this.session, new ${Target}());
         if (q == null) {
             return queryset;
         }
         return queryset.filter(q);
-    }
+    }#else;#end
 
 
-    public boolean delete(${Target} ${target}){
-        if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end(${target}.${key.LowerCamel} == ${defaultId}#end) {
+    public#if (!$implementation) abstract#end boolean delete(${Target} ${target})#if ($implementation){
+        if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end${target}.${key.LowerCamel} == ${defaultId}#end) {
             return false;
         }
-        SQLiteDatabase db = session.getDb();
+        SQLiteDatabase db = this.session.getDb();
         try {
             db.beginTransaction();
 #foreach ($relation in $nullableRelation)
@@ -103,7 +121,7 @@ public class $Class extends $BaseClass {
                 new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
 #end
 #foreach ($relation in $nonNullRelations)
-            ${relation.Klass}DAO daoFor${relation.Klass} = factory.getDaoFor(${relation.Klass}.class);
+            ${relation.Klass}DAO daoFor${relation.Klass} = (${relation.Klass}DAO)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);
             }
@@ -123,27 +141,29 @@ public class $Class extends $BaseClass {
             db.endTransaction();
         }
         return true;
-    }
+    }#else;#end
+
 
 #foreach ($relation in $manyToManyRelation)
-    public boolean add${relation.Klass}To${Target}(${relation.Klass} obj, $Target ${target}) {
+    public#if (!$implementation) abstract#end boolean add${relation.Klass}To${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
         if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
             return false;
         }
         ContentValues contentValues = new ContentValues();
         contentValues.put("${relation.ThroughReferenceKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
         contentValues.put("${relation.ThroughForeignKey.LowerAndUnderscores}", obj.${relation.ForeignKey.LowerCamel});
-        SQLiteDatabase db = session.getDb();
+        SQLiteDatabase db = this.session.getDb();
         long value = db.insertOrThrow("${relation.ThroughTable}, null, contentValues);
         return (value > 0);
-    }
+    }#else;#end
 
-    public booelan remove${relation.Klass}From${Target}(${relation.Klass} obj, $Target ${target}) {
+
+    public#if (!$implementation) abstract#end booelan remove${relation.Klass}From${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
 
         if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
             return false;
         }
-        SQLiteDatabase db = session.getDb();
+        SQLiteDatabase db = this.session.getDb();
         Cursor cursor = db.query(
             "${relation.ThroughTable}", (new String[]{"rowid"}),
             "${relation.ThroughReferenceKey.LowerAndUnderscores} = ? AND ${relation.ThroughForeignKey.LowerAndUnderscores} = ?",
@@ -159,7 +179,8 @@ public class $Class extends $BaseClass {
         }
         long affected = db.delete("${relation.ThroughTable}", "rowid=?", new String[] {((Long) rowid).toString()});
         return (affected == 1);
-    }
+    }#else;#end
+
 
 #end
 }

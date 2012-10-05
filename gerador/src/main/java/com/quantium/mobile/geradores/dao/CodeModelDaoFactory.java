@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 import com.quantium.mobile.framework.Save;
+import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
@@ -795,7 +796,7 @@ public class CodeModelDaoFactory {
 		 * Construtor
 		 */
 		JMethod construtor = querySetInner.constructor(JMod.PROTECTED);
-		JVar sessionparam = construtor.param(modelFacade, "session");
+		JVar sessionparam = construtor.param(Session.class, "session");
 		JVar prototipoparam = construtor.param(generic, "prototipo");
 		JBlock body = construtor.body();
 		body.assign(JExpr.refthis(session.name()), sessionparam);
@@ -902,7 +903,7 @@ public class CodeModelDaoFactory {
 		JFieldVar session = klass.fields().get(SESSION_FIELD);
 		if (session != null)
 			return session;
-		session = klass.field(JMod.NONE, modelFacade, SESSION_FIELD);
+		session = klass.field(JMod.NONE, Session.class, SESSION_FIELD);
 		return session;
 	}
 
