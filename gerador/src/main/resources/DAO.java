@@ -40,8 +40,8 @@ public abstract class ${Class}
 #if ($field.Klass == "Date")
         contentValues.put("${field.LowerAndUnderscores}",
                           DateUtil.timestampToString(${target}.${field.LowerCamel}));
-## #elseif (($field.Klass == "Boolean")
-##         contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
+#elseif ($field.Klass == "Boolean")
+        contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
 #else
         contentValues.put("${field.LowerAndUnderscores}", ${target}.${field.LowerCamel});
 #end
