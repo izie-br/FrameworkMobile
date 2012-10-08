@@ -1,6 +1,6 @@
+#set ($compoundPk = $primaryKeys.size() > 1)
 package $package;
 
-#set ($compoundPk = $primaryKeys.size() > 1)
 #if ($implementation)
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -12,9 +12,9 @@ import com.quantium.mobile.framework.query.Table;
 #if ( $field.Klass.equals("Date") )
 import com.quantium.mobile.framework.utils.DateUtil;
 #break
-#end##if_Klass_==_Date
+#end##if_Klass_equals_Date
 #end##foreach
-#else##not_implementation
+#else##if_not_implementation
 import com.quantium.mobile.framework.DAO;
 #end
 import android.database.SQLException;
@@ -24,10 +24,11 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 
+public#if (!$implementation) abstract#end class ${Klass}
 #if ($implementation)
-public class ${Klass} extends $BaseClass
+    extends $BaseClass
 #else
-public abstract class ${Klass} implements DAO<${Target}>
+    implements DAO<${Target}>
 #end
 {
 
@@ -51,7 +52,7 @@ public abstract class ${Klass} implements DAO<${Target}>
         ${target}._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
-#if (!$primaryKey.equals($field))
+#if ($compoundPk || !$primaryKey.equals($field))
 #if ($field.Klass == "Date")
         contentValues.put("${field.LowerAndUnderscores}",
                           DateUtil.timestampToString(${target}.${field.LowerCamel}));
@@ -63,28 +64,22 @@ public abstract class ${Klass} implements DAO<${Target}>
 #end##if_primaryKey
 #end##foreach
         SQLiteDatabase db = this.session.getDb();
-#if ($compoundPk)
-        $Target existingObj = this.query(
-#foreach ($key in $primaryKeys)
-#set ($firstkey = $foreach.index ==0 )
-##
-##Se for o primeiro escreve: Classe.CAMPO.eq(bean.campo)
-##Ou entao escreve:    .and( Classe.CAMPO.eq(bean.campo) )
-##
-#if (!$firstkey).and( #end${Target}.${key.UpperAndUnderscores}.eq(${target}.${key.LowerCamel})#if (!$firstkey) )#end
-#end
-        ).first();
-        if (existingObj == null) {
-#else
+        boolean insert;
+#if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
-        boolean insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
-        if (insertIfNotExists){
+        insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
+        if (insertIfNotExists)
+#end
+        {
             Cursor cursor = this.session.getDb().rawQuery(
-                "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores} = ?",
-                new String[]{ ((${primaryKey.Klass})${target}.${primaryKey.LowerCamel}).toString()});
-                insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
+                "SELECT COUNT(*) FROM ${table} WHERE "+
+                "#foreach ($key in $primaryKeys)#if ($foreach.index !=0) AND #end${key.LowerAndUnderscores} = ?#end",
+                new String[]{ #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
+            insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
+            cursor.close();
         }
         if (insert) {
+#if (!$compoundPk)
             if (insertIfNotExists) {
                 contentValues.put("${primaryKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
             }
