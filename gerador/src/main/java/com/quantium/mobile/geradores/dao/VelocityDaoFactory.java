@@ -134,8 +134,17 @@ public class VelocityDaoFactory {
 					}
 					HashMap<String, Object> map = new HashMap<String, Object>();
 					map.put("Klass", assocSchema.getNome());
-					map.put("ForeignKey", o2m.getKeyToA());
-					map.put("ReferenceKey", o2m.getReferenciaA());
+					Propriedade fkprop =
+							schema.getPropriedade(o2m.getKeyToA());
+					Column fk = new Column(fkprop.getType().getSimpleName(),
+					                       o2m.getKeyToA());
+					map.put("ForeignKey", fk);
+					Propriedade refprop =
+							assocSchema.getPropriedade(o2m.getReferenciaA());
+					Column ref = new Column(
+							refprop.getType().getSimpleName(),
+							o2m.getReferenciaA());
+					map.put("ReferenceKey", ref);
 					manyToOne.add(map);
 					continue;
 				}

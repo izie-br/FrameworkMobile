@@ -48,6 +48,23 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
 #end
+#foreach ($association in $manyToOneAssociations)
+    public ${association.Klass} get${association.Klass}(){
+        if (this._daofactory == null)
+            return null;
+        return ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class))
+            .query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${association.ForeignKey.LowerCamel}))
+            .first();
+    }
+
+    public void set${association.Klass}(${association.Klass} obj){
+        ${association.ReferenceKey.Type} key = obj.get${association.ReferenceKey.UpperCamel}();
+        if (key == ${defaultId})
+            return;
+        this.${association.ForeignKey.LowerCamel} = key;
+    }
+
+#end
     @Override
     public Map<String, Object> toMap(Map<String, Object> map) {
 #foreach ($field in $fields)
