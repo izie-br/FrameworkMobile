@@ -6,6 +6,7 @@ import java.util.Date;
 
 import android.test.ActivityInstrumentationTestCase2;
 
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
@@ -13,11 +14,10 @@ import com.quantium.mobile.framework.test.ModelFacadeImpl;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 import com.quantium.mobile.framework.test.gen.Author;
-import com.quantium.mobile.framework.test.gen.ModelFacade;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
 
-	ModelFacade facade = new ModelFacadeImpl();
+	ModelFacadeImpl facade = new ModelFacadeImpl();
 	public QueryTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
@@ -166,17 +166,18 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 	}
 
 	public void testLikeAndGlob(){
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author author1 = new Author();
 		author1.setName("um nome");
-		assertTrue(facade.saveAuthor(author1));
+		assertTrue(dao.save(author1));
 		Author author2 = new Author();
 		author2.setName("outro nome");
-		assertTrue(facade.saveAuthor(author2));
+		assertTrue(dao.save(author2));
 		Author author3 = new Author();
 		author3.setName("outro");
-		assertTrue(facade.saveAuthor(author3));
+		assertTrue(dao.save(author3));
 		// buscas com LIKE
-		Collection<Author> authors = facade.queryAuthors(
+		Collection<Author> authors = dao.query(
 				Q.like(Author.NAME,"%no_e"))
 			.all();
 		assertNotNull(authors);
@@ -184,7 +185,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
 		// buscas com GLOB
-		authors = facade.queryAuthors(
+		authors = dao.query(
 				Q.glob(Author.NAME,"*[nm]?[mw]e"))
 			.all();
 		assertNotNull(authors);

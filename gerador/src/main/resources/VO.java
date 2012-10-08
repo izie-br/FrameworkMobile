@@ -145,7 +145,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             obj = ((${Klass}) super.clone());
 #foreach ($field in $fields)
 #if ($field.Klass == "Date")
-            obj.${field.LowerCamel} = new Date(${field.LowerCamel}.getTime());
+            obj.${field.LowerCamel} = (${field.LowerCamel} == null)? null: new Date(${field.LowerCamel}.getTime());
 #end
 #end
         } catch (CloneNotSupportedException e) {
@@ -180,7 +180,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         ${Klass} other = ((${Klass}) obj);
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
-        if(${field.LowerCamel} == other.${field.LowerCamel})
+        if(${field.LowerCamel} != other.${field.LowerCamel})
             return false;
 #else
         if( ( ${field.LowerCamel}==null)? (other.${field.LowerCamel} != null) :  !${field.LowerCamel}.equals(other.${field.LowerCamel}) )

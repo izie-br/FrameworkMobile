@@ -10,33 +10,35 @@ import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
 
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.test.ModelFacadeImpl;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.Customer;
+import com.quantium.mobile.framework.test.gen.CustomerDAO;
 import com.quantium.mobile.framework.test.gen.Document;
-import com.quantium.mobile.framework.test.gen.ModelFacade;
 import com.quantium.mobile.framework.test.gen.Score;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
 
-	ModelFacade facade = new ModelFacadeImpl();
+	ModelFacadeImpl facade = new ModelFacadeImpl();
 
 	public GeradorTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
 
 	public void testInsertUpdateDelete(){
-		int count = facade.queryAuthors(null).all().size();
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+		int count = dao.query().all().size();
 		Author author = randomAuthor();
-		assertTrue(facade.saveAuthor(author));
+		assertTrue(dao.save(author));
 		long id  = author.getId();
 		assertTrue(id>0);
 		author.setName(RandomStringUtils.random(40));
-		assertTrue(facade.saveAuthor(author));
+		assertTrue(dao.save(author));
 		assertEquals(id, author.getId());
-		assertTrue(facade.deleteAuthor(author));
-		int countAfter = facade.queryAuthors(null).all().size();
+		assertTrue(dao.delete(author));
+		int countAfter = dao.query().all().size();
 		assertEquals(count, countAfter);
 	}
 
@@ -46,26 +48,27 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	 */
 	public void testQuery(){
 		int count = 5;
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author authors[]  = new Author[count];
 		// inserindo 5 authors diferentes
 		for(int i=0;i<count;i++){
 			Author author = new Author();
 			// para garantir strings diferentes, o comprimento varia com "i"
 			author.setName(RandomStringUtils.random(20+i));
-			assertTrue(facade.saveAuthor(author));
+			assertTrue(dao.save(author));
 			assertTrue(author.getId()>0);
 			authors[i] = author;
 		}
 		// buscando no banco e conferindo se a quantidadee eh igual ou supperior
 		// aos inseridos
-		Collection<Author> authorsFromDb = facade.queryAuthors(null).all();
+		Collection<Author> authorsFromDb = dao.query().all();
 		assertTrue(authorsFromDb.size()>=authors.length);
 		for(Author author : authors){
 			assertTrue( authorsFromDb.contains(author) );
 		}
 		// buscando um a um por nome e conferindo se eh encontrado
 		for(Author author : authors){
-			Author authorFromDb = facade.queryAuthors(
+			Author authorFromDb = dao.query(
 						Author.ID.eq(author.getId()))
 					.first();
 			assertEquals(author, authorFromDb);
@@ -90,8 +93,9 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testMapSerialization(){
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author author = randomAuthor();
-		assertTrue(facade.saveAuthor(author));
+		assertTrue(dao.save(author));
 		assertTrue(author.getId()>0);
 		Map<String, Object> map = author.toMap();
 		assertNotNull(map);
@@ -138,37 +142,42 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 */
 	public void testDeleteCascade () {
+		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+		DAO<Score> scoreDao = facade.getDAOFactory().getDaoFor(Score.class);
+		CustomerDAO customerDao = (CustomerDAO) facade.getDAOFactory()
+				.getDaoFor(Customer.class);
 		Author author = randomAuthor();
-		assertTrue(facade.saveAuthor(author));
+		assertTrue(authorDao.save(author));
 
 		Document document = randomDocument();
 		document.setAuthor(author);
-		assertTrue(facade.saveDocument(document));
+		assertTrue(docDao.save(document));
 
 		Score score = new Score();
 		score.setAuthor(author);
 		score.setDocument(document);
 		score.setScore( (new Random().nextInt())%100 );
-		assertTrue(facade.saveScore(score));
+		assertTrue(scoreDao.save(score));
 
 		Customer customer = randomCustomer();
-		assertTrue(facade.saveCustomer(customer));
+		assertTrue(customerDao.save(customer));
 
 		// adicionar os documentos oa customer
 		//    e a busca pelo queryset deve achar este
-		assertTrue(facade.addDocumentToCustomer(document, customer));
+		assertTrue(customerDao.addDocumentToCustomer(document, customer));
 		Collection<Document> documents = customer.getDocuments().all();
 		assertEquals(document, documents.iterator().next());
 
 		// A author, ao ser "deletado" deve desaparecer do banco
-		assertTrue(facade.deleteAuthor(author));
-		Author authorFromDb = facade.queryAuthors(null).first();
+		assertTrue(authorDao.delete(author));
+		Author authorFromDb = authorDao.query().first();
 		assertNull(authorFromDb);
 
 		// Score tem relacao many-to-one para document e author
 		//    ambas com chave NOT NULL
 		//    e deve ser removida ao remover o author (veja acima)
-		Collection<Score> scoresDb = facade.queryScores(null)
+		Collection<Score> scoresDb = scoreDao.query()
 				.all();
 		assertEquals(0, scoresDb.size());
 //		Score scoreDb = scoresDb.iterator().next();
@@ -196,12 +205,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 //		// refazer este teste
 //		//assertNull(scoreDb);
 
-		facade.deleteDocument(document);
+		docDao.delete(document);
 		documents = customer.getDocuments().all();
 		assertEquals(0, documents.size());
 
-		facade.deleteCustomer(customer);
-		customer = facade.queryCustomers(Customer.ID.eq(customer.getId()))
+		customerDao.delete(customer);
+		customer = customerDao.query(Customer.ID.eq(customer.getId()))
 				.first();
 		assertNull(customer);
 	}

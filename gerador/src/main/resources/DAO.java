@@ -41,6 +41,7 @@ public abstract class ${Klass} implements DAO<${Target}>
         ${target}._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
+#if (!$primaryKey.equals($field))
 #if ($field.Klass == "Date")
         contentValues.put("${field.LowerAndUnderscores}",
                           DateUtil.timestampToString(${target}.${field.LowerCamel}));
@@ -48,8 +49,9 @@ public abstract class ${Klass} implements DAO<${Target}>
         contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
 #else
         contentValues.put("${field.LowerAndUnderscores}", ${target}.${field.LowerCamel});
-#end
-#end
+#end##if_class_==*
+#end##if_primaryKey
+#end##foreach
         SQLiteDatabase db = this.session.getDb();
 #set ($compoundPk = $primaryKeys.size() > 1)
 #if ($compoundPk)
@@ -79,7 +81,16 @@ public abstract class ${Klass} implements DAO<${Target}>
             }
 #end
             long value = db.insertOrThrow("${table}", null, contentValues);
+#if ($compoundPk)
             return (value > 0);
+#else
+           if (value > 0){
+               ${target}.${primaryKey.LowerCamel} = value;
+               return true;
+           } else {
+               return false;
+           }
+#end
         } else {
             int value = db.update(
                 "${table}", contentValues,
