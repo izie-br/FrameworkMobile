@@ -15,6 +15,7 @@ import org.apache.velocity.app.VelocityEngine;
 import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 
 public class VelocityDaoFactory {
 
@@ -42,7 +43,7 @@ public class VelocityDaoFactory {
 	public void generateDAOImplementationClasses(JavaBeanSchema schema)
 			throws IOException
 	{
-		generate(schema, "DAOImpl", schema.getNome()+"DAO", true);
+		generate(schema, "DAOSQLite", schema.getNome()+"DAO", true);
 	}
 
 	private void generate(JavaBeanSchema schema, String suffix,
@@ -66,7 +67,7 @@ public class VelocityDaoFactory {
 		ctx.put("table", schema.getTabela().getNome());
 		List<Column> fields = new ArrayList<Column>();
 		List<Column> pks = new ArrayList<Column>();
-		for (String col : schema.getColunas()){
+		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			String klassname = schema.getPropriedade(col)
 					.getType().getSimpleName();
 			Column f = new Column(klassname, col);

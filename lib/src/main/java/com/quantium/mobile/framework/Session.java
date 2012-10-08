@@ -4,4 +4,5 @@ import android.database.sqlite.SQLiteDatabase;
 
 public interface Session {
 	SQLiteDatabase getDb();
+	DAOFactory getDAOFactory();
 }

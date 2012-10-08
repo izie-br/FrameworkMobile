@@ -9,6 +9,7 @@ import com.quantium.mobile.framework.Session;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.DateUtil;
 
 
@@ -29,10 +30,12 @@ public abstract class ${Klass}
     }
 
 #end
-    public#if (!$implementation) abstract#end boolean save($Target ${target}) throws SQLException#if ($implementation) {
+#if (!$implementation)
+    public boolean save($Target ${target}) throws SQLException {
         return save(${target}, Save.INSERT_IF_NULL_PK);
-    }#else;#end
+    }
 
+#end
     public#if (!$implementation) abstract#end boolean save($Target ${target}, int flags) throws SQLException#if ($implementation) {
         ${target}._session = this.session;
         ContentValues contentValues = new ContentValues();
@@ -90,14 +93,15 @@ public abstract class ${Klass}
     }#else;#end
 
 
-    public#if (!$implementation) abstract#end QuerySet<${Target}> query()#if ($implementation) {
+#if (!$implementation)
+    public QuerySet<${Target}> query() {
         return query(null);
-    }#else;#end
+    }
 
-
+#end
     public#if (!$implementation) abstract#end QuerySet<${Target}> query(Q q)#if ($implementation) {
         QuerySet<${Target}> queryset =
-            new ${Target}.QuerySetImpl<${Target}>(this.session, new ${Target}());
+            new QuerySetImpl<${Target}>(this.session, new ${Target}());
         if (q == null) {
             return queryset;
         }
@@ -144,6 +148,27 @@ public abstract class ${Klass}
     }#else;#end
 
 
+#if ($implementation)
+    public $Target cursorToObject(Cursor cursor, $Target _prototype){
+        $Target ${target} = _prototype.clone();
+        //objeto._session = session;
+#foreach ($field in $fields)
+#if ($field.Klass.equals("Boolean") )
+        ${target}.${field.LowerCamel} = (cursor.getShort(${foreach.index}) > 0);
+#elseif ($field.Klass.equals("Date") )
+        ${target}.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${foreach.index}));
+#elseif ($field.Klass.equals("Long") )
+        ${target}.${field.LowerCamel} = cursor.getLong(${foreach.index});
+#elseif ($field.Klass.equals("Double") )
+        ${target}.${field.LowerCamel} = cursor.getDouble(${foreach.index});
+#elseif ($field.Klass.equals("String") )
+        ${target}.${field.LowerCamel} = cursor.getString(${foreach.index});
+#end##if
+#end##foreach
+        return ${target};
+    }
+
+#end##if_implementation
 #foreach ($relation in $manyToManyRelation)
     public#if (!$implementation) abstract#end boolean add${relation.Klass}To${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
         if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
@@ -181,6 +206,46 @@ public abstract class ${Klass}
         return (affected == 1);
     }#else;#end
 
+
+#end
+#if ($implementation)
+    public final class QuerySetImpl<T extends ${Target} >
+        extends QuerySet<T>
+    {
+
+        private Session session;
+        private Object dao;
+        private T mPrototype;
+
+        protected QuerySetImpl(Session session, T _prototype) {
+            this.session = session;
+            this.dao = session.getDAOFactory().getDaoFor(_prototype.getClass());
+            this.mPrototype = _prototype;
+        }
+
+        @Override
+        protected SQLiteDatabase getDb() {
+            return session.getDb();
+        }
+
+        @Override
+        protected Table getTabela() {
+            return ${Target}._TABLE;
+        }
+
+        @Override
+        protected Table.Column<?> [] getColunas() {
+            return new Table.Column[] {
+                #foreach ($field in $fields)#if ($foreach.index != 0),#end ${Target}.${field.UpperAndUnderscores}#end
+            };
+        }
+
+        @SuppressWarnings("unchecked")
+        protected T cursorToObject(Cursor cursor) {
+            return (T)((${Klass})dao).cursorToObject(cursor, mPrototype);
+        }
+
+    }
 
 #end
 }
