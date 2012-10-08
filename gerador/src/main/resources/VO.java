@@ -9,6 +9,7 @@ import java.util.Date;
 #end##foreach
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import ${basePackage}.GenericBean;
@@ -35,6 +36,15 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public void get${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
         this.${field.LowerCamel} = ${field.LowerCamel};
         triggerObserver("${field.LowerAndUnderscores}");
+    }
+
+#end
+#foreach ($association in $oneToManyAssociations)
+    public QuerySet<${association.Klass}> get${association.Pluralized}(){
+        if (this._daofactory == null)
+            return null;
+        return ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class)).query(
+            ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
     }
 
 #end

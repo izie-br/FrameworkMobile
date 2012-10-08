@@ -116,19 +116,20 @@ public abstract class ${Klass}
         SQLiteDatabase db = this.session.getDb();
         try {
             db.beginTransaction();
-#foreach ($relation in $nullableAssociations)
+#foreach ($relation in $oneToManyAssociations)
+#if ($relation.Nullable)
            #if ($foreach.index ==0)ContentValues#end contentValues = new ContentValues();
             contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
             db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
-#end
-#foreach ($relation in $nonNullableAssociations)
+#else
             ${relation.Klass}DAO daoFor${relation.Klass} = (${relation.Klass}DAO)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);
             }
+#end
 #end
 #foreach ($relation in $manyToManyRelation)
             db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",

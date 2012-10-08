@@ -15,6 +15,7 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.dao.VelocityDaoFactory;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
@@ -38,7 +39,10 @@ public class VelocityVOFactory {
 		this.parentCtx.put("basePackage", basePackage);
 	}
 
-	public void generateVOClass(JavaBeanSchema schema) throws IOException{
+	public void generateVOClass(
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
+			throws IOException
+	{
 		String classname = schema.getNome();
 		String filename = classname + ".java";
 		File file = new File(targetDirectory, filename);
@@ -46,6 +50,13 @@ public class VelocityVOFactory {
 		ctx.put("table", schema.getTabela().getNome());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
+		List<Object> manyToOne = new ArrayList<Object>();
+		List<Object> oneToMany = new ArrayList<Object>();
+		VelocityDaoFactory.findAssociations(
+				schema, allSchemas, manyToOne,
+				oneToMany, null);
+		ctx.put("manyToOneAssociations", manyToOne);
+		ctx.put("oneToManyAssociations", oneToMany);
 		List<Column> fields = new ArrayList<Column>();
 		List<Column> pks = new ArrayList<Column>();
 		for (String col : schema.getColunas()){

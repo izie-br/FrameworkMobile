@@ -303,7 +303,7 @@ public class GeradorDeBeans {
 //			mapClasses.put(javaBeanSchema, classeGerada);
 			vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
 			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
-			vvof.generateVOClass(javaBeanSchema);
+			vvof.generateVOClass(javaBeanSchema, javaBeanSchemas);
 		}
 		VelocityCustomClassesFactory.generateSessionFacade(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, tempdir);

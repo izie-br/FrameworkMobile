@@ -93,11 +93,9 @@ public class VelocityDaoFactory {
 			ctx.put("primaryKey", pks.get(0));
 		ctx.put("primaryKeys", pks);
 
-		ArrayList<Object> nullable = new ArrayList<Object>();
-		ArrayList<Object> nonNullable = new ArrayList<Object>();
-		findAssociations(schema, allSchemas, nullable, nonNullable);
-		ctx.put("nullableAssociations", nullable);
-		ctx.put("nonNullableAssociations", nonNullable);
+		ArrayList<Object> oneToMany = new ArrayList<Object>();
+		findAssociations(schema, allSchemas, null, oneToMany, null);
+		ctx.put("oneToManyAssociations", oneToMany);
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
@@ -110,10 +108,11 @@ public class VelocityDaoFactory {
 	//   - Table com o nome da tabela
 	//   - ForeignKey com a Column da chave estrangeira
 	//   - ReferenceKey com a Column da tabela atual
-	private void findAssociations(
+	public static void findAssociations(
 			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
-			Collection<Object> nullable,
-			Collection<Object> nonNullable)
+			Collection<Object> manyToOne,
+			Collection<Object> oneToMany,
+			Collection<Object> manyToMany)
 	{
 		String tablename = schema.getTabela().getNome();
 		Collection<Associacao> assocs = schema.getAssociacoes();
@@ -121,8 +120,25 @@ public class VelocityDaoFactory {
 			return;
 		for (Associacao assoc : assocs){
 			if (assoc instanceof AssociacaoOneToMany){
-				if (tablename.equals(assoc.getTabelaB().getNome()))
+				AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
+				if (tablename.equals(assoc.getTabelaB().getNome())){
+					if (manyToOne == null)
+						continue;
+					String assocTableName = assoc.getTabelaA().getNome();
+					JavaBeanSchema assocSchema = null;
+					for (JavaBeanSchema sch : allSchemas){
+						if (sch.getTabela().getNome().equals(assocTableName)){
+							assocSchema = sch;
+							break;
+						}
+					}
+					HashMap<String, Object> map = new HashMap<String, Object>();
+					map.put("Klass", assocSchema.getNome());
+					map.put("ForeignKey", o2m.getKeyToA());
+					map.put("ReferenceKey", o2m.getReferenciaA());
+					manyToOne.add(map);
 					continue;
+				}
 				String assocTableName = assoc.getTabelaB().getNome();
 				JavaBeanSchema assocSchema = null;
 				for (JavaBeanSchema sch : allSchemas){
@@ -131,32 +147,28 @@ public class VelocityDaoFactory {
 						break;
 					}
 				}
-				AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
-				if (o2m.isNullable()){
-					HashMap<String, Object> map =
-							new HashMap<String, Object>();
-					map.put("Table", o2m.getTabelaB().getNome());
-					Propriedade fkprop =
-							assocSchema.getPropriedade(o2m.getKeyToA());
-					Column fk = new Column(fkprop.getType().getSimpleName(),
-					                       o2m.getKeyToA());
-					map.put("ForeignKey", fk);
-					Propriedade refprop =
-							schema.getPropriedade(o2m.getReferenciaA());
-					Column ref = new Column(
-							refprop.getType().getSimpleName(),
-							o2m.getReferenciaA());
-					map.put("ReferenceKey", ref);
-					nullable.add(map);
-				} else {
-					HashMap<String, Object> map =
-							new HashMap<String, Object>();
-					String nome = assocSchema.getNome();
-					String pluralized = PluralizacaoUtils.pluralizar(nome);
-					map.put("Klass", nome);
-					map.put("Pluralized", pluralized);
-					nonNullable.add(map);
-				}
+				if (oneToMany == null)
+					continue;
+				HashMap<String, Object> map =
+						new HashMap<String, Object>();
+				map.put("Table", o2m.getTabelaB().getNome());
+				Propriedade fkprop =
+						assocSchema.getPropriedade(o2m.getKeyToA());
+				Column fk = new Column(fkprop.getType().getSimpleName(),
+				                       o2m.getKeyToA());
+				map.put("ForeignKey", fk);
+				Propriedade refprop =
+						schema.getPropriedade(o2m.getReferenciaA());
+				Column ref = new Column(
+						refprop.getType().getSimpleName(),
+						o2m.getReferenciaA());
+				map.put("ReferenceKey", ref);
+				String nome = assocSchema.getNome();
+				String pluralized = PluralizacaoUtils.pluralizar(nome);
+				map.put("Klass", nome);
+				map.put("Pluralized", pluralized);
+				map.put("Nullable", o2m.isNullable());
+				oneToMany.add(map);
 			}
 		}
 	}
