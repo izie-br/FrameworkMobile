@@ -129,14 +129,6 @@ public class GeradorMojo extends AbstractMojo{
             defaultProperties.put(GeradorDeBeans.PROPERTIY_SERIALIZATION_ALIAS,
                                   aliases);
         try {
-            new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
-                    getAndroidManifest(),
-                    getSqlResource(),
-                    basedir+getSrcFolder(),
-                    "gen",
-                    getConfigResource(),
-                    defaultProperties
-            );
             new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
                     getAndroidManifest(),
                     getSqlResource(),

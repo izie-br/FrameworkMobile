@@ -59,6 +59,7 @@ import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.geradores.util.XMLUtil;
+import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.vo.VelocityVOFactory;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JBlock;
@@ -119,7 +120,7 @@ public class GeradorDeBeans {
 		String properties = (args.length >3) ? args[3] : DEFAULT_GENERATOR_CONFIG;
 
 		try {
-			new GeradorDeBeans().gerarBeansWithJsqlparserAndCodeModel(
+			new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
 				new File(manifest), new File (arquivo),
 				pastaSrc, "gen", new File(properties), defaultProperties);
 		} catch (FileNotFoundException e) {
@@ -194,168 +195,6 @@ public class GeradorDeBeans {
 		}
 		os.close();
 		buffer = null;
-	}
-
-	public void gerarBeansWithJsqlparserAndCodeModel(
-			File androidManifestFile, File sqlResource, String pastaSrc,
-			String pacoteGen, File properties, Map<String,Object> defaultProperties)
-			throws IOException, FileNotFoundException, GeradorException {
-
-		String pacote = getBasePackage(androidManifestFile);
-		conferirArquivosCustomSrc(pacote, pastaSrc);
-
-		PropertiesLocal props = getProperties(properties);
-		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
-				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
-				0;
-
-		Integer dbVersion = getDBVersion(pastaSrc, pacote);
-		if(dbVersion==null)
-			throw new GeradorException("versao do banco nao encontrada");
-
-		/*
-		 * Se a versao do banco é a mesma, finaliza o gerador
-		 */
-		LoggerUtil.getLog().info(
-				"Last dbVersion:" + propertyVersion +
-				" current dbVersion" + dbVersion);
-		if (propertyVersion == (int)dbVersion)
-			return;
-//		String basePackage = getBasePackage();
-//		if(basePackage!=null)
-//			getLog().info("package "+basePackage);
-		String val = getSqlTill(sqlResource,dbVersion);
-		if(val!=null){
-			val = sqliteSchema(val);
-			BufferedReader reader = new BufferedReader(new StringReader(val));
-			String line = reader.readLine();
-			while (line != null) {
-				LoggerUtil.getLog().info(line);
-				line = reader.readLine();
-			}
-		}
-
-//		String genericBeanClass = pacote;
-//		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
-//			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
-//		genericBeanClass += GENERIC_BEAN_CLASS;
-
-		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(
-						new StringReader(val),
-						(String)defaultProperties.get(PROPERTIY_IGNORED));
-
-		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
-		factory.addFiltroFactory(
-			new PrefixoTabelaFilter.Factory("tb_"));
-		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
-				"{COLUMN=id}_{TABLE}"
-		));
-		factory.addFiltroFactory(
-			new CamelCaseFilter.Factory());
-
-		// gerando os JavaBeanSchemas
-		Collection<JavaBeanSchema> javaBeanSchemas =
-			new ArrayList<JavaBeanSchema>();
-		for(TabelaSchema tabela : tabelasBanco)
-			javaBeanSchemas.add(
-				factory.javaBeanSchemaParaTabela(tabela));
-
-		JCodeModel jcm = new JCodeModel();
-		CodeModelBeanFactory jbf = new CodeModelBeanFactory(jcm);
-
-		JDefinedClass modelFacade;
-		try {
-			modelFacade = jcm._class(JMod.PUBLIC|JMod.ABSTRACT,
-					pacote+'.'+pacoteGen+".ModelFacade", ClassType.CLASS);
-			modelFacade._implements(Session.class);
-		} catch (JClassAlreadyExistsException e) {
-			throw new RuntimeException(e);
-		}
-
-		CodeModelDaoFactory daoFactory =
-			new CodeModelDaoFactory(jcm, modelFacade);
-		@SuppressWarnings("unchecked")
-		Map<String,String> serializationAliases =
-			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);
-		CodeModelMapSerializationFactory jsonFactory =
-			new CodeModelMapSerializationFactory(
-					jcm, serializationAliases);
-
-		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
-				new HashMap<JavaBeanSchema, JDefinedClass>();
-		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
-			if( javaBeanSchema.isNonEntityTable())
-				continue;
-			JDefinedClass classeGerada;
-			try {
-				classeGerada = jbf.generateClass(
-					pacote,
-					pacoteGen,
-					javaBeanSchema.getNome()
-				);
-			} catch (JClassAlreadyExistsException e) {
-				throw new RuntimeException(e);
-			}
-			jbf.generateConstants(classeGerada, javaBeanSchema);
-			for(String coluna : javaBeanSchema.getColunas()){
-				Propriedade p =
-					javaBeanSchema.getPropriedade(coluna);
-				if(p!=null)
-					jbf.generateProperty(classeGerada,p);
-			}
-			jsonFactory.generateMapSerializationMethods(
-					classeGerada,
-					javaBeanSchema
-			);
-			mapClasses.put(javaBeanSchema, classeGerada);
-
-		}
-
-		// gera metodos de acesso a banco e ralacoes
-		for(JavaBeanSchema schema : mapClasses.keySet()){
-			daoFactory.generateSaveAndObjects(
-					mapClasses.get(schema), schema);
-			for(JavaBeanSchema schemaAssoc : mapClasses.keySet()){
-				// gerando relacoes
-				daoFactory.generateAssociationMethods(
-						mapClasses.get(schema), schema,
-						mapClasses.get(schemaAssoc), schemaAssoc);
-			}
-			props.setProperty(PROPERTIY_DB_VERSION, ((Integer)dbVersion).toString());
-		}
-
-		Map<JavaBeanSchema,JDefinedClass> map = new HashMap<JavaBeanSchema, JDefinedClass>();
-		for(JavaBeanSchema schema : mapClasses.keySet()){
-			map.put(schema, mapClasses.get(schema));
-		}
-		daoFactory.generateDeleteMethods(map);
-
-		for(JavaBeanSchema schema : mapClasses.keySet()){
-			jbf.generateSerialVersionUID(mapClasses.get(schema));
-			jbf.generateCloneMethod(
-					mapClasses.get(schema), schema);
-			jbf.generateHashCodeAndEquals(
-					mapClasses.get(schema), schema);
-		}
-
-		String pastaGen = (pacote + "."+ pacoteGen)
-				.replaceAll("\\.", File.separator);
-		File pastaGenFolder = new File(pastaSrc, pastaGen);
-		if(pastaGenFolder.exists()){
-			LoggerUtil.getLog().info("Deletando " + pastaGenFolder.getAbsolutePath());
-			deleteFolderR(pastaGenFolder);
-		} else {
-			LoggerUtil.getLog().info(
-				"Pasta " +
-				pastaGenFolder.getAbsolutePath() +
-				" nao encontrada"
-			);
-		}
-
-		//pastaGenFolder.mkdirs();
-		jcm.build(new File(pastaSrc));
-		//props.save();
 	}
 
 	public void generateBeansWithJsqlparserAndVelocity(
@@ -466,14 +305,15 @@ public class GeradorDeBeans {
 			vdaof.generateDAOImplementationClasses(javaBeanSchema);
 			vvof.generateVOClass(javaBeanSchema);
 		}
+		VelocityCustomClassesFactory.generateSessionFacade(
+				ve, javaBeanSchemas, pacote+'.'+pacoteGen, tempdir);
 
 		String pastaGen = (pacote + "."+ pacoteGen)
 				.replaceAll("\\.", File.separator);
 		File pastaGenFolder = new File(pastaSrc, pastaGen);
 		if(pastaGenFolder.exists()){
 			LoggerUtil.getLog().info("Deletando " + pastaGenFolder.getAbsolutePath());
-			//TODO
-			//deleteFolderR(pastaGenFolder);
+			deleteFolderR(pastaGenFolder);
 		} else {
 			LoggerUtil.getLog().info(
 				"Pasta " +
@@ -481,10 +321,10 @@ public class GeradorDeBeans {
 				" nao encontrada"
 			);
 		}
+		pastaGenFolder.mkdirs();
 
 		for (File f : tempdir.listFiles())
 			copyFile(f, new File(pastaGenFolder, f.getName()));
-		//pastaGenFolder.mkdirs();
 		//props.save();
 	}
 

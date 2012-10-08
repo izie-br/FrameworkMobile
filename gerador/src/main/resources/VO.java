@@ -8,7 +8,7 @@ import java.util.Date;
 #end##if
 #end##foreach
 import com.quantium.mobile.framework.MapSerializable;
-import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import ${basePackage}.GenericBean;
@@ -24,7 +24,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
 #end
 
-    Session _session;
+    DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
 #foreach ($field in $fields)

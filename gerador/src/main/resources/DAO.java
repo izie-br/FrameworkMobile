@@ -37,7 +37,7 @@ public abstract class ${Klass}
 
 #end
     public#if (!$implementation) abstract#end boolean save($Target ${target}, int flags) throws SQLException#if ($implementation) {
-        ${target}._session = this.session;
+        ${target}._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #if ($field.Klass == "Date")
@@ -151,7 +151,7 @@ public abstract class ${Klass}
 #if ($implementation)
     public $Target cursorToObject(Cursor cursor, $Target _prototype){
         $Target ${target} = _prototype.clone();
-        //objeto._session = session;
+        ${target}._daofactory = this.factory;
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") )
         ${target}.${field.LowerCamel} = (cursor.getShort(${foreach.index}) > 0);
