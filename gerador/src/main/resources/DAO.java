@@ -116,9 +116,9 @@ public abstract class ${Klass}
         SQLiteDatabase db = this.session.getDb();
         try {
             db.beginTransaction();
-#foreach ($relation in $nullableRelation)
+#foreach ($relation in $nullableAssociations)
            #if ($foreach.index ==0)ContentValues#end contentValues = new ContentValues();
-            contentValues.putNull(${relation.ForeignKey});
+            contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
             db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",

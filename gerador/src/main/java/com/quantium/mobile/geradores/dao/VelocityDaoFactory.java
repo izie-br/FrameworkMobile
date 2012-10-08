@@ -6,7 +6,10 @@ import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -14,7 +17,10 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.filters.associacao.Associacao;
+import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 
 public class VelocityDaoFactory {
@@ -34,20 +40,24 @@ public class VelocityDaoFactory {
 		//parentCtx.put("basePackage", basePackage);
 	}
 
-	public void generateDAOAbstractClasses(JavaBeanSchema schema)
+	public void generateDAOAbstractClasses(
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
 			throws IOException
 	{
-		generate(schema, "DAO", "GenericDAO", false);
+		generate(schema, "DAO", "GenericDAO", false, allSchemas);
 	}
 
-	public void generateDAOImplementationClasses(JavaBeanSchema schema)
+	public void generateDAOImplementationClasses(
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
 			throws IOException
 	{
-		generate(schema, "DAOSQLite", schema.getNome()+"DAO", true);
+		generate(schema, "DAOSQLite", schema.getNome()+"DAO", true,
+		         allSchemas);
 	}
 
 	private void generate(JavaBeanSchema schema, String suffix,
-	                      String base, boolean implementation)
+	                      String base, boolean implementation,
+	                      Collection<JavaBeanSchema> allSchemas)
 			throws IOException
 	{
 		if (schema.isNonEntityTable())
@@ -81,11 +91,64 @@ public class VelocityDaoFactory {
 		if (pks.size()==1)
 			ctx.put("primaryKey", pks.get(0));
 		ctx.put("primaryKeys", pks);
+
+		ArrayList<Object> nullable = new ArrayList<Object>();
+		ArrayList<Object> nonNullable = new ArrayList<Object>();
+		findAssociations(schema, allSchemas, nullable, nonNullable);
+		ctx.put("nullableAssociations", nullable);
+
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
 				"UTF-8");
 		template.merge(ctx, w);
 		w.close();
+	}
+
+	//Os maps de Nullable devem conter:
+	//   - Table com o nome da tabela
+	//   - ForeignKey com a Column da chave estrangeira
+	//   - ReferenceKey com a Column da tabela atual
+	private void findAssociations(
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
+			Collection<Object> nullable,
+			Collection<Object> nonNullable)
+	{
+		String tablename = schema.getTabela().getNome();
+		Collection<Associacao> assocs = schema.getAssociacoes();
+		if (assocs == null)
+			return;
+		for (Associacao assoc : assocs){
+			if (assoc instanceof AssociacaoOneToMany){
+				if (tablename.equals(assoc.getTabelaA().getNome()))
+					continue;
+				String assocTableName = assoc.getTabelaB().getNome();
+				JavaBeanSchema assocSchema = null;
+				for (JavaBeanSchema sch : allSchemas){
+					if (sch.getTabela().getNome().equals(assocTableName)){
+						assocSchema = sch;
+						break;
+					}
+				}
+				AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
+				if (o2m.isNullable()){
+					HashMap<String, Object> map =
+							new HashMap<String, Object>();
+					map.put("Table", o2m.getTabelaB().getNome());
+					Propriedade fkprop =
+							assocSchema.getPropriedade(o2m.getKeyToA());
+					Column fk = new Column(fkprop.getType().getSimpleName(),
+					                       o2m.getKeyToA());
+					map.put("ForeignKey", fk);
+					Propriedade refprop =
+							schema.getPropriedade(o2m.getReferenciaA());
+					Column ref = new Column(
+							refprop.getType().getSimpleName(),
+							o2m.getReferenciaA());
+					map.put("ReferenceKey", ref);
+					nullable.add(map);
+				}
+			}
+		}
 	}
 
 }

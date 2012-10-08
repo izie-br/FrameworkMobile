@@ -301,8 +301,8 @@ public class GeradorDeBeans {
 //				throw new RuntimeException(e);
 //			}
 //			mapClasses.put(javaBeanSchema, classeGerada);
-			vdaof.generateDAOAbstractClasses(javaBeanSchema);
-			vdaof.generateDAOImplementationClasses(javaBeanSchema);
+			vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
+			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
 			vvof.generateVOClass(javaBeanSchema);
 		}
 		VelocityCustomClassesFactory.generateSessionFacade(
