@@ -48,7 +48,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         return ${field.LowerCamel};
     }
 
-    public void get${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
+    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
         this.${field.LowerCamel} = ${field.LowerCamel};
         triggerObserver("${field.LowerAndUnderscores}");
     }
