@@ -52,11 +52,13 @@ public class VelocityVOFactory {
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
 		List<Object> manyToOne = new ArrayList<Object>();
 		List<Object> oneToMany = new ArrayList<Object>();
+		List<Object> manyToMany = new ArrayList<Object>();
 		VelocityDaoFactory.findAssociations(
 				schema, allSchemas, manyToOne,
-				oneToMany, null);
+				oneToMany, manyToMany);
 		ctx.put("manyToOneAssociations", manyToOne);
 		ctx.put("oneToManyAssociations", oneToMany);
+		ctx.put("manyToManyAssociations", manyToMany);
 		List<Column> fields = new ArrayList<Column>();
 		List<Column> pks = new ArrayList<Column>();
 		for (String col : schema.getColunas()){

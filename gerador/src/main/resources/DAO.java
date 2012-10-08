@@ -170,7 +170,7 @@ public abstract class ${Klass}
     }
 
 #end##if_implementation
-#foreach ($relation in $manyToManyRelation)
+#foreach ($relation in $manyToManyAssociations)
     public#if (!$implementation) abstract#end boolean add${relation.Klass}To${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
         if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
             return false;
