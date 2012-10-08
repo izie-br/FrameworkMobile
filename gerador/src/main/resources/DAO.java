@@ -1,18 +1,28 @@
 package $package;
 
+#set ($compoundPk = $primaryKeys.size() > 1)
+#if ($implementation)
 import android.content.ContentValues;
 import android.database.Cursor;
-import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
-import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.Session;
-import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.query.Table;
+#foreach ($field in $fields)
+#if ( $field.Klass.equals("Date") )
+import com.quantium.mobile.framework.utils.DateUtil;
+#break
+#end##if_Klass_==_Date
+#end##foreach
+#else##not_implementation
+import com.quantium.mobile.framework.DAO;
+#end
+import android.database.SQLException;
+#if (!$compoundPk || !$implementation)
+import com.quantium.mobile.framework.Save;
+#end
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
-import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.utils.DateUtil;
-
 
 #if ($implementation)
 public class ${Klass} extends $BaseClass
@@ -53,7 +63,6 @@ public abstract class ${Klass} implements DAO<${Target}>
 #end##if_primaryKey
 #end##foreach
         SQLiteDatabase db = this.session.getDb();
-#set ($compoundPk = $primaryKeys.size() > 1)
 #if ($compoundPk)
         $Target existingObj = this.query(
 #foreach ($key in $primaryKeys)

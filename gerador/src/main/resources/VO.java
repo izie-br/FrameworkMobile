@@ -9,7 +9,9 @@ import java.util.Date;
 #end##foreach
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.DAOFactory;
+#if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
+#end
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import ${basePackage}.GenericBean;
