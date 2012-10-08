@@ -170,31 +170,52 @@ public abstract class ${Klass}
     }
 
 #end##if_implementation
-#foreach ($relation in $manyToManyAssociations)
-    public#if (!$implementation) abstract#end boolean add${relation.Klass}To${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
-        if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
+#foreach ($association in $manyToManyAssociations)
+    public#if (!$implementation) abstract#end boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target})#if ($implementation) {
+        ContentValues contentValues = new ContentValues();
+#if (${association.IsThisTableA})
+        if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;
         }
-        ContentValues contentValues = new ContentValues();
-        contentValues.put("${relation.ThroughReferenceKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
-        contentValues.put("${relation.ThroughForeignKey.LowerAndUnderscores}", obj.${relation.ForeignKey.LowerCamel});
+        contentValues.put("${association.KeyToA.LowerAndUnderscores}", ${target}.${association.ReferenceA.LowerCamel});
+        contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${association.ReferenceB.LowerCamel});
+#else
+        if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+            return false;
+        }
+        contentValues.put("${association.KeyToB.LowerAndUnderscores}", ${target}.${association.ReferenceB.LowerCamel});
+        contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
+#end
         SQLiteDatabase db = this.session.getDb();
-        long value = db.insertOrThrow("${relation.ThroughTable}, null, contentValues);
+        long value = db.insertOrThrow("${association.JoinTable}", null, contentValues);
         return (value > 0);
     }#else;#end
 
 
-    public#if (!$implementation) abstract#end booelan remove${relation.Klass}From${Target}(${relation.Klass} obj, $Target ${target})#if ($implementation) {
-
-        if (${target}.${primaryKey.LowerCamel} == ${defaultId}) {
+    public#if (!$implementation) abstract#end boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target})#if ($implementation) {
+#if (${association.IsThisTableA})
+        if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;
         }
+        String whereSql = "${association.KeyToA.LowerAndUnderscores} = ? AND ${association.KeyToB.LowerAndUnderscores} = ?";
+        String [] args = new String[]{
+            ((${association.KeyToA.Klass})${target}.${association.ReferenceA.LowerCamel}).toString(),
+            ((${association.KeyToB.Klass})obj.${association.ReferenceB.LowerCamel}).toString()
+       };
+#else
+        if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+            return false;
+        }
+        String whereSql = "${association.KeyToB.LowerAndUnderscores} = ? AND ${association.KeyToA.LowerAndUnderscores} = ?";
+        String [] args = new String[]{
+            ((${association.KeyToA.Klass})obj.${association.ReferenceA.LowerCamel}).toString(),
+            ((${association.KeyToB.Klass})${target}.${association.ReferenceB.LowerCamel}).toString()
+       };
+#end
         SQLiteDatabase db = this.session.getDb();
         Cursor cursor = db.query(
-            "${relation.ThroughTable}", (new String[]{"rowid"}),
-            "${relation.ThroughReferenceKey.LowerAndUnderscores} = ? AND ${relation.ThroughForeignKey.LowerAndUnderscores} = ?",
-            new String[]{ ((${primaryKey.Klass})${target}.${primaryKey.LowerCamel}).toString(), ((${relation.ForeignKey.Klass})${relation.ForeignKey.LowerCamel}).toString()},
-            null, null, null, "1");
+            "${association.JoinTable}", (new String[]{"rowid"}),
+            whereSql, args, null, null, null, "1");
         if (!cursor.moveToNext()) {
             return false;
         }
@@ -203,7 +224,7 @@ public abstract class ${Klass}
         if (rowid<= 0) {
             return false;
         }
-        long affected = db.delete("${relation.ThroughTable}", "rowid=?", new String[] {((Long) rowid).toString()});
+        long affected = db.delete("${association.JoinTable}", "rowid=?", new String[] {((Long) rowid).toString()});
         return (affected == 1);
     }#else;#end
 

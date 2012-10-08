@@ -95,8 +95,10 @@ public class VelocityDaoFactory {
 		ctx.put("primaryKeys", pks);
 
 		ArrayList<Object> oneToMany = new ArrayList<Object>();
-		findAssociations(schema, allSchemas, null, oneToMany, null);
+		ArrayList<Object> manyToMany = new ArrayList<Object>();
+		findAssociations(schema, allSchemas, null, oneToMany, manyToMany);
 		ctx.put("oneToManyAssociations", oneToMany);
+		ctx.put("manyToManyAssociations", manyToMany);
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
