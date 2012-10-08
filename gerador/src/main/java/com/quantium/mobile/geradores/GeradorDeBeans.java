@@ -286,7 +286,7 @@ public class GeradorDeBeans {
 		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir,
 				pacote+ "."+ pacoteGen);
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, tempdir,
-				pacote, pacote+'.'+pacoteGen);
+				pacote, pacote+'.'+pacoteGen, serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())

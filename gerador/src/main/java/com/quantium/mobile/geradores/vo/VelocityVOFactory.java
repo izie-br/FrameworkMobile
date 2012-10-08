@@ -8,6 +8,7 @@ import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -27,9 +28,11 @@ public class VelocityVOFactory {
 	private Template template;
 	private File targetDirectory;
 	private VelocityContext parentCtx;
+	private Map<String,String> aliases;
 
 	public VelocityVOFactory(VelocityEngine ve, File targetDirectory,
-	                         String basePackage, String genPackage)
+	                         String basePackage, String genPackage,
+	                         Map<String,String> serializationAliases)
 	{
 		this.template = ve.getTemplate("VO.java");
 		this.targetDirectory = targetDirectory;
@@ -37,6 +40,7 @@ public class VelocityVOFactory {
 		this.parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
 		this.parentCtx.put("package", genPackage);
 		this.parentCtx.put("basePackage", basePackage);
+		this.aliases = serializationAliases;
 	}
 
 	public void generateVOClass(
@@ -64,7 +68,7 @@ public class VelocityVOFactory {
 		for (String col : schema.getColunas()){
 			String klassname = schema.getPropriedade(col)
 					.getType().getSimpleName();
-			Column f = new Column(klassname, col);
+			Column f = new Column(klassname, col, getAlias(classname, col));
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
 					pks.add(f);
@@ -81,6 +85,17 @@ public class VelocityVOFactory {
 		template.merge(ctx, w);
 		w.close();
 	}
+
+	private String getAlias(String classname, String field){
+		String name = classname + '.' + field;
+		for (String k : aliases.keySet()){
+			if ( name.equalsIgnoreCase(k)){
+				return aliases.get(k);
+			}
+		}
+		return field;
+	}
+
 
 	private long generateSerialUID(JavaBeanSchema schema){
 		long result = 1;

@@ -100,12 +100,17 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     @Override
     public Map<String, Object> toMap(Map<String, Object> map) {
 #foreach ($field in $fields)
+#if ($field.SerializationAlias)
+#set ($alias = $field.SerializationAlias)
+#else
+#set ($alias = $field.LowerAndUnderscores)
+#end
 #if ($primaryKeys.contains($field))
         if (${field.LowerCamel} != ${defaultId}) {
-            map.put("${field.LowerAndUnderscores}", ${field.LowerCamel});
+            map.put("${alias}", ${field.LowerCamel});
         }
 #else
-        map.put("${field.LowerAndUnderscores}", ${field.LowerCamel});
+        map.put("${alias}", ${field.LowerCamel});
 #end
 #end
         return map;
@@ -121,12 +126,17 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         $Klass obj = clone();
         Object temp;
 #foreach ($field in $fields)
+#if ($field.SerializationAlias)
+#set ($alias = $field.SerializationAlias)
+#else
+#set ($alias = $field.LowerCamel)
+#end
 #if ($primaryKeys.contains($field))
 #set ($fallback = $defaultId)
 #else
 #set ($fallback = "this.${field.LowerCamel}")
 #end
-        temp = mapAnyCamelCase.get("${field.LowerCamel}");
+        temp = mapAnyCamelCase.get("${alias}");
 #if (${field.Klass} == "Long" || ${field.Klass} == "Double")
         obj.${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
 #elseif (${field.Klass} == "Boolean")

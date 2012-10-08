@@ -5,10 +5,16 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 public class Column {
 	private String klass;
 	private String lowerAndUnderscores;
+	private String alias;
 
 	public Column(String klass, String lowerAndUnderscores){
+		this(klass, lowerAndUnderscores, null);
+	}
+
+	public Column(String klass, String lowerAndUnderscores, String alias){
 		this.klass = klass;
 		this.lowerAndUnderscores = lowerAndUnderscores;
+		this.alias = alias;
 	}
 	public String getKlass(){
 		return klass;
@@ -35,6 +41,11 @@ public class Column {
 	public String getUpperAndUnderscores(){
 		return CamelCaseUtils.camelToUpper(getLowerCamel());
 	}
+
+	public String getSerializationAlias(){
+		return alias;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
