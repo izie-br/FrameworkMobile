@@ -2,6 +2,6 @@ package com.quantium.mobile.framework;
 
 public interface DAOFactory {
 
-	Object getDaoFor(Class<?> klass);
+	<T> DAO<T> getDaoFor(Class<T> klass);
 
 }

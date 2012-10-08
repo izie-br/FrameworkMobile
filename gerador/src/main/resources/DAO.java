@@ -6,6 +6,7 @@ import android.database.SQLException;
 import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
@@ -16,7 +17,7 @@ import com.quantium.mobile.framework.utils.DateUtil;
 #if ($implementation)
 public class ${Klass} extends $BaseClass
 #else
-public abstract class ${Klass}
+public abstract class ${Klass} implements DAO<${Target}>
 #end
 {
 
@@ -150,8 +151,9 @@ public abstract class ${Klass}
 
 
 #if ($implementation)
-    public $Target cursorToObject(Cursor cursor, $Target _prototype){
-        $Target ${target} = _prototype.clone();
+    @SuppressWarnings("unchecked")
+    public <T extends $Target> T cursorToObject(Cursor cursor, T _prototype){
+        T ${target} = (T)_prototype.clone();
         ${target}._daofactory = this.factory;
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") )
@@ -236,12 +238,13 @@ public abstract class ${Klass}
     {
 
         private Session session;
-        private Object dao;
+        private ${Klass} dao;
         private T mPrototype;
 
         protected QuerySetImpl(Session session, T _prototype) {
             this.session = session;
-            this.dao = session.getDAOFactory().getDaoFor(_prototype.getClass());
+            this.dao = (${Klass})session.getDAOFactory().getDaoFor(
+                _prototype.getClass());
             this.mPrototype = _prototype;
         }
 
@@ -262,9 +265,8 @@ public abstract class ${Klass}
             };
         }
 
-        @SuppressWarnings("unchecked")
         protected T cursorToObject(Cursor cursor) {
-            return (T)((${Klass})dao).cursorToObject(cursor, mPrototype);
+            return dao.cursorToObject(cursor, mPrototype);
         }
 
     }

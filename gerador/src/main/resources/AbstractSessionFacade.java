@@ -1,6 +1,7 @@
 package ${package};
 
 import com.quantium.mobile.framework.Session;
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 
 public abstract class AbstractSessionFacade implements Session, DAOFactory {
@@ -11,13 +12,14 @@ public abstract class AbstractSessionFacade implements Session, DAOFactory {
     }
 
     @Override
-    public Object getDaoFor(Class<?> klass){
+    @SuppressWarnings("unchecked")
+    public <T> DAO<T> getDaoFor(Class<T> klass){
         if (klass == null)
             return null;
         String name = klass.getName();
 #foreach ($Klass in $Klasses)
        #if ($foreach.index !=0) else#end if (name.equals(${Klass}.class.getName()))
-            return new ${Klass}DAOSQLite(this, this);
+            return ((DAO<T>)new ${Klass}DAOSQLite(this, this));
 #end
         return null;
     }
