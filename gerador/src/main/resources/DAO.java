@@ -124,7 +124,7 @@ public abstract class ${Klass}
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
 #end
-#foreach ($relation in $nonNullRelations)
+#foreach ($relation in $nonNullableAssociations)
             ${relation.Klass}DAO daoFor${relation.Klass} = (${relation.Klass}DAO)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);

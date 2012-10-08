@@ -22,6 +22,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Propriedade;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
+import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 
 public class VelocityDaoFactory {
 
@@ -96,6 +97,7 @@ public class VelocityDaoFactory {
 		ArrayList<Object> nonNullable = new ArrayList<Object>();
 		findAssociations(schema, allSchemas, nullable, nonNullable);
 		ctx.put("nullableAssociations", nullable);
+		ctx.put("nonNullableAssociations", nonNullable);
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
@@ -119,7 +121,7 @@ public class VelocityDaoFactory {
 			return;
 		for (Associacao assoc : assocs){
 			if (assoc instanceof AssociacaoOneToMany){
-				if (tablename.equals(assoc.getTabelaA().getNome()))
+				if (tablename.equals(assoc.getTabelaB().getNome()))
 					continue;
 				String assocTableName = assoc.getTabelaB().getNome();
 				JavaBeanSchema assocSchema = null;
@@ -146,6 +148,14 @@ public class VelocityDaoFactory {
 							o2m.getReferenciaA());
 					map.put("ReferenceKey", ref);
 					nullable.add(map);
+				} else {
+					HashMap<String, Object> map =
+							new HashMap<String, Object>();
+					String nome = assocSchema.getNome();
+					String pluralized = PluralizacaoUtils.pluralizar(nome);
+					map.put("Klass", nome);
+					map.put("Pluralized", pluralized);
+					nonNullable.add(map);
 				}
 			}
 		}
