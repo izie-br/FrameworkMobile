@@ -43,7 +43,10 @@ public class SQLiteGeradorUtils {
 			);
 			// Statement statement = connection.createStatement();
 			// statement.setQueryTimeout(30);
-			Pattern pat = Pattern.compile("CREATE\\s+TRIGGER\\s+.*?\\sEND\\s*;",Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
+			Pattern pat = Pattern.compile("CREATE\\s+TRIGGER\\s+.*?\\sEND\\s*;",
+					Pattern.CASE_INSENSITIVE|Pattern.MULTILINE|Pattern.DOTALL);
+			sql = sql.replace("\\'", "'");
+			sql = sql.replace("\\\"", "\"");
 			Matcher matcher = pat.matcher(sql);
 			StringBuffer sqlsb = new StringBuffer();
 			while (matcher.find()){
