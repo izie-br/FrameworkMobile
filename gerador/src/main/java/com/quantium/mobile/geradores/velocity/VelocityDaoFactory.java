@@ -110,7 +110,8 @@ public class VelocityDaoFactory {
 	//   - ForeignKey com a Column da chave estrangeira
 	//   - ReferenceKey com a Column da tabela atual
 	public static void findAssociations(
-			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
+			JavaBeanSchema schema,
+			Collection<JavaBeanSchema> allSchemas,
 			Collection<Object> manyToOne,
 			Collection<Object> oneToMany,
 			Collection<Object> manyToMany)
@@ -124,111 +125,23 @@ public class VelocityDaoFactory {
 				if (manyToMany == null)
 					continue;
 				AssociacaoManyToMany m2m = (AssociacaoManyToMany) assoc;
-				HashMap<String, Object> map = new HashMap<String, Object>();
-				if (tablename.equals(assoc.getTabelaB().getNome())){
-					String assocTableName = assoc.getTabelaA().getNome();
-					JavaBeanSchema assocSchema = findSchema(allSchemas,
-							assocTableName);
-					map.put("IsThisTableA", false);
-					String joinTableUpper = CamelCaseUtils.camelToUpper(
-							CamelCaseUtils.toLowerCamelCase(
-									m2m.getTabelaJuncao().getNome()));
-					map.put("JoinTableUpper", joinTableUpper);
-					map.put("JoinTable", m2m.getTabelaJuncao().getNome());
-					Property refPropA =
-							schema.getPropriedade(m2m.getReferenciaA());
-					Property keyPropA = new Property(
-							m2m.getKeyToA(), refPropA.getPropertyClass(),
-							false, false);
-						map.put("KeyToA", keyPropA);
-						map.put("ReferenceA", refPropA);
-					Property refPropB = assocSchema.getPropriedade(
-							m2m.getReferenciaB());
-					Property keyPropB = new Property(
-							m2m.getKeyToB(), refPropB.getPropertyClass(),
-							false, false);
-					map.put("KeyToB", keyPropB);
-					map.put("ReferenceB", refPropB);
-					String klassname = CamelCaseUtils.toUpperCamelCase(
-							assocSchema.getNome());
-					map.put("Klass", klassname);
-					map.put("Pluralized", PluralizacaoUtils.pluralizar(
-							klassname));
-				} else {
-					String assocTableName = assoc.getTabelaB().getNome();
-					JavaBeanSchema assocSchema = findSchema(allSchemas,
-							assocTableName);
-					map.put("IsThisTableA", true);
-					String joinTableUpper = CamelCaseUtils.camelToUpper(
-							CamelCaseUtils.toLowerCamelCase(
-									m2m.getTabelaJuncao().getNome()));
-					map.put("JoinTableUpper", joinTableUpper);
-					map.put("JoinTable", m2m.getTabelaJuncao().getNome());
-					Property refPropA = assocSchema.getPropriedade(
-							m2m.getReferenciaA());
-					Property keyPropA = new Property(
-							m2m.getKeyToA(), refPropA.getPropertyClass(),
-							false, false);
-					map.put("KeyToA", keyPropA);
-					map.put("ReferenceA", refPropA);
-					Property refPropB = schema.getPropriedade(
-							m2m.getReferenciaB());
-					Property keyPropB = new Property(
-							m2m.getKeyToB(), refPropB.getPropertyClass(),
-							false, false);
-					map.put("KeyToB", keyPropB);
-					map.put("ReferenceB", refPropB);
-					String klassname = CamelCaseUtils.toUpperCamelCase(
-							assocSchema.getNome());
-					map.put("Klass", klassname);
-					map.put("Pluralized", PluralizacaoUtils.pluralizar(
-							klassname));
-					
-				}
-				manyToMany.add(map);
+				Object obj = extractManyToManyObject(m2m, schema, allSchemas);
+				manyToMany.add(obj);
 			}
 			else if (assoc instanceof AssociacaoOneToMany){
 				AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
 				if (tablename.equals(assoc.getTabelaB().getNome())){
 					if (manyToOne == null)
 						continue;
-					String assocTableName = assoc.getTabelaA().getNome();
-					JavaBeanSchema assocSchema = findSchema(allSchemas,
-							assocTableName);
-					HashMap<String, Object> map = new HashMap<String, Object>();
-					String klassname = CamelCaseUtils.toUpperCamelCase(
-							assocSchema.getNome());
-					map.put("Klass", klassname);
-					Property fkProp =
-							schema.getPropriedade(o2m.getKeyToA());
-					map.put("ForeignKey", fkProp);
-					Property refProp =
-							assocSchema.getPropriedade(o2m.getReferenciaA());
-					map.put("ReferenceKey", refProp);
-					manyToOne.add(map);
+					Object obj = extractOneToManyObject(o2m, schema, allSchemas);
+					manyToOne.add(obj);
 					continue;
+				} else {
+					if (oneToMany == null)
+						continue;
+					Object obj = extractOneToManyObject(o2m, schema, allSchemas);
+					oneToMany.add(obj);
 				}
-				String assocTableName = assoc.getTabelaB().getNome();
-				JavaBeanSchema assocSchema = findSchema(allSchemas,
-						assocTableName);
-				if (oneToMany == null)
-					continue;
-				HashMap<String, Object> map =
-						new HashMap<String, Object>();
-				map.put("Table", o2m.getTabelaB().getNome());
-				Property fkProp =
-						assocSchema.getPropriedade(o2m.getKeyToA());
-				map.put("ForeignKey", fkProp);
-				Property refProp =
-						schema.getPropriedade(o2m.getReferenciaA());
-				map.put("ReferenceKey", refProp);
-				String nome = CamelCaseUtils.toUpperCamelCase(
-						assocSchema.getNome());
-				String pluralized = PluralizacaoUtils.pluralizar(nome);
-				map.put("Klass", nome);
-				map.put("Pluralized", pluralized);
-				map.put("Nullable", o2m.isNullable());
-				oneToMany.add(map);
 			}
 		}
 	}
@@ -243,6 +156,96 @@ public class VelocityDaoFactory {
 			}
 		}
 		return assocSchema;
+	}
+
+	private static Object extractManyToManyObject(
+			AssociacaoManyToMany m2m,
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
+	{
+		String tablename = schema.getTabela().getNome();
+		HashMap<String, Object> map = new HashMap<String, Object>();
+		JavaBeanSchema schemaA, schemaB;
+		String klassname;
+		if (tablename.equals(m2m.getTabelaB().getNome())){
+			String assocTableName = m2m.getTabelaA().getNome();
+			JavaBeanSchema assocSchema = findSchema(allSchemas,
+					assocTableName);
+			schemaA = assocSchema;
+			schemaB = schema;
+			map.put("IsThisTableA", false);
+			klassname = CamelCaseUtils.toUpperCamelCase(
+					assocSchema.getNome());
+		} else {
+			String assocTableName = m2m.getTabelaB().getNome();
+			JavaBeanSchema assocSchema = findSchema(allSchemas,
+					assocTableName);
+			schemaA = schema;
+			schemaB = assocSchema;
+			map.put("IsThisTableA", true);
+			klassname = CamelCaseUtils.toUpperCamelCase(
+					assocSchema.getNome());
+		}
+		String joinTableUpper = CamelCaseUtils.camelToUpper(
+				CamelCaseUtils.toLowerCamelCase(
+						m2m.getTabelaJuncao().getNome()));
+		map.put("JoinTableUpper", joinTableUpper);
+		map.put("JoinTable", m2m.getTabelaJuncao().getNome());
+		Property refPropA = schemaA.getPropriedade(
+				m2m.getReferenciaA());
+		Property keyPropA = new Property(
+				m2m.getKeyToA(), refPropA.getPropertyClass(),
+				false, false);
+			map.put("KeyToA", keyPropA);
+			map.put("ReferenceA", refPropA);
+		Property refPropB = schemaB.getPropriedade(
+				m2m.getReferenciaB());
+		Property keyPropB = new Property(
+				m2m.getKeyToB(), refPropB.getPropertyClass(),
+				false, false);
+		map.put("KeyToB", keyPropB);
+		map.put("ReferenceB", refPropB);
+		map.put("Klass", klassname);
+		map.put("Pluralized", PluralizacaoUtils.pluralizar(
+				klassname));
+		return map;
+	}
+
+	private static Object extractOneToManyObject(
+			AssociacaoOneToMany o2m,
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
+	{
+		HashMap<String, Object> map =
+				new HashMap<String, Object>();
+		String tablename = schema.getTabela().getNome();
+		JavaBeanSchema schemaA, schemaB;
+		if (tablename.equals(o2m.getTabelaA().getNome())){
+			String assocTableName = o2m.getTabelaB().getNome();
+			JavaBeanSchema assocSchema = findSchema(allSchemas,
+					assocTableName);
+			schemaA = schema;
+			schemaB = assocSchema;
+			String nome = CamelCaseUtils.toUpperCamelCase(
+					assocSchema.getNome());
+			String pluralized = PluralizacaoUtils.pluralizar(nome);
+			map.put("Klass", nome);
+			map.put("Pluralized", pluralized);
+		} else {
+			String assocTableName = o2m.getTabelaA().getNome();
+			JavaBeanSchema assocSchema = findSchema(allSchemas,
+					assocTableName);
+			schemaA = assocSchema;
+			schemaB = schema;
+			String nome = CamelCaseUtils.toUpperCamelCase(
+					assocSchema.getNome());
+			map.put("Klass", nome);
+		}
+		map.put("Table", o2m.getTabelaB().getNome());
+		Property fkProp = schemaB.getPropriedade(o2m.getKeyToA());
+		map.put("ForeignKey", fkProp);
+		Property refProp = schemaA.getPropriedade(o2m.getReferenciaA());
+		map.put("ReferenceKey", refProp);
+		map.put("Nullable", o2m.isNullable());
+		return map;
 	}
 
 }
