@@ -127,13 +127,8 @@ public class VelocityDaoFactory {
 				HashMap<String, Object> map = new HashMap<String, Object>();
 				if (tablename.equals(assoc.getTabelaB().getNome())){
 					String assocTableName = assoc.getTabelaA().getNome();
-					JavaBeanSchema assocSchema = null;
-					for (JavaBeanSchema sch : allSchemas){
-						if (sch.getTabela().getNome().equals(assocTableName)){
-							assocSchema = sch;
-							break;
-						}
-					}
+					JavaBeanSchema assocSchema = findSchema(allSchemas,
+							assocTableName);
 					map.put("IsThisTableA", false);
 					String joinTableUpper = CamelCaseUtils.camelToUpper(
 							CamelCaseUtils.toLowerCamelCase(
@@ -161,13 +156,8 @@ public class VelocityDaoFactory {
 							klassname));
 				} else {
 					String assocTableName = assoc.getTabelaB().getNome();
-					JavaBeanSchema assocSchema = null;
-					for (JavaBeanSchema sch : allSchemas){
-						if (sch.getTabela().getNome().equals(assocTableName)){
-							assocSchema = sch;
-							break;
-						}
-					}
+					JavaBeanSchema assocSchema = findSchema(allSchemas,
+							assocTableName);
 					map.put("IsThisTableA", true);
 					String joinTableUpper = CamelCaseUtils.camelToUpper(
 							CamelCaseUtils.toLowerCamelCase(
@@ -203,13 +193,8 @@ public class VelocityDaoFactory {
 					if (manyToOne == null)
 						continue;
 					String assocTableName = assoc.getTabelaA().getNome();
-					JavaBeanSchema assocSchema = null;
-					for (JavaBeanSchema sch : allSchemas){
-						if (sch.getTabela().getNome().equals(assocTableName)){
-							assocSchema = sch;
-							break;
-						}
-					}
+					JavaBeanSchema assocSchema = findSchema(allSchemas,
+							assocTableName);
 					HashMap<String, Object> map = new HashMap<String, Object>();
 					String klassname = CamelCaseUtils.toUpperCamelCase(
 							assocSchema.getNome());
@@ -224,13 +209,8 @@ public class VelocityDaoFactory {
 					continue;
 				}
 				String assocTableName = assoc.getTabelaB().getNome();
-				JavaBeanSchema assocSchema = null;
-				for (JavaBeanSchema sch : allSchemas){
-					if (sch.getTabela().getNome().equals(assocTableName)){
-						assocSchema = sch;
-						break;
-					}
-				}
+				JavaBeanSchema assocSchema = findSchema(allSchemas,
+						assocTableName);
 				if (oneToMany == null)
 					continue;
 				HashMap<String, Object> map =
@@ -251,6 +231,18 @@ public class VelocityDaoFactory {
 				oneToMany.add(map);
 			}
 		}
+	}
+
+	protected static JavaBeanSchema findSchema(
+			Collection<JavaBeanSchema> allSchemas, String assocTableName) {
+		JavaBeanSchema assocSchema = null;
+		for (JavaBeanSchema sch : allSchemas){
+			if (sch.getTabela().getNome().equals(assocTableName)){
+				assocSchema = sch;
+				break;
+			}
+		}
+		return assocSchema;
 	}
 
 }
