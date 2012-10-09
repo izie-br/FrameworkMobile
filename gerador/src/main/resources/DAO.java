@@ -129,7 +129,8 @@ public#if (!$implementation) abstract#end class ${Klass}
             db.beginTransaction();
 #foreach ($relation in $oneToManyAssociations)
 #if ($relation.Nullable)
-           #if ($foreach.index ==0)ContentValues#end contentValues = new ContentValues();
+           #if ( !${contentValuesDefined} )ContentValues#end contentValues = new ContentValues();
+#set ($contentValuesDefined = true)
             contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
             db.update(
                 "${relation.Table}", contentValues,
