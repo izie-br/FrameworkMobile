@@ -104,17 +104,17 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($field in $fields)
 #if ($field.SerializationAlias)
 #set ($alias = $field.SerializationAlias)
-#else
+#else##if_not_alias
 #set ($alias = $field.LowerAndUnderscores)
-#end
+#end##end_if_alias
 #if ($primaryKeys.contains($field))
         if (${field.LowerCamel} != ${defaultId}) {
             map.put("${alias}", ${field.LowerCamel});
         }
-#else
+#else##if_primary_key
         map.put("${alias}", ${field.LowerCamel});
-#end
-#end
+#end##if_primary_key
+#end##foreach
         return map;
     }
 
@@ -130,22 +130,22 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($field in $fields)
 #if ($field.SerializationAlias)
 #set ($alias = $field.SerializationAlias)
-#else
+#else##if_not_alias
 #set ($alias = $field.LowerCamel)
-#end
+#end##end_if_alias
 #if ($primaryKeys.contains($field))
 #set ($fallback = $defaultId)
-#else
+#else##if_primary_key
 #set ($fallback = "this.${field.LowerCamel}")
-#end
+#end##if_primary_key
         temp = mapAnyCamelCase.get("${alias}");
 #if (${field.Klass} == "Long" || ${field.Klass} == "Double")
         obj.${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
 #elseif (${field.Klass} == "Boolean")
         obj.${field.LowerCamel} = ((temp!= null)?((Boolean) temp): ${fallback});
-#else
+#else##if_Klass_eq_***
         obj.${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
-#end##if
+#end##if_Klass_eq_***
 #end##foreach
         return obj;
     }
@@ -158,8 +158,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($field in $fields)
 #if ($field.Klass == "Date")
             obj.${field.LowerCamel} = (${field.LowerCamel} == null)? null: new Date(${field.LowerCamel}.getTime());
-#end
-#end
+#end##if
+#end##foreach
         } catch (CloneNotSupportedException e) {
             return null;
         }

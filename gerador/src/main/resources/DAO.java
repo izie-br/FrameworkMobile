@@ -68,9 +68,8 @@ public#if (!$implementation) abstract#end class ${Klass}
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
-        if (insertIfNotExists)
 #end
-        {
+        #if (!$compoundPk)if (insertIfNotExists)#end{
             Cursor cursor = this.session.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE "+
                 "#foreach ($key in $primaryKeys)#if ($foreach.index !=0) AND #end${key.LowerAndUnderscores} = ?#end",
@@ -103,7 +102,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 ##Ou entao escreve:      AND campo = ?
 ##
                 "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end ((${key.Klass})${target}.${key.LowerCamel}).toString()#end});
+                new String[] { #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
             return (value > 0);
         }
     }#else;#end
@@ -248,7 +247,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 
 #end
 #if ($implementation)
-    public final class QuerySetImpl<T extends ${Target} >
+    final class QuerySetImpl<T extends ${Target} >
         extends QuerySet<T>
     {
 
