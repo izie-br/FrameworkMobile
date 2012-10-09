@@ -41,21 +41,28 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($field in $fields)
     ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
 #end
+#foreach ($association in $manyToOneAssociations)
+    ${association.Klass} _${association.Klass};
+#end
 
     DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
 #foreach ($field in $fields)
+#if ($field.Get)
     public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
         return ${field.LowerCamel};
     }
 
+#end
+#if ($field.Set)
     public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
         this.${field.LowerCamel} = ${field.LowerCamel};
         triggerObserver("${field.LowerAndUnderscores}");
     }
 
-#end
+#end##if_is_Set
+#end##foreach
 #foreach ($association in $oneToManyAssociations)
     public QuerySet<${association.Klass}> get${association.Pluralized}(){
         if (this._daofactory == null)
@@ -67,17 +74,19 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end
 #foreach ($association in $manyToOneAssociations)
     public ${association.Klass} get${association.Klass}(){
-        if (this._daofactory == null)
-            return null;
-        return ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class))
-            .query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${association.ForeignKey.LowerCamel}))
-            .first();
+        if (_${association.Klass} == null){
+            if (this._daofactory == null)
+                return null;
+            _${association.Klass} = ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class))
+                .query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${association.ForeignKey.LowerCamel}))
+                .first();
+        }
+        return _${association.Klass};
     }
 
     public void set${association.Klass}(${association.Klass} obj){
-        ${association.ReferenceKey.Type} key = obj.get${association.ReferenceKey.UpperCamel}();
-        if (key == ${defaultId})
-            return;
+        _${association.Klass} = obj;
+        ${association.ReferenceKey.Type} key = (obj == null) ? ${defaultId} : obj.get${association.ReferenceKey.UpperCamel}();
         this.${association.ForeignKey.LowerCamel} = key;
     }
 
