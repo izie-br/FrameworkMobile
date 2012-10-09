@@ -1,4 +1,4 @@
-package com.quantium.mobile.geradores.vo;
+package com.quantium.mobile.geradores.velocity;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -16,7 +16,6 @@ import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
-import com.quantium.mobile.geradores.dao.VelocityDaoFactory;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;

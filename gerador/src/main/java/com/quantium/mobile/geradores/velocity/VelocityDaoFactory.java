@@ -1,4 +1,4 @@
-package com.quantium.mobile.geradores.dao;
+package com.quantium.mobile.geradores.velocity;
 
 import java.io.File;
 import java.io.FileOutputStream;
