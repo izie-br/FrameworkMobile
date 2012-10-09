@@ -1,3 +1,4 @@
+tempgen/*
 gerador/script/schema.sql
 lib/target/*
 gerador/customGen/*
