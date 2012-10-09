@@ -28,7 +28,7 @@ public class JavaBeanSchema{
 		return filterChain.isNonEntityTable();
 	}
 
-	public Propriedade getPropriedade(String coluna){
+	public Property getPropriedade(String coluna){
 		return filterChain.getPropriedade(coluna);
 	}
 
@@ -39,7 +39,7 @@ public class JavaBeanSchema{
 		return colunas;
 	}
 
-	public Propriedade getPrimaryKey(){
+	public Property getPrimaryKey(){
 		Collection<TabelaSchema.Coluna> colunas = tabela.getPrimaryKeys();
 		if(colunas.size()!=1)
 			return null;
@@ -92,10 +92,10 @@ public class JavaBeanSchema{
 		}
 
 		@Override
-		public Propriedade getPropriedade(String coluna) {
+		public Property getPropriedade(String coluna) {
 			for(TabelaSchema.Coluna it : tabela.getColunas()){
 				if(it.getNome().equals(coluna)) {
-					return new Propriedade(
+					return new Property(
 							it.getNome(),
 							it.getType(),
 							true,

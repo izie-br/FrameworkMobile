@@ -3,7 +3,7 @@ package com.quantium.mobile.geradores.filters;
 import java.util.Collection;
 
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
-import com.quantium.mobile.geradores.javabean.Propriedade;
+import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 
 
@@ -23,7 +23,7 @@ public abstract class TabelaSchemaFilter {
 		return proximo.isNonEntityTable();
 	}
 
-	public Propriedade getPropriedade(String coluna){
+	public Property getPropriedade(String coluna){
 		return proximo.getPropriedade(coluna);
 	}
 

@@ -78,6 +78,10 @@ public class CamelCaseUtils {
 
 	}
 
+	public static String camelToLowerAndUnderscores(String camel){
+		return camelToUpper(camel).toLowerCase();
+	}
+
 	/**
 	 * transforma a String em UpperCamelCase
 	 * @param input entrada

@@ -13,6 +13,7 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 
 public class VelocityCustomClassesFactory {
@@ -29,7 +30,7 @@ public class VelocityCustomClassesFactory {
 		for (JavaBeanSchema schema : schemas){
 			if (schema.isNonEntityTable())
 				continue;
-			klasses.add(schema.getNome());
+			klasses.add(CamelCaseUtils.toUpperCamelCase(schema.getNome()));
 		}
 		VelocityContext ctx = new VelocityContext();
 		ctx.put("package", genPackage);

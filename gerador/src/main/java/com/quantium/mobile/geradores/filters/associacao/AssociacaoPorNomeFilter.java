@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
-import com.quantium.mobile.geradores.javabean.Propriedade;
+import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 
@@ -53,8 +53,8 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 	}
 
 	@Override
-	public Propriedade getPropriedade(String coluna) {
-		Propriedade p = super.getPropriedade(coluna);
+	public Property getPropriedade(String coluna) {
+		Property p = super.getPropriedade(coluna);
 		ArrayList<String> assoc = new ArrayList<String>();
 		for(Associacao associacao : resolver.getAssociacoes(getTabela()))
 			if(associacao instanceof AssociacaoOneToMany)

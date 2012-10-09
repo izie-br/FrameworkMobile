@@ -40,7 +40,6 @@ import net.sf.jsqlparser.statement.select.Select;
 import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
-import com.quantium.mobile.geradores.filters.CamelCaseFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
@@ -242,8 +241,8 @@ public class GeradorDeBeans {
 		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
 				"{COLUMN=id}_{TABLE}"
 		));
-		factory.addFiltroFactory(
-			new CamelCaseFilter.Factory());
+//		factory.addFiltroFactory(
+//			new CamelCaseFilter.Factory());
 
 		// gerando os JavaBeanSchemas
 		Collection<JavaBeanSchema> javaBeanSchemas =

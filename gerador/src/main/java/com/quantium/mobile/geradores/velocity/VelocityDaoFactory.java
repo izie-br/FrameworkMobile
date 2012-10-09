@@ -21,7 +21,7 @@ import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
-import com.quantium.mobile.geradores.javabean.Propriedade;
+import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 
@@ -53,8 +53,9 @@ public class VelocityDaoFactory {
 			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
 			throws IOException
 	{
-		generate(schema, "DAOSQLite", schema.getNome()+"DAO", true,
-		         allSchemas);
+		generate(schema, "DAOSQLite",
+		         CamelCaseUtils.toUpperCamelCase(schema.getNome())+"DAO",
+		         true, allSchemas);
 	}
 
 	private void generate(JavaBeanSchema schema, String suffix,
@@ -64,7 +65,7 @@ public class VelocityDaoFactory {
 	{
 		if (schema.isNonEntityTable())
 			return;
-		String targetclass = schema.getNome();
+		String targetclass = CamelCaseUtils.toUpperCamelCase(schema.getNome());
 		String classname = targetclass + suffix;
 		String filename = classname + ".java";
 		File file = new File(targetDirectory, filename);
@@ -81,7 +82,7 @@ public class VelocityDaoFactory {
 		List<Column> pks = new ArrayList<Column>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			String klassname = schema.getPropriedade(col)
-					.getType().getSimpleName();
+					.getKlass().getSimpleName();
 			Column f = new Column(klassname, col);
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
@@ -142,29 +143,31 @@ public class VelocityDaoFactory {
 									m2m.getTabelaJuncao().getNome()));
 					map.put("JoinTableUpper", joinTableUpper);
 					map.put("JoinTable", m2m.getTabelaJuncao().getNome());
-					Propriedade refAprop =
+					Property refAprop =
 							schema.getPropriedade(m2m.getReferenciaA());
 					Column keyColA = new Column(
-							refAprop.getType().getSimpleName(),
+							refAprop.getKlass().getSimpleName(),
 							m2m.getKeyToA());
 					Column refColA = new Column(
-							refAprop.getType().getSimpleName(),
+							refAprop.getKlass().getSimpleName(),
 							m2m.getReferenciaA());
 						map.put("KeyToA", keyColA);
 						map.put("ReferenceA", refColA);
-					Propriedade refBprop = assocSchema.getPropriedade(
+					Property refBprop = assocSchema.getPropriedade(
 							m2m.getReferenciaB());
 					Column keyColB = new Column(
-							refBprop.getType().getSimpleName(),
+							refBprop.getKlass().getSimpleName(),
 							m2m.getKeyToB());
 					Column refColB = new Column(
-							refBprop.getType().getSimpleName(),
+							refBprop.getKlass().getSimpleName(),
 							m2m.getReferenciaB());
 					map.put("KeyToB", keyColB);
 					map.put("ReferenceB", refColB);
-					map.put("Klass", assocSchema.getNome());
+					String klassname = CamelCaseUtils.toUpperCamelCase(
+							assocSchema.getNome());
+					map.put("Klass", klassname);
 					map.put("Pluralized", PluralizacaoUtils.pluralizar(
-							assocSchema.getNome()));
+							klassname));
 				} else {
 					String assocTableName = assoc.getTabelaB().getNome();
 					JavaBeanSchema assocSchema = null;
@@ -180,29 +183,31 @@ public class VelocityDaoFactory {
 									m2m.getTabelaJuncao().getNome()));
 					map.put("JoinTableUpper", joinTableUpper);
 					map.put("JoinTable", m2m.getTabelaJuncao().getNome());
-					Propriedade refAprop = assocSchema.getPropriedade(
+					Property refAprop = assocSchema.getPropriedade(
 							m2m.getReferenciaA());
 					Column keyColA = new Column(
-							refAprop.getType().getSimpleName(),
+							refAprop.getKlass().getSimpleName(),
 							m2m.getKeyToA());
 					Column refColA = new Column(
-						refAprop.getType().getSimpleName(),
+						refAprop.getKlass().getSimpleName(),
 						m2m.getReferenciaA());
 					map.put("KeyToA", keyColA);
 					map.put("ReferenceA", refColA);
-					Propriedade refBprop = schema.getPropriedade(
+					Property refBprop = schema.getPropriedade(
 							m2m.getReferenciaB());
 					Column keyColB = new Column(
-							refBprop.getType().getSimpleName(),
+							refBprop.getKlass().getSimpleName(),
 							m2m.getKeyToB());
 					Column refColB = new Column(
-							refBprop.getType().getSimpleName(),
+							refBprop.getKlass().getSimpleName(),
 							m2m.getReferenciaB());
 					map.put("KeyToB", keyColB);
 					map.put("ReferenceB", refColB);
-					map.put("Klass", assocSchema.getNome());
+					String klassname = CamelCaseUtils.toUpperCamelCase(
+							assocSchema.getNome());
+					map.put("Klass", klassname);
 					map.put("Pluralized", PluralizacaoUtils.pluralizar(
-							assocSchema.getNome()));
+							klassname));
 					
 				}
 				manyToMany.add(map);
@@ -221,16 +226,18 @@ public class VelocityDaoFactory {
 						}
 					}
 					HashMap<String, Object> map = new HashMap<String, Object>();
-					map.put("Klass", assocSchema.getNome());
-					Propriedade fkprop =
+					String klassname = CamelCaseUtils.toUpperCamelCase(
+							assocSchema.getNome());
+					map.put("Klass", klassname);
+					Property fkprop =
 							schema.getPropriedade(o2m.getKeyToA());
-					Column fk = new Column(fkprop.getType().getSimpleName(),
+					Column fk = new Column(fkprop.getKlass().getSimpleName(),
 					                       o2m.getKeyToA());
 					map.put("ForeignKey", fk);
-					Propriedade refprop =
+					Property refprop =
 							assocSchema.getPropriedade(o2m.getReferenciaA());
 					Column ref = new Column(
-							refprop.getType().getSimpleName(),
+							refprop.getKlass().getSimpleName(),
 							o2m.getReferenciaA());
 					map.put("ReferenceKey", ref);
 					manyToOne.add(map);
@@ -249,18 +256,19 @@ public class VelocityDaoFactory {
 				HashMap<String, Object> map =
 						new HashMap<String, Object>();
 				map.put("Table", o2m.getTabelaB().getNome());
-				Propriedade fkprop =
+				Property fkprop =
 						assocSchema.getPropriedade(o2m.getKeyToA());
-				Column fk = new Column(fkprop.getType().getSimpleName(),
+				Column fk = new Column(fkprop.getKlass().getSimpleName(),
 				                       o2m.getKeyToA());
 				map.put("ForeignKey", fk);
-				Propriedade refprop =
+				Property refprop =
 						schema.getPropriedade(o2m.getReferenciaA());
 				Column ref = new Column(
-						refprop.getType().getSimpleName(),
+						refprop.getKlass().getSimpleName(),
 						o2m.getReferenciaA());
 				map.put("ReferenceKey", ref);
-				String nome = assocSchema.getNome();
+				String nome = CamelCaseUtils.toUpperCamelCase(
+						assocSchema.getNome());
 				String pluralized = PluralizacaoUtils.pluralizar(nome);
 				map.put("Klass", nome);
 				map.put("Pluralized", pluralized);
