@@ -10,14 +10,14 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.test.ModelFacadeImpl;
+import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 import com.quantium.mobile.framework.test.gen.Author;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
 
-	ModelFacadeImpl facade = new ModelFacadeImpl();
+	SessionFacade facade = new SessionFacade();
 	public QueryTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}

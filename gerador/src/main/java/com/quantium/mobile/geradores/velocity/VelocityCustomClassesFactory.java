@@ -18,12 +18,12 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 
 public class VelocityCustomClassesFactory {
 
-	public static void generateSessionFacade(
+	public static void generateDAOFactory(
 			VelocityEngine ve, Collection<JavaBeanSchema> schemas,
 			String genPackage, File destDir)
 			throws IOException
 	{
-		String classname = "AbstractSessionFacade.java";
+		String classname = "SQLiteDAOFactory.java";
 		Template t = ve.getTemplate(classname);
 		File file = new File(destDir, classname);
 		List<String> klasses = new ArrayList<String>();

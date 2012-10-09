@@ -1,15 +1,12 @@
 package ${package};
 
-import com.quantium.mobile.framework.Session;
+import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 
-public abstract class AbstractSessionFacade implements Session, DAOFactory {
+public abstract class SQLiteDAOFactory implements DAOFactory {
 
-    @Override
-    public DAOFactory getDAOFactory(){
-        return this;
-    }
+    public abstract SQLiteDatabase getDb();
 
     @Override
     @SuppressWarnings("unchecked")
@@ -19,7 +16,7 @@ public abstract class AbstractSessionFacade implements Session, DAOFactory {
         String name = klass.getName();
 #foreach ($Klass in $Klasses)
        #if ($foreach.index !=0) else#end if (name.equals(${Klass}.class.getName()))
-            return ((DAO<T>)new ${Klass}DAOSQLite(this, this));
+            return ((DAO<T>)new ${Klass}DAOSQLite(this));
 #end
         return null;
     }

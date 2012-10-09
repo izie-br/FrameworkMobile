@@ -295,7 +295,7 @@ public class GeradorDeBeans {
 			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
 			vvof.generateVOClass(javaBeanSchema, javaBeanSchemas);
 		}
-		VelocityCustomClassesFactory.generateSessionFacade(
+		VelocityCustomClassesFactory.generateDAOFactory(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, tempdir);
 
 		String pastaGen = (pacote + "."+ pacoteGen)

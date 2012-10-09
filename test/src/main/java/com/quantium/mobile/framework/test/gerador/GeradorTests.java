@@ -11,7 +11,7 @@ import org.apache.commons.lang.RandomStringUtils;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.test.ModelFacadeImpl;
+import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.Customer;
@@ -21,7 +21,7 @@ import com.quantium.mobile.framework.test.gen.Score;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
 
-	ModelFacadeImpl facade = new ModelFacadeImpl();
+	SessionFacade facade = new SessionFacade();
 
 	public GeradorTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);

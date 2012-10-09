@@ -5,8 +5,6 @@ package $package;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
-import com.quantium.mobile.framework.Session;
-import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.query.Table;
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
@@ -33,11 +31,9 @@ public#if (!$implementation) abstract#end class ${Klass}
 {
 
 #if ($implementation)
-    private Session session;
-    private DAOFactory factory;
+    private SQLiteDAOFactory factory;
 
-    public ${Klass}(Session session, DAOFactory factory){
-        this.session = session;
+    public ${Klass}(SQLiteDAOFactory factory){
         this.factory = factory;
     }
 
@@ -63,14 +59,14 @@ public#if (!$implementation) abstract#end class ${Klass}
 #end##if_class_==*
 #end##if_primaryKey
 #end##foreach
-        SQLiteDatabase db = this.session.getDb();
+        SQLiteDatabase db = this.factory.getDb();
         boolean insert;
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
 #end
         #if (!$compoundPk)if (insertIfNotExists)#end{
-            Cursor cursor = this.session.getDb().rawQuery(
+            Cursor cursor = this.factory.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE "+
                 "#foreach ($key in $primaryKeys)#if ($foreach.index !=0) AND #end${key.LowerAndUnderscores} = ?#end",
                 new String[]{ #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
@@ -116,7 +112,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 #end
     public#if (!$implementation) abstract#end QuerySet<${Target}> query(Q q)#if ($implementation) {
         QuerySet<${Target}> queryset =
-            new QuerySetImpl<${Target}>(this.session, new ${Target}());
+            new QuerySetImpl<${Target}>(this.factory, new ${Target}());
         if (q == null) {
             return queryset;
         }
@@ -128,7 +124,7 @@ public#if (!$implementation) abstract#end class ${Klass}
         if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end${target}.${key.LowerCamel} == ${defaultId}#end) {
             return false;
         }
-        SQLiteDatabase db = this.session.getDb();
+        SQLiteDatabase db = this.factory.getDb();
         try {
             db.beginTransaction();
 #foreach ($relation in $oneToManyAssociations)
@@ -202,7 +198,7 @@ public#if (!$implementation) abstract#end class ${Klass}
         contentValues.put("${association.KeyToB.LowerAndUnderscores}", ${target}.${association.ReferenceB.LowerCamel});
         contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
 #end
-        SQLiteDatabase db = this.session.getDb();
+        SQLiteDatabase db = this.factory.getDb();
         long value = db.insertOrThrow("${association.JoinTable}", null, contentValues);
         return (value > 0);
     }#else;#end
@@ -228,7 +224,7 @@ public#if (!$implementation) abstract#end class ${Klass}
             ((${association.KeyToB.Klass})${target}.${association.ReferenceB.LowerCamel}).toString()
        };
 #end
-        SQLiteDatabase db = this.session.getDb();
+        SQLiteDatabase db = this.factory.getDb();
         Cursor cursor = db.query(
             "${association.JoinTable}", (new String[]{"rowid"}),
             whereSql, args, null, null, null, "1");
@@ -251,20 +247,20 @@ public#if (!$implementation) abstract#end class ${Klass}
         extends QuerySet<T>
     {
 
-        private Session session;
+        private SQLiteDAOFactory factory;
         private ${Klass} dao;
         private T mPrototype;
 
-        protected QuerySetImpl(Session session, T _prototype) {
-            this.session = session;
-            this.dao = (${Klass})session.getDAOFactory().getDaoFor(
+        protected QuerySetImpl(SQLiteDAOFactory factory, T _prototype) {
+            this.factory = factory;
+            this.dao = (${Klass})factory.getDaoFor(
                 _prototype.getClass());
             this.mPrototype = _prototype;
         }
 
         @Override
         protected SQLiteDatabase getDb() {
-            return session.getDb();
+            return factory.getDb();
         }
 
         @Override
