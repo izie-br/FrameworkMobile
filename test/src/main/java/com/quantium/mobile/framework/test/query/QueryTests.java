@@ -169,12 +169,18 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author author1 = new Author();
 		author1.setName("um nome");
+		Date now = new Date();
+		now = new Date(now.getYear(), now.getMonth(), now.getDate(),
+				now.getHours(), now.getMinutes());
+		author1.setCreatedAt(now);
 		assertTrue(dao.save(author1));
 		Author author2 = new Author();
 		author2.setName("outro nome");
+		author2.setCreatedAt(now);
 		assertTrue(dao.save(author2));
 		Author author3 = new Author();
 		author3.setName("outro");
+		author3.setCreatedAt(now);
 		assertTrue(dao.save(author3));
 		// buscas com LIKE
 		Collection<Author> authors = dao.query(

@@ -47,4 +47,14 @@ INSERT INTO tb_score (id_author, id_document, score)
     WHERE id_document NOTNULL;
 DROP TABLE tb_score_tmp;
     </string>
+    <string name="db_versao_3">
+DROP TABLE tb_author;
+CREATE TABLE tb_author (
+    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
+    name varchar(79) NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    active BOOLEAN NOT NULL,
+    UNIQUE (name)
+);
+    </string>
 </resources>

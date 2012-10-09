@@ -52,9 +52,10 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author authors[]  = new Author[count];
 		// inserindo 5 authors diferentes
 		for(int i=0;i<count;i++){
-			Author author = new Author();
+			Author author = randomAuthor();
 			// para garantir strings diferentes, o comprimento varia com "i"
 			author.setName(RandomStringUtils.random(20+i));
+			author.setActive(true);
 			assertTrue(dao.save(author));
 			assertTrue(author.getId()>0);
 			authors[i] = author;
@@ -71,7 +72,9 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			Author authorFromDb = dao.query(
 						Author.ID.eq(author.getId()))
 					.first();
-			assertEquals(author, authorFromDb);
+			assertEquals(author.getName(), authorFromDb.getName());
+			assertEquals(author.getCreatedAt(), authorFromDb.getCreatedAt());
+			assertEquals(author.isActive(), authorFromDb.isActive());
 		}
 		// query complexa
 		// qstr = "where author.id IN (?,?,?,?,?)"
@@ -218,6 +221,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	private Author randomAuthor() {
 		Author author = new Author();
 		author.setName(RandomStringUtils.random(60));
+		Date now = new Date();
+		author.setCreatedAt(new Date(
+				now.getYear(), now.getMonth(), now.getDate(),
+				now.getHours(), now.getMinutes()));
+		author.setActive(true);
 		return author;
 	}
 
