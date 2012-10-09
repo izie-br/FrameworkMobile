@@ -46,7 +46,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     private final static long serialVersionUID = ${serialVersionUID};
 
 #foreach ($field in $fields)
-    public ${field.Type} get${field.UpperCamel}(){
+    public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
         return ${field.LowerCamel};
     }
 
