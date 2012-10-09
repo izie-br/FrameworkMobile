@@ -55,8 +55,16 @@ public final class Property {
 		return alias;
 	}
 
-	public Class<?> getKlass() {
+	public void setAlias(String alias){
+		this.alias = alias;
+	}
+
+	public Class<?> getPropertyClass() {
 		return klass;
+	}
+
+	public String getKlass(){
+		return klass.getSimpleName();
 	}
 
 	public String getType(){

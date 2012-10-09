@@ -15,7 +15,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
-import com.quantium.mobile.geradores.Column;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
@@ -63,17 +62,16 @@ public class VelocityVOFactory {
 		ctx.put("manyToOneAssociations", manyToOne);
 		ctx.put("oneToManyAssociations", oneToMany);
 		ctx.put("manyToManyAssociations", manyToMany);
-		List<Column> fields = new ArrayList<Column>();
-		List<Column> pks = new ArrayList<Column>();
+		List<Property> fields = new ArrayList<Property>();
+		List<Property> pks = new ArrayList<Property>();
 		for (String col : schema.getColunas()){
-			String klassname = schema.getPropriedade(col)
-					.getKlass().getSimpleName();
-			Column f = new Column(klassname, col, getAlias(classname, col));
+			Property prop = schema.getPropriedade(col);
+			prop.setAlias(getAlias(classname, col));
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
-					pks.add(f);
+					pks.add(prop);
 			}
-			fields.add(f);
+			fields.add(prop);
 		}
 		ctx.put("fields", fields);
 		if (pks.size()==1)
@@ -104,8 +102,8 @@ public class VelocityVOFactory {
 			Property prop = schema.getPropriedade(key);
 			// este e o algoritmo de gerar o numero arbitrario
 			// esta linha pode ser alterada com algo que faca sentido
-			result = result*prop.getNome().hashCode() +
-			         prop.getKlass().getName().hashCode();
+			result += result*prop.getNome().hashCode() +
+			         prop.getPropertyClass().getName().hashCode();
 		}
 		for (Associacao assoc : schema.getAssociacoes()){
 			String other = assoc.getTabelaA().getNome();
