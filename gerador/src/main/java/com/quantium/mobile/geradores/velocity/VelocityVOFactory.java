@@ -86,9 +86,11 @@ public class VelocityVOFactory {
 
 	private String getAlias(String classname, String field){
 		String name = classname + '.' + field;
-		for (String k : aliases.keySet()){
-			if ( name.equalsIgnoreCase(k)){
-				return aliases.get(k);
+		if (aliases != null){
+			for (String k : aliases.keySet()){
+				if ( name.equalsIgnoreCase(k)){
+					return aliases.get(k);
+				}
 			}
 		}
 		return field;
