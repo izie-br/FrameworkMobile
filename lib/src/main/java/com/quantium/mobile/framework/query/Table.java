@@ -1,5 +1,8 @@
 package com.quantium.mobile.framework.query;
 
+import java.util.Arrays;
+import java.util.Collection;
+
 public class Table {
 
     private String name;
@@ -93,9 +96,14 @@ public class Table {
             return new Q(this, Q.Op1x1.GE, arg);
         }
 
-//        public Q in(T...arg){
-//            return new Q(this, Q.Op1x1.IN, arg);
-//        }
+        public Q in(T...array){
+            Collection<T> col = Arrays.asList(array);
+            return in(col);
+        }
+
+        public Q in(Collection<T> arg){
+            return new Q(this, Q.Op1x1.IN, arg);
+        }
 
         public Q isNull () {
             return new Q(this, Q.OpUnary.ISNULL);

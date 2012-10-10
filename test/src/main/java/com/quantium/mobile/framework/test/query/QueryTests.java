@@ -3,6 +3,8 @@ package com.quantium.mobile.framework.test.query;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import android.test.ActivityInstrumentationTestCase2;
 
@@ -200,6 +202,30 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertTrue(authors.contains(author2));
 	}
 
+	public void testInOperator(){
+		Table table1 = new Table("tab_1");
+		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
+
+		Q q = colTab1Id.in(1L,2L,4L);
+		String qstring = q.select(
+				new Table.Column<?>[]{colTab1Id},
+				new ArrayList<String>());
+		String qstrregex = ".*WHERE\\s+"+
+			"\\(?" +
+				colTab1Id.getTable().getName() + "\\." +
+					colTab1Id.getName() +
+				".*\\s+IN\\s*\\(" +
+					"\\s*\\?\\s*" + "\\," +
+					"\\s*\\?\\s*" + "\\," +
+					"\\s*\\?\\s*" +
+				"\\)" +
+			"\\)?.*";
+		com.quantium.mobile.framework.logging.LogPadrao.d("qstring:: '%s'", qstring);
+		Pattern pat = Pattern.compile(qstrregex, Pattern.CASE_INSENSITIVE);
+		Matcher mobj = pat.matcher(qstring);
+		assertTrue(mobj.find());
+
+	}
 
 	public String insensitiveRegex(String str) {
 		StringBuilder sb = new StringBuilder();

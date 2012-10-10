@@ -1,7 +1,9 @@
 package com.quantium.mobile.framework.query;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Date;
+import java.util.Iterator;
 import java.util.List;
 
 import com.quantium.mobile.framework.utils.SQLiteUtils;
@@ -42,6 +44,11 @@ public final class Q {
      * @param arg argumento
      */
     public <T> Q (Table.Column<T> column, Op1x1 op, T arg){
+        this.table = column.getTable();
+        init1x1(column, op, arg);
+    }
+
+    public <T> Q (Table.Column<T> column, Op1x1 op, Collection<T> arg){
         this.table = column.getTable();
         init1x1(column, op, arg);
     }
@@ -320,11 +327,33 @@ public final class Q {
                 }
             } else {
                 sb.append(op.toString());
-                if (arg instanceof Table.Column) {
-                    sb.append( ((Table.Column<?>)arg).getName() );
-                } else {
-                    sb.append('?');
-                    args.add(SQLiteUtils.parse(arg));
+                switch(op){
+                case IN:
+                    sb.append('(');
+                    if (args instanceof Collection){
+                        Iterator<?> it = ((Collection<?>)arg).iterator();
+                        if (it.hasNext()){
+	                        for (;;){
+	                            Object next = it.next();
+	                            sb.append('?');
+	                            args.add(SQLiteUtils.parse(next));
+	                            if (it.hasNext()){
+	                                sb.append(',');
+	                            } else {
+	                                break;
+	                            }
+	                        }
+                        }
+                    }
+                    sb.append(')');
+                    break;
+                default:
+                    if (arg instanceof Table.Column) {
+                        sb.append( ((Table.Column<?>)arg).getName() );
+                    } else {
+                        sb.append('?');
+                        args.add(SQLiteUtils.parse(arg));
+                    }
                 }
             }
             super.output(table, sb, args);
@@ -379,7 +408,7 @@ public final class Q {
      */
     public static enum Op1x1 {
 
-        NE, EQ, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
+        NE, EQ, LT, GT, LE, GE, LIKE, GLOB, IN; // REGEXP;
 
         public String toString() throws QueryParseException {
             return
@@ -390,9 +419,9 @@ public final class Q {
                 this == LE     ?  "<="     :
                 this == GE     ?  ">="     :
                 this == LIKE   ?  " LIKE " :
-             /* this == GLOB   ?*/" GLOB " ;
+                this == GLOB   ?  " GLOB " :
+                /*this == IN   ?*/  " IN " ;
              /* this == REGEXP ? " REGEXP "; */
-                /*this == IN   ?  " IN " ; */
         }
     }
 
