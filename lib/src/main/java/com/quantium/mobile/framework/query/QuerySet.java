@@ -1,7 +1,7 @@
 package com.quantium.mobile.framework.query;
 
 import java.util.ArrayList;
-import java.util.Collection;
+import java.util.List;
 
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
@@ -32,7 +32,7 @@ public abstract class QuerySet<T>{
 	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
 		if (column != null) {
 			this.orderBy =
-					( (this.orderBy == null) ? "" : this.orderBy ) +
+					( (this.orderBy == null) ? "" : this.orderBy + ",") +
 					" " + column.getTable().getName() +
 					"." + column.getName() +
 					" " + asc.toString();
@@ -81,8 +81,8 @@ public abstract class QuerySet<T>{
 //		return this;
 //	}
 
-	public Collection<T> all(){
-		Collection<T> all = new ArrayList<T>();
+	public List<T> all(){
+		List<T> all = new ArrayList<T>();
 		Cursor cursor = getCursor();
 		try{
 			while(cursor.moveToNext())

@@ -6,6 +6,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.query.Table;
+import com.quantium.mobile.framework.db.DAOSQLite;
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
 import com.quantium.mobile.framework.utils.DateUtil;
@@ -24,7 +25,7 @@ import com.quantium.mobile.framework.query.QuerySet;
 
 public#if (!$implementation) abstract#end class ${Klass}
 #if ($implementation)
-    extends $BaseClass
+    extends $BaseClass implements DAOSQLite<${Target}>
 #else
     implements DAO<${Target}>
 #end
@@ -162,9 +163,9 @@ public#if (!$implementation) abstract#end class ${Klass}
 
 
 #if ($implementation)
-    @SuppressWarnings("unchecked")
-    public <T extends $Target> T cursorToObject(Cursor cursor, T _prototype){
-        T ${target} = (T)_prototype.clone();
+    @Override
+    public  $Target cursorToObject(Cursor cursor, ${Target} _prototype){
+        ${Target} ${target} = _prototype.clone();
         ${target}._daofactory = this.factory;
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") )
@@ -180,6 +181,13 @@ public#if (!$implementation) abstract#end class ${Klass}
 #end##if
 #end##foreach
         return ${target};
+    }
+
+    @Override
+    public String[] getColumns() {
+        return new String[] {
+            #foreach ($field in $fields)"${field.UpperAndUnderscores}",#end
+        };
     }
 
 #end##if_implementation
@@ -276,8 +284,9 @@ public#if (!$implementation) abstract#end class ${Klass}
             };
         }
 
+        @SuppressWarnings("unchecked")
         protected T cursorToObject(Cursor cursor) {
-            return dao.cursorToObject(cursor, mPrototype);
+            return (T)dao.cursorToObject(cursor, mPrototype);
         }
 
     }
