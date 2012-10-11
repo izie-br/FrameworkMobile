@@ -105,6 +105,10 @@ public class Table {
             return new Q(this, Q.Op1x1.IN, arg);
         }
 
+        public Q like(String pattern){
+            return Q.like(this, pattern);
+        }
+
         public Q isNull () {
             return new Q(this, Q.OpUnary.ISNULL);
         }

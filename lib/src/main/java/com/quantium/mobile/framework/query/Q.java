@@ -136,8 +136,9 @@ public final class Q {
      * @param colum coluna
      * @param pattern expressao
      */
-    public static Q like ( Table.Column<String> column, String pattern) {
-        return new Q(column, Op1x1.LIKE, pattern);
+    @SuppressWarnings("unchecked")
+	public static Q like ( Table.Column<?> column, String pattern) {
+        return new Q((Table.Column<Object>)column, Op1x1.LIKE, pattern);
     }
 
     /**
