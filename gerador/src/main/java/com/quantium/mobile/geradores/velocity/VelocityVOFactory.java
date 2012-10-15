@@ -88,7 +88,7 @@ public class VelocityVOFactory {
 		String name = classname + '.' + field;
 		if (aliases != null){
 			for (String k : aliases.keySet()){
-				if ( name.equalsIgnoreCase(k)){
+				if ( CamelCaseUtils.camelEquals(name,k)){
 					return aliases.get(k);
 				}
 			}
