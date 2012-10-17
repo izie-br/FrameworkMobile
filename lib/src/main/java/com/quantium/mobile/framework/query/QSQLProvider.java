@@ -7,6 +7,7 @@ import java.util.List;
 
 import com.quantium.mobile.framework.query.Q.InnerJoin;
 import com.quantium.mobile.framework.query.Q.Op1x1;
+import com.quantium.mobile.framework.query.Q.Op1xN;
 import com.quantium.mobile.framework.query.Q.OpUnary;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 
@@ -71,6 +72,8 @@ public class QSQLProvider {
                 outputQNodeGroup((Q.QNodeGroup)node, table, sb, args);
             else if (node instanceof Q.QNode1X1)
                 outputQNode1X1((Q.QNode1X1)node, table, sb, args);
+            else if (node instanceof Q.QNode1xN)
+                outputQNode1XN((Q.QNode1xN)node, table, sb, args);
             else if (node instanceof Q.QNodeUnary)
                 outputQNodeUnary((Q.QNodeUnary)node, table, sb, args);
             else
@@ -118,37 +121,44 @@ public class QSQLProvider {
             }
         } else {
             sb.append(op.toString());
-            switch(op){
-            case IN:
-                sb.append('(');
-                if (args instanceof Collection){
-                    Iterator<?> it = ((Collection<?>)arg).iterator();
-                    if (it.hasNext()){
-                        for (;;){
-                            Object next = it.next();
-                            sb.append('?');
-                            args.add(SQLiteUtils.parse(next));
-                            if (it.hasNext()){
-                                sb.append(',');
-                            } else {
-                                break;
-                            }
-                        }
-                    }
-                }
-                sb.append(')');
-                break;
-            default:
-                if (arg instanceof Table.Column) {
-                    sb.append( ((Table.Column<?>)arg).getName() );
-                } else {
+            if (arg instanceof Table.Column) {
+                sb.append( ((Table.Column<?>)arg).getName() );
+            } else {
+                sb.append('?');
+                args.add(SQLiteUtils.parse(arg));
+            }
+        }
+    }
+
+    void outputQNode1XN(Q.QNode1xN node, Table table, StringBuilder sb, List<String> args) {
+        Table.Column<?> column = node.column;
+        Op1xN op = node.op;
+        Collection<?> arg = node.args;
+
+        sb.append( getColumn(
+                column.getTable().getName(),
+                column)
+        );
+        sb.append(op.toString());
+        sb.append('(');
+        if (args instanceof Collection){
+            Iterator<?> it = ((Collection<?>)arg).iterator();
+            if (it.hasNext()){
+                for (;;){
+                    Object next = it.next();
                     sb.append('?');
-                    args.add(SQLiteUtils.parse(arg));
+                    args.add(SQLiteUtils.parse(next));
+                    if (it.hasNext()){
+                        sb.append(',');
+                    } else {
+                        break;
+                    }
                 }
             }
         }
-
+        sb.append(')');
     }
+
 
     void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<String> args) {
         Table.Column<?> column = node.column;

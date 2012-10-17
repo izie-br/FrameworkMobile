@@ -101,8 +101,8 @@ public class Table {
             return in(col);
         }
 
-        public Q in(Collection<T> arg){
-            return new Q(this, Q.Op1x1.IN, arg);
+        public Q in(Collection<T> args){
+            return new Q(this, Q.Op1xN.IN, args);
         }
 
         public Q like(String pattern){

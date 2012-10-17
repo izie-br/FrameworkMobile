@@ -2,19 +2,11 @@ package com.quantium.mobile.framework.query;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-
-import com.quantium.mobile.framework.utils.SQLiteUtils;
 
 /**
  * Classe geradora de querystrings.
  */
 public final class Q {
-
-    private static final String NULL_ARGUMENT_EXCEPTION_FMT =
-        "Operador %s operando coluna %s com argumento %s";
 
     public static final OrderByAsc ASC = OrderByAsc.ASC;
     public static final OrderByAsc DESC = OrderByAsc.DESC;
@@ -48,9 +40,13 @@ public final class Q {
         init1x1(column, op, arg);
     }
 
-    public <T> Q (Table.Column<T> column, Op1x1 op, Collection<T> arg){
+    public <T> Q (Table.Column<T> column, Op1xN op, Collection<T> args){
         this.table = column.getTable();
-        init1x1(column, op, arg);
+        QNode1xN node = new QNode1xN();
+        node.column = column;
+        node.op = op;
+        node.args = args;
+        this.root = node;
     }
 
     private <T> void init1x1(Table.Column<T> column, Op1x1 op, Object arg) {
@@ -227,139 +223,33 @@ public final class Q {
         return out;
     }
 
-    private static String getColumn(String tableAs, Table.Column<?> column) {
-        String columnNameWithTable =
-            (
-                (tableAs != null) ?
-                    // se a tabela for nomeada com "tablename AS tablealias"
-                    tableAs + '.' :
-                     // se nao ha alias
-                    ""
-            ) + column.getName();
-        return
-            // tratar a classe Date para o SQlite3
-            (column.getKlass().equals(Date.class)) ?
-                // se eh date, buscar por "datetime(coluna)"
-                SQLiteUtils.dateTimeForColumn(columnNameWithTable) :
-                // se nao, apenas o nome
-                columnNameWithTable;
-    }
-
-
     //Classes NODE
 
     static class QNode {
         QNode next;
         String nextOp;
-
-        void output(Table table, StringBuilder sb, List<String> args) {
-            if (next != null) {
-                sb.append(nextOp);
-                next.output(table, sb, args);
-            }
-        }
-
     }
 
     static class QNodeGroup extends QNode{
         boolean notOp;
         QNode node;
-
-        @Override
-        void output(Table table, StringBuilder sb, List<String> args) {
-            if (notOp)
-                sb.append(" NOT ");
-            sb.append('(');
-            this.node.output(table, sb, args);
-            sb.append(')');
-            super.output(table, sb, args);
-        }
-
     }
 
     static class QNode1X1 extends QNode {
         Table.Column<?> column;
         Op1x1 op;
         Object arg;
+    }
 
-        @Override
-        void output(Table table, StringBuilder sb, List<String> args) {
-            sb.append( Q.getColumn(
-                column.getTable().getName(),
-                this.column)
-            );
-            if (arg == null) {
-                switch (op) {
-                case EQ:
-                    sb.append( OpUnary.ISNULL.toString());
-                    break;
-                case NE:
-                    sb.append( OpUnary.NOTNULL.toString());
-                    break;
-                default:
-                    throw new QueryParseException(String.format(
-                        NULL_ARGUMENT_EXCEPTION_FMT,
-                        op.toString(),
-                        column.getTable().getName() + column.getName(),
-                        (arg == null) ? "NULL" : arg.toString()
-                    ));
-                }
-            } else {
-                sb.append(op.toString());
-                switch(op){
-                case IN:
-                    sb.append('(');
-                    if (args instanceof Collection){
-                        Iterator<?> it = ((Collection<?>)arg).iterator();
-                        if (it.hasNext()){
-                            for (;;){
-                                Object next = it.next();
-                                sb.append('?');
-                                args.add(SQLiteUtils.parse(next));
-                                if (it.hasNext()){
-                                    sb.append(',');
-                                } else {
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                    sb.append(')');
-                    break;
-                default:
-                    if (arg instanceof Table.Column) {
-                        sb.append( ((Table.Column<?>)arg).getName() );
-                    } else {
-                        sb.append('?');
-                        args.add(SQLiteUtils.parse(arg));
-                    }
-                }
-            }
-            super.output(table, sb, args);
-        }
-
+    static class QNode1xN extends QNode {
+        Table.Column<?> column;
+        Op1xN op;
+        Collection<?> args;
     }
 
     static class QNodeUnary extends QNode {
         Table.Column<?> column;
         OpUnary op;
-
-        @Override
-        void output(Table table, StringBuilder sb, List<String> args) {
-            sb.append( Q.getColumn(
-                // conferir se eh da mesma tabela
-                ( table.equals(this.column.getTable()) ?
-                    // se for a coluna for da mesma tabela
-                    null :
-                    // caso seja uma coluna de outra tabela
-                    column.getTable().getName()
-                ),
-                this.column)
-            );
-            sb.append(op.toString());
-            super.output(table, sb, args);
-        }
-
     }
 
     class InnerJoin {
@@ -387,7 +277,7 @@ public final class Q {
      */
     public static enum Op1x1 {
 
-        NE, EQ, LT, GT, LE, GE, LIKE, GLOB, IN; // REGEXP;
+        NE, EQ, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
 
         public String toString() throws QueryParseException {
             return
@@ -402,6 +292,15 @@ public final class Q {
                 /*this == IN   ?*/  " IN " ;
              /* this == REGEXP ? " REGEXP "; */
         }
+    }
+
+    public static enum Op1xN {
+        IN;
+        public String toString() throws QueryParseException {
+            return
+                /*this == IN   ?*/  " IN " ;
+        }
+
     }
 
     public static enum OrderByAsc {
