@@ -225,37 +225,99 @@ public final class Q {
 
     //Classes NODE
 
-    static class QNode {
-        QNode next;
-        String nextOp;
+    public static class QNode {
+        private QNode next;
+        private String nextOp;
+
+        public QNode next(){
+            return next;
+        }
+
+        public String nextOp(){
+            if (next == null)
+               return null;
+            return nextOp;
+        }
     }
 
     static class QNodeGroup extends QNode{
-        boolean notOp;
-        QNode node;
+        private boolean notOp;
+        private QNode node;
+
+        public boolean isNot(){
+            return notOp;
+        }
+
+        public QNode child(){
+            return node;
+        }
     }
 
     static class QNode1X1 extends QNode {
-        Table.Column<?> column;
-        Op1x1 op;
-        Object arg;
+        private Table.Column<?> column;
+        private Op1x1 op;
+        private Object arg;
+
+        public Table.Column<?> column(){
+            return column;
+        }
+
+        public Op1x1 op(){
+            return op;
+        }
+
+        public Object getArg(){
+            return arg;
+        }
     }
 
     static class QNode1xN extends QNode {
-        Table.Column<?> column;
-        Op1xN op;
-        Collection<?> args;
+        private Table.Column<?> column;
+        private Op1xN op;
+        private Collection<?> args;
+
+        public Table.Column<?> column(){
+            return column;
+        }
+
+        public Op1xN op(){
+            return op;
+        }
+
+        public Collection<?> getArgs(){
+            return args;
+        }
     }
 
     static class QNodeUnary extends QNode {
-        Table.Column<?> column;
-        OpUnary op;
+        private Table.Column<?> column;
+        private OpUnary op;
+
+        public Table.Column<?> column(){
+            return column;
+        }
+
+        public OpUnary op(){
+            return op;
+        }
     }
 
-    class InnerJoin {
-        Table.Column<?> foreignColumn;
-        Op1x1 op;
-        Table.Column<?> column;
+    public class InnerJoin {
+        private Table.Column<?> foreignColumn;
+        private Op1x1 op;
+        private Table.Column<?> column;
+
+        public Table.Column<?> getForeignKey(){
+            return foreignColumn;
+        }
+
+        public Op1x1 op(){
+            return op;
+        }
+
+        public Table.Column<?> getColumn(){
+            return column;
+        }
     }
 
     /**

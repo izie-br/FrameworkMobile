@@ -40,12 +40,12 @@ public class QSQLProvider {
         out += " FROM " + table.getName() + " AS " + table.getName();
         if (joins != null ){
             for(InnerJoin j: joins) {
-                out += " JOIN " + j.foreignColumn.getTable().getName() +
-                    " AS " + j.foreignColumn.getTable().getName() +
+                out += " JOIN " + j.getForeignKey().getTable().getName() +
+                    " AS " + j.getForeignKey().getTable().getName() +
                     " ON " +
-                    getColumn(j.column.getTable().getName(), j.column) +
-                    j.op.toString() +
-                    getColumn(j.foreignColumn.getTable().getName(), j.foreignColumn);
+                    getColumn(j.getColumn().getTable().getName(), j.getColumn()) +
+                    j.op().toString() +
+                    getColumn(j.getForeignKey().getTable().getName(), j.getForeignKey());
             }
         }
         StringBuilder sb = new StringBuilder();
@@ -78,26 +78,26 @@ public class QSQLProvider {
                 outputQNodeUnary((Q.QNodeUnary)node, table, sb, args);
             else
                 throw new RuntimeException();
-            if (node.next == null)
+            if (node.next() == null)
                 break;
-            sb.append(node.nextOp);
-            node = node.next;
+            sb.append(node.nextOp());
+            node = node.next();
         }
     }
 
     void outputQNodeGroup(Q.QNodeGroup node, Table table, StringBuilder sb, List<String> args) {
-        if (node.notOp)
+        if (node.isNot())
             sb.append(" NOT ");
         sb.append('(');
-        output(node.node, table, sb, args);
+        output(node.child(), table, sb, args);
         sb.append(')');
         //output(node, table, sb, args);
     }
 
     void outputQNode1X1(Q.QNode1X1 node, Table table, StringBuilder sb, List<String> args) {
-        Table.Column<?> column = node.column;
-        Op1x1 op = node.op;
-        Object arg = node.arg;
+        Table.Column<?> column = node.column();
+        Op1x1 op = node.op();
+        Object arg = node.getArg();
 
         sb.append( getColumn(
                 column.getTable().getName(),
@@ -131,9 +131,9 @@ public class QSQLProvider {
     }
 
     void outputQNode1XN(Q.QNode1xN node, Table table, StringBuilder sb, List<String> args) {
-        Table.Column<?> column = node.column;
-        Op1xN op = node.op;
-        Collection<?> arg = node.args;
+        Table.Column<?> column = node.column();
+        Op1xN op = node.op();
+        Collection<?> arg = node.getArgs();
 
         sb.append( getColumn(
                 column.getTable().getName(),
@@ -161,8 +161,8 @@ public class QSQLProvider {
 
 
     void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<String> args) {
-        Table.Column<?> column = node.column;
-        OpUnary op = node.op;
+        Table.Column<?> column = node.column();
+        OpUnary op = node.op();
 
         sb.append( getColumn(
             // conferir se eh da mesma tabela
