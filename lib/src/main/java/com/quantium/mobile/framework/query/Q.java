@@ -178,48 +178,23 @@ public final class Q {
         return mergeQs (this, " OR ", q);
     }
 
-    public String select(Table.Column<?> columns [], List<String> args){
-        String out = "SELECT ";
-        for(int i=0 ; ; i++){
-            out += getColumn(
-                columns[i].getTable().getName(),
-                columns[i]
-            );
-            if( i < columns.length -1 )
-                out += ',';
-            else
-                break;
-        }
-        out += " FROM " + this.table.getName() + " AS " + this.table.getName();
-        if(this.joins != null ){
-            for(InnerJoin j: this.joins) {
-                out += " JOIN " + j.foreignColumn.getTable().getName() +
-                    " AS " + j.foreignColumn.getTable().getName() +
-                    " ON " +
-                    getColumn(j.column.getTable().getName(), j.column) +
-                    j.op.toString() +
-                    getColumn(j.foreignColumn.getTable().getName(), j.foreignColumn);
-            }
-        }
-        StringBuilder sb = new StringBuilder();
-        genQstringAndArgs(sb, args);
-        String qstring = sb.toString();
-        if(qstring != null && !qstring.matches("\\s*")){
-            out += " WHERE " + qstring;
-        }
-        return out;
+    public Q.QNode getRooNode(){
+        return this.root;
     }
+
+    public Table getTable(){
+        return this.table;
+    }
+
+    public Collection<Q.InnerJoin> getInnerJoins(){
+        return this.joins;
+    }
+
 
     private ArrayList<InnerJoin> getJoins () {
         if (joins == null)
             joins = new ArrayList<InnerJoin>(1);
        return joins;
-    }
-
-    private void genQstringAndArgs (StringBuilder sb, List<String> args) {
-        if (root == null )
-            return;
-        root.output(table, sb, args);
     }
 
     private static Q mergeQs (Q q1, String op, Q q2) {
@@ -270,7 +245,10 @@ public final class Q {
                 columnNameWithTable;
     }
 
-    private static class QNode {
+
+    //Classes NODE
+
+    static class QNode {
         QNode next;
         String nextOp;
 
@@ -283,7 +261,7 @@ public final class Q {
 
     }
 
-    private static class QNodeGroup extends QNode{
+    static class QNodeGroup extends QNode{
         boolean notOp;
         QNode node;
 
@@ -299,7 +277,7 @@ public final class Q {
 
     }
 
-    private static class QNode1X1 extends QNode {
+    static class QNode1X1 extends QNode {
         Table.Column<?> column;
         Op1x1 op;
         Object arg;
@@ -334,16 +312,16 @@ public final class Q {
                     if (args instanceof Collection){
                         Iterator<?> it = ((Collection<?>)arg).iterator();
                         if (it.hasNext()){
-	                        for (;;){
-	                            Object next = it.next();
-	                            sb.append('?');
-	                            args.add(SQLiteUtils.parse(next));
-	                            if (it.hasNext()){
-	                                sb.append(',');
-	                            } else {
-	                                break;
-	                            }
-	                        }
+                            for (;;){
+                                Object next = it.next();
+                                sb.append('?');
+                                args.add(SQLiteUtils.parse(next));
+                                if (it.hasNext()){
+                                    sb.append(',');
+                                } else {
+                                    break;
+                                }
+                            }
                         }
                     }
                     sb.append(')');
@@ -362,7 +340,7 @@ public final class Q {
 
     }
 
-    private static class QNodeUnary extends QNode {
+    static class QNodeUnary extends QNode {
         Table.Column<?> column;
         OpUnary op;
 
@@ -384,7 +362,7 @@ public final class Q {
 
     }
 
-    private class InnerJoin {
+    class InnerJoin {
         Table.Column<?> foreignColumn;
         Op1x1 op;
         Table.Column<?> column;

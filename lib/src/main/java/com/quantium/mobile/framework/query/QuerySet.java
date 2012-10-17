@@ -145,7 +145,7 @@ public abstract class QuerySet<T>{
 		}
 		String args [] = null;
 		ArrayList<String> listArg = new ArrayList<String>();
-		String qstr = q.select(getColunas(),listArg);
+		String qstr = new QSQLProvider(q).select(getColunas(),listArg);
 		if (listArg.size() > 0) {
 			args = new String[listArg.size()];
 			listArg.toArray(args);

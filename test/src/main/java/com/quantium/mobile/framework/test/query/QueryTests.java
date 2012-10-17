@@ -10,6 +10,7 @@ import android.test.ActivityInstrumentationTestCase2;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
+import com.quantium.mobile.framework.query.QSQLProvider;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.SessionFacade;
@@ -33,7 +34,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Table.Column<Date> colDate = t.addColumn(Date.class, "col_date");
 
 		Q q = colDate.le(new Date()).and( colStr.eq("blah").or(colStr2.lt("blah2")) ).and(colInt.ge(2));
-		String selectString = q.select(new Table.Column<?>[] {colDate, colStr},new ArrayList<String>());
+		String selectString = new QSQLProvider(q).select(new Table.Column<?>[] {colDate, colStr},new ArrayList<String>());
 
 		String qstrmatch =
 			// parentese de abertura, opcional neste caso
@@ -84,7 +85,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
 
 		Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
-		String select = q.select(
+		String select = new QSQLProvider(q).select(
 				new Table.Column<?> []{colTab1Id, colTab2Id},
 				new ArrayList<String>()
 		);
@@ -140,7 +141,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");
 
 		Q q = colInt.eq((Integer)null);
-		String select = q.select(new Table.Column []{colInt}, new ArrayList<String>());
+		String select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
 		assertTrue(
 			select.matches(
 				".*"+colInt.getName()+ "\\s+" +
@@ -149,7 +150,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		);
 
 		q = colInt.ne((Integer)null);
-		select = q.select(new Table.Column []{colInt}, new ArrayList<String>());
+		select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
 		assertTrue(
 			select.matches(
 				".*"+colInt.getName()+ "\\s+" +
@@ -159,7 +160,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 
 		q = colInt.lt((Integer)null);
 		try {
-			q.select(new Table.Column []{colInt}, new ArrayList<String>());
+			new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
 			fail ("A query " +select + " eh absurda");
 		} catch (QueryParseException e) {
 			/* Aqui deve acontencer esta excecao mesmo. */
@@ -207,7 +208,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 
 		Q q = colTab1Id.in(1L,2L,4L);
-		String qstring = q.select(
+		String qstring = new QSQLProvider(q).select(
 				new Table.Column<?>[]{colTab1Id},
 				new ArrayList<String>());
 		String qstrregex = ".*WHERE\\s+"+
