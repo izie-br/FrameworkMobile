@@ -5,6 +5,7 @@ package $package;
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
 #foreach ($field in $fields)
@@ -253,7 +254,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 #end
 #if ($implementation)
     final class QuerySetImpl<T extends ${Target} >
-        extends QuerySet<T>
+        extends SQLiteQuerySet<T>
     {
 
         private SQLiteDAOFactory factory;
@@ -273,7 +274,7 @@ public#if (!$implementation) abstract#end class ${Klass}
         }
 
         @Override
-        protected Table getTabela() {
+        public Table getTable() {
             return ${Target}._TABLE;
         }
 
