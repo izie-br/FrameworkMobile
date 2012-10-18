@@ -8,6 +8,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.test.ActivityInstrumentationTestCase2;
+
+import com.quantium.mobile.framework.logging.AndroidLogImpl;
 import com.quantium.mobile.framework.logging.DefaultLogEntryImpl;
 import com.quantium.mobile.framework.logging.LogEntry;
 import com.quantium.mobile.framework.logging.LogPadrao;
@@ -19,6 +21,7 @@ public class LogTests extends
 
 	public LogTests(){
 		super("com.quantium.mobile.framework.test", TestActivity.class);
+		LogPadrao.setLogImplementation(new AndroidLogImpl());
 	}
 
 	/**

@@ -4,11 +4,6 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.io.Writer;
 
-import com.quantium.mobile.framework.BaseApplication;
-
-
-import android.util.Log;
-
 /**
  * <p>LogPadrao do framework.</p>
  * <p>Usa o nome do pacote como a TAG nas chamadas de Log::(d|i|e).</p>
@@ -16,10 +11,21 @@ import android.util.Log;
  *    registrado</p>
  * @author Igor Bruno Pereira Soares
  */
-public class LogPadrao {
+public abstract class LogPadrao {
 
-	private static String tag;
-	private static LogEntry logEntryPrototype;
+	private static LogPadrao instance;
+
+	public static void setLogImplementation(LogPadrao implementation){
+		LogPadrao.instance = implementation;
+	}
+
+	protected abstract void setLogEntryPrototype(LogEntry logEntryPrototype);
+	protected abstract void info(String message, Object...args);
+	protected abstract void error(String message, Object...args);
+	protected abstract void error(Throwable t);
+	protected abstract void debug(String message, Object...args);
+
+
 	//private static JanelaPadrao janela;
 
 	/**
@@ -32,7 +38,8 @@ public class LogPadrao {
 	 * @param logEntryPrototype prototipo
 	 */
 	public static void setPrototype(LogEntry logEntryPrototype){
-		LogPadrao.logEntryPrototype = logEntryPrototype;
+		if (instance != null)
+			instance.setLogEntryPrototype(logEntryPrototype);
 	}
 
 	/**
@@ -41,14 +48,8 @@ public class LogPadrao {
 	 * @param args argumentos da string formato
 	 */
 	public static void i(String message, Object...args){
-		if(args!=null&&args.length>0)
-			message = String.format(message, args);
-		Log.i(getTag(),message);
-		if(logEntryPrototype!=null){
-			LogEntry logEntry = logEntryPrototype.clone();
-			logEntry.log(LogEntry.LEVEL_INFO,message);
-			logEntry.save();
-		}
+		if (instance != null)
+			instance.info(message, args);
 	}
 
 	/**
@@ -57,23 +58,8 @@ public class LogPadrao {
 	 * @param args argumentos da string formato
 	 */
 	public static void e(String message, Object...args){
-		if (message == null) {
-			message = "Erro sem mensagem";
-			if(args!=null&&args.length>0) {
-				message += " com argumentos";
-				for (int i = 0; i < args.length; i++)
-					message += " %s ";
-			}
-			
-		}
-		if(args!=null&&args.length>0)
-			message = String.format(message, args);
-		Log.e(getTag(),message);
-		if(logEntryPrototype!=null){
-			LogEntry logEntry = logEntryPrototype.clone();
-			logEntry.log(LogEntry.LEVEL_ERROR,message);
-			logEntry.save();
-		}
+		if (instance != null)
+			instance.error(message, args);
 	}
 
 	/**
@@ -81,14 +67,8 @@ public class LogPadrao {
 	 * @param t
 	 */
 	public static void e(Throwable t){
-		String stackTrace = getStackTrace(t);
-		e (
-			(stackTrace == null) ?
-				//
-				"Exception sem stack trace" :
-				//
-				stackTrace
-		);
+		if (instance != null)
+			instance.error(t);
 	}
 
 	/**
@@ -97,9 +77,8 @@ public class LogPadrao {
 	 * @param args argumentos da string formato
 	 */
 	public static void d(String message, Object...args){
-		if(args!=null&&args.length>0)
-			message = String.format(message, args);
-		Log.d(getTag(), message);
+		if (instance != null)
+			instance.debug(message, args);
 	}
 
 	/**
@@ -114,12 +93,6 @@ public class LogPadrao {
 		final PrintWriter printWriter = new PrintWriter(result);
 		aThrowable.printStackTrace(printWriter);
 		return result.toString();
-	}
-
-	private static String getTag(){
-		if(tag==null)
-			tag = BaseApplication.getContext().getPackageName();
-		return tag;
 	}
 
 }

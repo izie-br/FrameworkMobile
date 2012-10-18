@@ -41,8 +41,11 @@ public class DefaultLogEntryImpl implements LogEntry{
 	private String userName;
 	private int dbVersion;
 
-	public DefaultLogEntryImpl(){
+	public void init(){
 		Context ctx = BaseApplication.getContext();
+		if (ctx == null){
+			return;
+		}
 		try{
 			appVersion = ctx.getPackageManager().getPackageInfo(
 					ctx.getPackageName(), 0).versionName;
@@ -51,6 +54,30 @@ public class DefaultLogEntryImpl implements LogEntry{
 		} catch (NameNotFoundException e) {
 			throw new RuntimeException(); // Este erro nao deve ocorrer, senao
 		}                                 // o aplicativo nao tem pacote! O_o
+	}
+
+	public String getUserName(){
+		if (userName == null)
+			init();
+		if (userName == null)
+			return "app not started";
+		return userName;
+	}
+
+	public String getAppVersion(){
+		if (appVersion == null)
+			init();
+		if (appVersion == null)
+			return "app not started";
+		return appVersion;
+	}
+
+	public int getDbVersion(){
+		if (dbVersion <= 0)
+			init();
+		if (dbVersion <= 0)
+			return -1;
+		return dbVersion;
 	}
 
 	public static String getLogFolder() {
@@ -75,9 +102,9 @@ public class DefaultLogEntryImpl implements LogEntry{
 	public JSONObject toJson() throws JSONException{
 		JSONObject json = new JSONObject();
 		json.put(TIMESTAMP, DateUtil.dateToString(timestamp));
-		json.put(USER_NAME, userName);
-		json.put(APP_VERSION, appVersion);
-		json.put(DB_VERSION, dbVersion);
+		json.put(USER_NAME, getUserName());
+		json.put(APP_VERSION, getAppVersion());
+		json.put(DB_VERSION, getDbVersion());
 		json.put(LEVEL, level);
 		json.put(MESSAGE, message);
 		json.put(HASH_CODE, StringUtil.SHA1(message));
