@@ -164,14 +164,14 @@ public final class Q {
      * Combina dois fragmentos de querystring usando o operador AND.
      */
     public Q and (Q q) {
-        return mergeQs (this, " AND ", q);
+        return mergeQs (this, ChainOp.AND, q);
     }
 
     /**
      * Combina dois fragmentos de querystring usando o operador OR.
      */
     public Q or (Q q) {
-        return mergeQs (this, " OR ", q);
+        return mergeQs (this, ChainOp.OR, q);
     }
 
     public Q.QNode getRooNode(){
@@ -193,7 +193,7 @@ public final class Q {
        return joins;
     }
 
-    private static Q mergeQs (Q q1, String op, Q q2) {
+    private static Q mergeQs (Q q1, ChainOp op, Q q2) {
         Q out = new Q(q1.table);
         if (q1.joins != null)
             out.joins = new ArrayList<Q.InnerJoin>(q1.joins);
@@ -227,7 +227,7 @@ public final class Q {
 
     public static class QNode {
         private QNode next;
-        private String nextOp;
+        private ChainOp nextOp;
 
         public QNode next(){
             return next;
@@ -236,7 +236,7 @@ public final class Q {
         public String nextOp(){
             if (next == null)
                return null;
-            return nextOp;
+            return nextOp.toString();
         }
     }
 
@@ -328,8 +328,9 @@ public final class Q {
 
         public String toString () {
             return
-                this == ISNULL     ?     " ISNULL" :
-                /* this == NOTNULL ?  */ " NOTNULL";
+                this == ISNULL   ?     " ISNULL" :
+                this == NOTNULL  ?  " NOTNULL"   :
+                null;
         }
     }
 
@@ -351,8 +352,8 @@ public final class Q {
                 this == GE     ?  ">="     :
                 this == LIKE   ?  " LIKE " :
                 this == GLOB   ?  " GLOB " :
-                /*this == IN   ?*/  " IN " ;
              /* this == REGEXP ? " REGEXP "; */
+                null;
         }
     }
 
@@ -360,9 +361,19 @@ public final class Q {
         IN;
         public String toString() throws QueryParseException {
             return
-                /*this == IN   ?*/  " IN " ;
+                this == IN   ?  " IN " :
+                null;
         }
+    }
 
+    public static enum ChainOp {
+        AND, OR;
+        public String toString() throws QueryParseException {
+            return
+                this == AND  ?  " AND " :
+                this == OR   ?  " OR "  :
+                null;
+        }
     }
 
     public static enum OrderByAsc {
