@@ -3,6 +3,8 @@ package com.quantium.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
+
 /**
  * Classe geradora de querystrings.
  */
@@ -198,22 +200,30 @@ public final class Q {
         if (q1.joins != null)
             out.joins = new ArrayList<Q.InnerJoin>(q1.joins);
 
-        out.root = (q1.root != null) ? q1.root : q2.root;
-
         if (q1.root != null && q2.root != null) {
+            out.root = q1.root.clone();
             if (q1.root.next != null ) {
                 QNodeGroup group = new QNodeGroup();
-                group.node = q1.root;
+                group.node = out.root;
                 out.root = group;
             }
-            if (q2.root.next != null ) {
-                QNodeGroup nextGroup = new QNodeGroup();
-                nextGroup.node = q2.root;
-                out.root.next = nextGroup;
-            } else {
-                out.root.next = q2.root;
-            }
             out.root.nextOp = op;
+
+            if (q2.root.next != null){
+                // este NodeGroup nao eh necessario
+                // serve apenas para "ajudar" o parser
+                // os parenteses nao ficam corretos sem ele
+                QNodeGroup q2node = new QNodeGroup();
+                q2node.node = q2.root.clone();
+                out.root.next = q2node;
+            }else {
+                out.root.next = q2.root.clone();
+            }
+
+        } else if (q1.root != null){
+            out.root = q1.root.clone();
+        } else{
+            out.root = q2.root.clone();
         }
         if (out.joins == null){
             out.joins = q2.joins;
@@ -225,7 +235,7 @@ public final class Q {
 
     //Classes NODE
 
-    public static class QNode {
+    public static class QNode{
         private QNode next;
         private ChainOp nextOp;
 
@@ -238,9 +248,22 @@ public final class Q {
                return null;
             return nextOp.toString();
         }
+
+        @Override
+        protected QNode clone(){
+            QNode cloned;
+            try {
+                cloned = (QNode) super.clone();
+                if (next != null)
+                    cloned.next = next.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(LogPadrao.getStackTrace(e));
+            }
+            return cloned;
+        }
     }
 
-    static class QNodeGroup extends QNode{
+    static class QNodeGroup extends QNode implements Cloneable{
         private boolean notOp;
         private QNode node;
 
@@ -251,9 +274,18 @@ public final class Q {
         public QNode child(){
             return node;
         }
+
+        @Override
+        public QNodeGroup clone(){
+            QNodeGroup cloned = (QNodeGroup) super.clone();
+            if (node != null)
+                cloned.node = node.clone();
+            return cloned;
+        }
+
     }
 
-    static class QNode1X1 extends QNode {
+    static class QNode1X1 extends QNode implements Cloneable{
         private Table.Column<?> column;
         private Op1x1 op;
         private Object arg;
@@ -269,9 +301,10 @@ public final class Q {
         public Object getArg(){
             return arg;
         }
+
     }
 
-    static class QNode1xN extends QNode {
+    static class QNode1xN extends QNode implements Cloneable{
         private Table.Column<?> column;
         private Op1xN op;
         private Collection<?> args;
@@ -328,8 +361,8 @@ public final class Q {
 
         public String toString () {
             return
-                this == ISNULL   ?     " ISNULL" :
-                this == NOTNULL  ?  " NOTNULL"   :
+                this == ISNULL   ?  " ISNULL"  :
+                this == NOTNULL  ?  " NOTNULL" :
                 null;
         }
     }

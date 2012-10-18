@@ -71,7 +71,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 			insensitiveRegex("where") +"\\s+" +
 				qstrmatch;
 
-		assertTrue(selectString.matches(
+		assertTrue("SELECTSTR:: " + selectString, selectString.matches(
 				selectRegex
 		));
 	}
