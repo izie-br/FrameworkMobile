@@ -201,25 +201,16 @@ public final class Q {
             out.joins = new ArrayList<Q.InnerJoin>(q1.joins);
 
         if (q1.root != null && q2.root != null) {
-            out.root = q1.root.clone();
-            if (q1.root.next != null ) {
+            QNodeGroup outRoot = new QNodeGroup();
+            outRoot.node = q1.root.clone();
+            if (q1.root instanceof QNodeGroup && ((QNodeGroup)q1.root).next != null) {
                 QNodeGroup group = new QNodeGroup();
                 group.node = out.root;
                 out.root = group;
             }
-            out.root.nextOp = op;
-
-            if (q2.root.next != null){
-                // este NodeGroup nao eh necessario
-                // serve apenas para "ajudar" o parser
-                // os parenteses nao ficam corretos sem ele
-                QNodeGroup q2node = new QNodeGroup();
-                q2node.node = q2.root.clone();
-                out.root.next = q2node;
-            }else {
-                out.root.next = q2.root.clone();
-            }
-
+            outRoot.nextOp = op;
+            outRoot.next = q2.root.clone();
+            out.root = outRoot;
         } else if (q1.root != null){
             out.root = q1.root.clone();
         } else{
@@ -236,8 +227,23 @@ public final class Q {
     //Classes NODE
 
     public static class QNode{
+        @Override
+        protected QNode clone(){
+            QNode cloned;
+            try {
+                cloned = (QNode) super.clone();
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(LogPadrao.getStackTrace(e));
+            }
+            return cloned;
+        }
+    }
+
+    static class QNodeGroup extends QNode implements Cloneable{
         private QNode next;
         private ChainOp nextOp;
+        private boolean notOp;
+        private QNode node;
 
         public QNode next(){
             return next;
@@ -248,24 +254,6 @@ public final class Q {
                return null;
             return nextOp.toString();
         }
-
-        @Override
-        protected QNode clone(){
-            QNode cloned;
-            try {
-                cloned = (QNode) super.clone();
-                if (next != null)
-                    cloned.next = next.clone();
-            } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(LogPadrao.getStackTrace(e));
-            }
-            return cloned;
-        }
-    }
-
-    static class QNodeGroup extends QNode implements Cloneable{
-        private boolean notOp;
-        private QNode node;
 
         public boolean isNot(){
             return notOp;
@@ -280,6 +268,8 @@ public final class Q {
             QNodeGroup cloned = (QNodeGroup) super.clone();
             if (node != null)
                 cloned.node = node.clone();
+            if (next != null)
+                cloned.next = next.clone();
             return cloned;
         }
 

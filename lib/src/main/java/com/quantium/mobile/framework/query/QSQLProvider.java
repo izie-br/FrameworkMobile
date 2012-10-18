@@ -5,10 +5,6 @@ import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
-import com.quantium.mobile.framework.query.Q.InnerJoin;
-import com.quantium.mobile.framework.query.Q.Op1x1;
-import com.quantium.mobile.framework.query.Q.Op1xN;
-import com.quantium.mobile.framework.query.Q.OpUnary;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 
 public class QSQLProvider {
@@ -39,7 +35,7 @@ public class QSQLProvider {
         }
         out += " FROM " + table.getName() + " AS " + table.getName();
         if (joins != null ){
-            for(InnerJoin j: joins) {
+            for(Q.InnerJoin j: joins) {
                 out += " JOIN " + j.getForeignKey().getTable().getName() +
                     " AS " + j.getForeignKey().getTable().getName() +
                     " ON " +
@@ -67,36 +63,43 @@ public class QSQLProvider {
     void output(Q.QNode node, Table table, StringBuilder sb, List<String> args) {
         if (node == null)
             return;
-        for(;;) {
-            if (node instanceof Q.QNodeGroup)
-                outputQNodeGroup((Q.QNodeGroup)node, table, sb, args);
-            else if (node instanceof Q.QNode1X1)
-                outputQNode1X1((Q.QNode1X1)node, table, sb, args);
-            else if (node instanceof Q.QNode1xN)
-                outputQNode1XN((Q.QNode1xN)node, table, sb, args);
-            else if (node instanceof Q.QNodeUnary)
-                outputQNodeUnary((Q.QNodeUnary)node, table, sb, args);
-            else
-                throw new RuntimeException();
-            if (node.next() == null)
-                break;
-            sb.append(node.nextOp());
-            node = node.next();
+        if (node instanceof Q.QNodeGroup){
+            outputQNodeGroup((Q.QNodeGroup)node, table, sb, args);
+        } else if (node instanceof Q.QNode1X1){
+            outputQNode1X1((Q.QNode1X1)node, table, sb, args);
+        } else if (node instanceof Q.QNode1xN) {
+            outputQNode1XN((Q.QNode1xN)node, table, sb, args);
+        } else if (node instanceof Q.QNodeUnary) {
+            outputQNodeUnary((Q.QNodeUnary)node, table, sb, args);
+        } else {
+            throw new RuntimeException();
         }
     }
 
     void outputQNodeGroup(Q.QNodeGroup node, Table table, StringBuilder sb, List<String> args) {
+        boolean parenthesis = node.isNot() ||
+                              (node.child() instanceof Q.QNodeGroup);
         if (node.isNot())
             sb.append(" NOT ");
-        sb.append('(');
+        if (parenthesis)
+            sb.append('(');
         output(node.child(), table, sb, args);
-        sb.append(')');
-        //output(node, table, sb, args);
+        if (parenthesis)
+            sb.append(')');
+        sb.append(node.nextOp());
+        if (node.next() == null)
+            return;
+        parenthesis = node.next() instanceof Q.QNodeGroup;
+        if (parenthesis)
+            sb.append('(');
+        output(node.next(), table, sb, args);
+        if (parenthesis)
+            sb.append(')');
     }
 
     void outputQNode1X1(Q.QNode1X1 node, Table table, StringBuilder sb, List<String> args) {
         Table.Column<?> column = node.column();
-        Op1x1 op = node.op();
+        Q.Op1x1 op = node.op();
         Object arg = node.getArg();
 
         sb.append( getColumn(
@@ -106,10 +109,10 @@ public class QSQLProvider {
         if (arg == null) {
             switch (op) {
             case EQ:
-                sb.append( OpUnary.ISNULL.toString());
+                sb.append( Q.OpUnary.ISNULL.toString());
                 break;
             case NE:
-                sb.append( OpUnary.NOTNULL.toString());
+                sb.append( Q.OpUnary.NOTNULL.toString());
                 break;
             default:
                 throw new QueryParseException(String.format(
@@ -132,7 +135,7 @@ public class QSQLProvider {
 
     void outputQNode1XN(Q.QNode1xN node, Table table, StringBuilder sb, List<String> args) {
         Table.Column<?> column = node.column();
-        Op1xN op = node.op();
+        Q.Op1xN op = node.op();
         Collection<?> arg = node.getArgs();
 
         sb.append( getColumn(
@@ -162,7 +165,7 @@ public class QSQLProvider {
 
     void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<String> args) {
         Table.Column<?> column = node.column();
-        OpUnary op = node.op();
+        Q.OpUnary op = node.op();
 
         sb.append( getColumn(
             // conferir se eh da mesma tabela
