@@ -140,7 +140,7 @@ public class JsonCommunication extends GenericCommunication
 						LogPadrao.e("metodo http incorreto");
 					}
 				} catch (RuntimeException e){
-					exceptions[connectionTries] = LogPadrao.getStackTrace(e);
+					exceptions[connectionTries] = StringUtil.getStackTrace(e);
 					connectionTries++;
 				}
 				if(response!=null)

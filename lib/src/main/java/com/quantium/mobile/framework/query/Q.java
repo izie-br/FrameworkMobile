@@ -3,7 +3,7 @@ package com.quantium.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.Collection;
 
-import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 /**
  * Classe geradora de querystrings.
@@ -233,7 +233,7 @@ public final class Q {
             try {
                 cloned = (QNode) super.clone();
             } catch (CloneNotSupportedException e) {
-                throw new RuntimeException(LogPadrao.getStackTrace(e));
+                throw new RuntimeException(StringUtil.getStackTrace(e));
             }
             return cloned;
         }

@@ -8,7 +8,6 @@ import java.util.Iterator;
 import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
-import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonCommunication;
@@ -18,6 +17,7 @@ import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.server.Echo;
 import com.quantium.mobile.framework.test.server.RouterBean;
 import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunicationTests extends
 ActivityInstrumentationTestCase2<TestActivity> {
@@ -75,7 +75,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 			assertNull(obj);
 			assertEquals(params.size() ,map.size());
 		} catch (Exception e) {
-			fail (LogPadrao.getStackTrace(e));
+			fail (StringUtil.getStackTrace(e));
 		}
 	}
 
@@ -162,7 +162,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		try {
 			it = authorsDao.get().getIterator(new Author(), "list");
 		} catch (RuntimeException e) {
-			fail(LogPadrao.getStackTrace(e));
+			fail(StringUtil.getStackTrace(e));
 		}
 		
 		comparaAuthors(list, it);

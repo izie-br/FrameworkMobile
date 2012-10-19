@@ -7,7 +7,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 /*
 Copyright (c) 2002 JSON.org
@@ -144,7 +144,7 @@ public final class FrameworkJSONTokener {
             try {
                 c = this.reader.read();
             } catch (IOException exception) {
-                throw new JSONException(LogPadrao.getStackTrace(exception));
+                throw new JSONException(StringUtil.getStackTrace(exception));
             }
 
             if (c <= 0) { // End of stream
@@ -590,7 +590,7 @@ public final class FrameworkJSONTokener {
                 }
             } while (c != to);
         } catch (IOException exc) {
-            throw new JSONException(LogPadrao.getStackTrace(exc));
+            throw new JSONException(StringUtil.getStackTrace(exc));
         }
 
         this.back();

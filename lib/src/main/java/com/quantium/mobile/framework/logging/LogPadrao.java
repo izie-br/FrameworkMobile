@@ -1,9 +1,5 @@
 package com.quantium.mobile.framework.logging;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.io.Writer;
-
 /**
  * <p>LogPadrao do framework.</p>
  * <p>Usa o nome do pacote como a TAG nas chamadas de Log::(d|i|e).</p>
@@ -79,20 +75,6 @@ public abstract class LogPadrao {
 	public static void d(String message, Object...args){
 		if (instance != null)
 			instance.debug(message, args);
-	}
-
-	/**
-	 * 
-	 * @param aThrowable exception ou erro
-	 * @return stacktrace em uma string
-	 */
-	public static String getStackTrace(Throwable aThrowable) {
-		if (aThrowable == null)
-			return null;
-		final Writer result = new StringWriter();
-		final PrintWriter printWriter = new PrintWriter(result);
-		aThrowable.printStackTrace(printWriter);
-		return result.toString();
 	}
 
 }

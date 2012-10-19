@@ -1,13 +1,16 @@
 #set ($compoundPk = $primaryKeys.size() > 1)
 package $package;
 
+import java.io.IOException;
 #if ($implementation)
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.database.SQLException;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
+import com.quantium.mobile.framework.utils.StringUtil;
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
 import com.quantium.mobile.framework.utils.DateUtil;
@@ -17,7 +20,6 @@ import com.quantium.mobile.framework.utils.DateUtil;
 #else##if_not_implementation
 import com.quantium.mobile.framework.DAO;
 #end
-import android.database.SQLException;
 #if (!$compoundPk || !$implementation)
 import com.quantium.mobile.framework.Save;
 #end
@@ -41,12 +43,14 @@ public#if (!$implementation) abstract#end class ${Klass}
 
 #end
 #if (!$implementation)
-    public boolean save($Target ${target}) throws SQLException {
+    @Override
+    public boolean save($Target ${target}) throws IOException {
         return save(${target}, Save.INSERT_IF_NULL_PK);
     }
 
-#end
-    public#if (!$implementation) abstract#end boolean save($Target ${target}, int flags) throws SQLException#if ($implementation) {
+#else##if_implementation
+    @Override
+    public boolean save($Target ${target}, int flags) throws IOException {
         ${target}._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
@@ -81,7 +85,12 @@ public#if (!$implementation) abstract#end class ${Klass}
                 contentValues.put("${primaryKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
             }
 #end
-            long value = db.insertOrThrow("${table}", null, contentValues);
+            long value;
+            try{
+                value = db.insertOrThrow("${table}", null, contentValues);
+            } catch (SQLException e){
+                throw new IOException(StringUtil.getStackTrace(e));
+            }
 #if ($compoundPk)
             return (value > 0);
 #else
@@ -103,7 +112,8 @@ public#if (!$implementation) abstract#end class ${Klass}
                 new String[] { #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
             return (value > 0);
         }
-    }#else;#end
+    }
+#end##if_implementation
 
 
 #if (!$implementation)
@@ -122,7 +132,7 @@ public#if (!$implementation) abstract#end class ${Klass}
     }#else;#end
 
 
-    public#if (!$implementation) abstract#end boolean delete(${Target} ${target})#if ($implementation){
+    public#if (!$implementation) abstract#end boolean delete(${Target} ${target}) throws IOException#if ($implementation) {
         if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end${target}.${key.LowerCamel} == ${defaultId}#end) {
             return false;
         }
@@ -149,9 +159,14 @@ public#if (!$implementation) abstract#end class ${Klass}
             db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
                       new String[] {((${relation.ReferenceKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
 #end
-            int affected = db.delete(
-                "${table}", "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end (($key.Klass)${target}.${key.LowerCamel}).toString()#end });
+            int affected;
+            try {
+                affected = db.delete(
+                    "${table}", "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
+                    new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end (($key.Klass)${target}.${key.LowerCamel}).toString()#end });
+            } catch (SQLException e) {
+                throw new IOException(StringUtil.getStackTrace(e));
+            }
             if (affected == 0) {
                 return false;
             }
@@ -193,7 +208,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 
 #end##if_implementation
 #foreach ($association in $manyToManyAssociations)
-    public#if (!$implementation) abstract#end boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target})#if ($implementation) {
+    public#if (!$implementation) abstract#end boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target}) throws IOException#if ($implementation) {
         ContentValues contentValues = new ContentValues();
 #if (${association.IsThisTableA})
         if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
@@ -209,12 +224,17 @@ public#if (!$implementation) abstract#end class ${Klass}
         contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
 #end
         SQLiteDatabase db = this.factory.getDb();
-        long value = db.insertOrThrow("${association.JoinTable}", null, contentValues);
+        long value;
+        try{
+            value = db.insertOrThrow("${association.JoinTable}", null, contentValues);
+        } catch (SQLException e){
+            throw new IOException(StringUtil.getStackTrace(e));
+        }
         return (value > 0);
     }#else;#end
 
 
-    public#if (!$implementation) abstract#end boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target})#if ($implementation) {
+    public#if (!$implementation) abstract#end boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target}) throws IOException#if ($implementation) {
 #if (${association.IsThisTableA})
         if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;

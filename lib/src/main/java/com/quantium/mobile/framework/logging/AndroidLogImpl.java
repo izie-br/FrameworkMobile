@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.logging;
 
 import com.quantium.mobile.framework.BaseApplication;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 import android.content.Context;
 import android.util.Log;
@@ -51,7 +52,7 @@ public class AndroidLogImpl extends LogPadrao{
 
 	@Override
 	protected void error(Throwable t){
-		String stackTrace = LogPadrao.getStackTrace(t);
+		String stackTrace = StringUtil.getStackTrace(t);
 		error (
 			(stackTrace == null) ?
 				//

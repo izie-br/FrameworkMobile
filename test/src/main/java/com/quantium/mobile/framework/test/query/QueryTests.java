@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.test.query;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -16,6 +17,7 @@ import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
+import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.gen.Author;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
@@ -176,15 +178,19 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 		now = new Date(now.getYear(), now.getMonth(), now.getDate(),
 				now.getHours(), now.getMinutes());
 		author1.setCreatedAt(now);
-		assertTrue(dao.save(author1));
 		Author author2 = new Author();
 		author2.setName("outro nome");
 		author2.setCreatedAt(now);
-		assertTrue(dao.save(author2));
 		Author author3 = new Author();
 		author3.setName("outro");
 		author3.setCreatedAt(now);
-		assertTrue(dao.save(author3));
+		try {
+			assertTrue(dao.save(author1));
+			assertTrue(dao.save(author2));
+			assertTrue(dao.save(author3));
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
 		// buscas com LIKE
 		Collection<Author> authors = dao.query(
 				Q.like(Author.NAME,"%no_e"))

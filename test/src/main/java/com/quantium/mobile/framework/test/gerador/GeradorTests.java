@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.test.gerador;
 
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import com.quantium.mobile.framework.test.gen.Customer;
 import com.quantium.mobile.framework.test.gen.CustomerDAO;
 import com.quantium.mobile.framework.test.gen.Document;
 import com.quantium.mobile.framework.test.gen.Score;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -28,18 +30,22 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testInsertUpdateDelete(){
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-		int count = dao.query().all().size();
-		Author author = randomAuthor();
-		assertTrue(dao.save(author));
-		long id  = author.getId();
-		assertTrue(id>0);
-		author.setName(RandomStringUtils.random(40));
-		assertTrue(dao.save(author));
-		assertEquals(id, author.getId());
-		assertTrue(dao.delete(author));
-		int countAfter = dao.query().all().size();
-		assertEquals(count, countAfter);
+		try {
+			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			int count = dao.query().all().size();
+			Author author = randomAuthor();
+			assertTrue(dao.save(author));
+			long id  = author.getId();
+			assertTrue(id>0);
+			author.setName(RandomStringUtils.random(40));
+			assertTrue(dao.save(author));
+			assertEquals(id, author.getId());
+			assertTrue(dao.delete(author));
+			int countAfter = dao.query().all().size();
+			assertEquals(count, countAfter);
+		} catch (IOException e){
+			fail(StringUtil.getStackTrace(e));
+		}
 	}
 
 	/**
@@ -56,8 +62,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			// para garantir strings diferentes, o comprimento varia com "i"
 			author.setName(RandomStringUtils.random(20+i));
 			author.setActive(true);
-			assertTrue(dao.save(author));
-			assertTrue(author.getId()>0);
+			try {
+				assertTrue(dao.save(author));
+				assertTrue(author.getId()>0);
+			} catch (IOException e){
+				fail(StringUtil.getStackTrace(e));
+			}
 			authors[i] = author;
 		}
 		// buscando no banco e conferindo se a quantidadee eh igual ou supperior
@@ -98,8 +108,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testMapSerialization(){
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author author = randomAuthor();
+		try {
 		assertTrue(dao.save(author));
 		assertTrue(author.getId()>0);
+		} catch (IOException e){
+			fail(StringUtil.getStackTrace(e));
+		}
 		Map<String, Object> map = author.toMap();
 		assertNotNull(map);
 		Author authorDesserialized =
@@ -145,6 +159,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 */
 	public void testDeleteCascade () {
+		try {
 		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
 		DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
 		DAO<Score> scoreDao = facade.getDAOFactory().getDaoFor(Score.class);
@@ -216,6 +231,9 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		customer = customerDao.query(Customer.ID.eq(customer.getId()))
 				.first();
 		assertNull(customer);
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
 	}
 
 	private Author randomAuthor() {

@@ -1,6 +1,9 @@
 package com.quantium.mobile.framework.utils;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.io.UnsupportedEncodingException;
+import java.io.Writer;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -150,5 +153,20 @@ public class StringUtil {
 		sen = hash.toString(16);
 		return lpad(sen, 32, '0');
 	}
+
+	/**
+	 * 
+	 * @param aThrowable exception ou erro
+	 * @return stacktrace em uma string
+	 */
+	public static String getStackTrace(Throwable aThrowable) {
+		if (aThrowable == null)
+			return null;
+		final Writer result = new StringWriter();
+		final PrintWriter printWriter = new PrintWriter(result);
+		aThrowable.printStackTrace(printWriter);
+		return result.toString();
+	}
+
 
 }
