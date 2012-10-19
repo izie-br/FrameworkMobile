@@ -28,8 +28,6 @@ import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.quantium.mobile.framework.ErrorCode;
-import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.Tarefa;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
@@ -45,6 +43,8 @@ public abstract class GenericCommunication implements Communication {
 
 	public static final byte GET = 0;
 	public static final byte POST = 1;
+	private static final String UNABLE_TO_CREATE_EXISTING_FILE =
+			"UNABLE_TO_CREATE_EXISTING_FILE";
 
 	private static boolean connected = true;
 	private static ConnectionStatusChangeListener connectionListeners[];
@@ -232,7 +232,7 @@ public abstract class GenericCommunication implements Communication {
 	public static boolean downloadFile(
 			String urlString, String path, String arquivo,
 			Tarefa<?, ?> tarefa, String sincronia
-	) throws FrameworkException {
+	) throws RuntimeException {
 		try {
 			// LogPadrao.d("Com:" + urlString);
 			HttpURLConnection c;
@@ -259,7 +259,7 @@ public abstract class GenericCommunication implements Communication {
 			} else {
 				if ( file.length() == c.getContentLength())
 					return false;
-				throw new FrameworkException(ErrorCode.UNABLE_TO_CREATE_EXISTING_FILE);
+				throw new RuntimeException(UNABLE_TO_CREATE_EXISTING_FILE);
 			}
 			// LogPadrao.d("outputFile.exists():" + outputFile.exists());
 			// LogPadrao.d("outputFile.length():" + outputFile.length());

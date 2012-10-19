@@ -1,7 +1,5 @@
 package com.quantium.mobile.framework.communication;
 
-import com.quantium.mobile.framework.FrameworkException;
-
 public interface Communication {
 
 	/**
@@ -26,6 +24,6 @@ public interface Communication {
 	 */
 	public abstract void setURL(String url);
 
-	public SerializedCommunicationResponse post () throws FrameworkException;
-	public SerializedCommunicationResponse get () throws FrameworkException;
+	public SerializedCommunicationResponse post () throws RuntimeException;
+	public SerializedCommunicationResponse get () throws RuntimeException;
 }

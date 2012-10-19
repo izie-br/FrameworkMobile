@@ -8,7 +8,6 @@ import java.util.Iterator;
 import org.apache.commons.lang.RandomStringUtils;
 
 import android.test.ActivityInstrumentationTestCase2;
-import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
@@ -138,7 +137,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 			//      o objeto nao eh removido do json
 //			assertNull(objectsMap.get("list"));
 
-		} catch (FrameworkException e) {
+		} catch (RuntimeException e) {
 			fail(e.getMessage());
 		}
 		return received;
@@ -162,8 +161,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		Iterator<Author> it = null;
 		try {
 			it = authorsDao.get().getIterator(new Author(), "list");
-		} catch (FrameworkException e) {
-			fail();
+		} catch (RuntimeException e) {
+			fail(LogPadrao.getStackTrace(e));
 		}
 		
 		comparaAuthors(list, it);

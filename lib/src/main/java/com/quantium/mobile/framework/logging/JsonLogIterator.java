@@ -7,13 +7,14 @@ import java.util.Iterator;
 
 import org.json.JSONObject;
 
-import com.quantium.mobile.framework.ErrorCode;
-import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.StreamJsonIterator;
 import com.quantium.mobile.framework.utils.FileUtil;
 
 
 public class JsonLogIterator implements Iterator<JSONObject>{
+
+	private static final String LOG_FILE_REMOVED_BEFORE_COMPLETE_READ =
+			"LOG_FILE_REMOVED_BEFORE_COMPLETE_READ";
 
 	Iterator<File> logs;
 	StreamJsonIterator current;
@@ -56,8 +57,8 @@ public class JsonLogIterator implements Iterator<JSONObject>{
 			} catch (FileNotFoundException e) {
 				// Ocorre se o arquivo de log foi removido antes de ser lido
 				// conferir se o metodo clearAllLogs foi chamado incorretamente
-				throw new FrameworkException(
-							ErrorCode.LOG_FILE_REMOVED_BEFORE_COMPLETE_READ
+				throw new RuntimeException(
+							LOG_FILE_REMOVED_BEFORE_COMPLETE_READ
 						);
 			}
 		}

@@ -13,14 +13,15 @@ import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
-import com.quantium.mobile.framework.ErrorCode;
-import com.quantium.mobile.framework.FrameworkException;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunication extends GenericCommunication
 {
 	private static final String ACCEPT_HEADER ="application/json";
+
+	private static final String NETWORK_COMMUNICATION_ERROR =
+			"NETWORK_COMMUNICATION_ERROR";
 
 	private String url;
 	private Map<String,Object> parameters;
@@ -107,16 +108,16 @@ public class JsonCommunication extends GenericCommunication
 
 	
 
-	public SerializedCommunicationResponse post()throws FrameworkException{
+	public SerializedCommunicationResponse post()throws RuntimeException{
 		return execute(POST);
 	}
 
-	public SerializedCommunicationResponse get()throws FrameworkException{
+	public SerializedCommunicationResponse get()throws RuntimeException{
 		return execute(GET);
 	}
 
 	private SerializedCommunicationResponse execute (byte method)
-			throws FrameworkException{
+			throws RuntimeException{
 		try{
 			HttpResponse response = null;
 			String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
@@ -147,7 +148,7 @@ public class JsonCommunication extends GenericCommunication
 				if(connectionTries>CONNECTION_RETRY_COUNT){
 					for (int j = 0; j < connectionTries; j++)
 						LogPadrao.e(exceptions[j]);
-					throw new FrameworkException(ErrorCode.NETWORK_COMMUNICATION_ERROR);
+					throw new RuntimeException(NETWORK_COMMUNICATION_ERROR);
 				}
 			}
 			return new JsonCommunicationResponse(
@@ -158,7 +159,7 @@ public class JsonCommunication extends GenericCommunication
 //			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION, e);
 		} catch (IOException e) {
 			LogPadrao.e(e);
-			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION, e);
+			throw new RuntimeException(e);
 		}
 	}
 
