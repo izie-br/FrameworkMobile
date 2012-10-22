@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -13,6 +14,8 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QSQLProvider;
 import com.quantium.mobile.framework.query.QueryParseException;
+import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
@@ -276,6 +279,51 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 					new Table.Column<?>[]{colTab1Id},
 					new ArrayList<String>());
 			assertFalse( q4Str.equals(q1Str));
+		}
+	}
+
+	public void testImmutableQuerySet() throws Exception{
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+		for (int i=0; i< 10; i++){
+			Author author1 = new Author();
+			author1.setName("nome["+i+"]");
+			author1.setCreatedAt(new Date());
+			try {
+				dao.save(author1);
+			} catch (IOException e) {
+				fail(StringUtil.getStackTrace(e));
+			}
+		}
+		final QuerySet<Author> qs1 = dao.query();
+		List<Author> list1 = qs1.all();
+		int qty = list1.size();
+		Author first = qs1.first();
+
+		{
+			QuerySet<Author> qs2 = qs1.filter(Author.NAME.eq("nome["+9+"]"));
+			List<Author> list2 = qs2.all();
+			list1 = qs1.all();
+			assertFalse(qs1 == qs2);
+			assertEquals(qty, list1.size());
+			assertTrue(list1.size() > list2.size() );
+		}
+
+		{
+			QuerySet<Author> qs3 = qs1.limit(3);
+			List<Author> list2 = qs3.all();
+			list1 = qs1.all();
+			assertFalse(qs1 == qs3);
+			assertEquals(qty, list1.size());
+			assertTrue( list1.size() > list2.size() );
+		}
+
+		{
+			QuerySet<Author> qs3 = qs1.orderBy(Author.ID, Q.DESC);
+			list1 = qs1.all();
+			assertFalse(qs1 == qs3);
+			List<Author> list3 = qs3.all();
+			assertEquals(first, list1.get(0));
+			assertFalse( first.equals(list3.get(0)) );
 		}
 	}
 

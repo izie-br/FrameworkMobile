@@ -62,7 +62,7 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 		if (this.q==null)
 			obj.q = q;
 		else
-			obj.q.and (q);
+			obj.q = this.q.and (q);
 		return obj;
 	}
 
@@ -100,11 +100,11 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 	public Cursor getCursor() {
 		String limitStr =
 				(limit>0 && offset>0) ?
-						String.format("%d,%d", offset,limit):
+						String.format("LIMIT %d,%d", offset,limit):
 				(limit>0) ?
-						String.format("%d", limit):
+						String.format("LIMIT %d", limit):
 				(offset>0) ?
-						String.format("%d,", offset):
+						String.format("OFFSET %d,", offset):
 				// limit <= 0 && offset <= 0
 						"";
 
