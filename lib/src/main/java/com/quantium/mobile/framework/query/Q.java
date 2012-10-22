@@ -124,7 +124,7 @@ public final class Q {
         // alterar se o o construtor "Q (Q)" for alterado
         if (q.root != null)
             ((QNodeGroup)out.root).notOp = true;
-        return q;
+        return out;
     }
 
     /**

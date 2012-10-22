@@ -234,6 +234,51 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 
 	}
 
+	public void testImmutable(){
+		Table table1 = new Table("tab_1");
+		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
+
+		final Q q1 = colTab1Id.lt(100L);
+		final String q1Str = new QSQLProvider(q1).select(
+				new Table.Column<?>[]{colTab1Id},
+				new ArrayList<String>());
+		{
+			Q q2 = q1.and(colTab1Id.gt(10L));
+			String q1StrAfterOperation = new QSQLProvider(q1).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertEquals(q1Str, q1StrAfterOperation);
+			String q2Str = new QSQLProvider(q2).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertFalse( q2Str.equals(q1Str));
+		}
+
+		{
+			Q q3 = Q.not(q1);
+			String q1StrAfterNotOperation = new QSQLProvider(q1).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertEquals(q1Str, q1StrAfterNotOperation);
+			String q3Str = new QSQLProvider(q3).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertFalse("String::"+q3Str, q3Str.equals(q1Str));
+		}
+
+		{
+			Q q4 = q1.or(colTab1Id.eq(11L));
+			String q1StrAfterOROperation = new QSQLProvider(q1).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertEquals(q1Str, q1StrAfterOROperation);
+			String q4Str = new QSQLProvider(q4).select(
+					new Table.Column<?>[]{colTab1Id},
+					new ArrayList<String>());
+			assertFalse( q4Str.equals(q1Str));
+		}
+	}
+
 	public String insensitiveRegex(String str) {
 		StringBuilder sb = new StringBuilder();
 		for (int i=0; i < str.length(); i++ ) {
