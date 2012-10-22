@@ -291,7 +291,7 @@ public class GeradorDeBeans {
 //				throw new RuntimeException(e);
 //			}
 //			mapClasses.put(javaBeanSchema, classeGerada);
-			vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
+			//vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
 			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
 			vvof.generateVOClass(javaBeanSchema, javaBeanSchemas);
 		}

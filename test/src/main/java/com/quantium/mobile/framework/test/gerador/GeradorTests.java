@@ -16,7 +16,6 @@ import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.gen.Customer;
-import com.quantium.mobile.framework.test.gen.CustomerDAO;
 import com.quantium.mobile.framework.test.gen.Document;
 import com.quantium.mobile.framework.test.gen.Score;
 import com.quantium.mobile.framework.utils.StringUtil;
@@ -163,7 +162,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
 		DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
 		DAO<Score> scoreDao = facade.getDAOFactory().getDaoFor(Score.class);
-		CustomerDAO customerDao = (CustomerDAO) facade.getDAOFactory()
+		DAO<Customer> customerDao = (DAO<Customer>) facade.getDAOFactory()
 				.getDaoFor(Customer.class);
 		Author author = randomAuthor();
 		assertTrue(authorDao.save(author));
@@ -183,7 +182,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 		// adicionar os documentos oa customer
 		//    e a busca pelo queryset deve achar este
-		assertTrue(customerDao.addDocumentToCustomer(document, customer));
+		assertTrue(customerDao.with(customer).add(document));
 		Collection<Document> documents = customer.getDocuments().all();
 		assertEquals(document, documents.iterator().next());
 

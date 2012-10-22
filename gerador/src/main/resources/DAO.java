@@ -8,11 +8,21 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 
-import com.quantium.mobile.framework.ToManyDAO;
+#foreach ($association in $oneToManyAssociations)
+#if ($association.Nullable)
+#set ($hasNullableAssociation = true)
+#else
+#set ($hasNotNullableAssociation = true)
+#end##if
+#end##foreach
+#if ($hasNotNullableAssociation)
+import com.quantium.mobile.framework.DAO;
+#end##if_hasNullableAssociation
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
 import com.quantium.mobile.framework.utils.StringUtil;
+import com.quantium.mobile.framework.ToManyDAO;
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
 import com.quantium.mobile.framework.utils.DateUtil;
@@ -22,15 +32,13 @@ import com.quantium.mobile.framework.utils.DateUtil;
 #else##if_not_implementation
 import com.quantium.mobile.framework.DAO;
 #end
-#if (!$compoundPk || !$implementation)
 import com.quantium.mobile.framework.Save;
-#end
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 
 public#if (!$implementation) abstract#end class ${Klass}
 #if ($implementation)
-    extends $BaseClass implements DAOSQLite<${Target}>
+    implements DAOSQLite<${Target}>
 #else
     implements DAO<${Target}>
 #end
@@ -44,13 +52,11 @@ public#if (!$implementation) abstract#end class ${Klass}
     }
 
 #end
-#if (!$implementation)
     @Override
     public boolean save($Target ${target}) throws IOException {
         return save(${target}, Save.INSERT_IF_NULL_PK);
     }
 
-#else##if_implementation
     @Override
     public boolean save($Target ${target}, int flags) throws IOException {
         ${target}._daofactory = this.factory;
@@ -115,15 +121,12 @@ public#if (!$implementation) abstract#end class ${Klass}
             return (value > 0);
         }
     }
-#end##if_implementation
 
 
-#if (!$implementation)
     public QuerySet<${Target}> query() {
         return query(null);
     }
 
-#end
     public#if (!$implementation) abstract#end QuerySet<${Target}> query(Q q)#if ($implementation) {
         QuerySet<${Target}> queryset =
             new QuerySetImpl<${Target}>(this.factory, new ${Target}());
@@ -141,17 +144,19 @@ public#if (!$implementation) abstract#end class ${Klass}
         SQLiteDatabase db = this.factory.getDb();
         try {
             db.beginTransaction();
+#if ($hasNullableAssociation)
+            ContentValues contentValues;
+#end##if_hasNullableAssociation
 #foreach ($relation in $oneToManyAssociations)
 #if ($relation.Nullable)
-           #if ( !${contentValuesDefined} )ContentValues#end contentValues = new ContentValues();
-#set ($contentValuesDefined = true)
+            contentValues = new ContentValues();
             contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
             db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
 #else
-            ${relation.Klass}DAO daoFor${relation.Klass} = (${relation.Klass}DAO)factory.getDaoFor(${relation.Klass}.class);
+            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);
             }

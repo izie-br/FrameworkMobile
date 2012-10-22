@@ -8,6 +8,7 @@ import java.util.Date;
 #end##if
 #end##foreach
 import com.quantium.mobile.framework.MapSerializable;
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 #if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
@@ -67,7 +68,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public QuerySet<${association.Klass}> get${association.Pluralized}(){
         if (this._daofactory == null)
             return null;
-        return ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class)).query(
+        return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class)).query(
             ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
     }
 
@@ -77,7 +78,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         if (_${association.Klass} == null){
             if (this._daofactory == null)
                 return null;
-            _${association.Klass} = ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class))
+            _${association.Klass} = ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class))
                 .query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${association.ForeignKey.LowerCamel}))
                 .first();
         }
@@ -95,7 +96,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public QuerySet<${association.Klass}> get${association.Pluralized}(){
         if (this._daofactory == null)
             return null;
-        return ((${association.Klass}DAO)_daofactory.getDaoFor(${association.Klass}.class))
+        return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class))
 #if ($association.IsThisTableA)
             .query(
                 (${association.Klass}.${association.ReferenceB.UpperAndUnderscores}.eq(_${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}))
