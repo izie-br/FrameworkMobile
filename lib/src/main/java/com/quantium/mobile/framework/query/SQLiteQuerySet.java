@@ -3,13 +3,13 @@ package com.quantium.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.quantium.mobile.framework.utils.StringUtil;
+
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
+public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 	private Q q;
-//	private String where;
-//	private List<String> selectionArgs;
 	private String orderBy;
 
 //	private String groupBy;
@@ -17,7 +17,6 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
 
 	private int limit;
 	private int offset;
-	//private boolean distinct;
 
 
 	protected abstract T cursorToObject(Cursor cursor);
@@ -27,14 +26,15 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
 	protected abstract SQLiteDatabase getDb();
 
 	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
+		SQLiteQuerySet<T> obj = this.clone();
 		if (column != null) {
-			this.orderBy =
+			obj.orderBy =
 					( (this.orderBy == null) ? "" : this.orderBy + ",") +
 					" " + column.getTable().getName() +
 					"." + column.getName() +
 					" " + asc.toString();
 		}
-		return this;
+		return obj;
 	}
 
 	public QuerySet<T> orderBy(Table.Column<?> column){
@@ -42,41 +42,30 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
 	}
 
 	public QuerySet<T> limit (int limit){
+		SQLiteQuerySet<T> obj = this.clone();
 		if (limit > 0)
-			this.limit = limit;
-		return this;
+			obj.limit = limit;
+		return obj;
 	}
 
 	public QuerySet<T> offset (int offset){
+		SQLiteQuerySet<T> obj = this.clone();
 		if (offset > 0)
-			this.offset = offset;
-		return this;
+			obj.offset = offset;
+		return obj;
 	}
 
 	public QuerySet<T> filter(Q q){
 		if (q==null)
 			return this;
-		else if (this.q==null)
-			this.q = q;
+		SQLiteQuerySet<T> obj = this.clone();
+		if (this.q==null)
+			obj.q = q;
 		else
-			this.q.and (q);
-		return this;
+			obj.q.and (q);
+		return obj;
 	}
 
-//	@Deprecated
-//	public QuerySet<T> filter(String qstr,Object...args){
-//		if(StringUtil.isNull(where))
-//			where = qstr;
-//		else
-//			where = String.format("(%s) AND (%s)",this.where,qstr);
-//		if(args!=null){ 
-//			if(selectionArgs == null)
-//				selectionArgs = new ArrayList<String>( args.length );
-//			for(Object arg : args)
-//				selectionArgs.add(SQLiteUtils.parse(arg));
-//		}
-//		return this;
-//	}
 
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
@@ -119,24 +108,6 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
 				// limit <= 0 && offset <= 0
 						"";
 
-//		Cursor cursor = getDb().query(
-//			// distinct
-//			true,
-//			// tabela
-//			getTabela(),
-//			// colunas
-//			getColunas(),
-//			// where (********)
-//			where,
-//			// argumentos para substituir os "?"
-//			selectionArgs(),
-//			// groupBy e having
-//			groupBy, having,
-//			// order by
-//			orderBy,
-//			// limit e offset
-//			limitStr
-//		);
 		if (this.q == null) {
 			this.q = new Q (getTable());
 		}
@@ -157,5 +128,17 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>{
 		return cursor;
 	}
 
+	@Override
+	protected SQLiteQuerySet<T> clone() {
+		try {
+			@SuppressWarnings("unchecked")
+			SQLiteQuerySet<T> obj = (SQLiteQuerySet<T>)super.clone();
+			return obj;
+		} catch (CloneNotSupportedException e) {
+			// Impossivel a menos que a excecao seja explicitamente criada
+			//    ou que esta classe deixe de implementar Cloenable
+			throw new RuntimeException(StringUtil.getStackTrace(e));
+		}
+	}
 
 }
