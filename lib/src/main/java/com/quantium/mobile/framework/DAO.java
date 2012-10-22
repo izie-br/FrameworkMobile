@@ -11,4 +11,5 @@ public interface DAO<T> {
 	boolean save(T obj) throws IOException;
 	boolean save(T obj, int flags) throws IOException;
 	boolean delete(T obj) throws IOException;
+	ToManyDAO with(T obj);
 }
