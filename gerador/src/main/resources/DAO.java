@@ -44,23 +44,23 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
     @Override
-    public boolean save($Target ${target}) throws IOException {
-        return save(${target}, Save.INSERT_IF_NULL_PK);
+    public boolean save($Target target) throws IOException {
+        return save(target, Save.INSERT_IF_NULL_PK);
     }
 
     @Override
-    public boolean save($Target ${target}, int flags) throws IOException {
-        ${target}._daofactory = this.factory;
+    public boolean save($Target target, int flags) throws IOException {
+        target._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #if ($compoundPk || !$primaryKey.equals($field))
 #if ($field.Klass.equals("Date") )
         contentValues.put("${field.LowerAndUnderscores}",
-                          DateUtil.timestampToString(${target}.${field.LowerCamel}));
+                          DateUtil.timestampToString(target.${field.LowerCamel}));
 #elseif ($field.Klass.equals("Boolean") )
-        contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
+        contentValues.put("${field.LowerAndUnderscores}", (target.${field.LowerCamel})?1:0 );
 #else##if_class_equals
-        contentValues.put("${field.LowerAndUnderscores}", ${target}.${field.LowerCamel});
+        contentValues.put("${field.LowerAndUnderscores}", target.${field.LowerCamel});
 #end##if_class_equals
 #end##if_primaryKey
 #end##foreach
@@ -68,20 +68,20 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         boolean insert;
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
-        insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
+        insert = target.${primaryKey.LowerCamel} == ${defaultId};
 #end##not_compoundPk
         #if (!$compoundPk)if (insertIfNotExists)#end{
             Cursor cursor = this.factory.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE "+
                 "#foreach ($key in $primaryKeys)#if ($foreach.index !=0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[]{ #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
+                new String[]{ #foreach ($key in $primaryKeys)((${key.Klass})target.${key.LowerCamel}).toString(), #end});
             insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
             cursor.close();
         }
         if (insert) {
 #if (!$compoundPk)
             if (insertIfNotExists) {
-                contentValues.put("${primaryKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
+                contentValues.put("${primaryKey.LowerAndUnderscores}", target.${primaryKey.LowerCamel});
             }
 #end##not_compoundPk
             long value;
@@ -94,7 +94,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             return (value > 0);
 #else##not_compoundPk
            if (value > 0){
-               ${target}.${primaryKey.LowerCamel} = value;
+               target.${primaryKey.LowerCamel} = value;
                return true;
            } else {
                return false;
@@ -108,7 +108,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 ##Ou entao escreve:      AND campo = ?
 ##
                 "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[] { #foreach ($key in $primaryKeys)((${key.Klass})${target}.${key.LowerCamel}).toString(), #end});
+                new String[] { #foreach ($key in $primaryKeys)((${key.Klass})target.${key.LowerCamel}).toString(), #end});
             return (value > 0);
         }
     }
@@ -128,8 +128,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
 
-    public boolean delete(${Target} ${target}) throws IOException {
-        if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end${target}.${key.LowerCamel} == ${defaultId}#end) {
+    public boolean delete(${Target} target) throws IOException {
+        if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end target.${key.LowerCamel} == ${defaultId}#end) {
             return false;
         }
         SQLiteDatabase db = this.factory.getDb();
@@ -145,23 +145,23 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
-                new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
+                new String[] {((${relation.ForeignKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
 #else##association_nullable
             DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
-            for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
+            for (${relation.Klass} obj: target.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);
             }
 #end##association_nullable
 #end##foreach_oneToMany
 #foreach ($relation in $manyToManyRelation)
             db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
-                      new String[] {((${relation.ReferenceKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
+                      new String[] {((${relation.ReferenceKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
 #end##foreach_manyToMany
             int affected;
             try {
                 affected = db.delete(
                     "${table}", "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                    new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end (($key.Klass)${target}.${key.LowerCamel}).toString()#end });
+                    new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end (($key.Klass)target.${key.LowerCamel}).toString()#end });
             } catch (SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));
             }
@@ -178,22 +178,22 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
     @Override
     public  $Target cursorToObject(Cursor cursor, ${Target} _prototype){
-        ${Target} ${target} = _prototype.clone();
-        ${target}._daofactory = this.factory;
+        ${Target} target = _prototype.clone();
+        target._daofactory = this.factory;
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") )
-        ${target}.${field.LowerCamel} = (cursor.getShort(${foreach.index}) > 0);
+        target.${field.LowerCamel} = (cursor.getShort(${foreach.index}) > 0);
 #elseif ($field.Klass.equals("Date") )
-        ${target}.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${foreach.index}));
+        target.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${foreach.index}));
 #elseif ($field.Klass.equals("Long") )
-        ${target}.${field.LowerCamel} = cursor.getLong(${foreach.index});
+        target.${field.LowerCamel} = cursor.getLong(${foreach.index});
 #elseif ($field.Klass.equals("Double") )
-        ${target}.${field.LowerCamel} = cursor.getDouble(${foreach.index});
+        target.${field.LowerCamel} = cursor.getDouble(${foreach.index});
 #elseif ($field.Klass.equals("String") )
-        ${target}.${field.LowerCamel} = cursor.getString(${foreach.index});
+        target.${field.LowerCamel} = cursor.getString(${foreach.index});
 #end##if_field.Klass.equals(*)
 #end##foreach
-        return ${target};
+        return target;
     }
 
     @Override
@@ -204,19 +204,19 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
 #foreach ($association in $manyToManyAssociations)
-    public boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target}) throws IOException {
+    public boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target target) throws IOException {
         ContentValues contentValues = new ContentValues();
 #if (${association.IsThisTableA})
-        if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
+        if (target.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToA.LowerAndUnderscores}", ${target}.${association.ReferenceA.LowerCamel});
+        contentValues.put("${association.KeyToA.LowerAndUnderscores}", target.${association.ReferenceA.LowerCamel});
         contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${association.ReferenceB.LowerCamel});
 #else##(${association.IsThisTableA)
-        if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+        if (target.${association.ReferenceB.LowerCamel} == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToB.LowerAndUnderscores}", ${target}.${association.ReferenceB.LowerCamel});
+        contentValues.put("${association.KeyToB.LowerAndUnderscores}", target.${association.ReferenceB.LowerCamel});
         contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
 #end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();
@@ -230,24 +230,24 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
 
-    public boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target}) throws IOException {
+    public boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target target) throws IOException {
 #if (${association.IsThisTableA})
-        if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
+        if (target.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;
         }
         String whereSql = "${association.KeyToA.LowerAndUnderscores} = ? AND ${association.KeyToB.LowerAndUnderscores} = ?";
         String [] args = new String[]{
-            ((${association.KeyToA.Klass})${target}.${association.ReferenceA.LowerCamel}).toString(),
+            ((${association.KeyToA.Klass})target.${association.ReferenceA.LowerCamel}).toString(),
             ((${association.KeyToB.Klass})obj.${association.ReferenceB.LowerCamel}).toString()
        };
 #else##(${association.IsThisTableA})
-        if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+        if (target.${association.ReferenceB.LowerCamel} == ${defaultId}) {
             return false;
         }
         String whereSql = "${association.KeyToB.LowerAndUnderscores} = ? AND ${association.KeyToA.LowerAndUnderscores} = ?";
         String [] args = new String[]{
             ((${association.KeyToA.Klass})obj.${association.ReferenceA.LowerCamel}).toString(),
-            ((${association.KeyToB.Klass})${target}.${association.ReferenceB.LowerCamel}).toString()
+            ((${association.KeyToB.Klass})target.${association.ReferenceB.LowerCamel}).toString()
        };
 #end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();

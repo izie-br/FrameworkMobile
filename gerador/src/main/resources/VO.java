@@ -46,7 +46,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     ${association.Klass} _${association.Klass};
 #end
 
-    DAOFactory _daofactory;
+    public DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
 #foreach ($field in $fields)

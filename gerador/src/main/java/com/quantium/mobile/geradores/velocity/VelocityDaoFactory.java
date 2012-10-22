@@ -71,11 +71,7 @@ public class VelocityDaoFactory {
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Klass", classname);
 		ctx.put("BaseClass", base);
-		ctx.put("implementation", implementation);
 		ctx.put("Target", targetclass);
-		ctx.put("target",
-		        Character.toLowerCase(targetclass.charAt(0)) +
-		        targetclass.substring(1));
 		ctx.put("table", schema.getTabela().getNome());
 		List<Property> fields = new ArrayList<Property>();
 		List<Property> pks = new ArrayList<Property>();
