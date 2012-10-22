@@ -1,13 +1,4 @@
 #set ($compoundPk = $primaryKeys.size() > 1)
-package $package;
-
-import java.io.IOException;
-#if ($implementation)
-import android.content.ContentValues;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.SQLException;
-
 #foreach ($association in $oneToManyAssociations)
 #if ($association.Nullable)
 #set ($hasNullableAssociation = true)
@@ -15,6 +6,20 @@ import android.database.SQLException;
 #set ($hasNotNullableAssociation = true)
 #end##if
 #end##foreach
+#foreach ($field in $fields)
+#if ( $field.Klass.equals("Date") )
+#set ($hasDateField = true)
+#break
+#end##if_Klass_equals_Date
+#end##foreach
+package $package;
+
+import java.io.IOException;
+import android.content.ContentValues;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
+import android.database.SQLException;
+
 #if ($hasNotNullableAssociation)
 import com.quantium.mobile.framework.DAO;
 #end##if_hasNullableAssociation
@@ -23,35 +28,21 @@ import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.ToManyDAO;
-#foreach ($field in $fields)
-#if ( $field.Klass.equals("Date") )
+#if ( $hasDateField)
 import com.quantium.mobile.framework.utils.DateUtil;
-#break
-#end##if_Klass_equals_Date
-#end##foreach
-#else##if_not_implementation
-import com.quantium.mobile.framework.DAO;
-#end
+#end##if_hasDateField
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 
-public#if (!$implementation) abstract#end class ${Klass}
-#if ($implementation)
-    implements DAOSQLite<${Target}>
-#else
-    implements DAO<${Target}>
-#end
-{
+public class ${Klass} implements DAOSQLite<${Target}> {
 
-#if ($implementation)
     private SQLiteDAOFactory factory;
 
     public ${Klass}(SQLiteDAOFactory factory){
         this.factory = factory;
     }
 
-#end
     @Override
     public boolean save($Target ${target}) throws IOException {
         return save(${target}, Save.INSERT_IF_NULL_PK);
@@ -63,14 +54,14 @@ public#if (!$implementation) abstract#end class ${Klass}
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #if ($compoundPk || !$primaryKey.equals($field))
-#if ($field.Klass == "Date")
+#if ($field.Klass.equals("Date") )
         contentValues.put("${field.LowerAndUnderscores}",
                           DateUtil.timestampToString(${target}.${field.LowerCamel}));
-#elseif ($field.Klass == "Boolean")
+#elseif ($field.Klass.equals("Boolean") )
         contentValues.put("${field.LowerAndUnderscores}", (${target}.${field.LowerCamel})?1:0 );
-#else
+#else##if_class_equals
         contentValues.put("${field.LowerAndUnderscores}", ${target}.${field.LowerCamel});
-#end##if_class_==*
+#end##if_class_equals
 #end##if_primaryKey
 #end##foreach
         SQLiteDatabase db = this.factory.getDb();
@@ -78,7 +69,7 @@ public#if (!$implementation) abstract#end class ${Klass}
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = ${target}.${primaryKey.LowerCamel} == ${defaultId};
-#end
+#end##not_compoundPk
         #if (!$compoundPk)if (insertIfNotExists)#end{
             Cursor cursor = this.factory.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE "+
@@ -92,7 +83,7 @@ public#if (!$implementation) abstract#end class ${Klass}
             if (insertIfNotExists) {
                 contentValues.put("${primaryKey.LowerAndUnderscores}", ${target}.${primaryKey.LowerCamel});
             }
-#end
+#end##not_compoundPk
             long value;
             try{
                 value = db.insertOrThrow("${table}", null, contentValues);
@@ -101,14 +92,14 @@ public#if (!$implementation) abstract#end class ${Klass}
             }
 #if ($compoundPk)
             return (value > 0);
-#else
+#else##not_compoundPk
            if (value > 0){
                ${target}.${primaryKey.LowerCamel} = value;
                return true;
            } else {
                return false;
            }
-#end
+#end##not_compoundPk
         } else {
             int value = db.update(
                 "${table}", contentValues,
@@ -127,17 +118,17 @@ public#if (!$implementation) abstract#end class ${Klass}
         return query(null);
     }
 
-    public#if (!$implementation) abstract#end QuerySet<${Target}> query(Q q)#if ($implementation) {
+    public QuerySet<${Target}> query(Q q) {
         QuerySet<${Target}> queryset =
             new QuerySetImpl<${Target}>(this.factory, new ${Target}());
         if (q == null) {
             return queryset;
         }
         return queryset.filter(q);
-    }#else;#end
+    }
 
 
-    public#if (!$implementation) abstract#end boolean delete(${Target} ${target}) throws IOException#if ($implementation) {
+    public boolean delete(${Target} ${target}) throws IOException {
         if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end${target}.${key.LowerCamel} == ${defaultId}#end) {
             return false;
         }
@@ -155,17 +146,17 @@ public#if (!$implementation) abstract#end class ${Klass}
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
-#else
+#else##association_nullable
             DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: ${target}.get${relation.Pluralized}().all()) {
                 daoFor${relation.Klass}.delete(obj);
             }
-#end
-#end
+#end##association_nullable
+#end##foreach_oneToMany
 #foreach ($relation in $manyToManyRelation)
             db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
                       new String[] {((${relation.ReferenceKey.Klass}) ${target}.${relation.ReferenceKey.LowerCamel}).toString()});
-#end
+#end##foreach_manyToMany
             int affected;
             try {
                 affected = db.delete(
@@ -182,10 +173,9 @@ public#if (!$implementation) abstract#end class ${Klass}
             db.endTransaction();
         }
         return true;
-    }#else;#end
+    }
 
 
-#if ($implementation)
     @Override
     public  $Target cursorToObject(Cursor cursor, ${Target} _prototype){
         ${Target} ${target} = _prototype.clone();
@@ -201,7 +191,7 @@ public#if (!$implementation) abstract#end class ${Klass}
         ${target}.${field.LowerCamel} = cursor.getDouble(${foreach.index});
 #elseif ($field.Klass.equals("String") )
         ${target}.${field.LowerCamel} = cursor.getString(${foreach.index});
-#end##if
+#end##if_field.Klass.equals(*)
 #end##foreach
         return ${target};
     }
@@ -213,9 +203,8 @@ public#if (!$implementation) abstract#end class ${Klass}
         };
     }
 
-#end##if_implementation
 #foreach ($association in $manyToManyAssociations)
-    public#if (!$implementation) abstract#end boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target}) throws IOException#if ($implementation) {
+    public boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target ${target}) throws IOException {
         ContentValues contentValues = new ContentValues();
 #if (${association.IsThisTableA})
         if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
@@ -223,13 +212,13 @@ public#if (!$implementation) abstract#end class ${Klass}
         }
         contentValues.put("${association.KeyToA.LowerAndUnderscores}", ${target}.${association.ReferenceA.LowerCamel});
         contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${association.ReferenceB.LowerCamel});
-#else
+#else##(${association.IsThisTableA)
         if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
             return false;
         }
         contentValues.put("${association.KeyToB.LowerAndUnderscores}", ${target}.${association.ReferenceB.LowerCamel});
         contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
-#end
+#end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();
         long value;
         try{
@@ -238,10 +227,10 @@ public#if (!$implementation) abstract#end class ${Klass}
             throw new IOException(StringUtil.getStackTrace(e));
         }
         return (value > 0);
-    }#else;#end
+    }
 
 
-    public#if (!$implementation) abstract#end boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target}) throws IOException#if ($implementation) {
+    public boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target ${target}) throws IOException {
 #if (${association.IsThisTableA})
         if (${target}.${association.ReferenceA.LowerCamel} == ${defaultId}) {
             return false;
@@ -251,7 +240,7 @@ public#if (!$implementation) abstract#end class ${Klass}
             ((${association.KeyToA.Klass})${target}.${association.ReferenceA.LowerCamel}).toString(),
             ((${association.KeyToB.Klass})obj.${association.ReferenceB.LowerCamel}).toString()
        };
-#else
+#else##(${association.IsThisTableA})
         if (${target}.${association.ReferenceB.LowerCamel} == ${defaultId}) {
             return false;
         }
@@ -260,7 +249,7 @@ public#if (!$implementation) abstract#end class ${Klass}
             ((${association.KeyToA.Klass})obj.${association.ReferenceA.LowerCamel}).toString(),
             ((${association.KeyToB.Klass})${target}.${association.ReferenceB.LowerCamel}).toString()
        };
-#end
+#end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();
         Cursor cursor = db.query(
             "${association.JoinTable}", (new String[]{"rowid"}),
@@ -275,16 +264,15 @@ public#if (!$implementation) abstract#end class ${Klass}
         }
         long affected = db.delete("${association.JoinTable}", "rowid=?", new String[] {((Long) rowid).toString()});
         return (affected == 1);
-    }#else;#end
+    }
+#end##foreach_manyToManyAssociation
 
-#end
-#if ($implementation)
     public ToManyDAO with(${Target} obj){
 #if ($manyToManyAssociations.size() == 0 && $oneToManyAssociations.size() == 0)
          throw new UnsupportedOperationException();
-#else
+#else##has_toManyAssociations
          return new ${Target}ToManyDAO(obj);
-#end
+#end##has_toManyAssociations
     }
 
     final class QuerySetImpl<T extends ${Target} >
@@ -382,6 +370,5 @@ public#if (!$implementation) abstract#end class ${Klass}
         }
     }
 #end##if_oneToMany_or_manyToMany
-#end
 }
 
