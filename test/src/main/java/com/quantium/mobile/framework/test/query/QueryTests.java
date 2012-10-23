@@ -15,7 +15,6 @@ import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QSQLProvider;
 import com.quantium.mobile.framework.query.QueryParseException;
 import com.quantium.mobile.framework.query.QuerySet;
-import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
