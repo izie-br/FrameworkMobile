@@ -1,5 +1,13 @@
+#if ($oneToManyAssociations.size() > 0)
+#set ($createProxy = true)
+#end##($oneToManyAssociations.size() > 0)
 package $package;
 
+#if ($createProxy)
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+#end##if($createProxy)
 import java.util.Map;
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
@@ -10,6 +18,7 @@ import java.util.Date;
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.LazyProxy;
 #if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
 #end
@@ -199,6 +208,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             return false;
         }
         ${Klass} other = ((${Klass}) obj);
+        if (other instanceof LazyProxy)
+            ((LazyProxy)other).load();
 #foreach ($field in $fields)
 #if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
         if(${field.LowerCamel} != other.${field.LowerCamel})
@@ -210,5 +221,107 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end##foreach
         return true;
     }
+#if ($createProxy)
+
+    @SuppressWarnings("serial")
+    public static class Proxy extends ${Klass} implements LazyProxy {
+        DAOFactory _daofactory;
+        boolean _proxy_loaded;
+
+#foreach ($field in $fields)
+#if (!$primaryKeys.contains($field))
+#if ($field.Get)
+        public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
+            if (!_proxy_loaded)
+                load();
+            return super#if ($field.Klass.equals("Boolean")) .is#else .get#end${field.UpperCamel}();
+        }
+
+#end
+#if ($field.Set)
+        public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
+            if (!_proxy_loaded)
+                load();
+            super.set${field.UpperCamel}(${field.LowerCamel});
+        }
+
+#end##if_is_Set
+#end##(!$primaryKeys.contains($field))
+#end##foreach
+#foreach ($association in $manyToOneAssociations)
+        public ${association.Klass} get${association.Klass}(){
+            if (!_proxy_loaded)
+                load();
+            return super.get${association.Klass}();
+        }
+
+        public void set${association.Klass}(${association.Klass} assoc){
+            if (!_proxy_loaded)
+                load();
+            super.set${association.Klass}(assoc);
+        }
+
+#end
+        public void toMap(Map<String, Object> map) {
+            if (!_proxy_loaded)
+                load();
+            super.toMap(map);
+        }
+
+        public $Klass mapToObject(Map<String, Object> map){
+            if (!_proxy_loaded)
+                load();
+            return super.mapToObject(map);
+        }
+
+        public $Klass clone() {
+            if (!_proxy_loaded)
+                load();
+            return super.clone();
+        }
+
+        public int hashCode() {
+            if (!_proxy_loaded)
+                load();
+            return super.hashCode();
+        }
+
+        public boolean equals(Object obj) {
+            if (!_proxy_loaded)
+                load();
+            return super.equals(obj);
+        }
+
+        private void writeObject(ObjectOutputStream oos) throws IOException {
+            if (!_proxy_loaded)
+                load();
+            oos.defaultWriteObject();
+        }
+
+        private void readObject(ObjectInputStream ois)
+            throws ClassNotFoundException, IOException
+        {
+            if (!_proxy_loaded)
+                load();
+            ois.defaultReadObject();
+        }
+
+        public void load(){
+            $Klass temp = ((DAO<${Klass}>)_daofactory.getDaoFor(${Klass}.class)).query(
+#foreach ($field in $primaryKeys)
+              #if ($foreach.index != 0).and#else    #end (${Klass}.${field.UpperAndUnderscores}.eq(${field.LowerCamel}))
+#end##foreach
+            ).first();
+            if (temp == null)
+                throw new RuntimeException();
+#foreach ($field in $fields)
+#if (!$primaryKeys.contains($field))
+            this.${field.LowerCamel} = temp.${field.LowerCamel};
+#end##if(!$primaryKeys.contains($field))
+#end##foreach
+            _proxy_loaded = true;
+        }
+    }
+#end##if($createProxy)
 
 }
