@@ -110,7 +110,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
 #end
     @Override
-    public Map<String, Object> toMap(Map<String, Object> map) {
+    public void toMap(Map<String, Object> map) {
 #foreach ($field in $fields)
 #if ($field.SerializationAlias)
 #set ($alias = $field.SerializationAlias)
@@ -125,7 +125,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         map.put("${alias}", ${field.LowerCamel});
 #end##if_primary_key
 #end##foreach
-        return map;
     }
 
     @Override

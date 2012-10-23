@@ -21,6 +21,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 
 public class VelocityVOFactory {
 
@@ -64,7 +65,7 @@ public class VelocityVOFactory {
 		ctx.put("manyToManyAssociations", manyToMany);
 		List<Property> fields = new ArrayList<Property>();
 		List<Property> pks = new ArrayList<Property>();
-		for (String col : schema.getColunas()){
+		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property prop = schema.getPropriedade(col);
 			prop.setAlias(getAlias(classname, col));
 			for (String pk : schema.getPrimaryKeyColumns()){

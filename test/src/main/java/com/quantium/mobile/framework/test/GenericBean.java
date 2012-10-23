@@ -9,10 +9,12 @@ import java.util.Map;
 public abstract class GenericBean
     implements Serializable, Cloneable
 {
-    public abstract Map<String,Object> toMap(Map<String,Object> map);
+    public abstract void toMap(Map<String,Object> map);
 
     public Map<String,Object> toMap(){
-        return toMap(new HashMap<String, Object>());
+        HashMap<String, Object> map = new HashMap<String, Object>();
+        toMap(map);
+        return map;
     }
 
     public void triggerObserver(String column){}
