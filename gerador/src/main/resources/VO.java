@@ -65,13 +65,13 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
 #end
-#if ($field.Set)
+#if ($field.Set && !$primaryKeys.contains($field) )
     public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
         this.${field.LowerCamel} = ${field.LowerCamel};
         triggerObserver("${field.LowerAndUnderscores}");
     }
 
-#end##if_is_Set
+#end##($field.Set && !primaryKeys.contains($field) )
 #end##foreach
 #foreach ($association in $oneToManyAssociations)
     public QuerySet<${association.Klass}> get${association.Pluralized}(){
