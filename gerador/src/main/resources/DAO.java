@@ -186,17 +186,44 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         ${Target} target = _prototype.clone();
         target._daofactory = this.factory;
 #foreach ($field in $fields)
+#set ($columnIndex = $foreach.index)
 #if ($field.Klass.equals("Boolean") )
-        target.${field.LowerCamel} = (cursor.getShort(${foreach.index}) > 0);
+        target.${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
 #elseif ($field.Klass.equals("Date") )
-        target.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${foreach.index}));
+        target.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
 #elseif ($field.Klass.equals("Long") )
-        target.${field.LowerCamel} = cursor.getLong(${foreach.index});
+        target.${field.LowerCamel} = cursor.getLong(${columnIndex});
 #elseif ($field.Klass.equals("Double") )
-        target.${field.LowerCamel} = cursor.getDouble(${foreach.index});
+        target.${field.LowerCamel} = cursor.getDouble(${columnIndex});
 #elseif ($field.Klass.equals("String") )
-        target.${field.LowerCamel} = cursor.getString(${foreach.index});
+        target.${field.LowerCamel} = cursor.getString(${columnIndex});
 #end##if_field.Klass.equals(*)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#if ($field.Klass.equals("Boolean") )
+        Boolean __${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
+        Boolean __${field.LowerCamel}Default = false;
+#elseif ($field.Klass.equals("Date") )
+        Date __${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
+        Date __${field.LowerCamel}Default = null;
+#elseif ($field.Klass.equals("Long") )
+        Long __${field.LowerCamel} = cursor.getLong(${columnIndex});
+        Long __${field.LowerCamel}Default = (long)0;
+#elseif ($field.Klass.equals("Double") )
+        Double __${field.LowerCamel} = cursor.getDouble(${columnIndex});
+        Double __${field.LowerCamel}Default = (double)0;
+#elseif ($field.Klass.equals("String") )
+        String __${field.LowerCamel} = cursor.getString(${columnIndex});
+        String __${field.LowerCamel}Default = null;
+#end##if_field.Klass.equals(*)
+        if (!__${field.LowerCamel}.equals(__${field.LowerCamel}Default)){
+            ${association.Klass}.Proxy _${association.Klass} = new ${association.Klass}.Proxy();
+            _${association.Klass}.${association.ReferenceKey.LowerCamel} = __${field.LowerCamel};
+            _${association.Klass}._daofactory = this.factory;
+            target._${association.Klass} = _${association.Klass};
+        }
+#end##($association.ForeignKey.equals($field))
+#end##foreach($association in $manyToOneAssociations)
 #end##foreach
         return target;
     }
