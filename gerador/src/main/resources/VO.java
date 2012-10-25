@@ -182,7 +182,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         if (${submap} != null && ${submap} instanceof Map){
             obj._${association.Klass} = new ${association.Klass}().mapToObject((Map<String,Object>)${submap}, daofactory);
         } else if(daofactory != null){
-            long ${field.LowerCamel} = ((Number)mapAnyCamelCase.get("${association.Klass}")).longValue();
+            temp = mapAnyCamelCase.get("${alias}");
+            long ${field.LowerCamel} = ((temp!= null)?((Number) temp).longValue(): ${defaultId});
             DAO<${association.Klass}> dao = daofactory.getDaoFor(${association.Klass}.class);
             if (${field.LowerCamel} != ${defaultId} && dao != null){
                 obj._${association.Klass} = dao.query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq((Long)${field.LowerCamel})).first();
