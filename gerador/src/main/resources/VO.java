@@ -67,6 +67,52 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
+    public ${Klass}(){}
+
+    public ${Klass}(
+#foreach ($field in $primaryKeys)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+        ${field.Type} ${field.LowerCamel}#if ($foreach.index != ($fields.size() - 1)), #end
+
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($field in $primaryKeys)
+#foreach ($field in $fields)
+#set ($fieldIndex = $foreach.index)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+        ${association.Klass} _${association.Klass}#if ($fieldIndex != ($fields.size() - 1)), #end
+
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey && !$primaryKeys.contains($field))
+        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != ($fields.size() - 1)), #else)#end
+
+#end##if (!$fieldIsForeignKey && !$primaryKeys.contains($field))
+#end##foreach ($field in $fields)
+    {
+#foreach ($field in $fields)
+#set ($fieldIndex = $foreach.index)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+        this._${association.Klass} = _${association.Klass};
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+        this.${field.LowerCamel} = ${field.LowerCamel};
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($field in $fields)
+    }
+
 #foreach ($field in $fields)
 #if ($field.Get)
     public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
