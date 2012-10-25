@@ -130,7 +130,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($association in $manyToOneAssociations)
 #if ($association.ForeignKey.equals($field))
 #set ($fieldIsForeignKey = true)
-        $field.Type $field.LowerCamel = _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
+        $field.Type $field.LowerCamel = (_${association.Klass} == null)? 0 : _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
 #end##if($association.ForeignKey.equals($field))
 #end##($association in $manyToOneAssociations)
 #if ($primaryKeys.contains($field) || $fieldIsForeignKey)
@@ -147,7 +147,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public $Klass mapToObject(Map<String, Object> map)
         throws ClassCastException
     {
-        return mapToObject(map);
+        return mapToObject(map, null);
     }
 
 #if ($manyToOneAssociations.size() >0 )

@@ -12,6 +12,33 @@
 #break
 #end##if_Klass_equals_Date
 #end##foreach
+##
+## String de busca e arrays de argumentos
+##
+#set ($primaryKeysArgs = "new String[]{")
+#set ($queryByPrimaryKey = "")
+#set ($nullPkCondition = "")
+#foreach ($field in $primaryKeys)
+#if ($foreach.index !=0)
+#set ($queryByPrimaryKey = $queryByPrimaryKey + " AND ")
+#set ($nullPkCondition = $nullPkCondition + " || ")
+#end##if ($foreach.index !=0)
+#set ($queryByPrimaryKey = $queryByPrimaryKey + "${field.LowerAndUnderscores} = ?")
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+#set ($primaryKeysArgs = $primaryKeysArgs + "((${field.Klass})target._${association.Klass}.get${association.ReferenceKey.UpperCamel}()).toString(),")
+#set ($nullPkCondition = $nullPkCondition + "target._${association.Klass} == null ||" +
+                         "target._${association.Klass}.get${association.ReferenceKey.UpperCamel}() == ${defaultId}")
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+#set ($primaryKeysArgs = $primaryKeysArgs + "((${field.Klass})target.${field.LowerCamel}).toString(),")
+#set ($nullPkCondition = $nullPkCondition + "target.get${field.UpperCamel}() == ${defaultId}" )
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($field in $primaryKeys)
+#set ($primaryKeysArgs = ${primaryKeysArgs} + "}")
 package $package;
 
 import java.io.IOException;
@@ -51,11 +78,25 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
     @Override
     public boolean save($Target target, int flags) throws IOException {
+#if ($compoundPk)
+        if (${nullPkCondition}) {
+            return false;
+        }
+#end##if ($compoundPk)
         target._daofactory = this.factory;
         if (target instanceof LazyProxy)
             ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+        contentValues.put("${field.LowerAndUnderscores}",
+                          (target._${association.Klass} == null) ? 0 : target._${association.Klass}.get${association.ReferenceKey.UpperCamel}());
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
 #if ($compoundPk || !$primaryKey.equals($field))
 #if ($field.Klass.equals("Date") )
         contentValues.put("${field.LowerAndUnderscores}",
@@ -65,19 +106,21 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else##if_class_equals
         contentValues.put("${field.LowerAndUnderscores}", target.${field.LowerCamel});
 #end##if_class_equals
-#end##if_primaryKey
+#end##if ($compoundPk || !$primaryKey.equals($field))
+#end##if (!$fieldIsForeignKey)
 #end##foreach
         SQLiteDatabase db = this.factory.getDb();
         boolean insert;
+        String queryByPrimaryKey = "${queryByPrimaryKey}";
+        String primaryKeysArgs [] = ${primaryKeysArgs};
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${primaryKey.LowerCamel} == ${defaultId};
 #end##not_compoundPk
         #if (!$compoundPk)if (insertIfNotExists)#end{
             Cursor cursor = this.factory.getDb().rawQuery(
-                "SELECT COUNT(*) FROM ${table} WHERE "+
-                "#foreach ($key in $primaryKeys)#if ($foreach.index !=0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[]{ #foreach ($key in $primaryKeys)((${key.Klass})target.${key.LowerCamel}).toString(), #end});
+                "SELECT COUNT(*) FROM ${table} WHERE "+ queryByPrimaryKey,
+                primaryKeysArgs);
             insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
             cursor.close();
         }
@@ -105,13 +148,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##not_compoundPk
         } else {
             int value = db.update(
-                "${table}", contentValues,
-##
-##Se for o primeiro escreve: campo = ?
-##Ou entao escreve:      AND campo = ?
-##
-                "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                new String[] { #foreach ($key in $primaryKeys)((${key.Klass})target.${key.LowerCamel}).toString(), #end});
+                "${table}", contentValues, queryByPrimaryKey, primaryKeysArgs);
             return (value > 0);
         }
     }
@@ -132,7 +169,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 
     public boolean delete(${Target} target) throws IOException {
-        if (#foreach ($key in $primaryKeys)#if ($foreach.index != 0) || #end target.${key.LowerCamel} == ${defaultId}#end) {
+        if (${nullPkCondition}) {
             return false;
         }
         SQLiteDatabase db = this.factory.getDb();
@@ -163,8 +200,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             int affected;
             try {
                 affected = db.delete(
-                    "${table}", "#foreach ($key in $primaryKeys)#if ($foreach.index != 0) AND #end${key.LowerAndUnderscores} = ?#end",
-                    new String[] {#foreach ($key in $primaryKeys)#if ($foreach.index != 0),#end (($key.Klass)target.${key.LowerCamel}).toString()#end });
+                    "${table}",
+                    "${queryByPrimaryKey}",
+                    ${primaryKeysArgs});
             } catch (SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));
             }
@@ -187,6 +225,20 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         target._daofactory = this.factory;
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+        Long __${field.LowerCamel} = cursor.getLong(${columnIndex});
+        if (!__${field.LowerCamel}.equals((long)${defaultId})) {
+            ${association.Klass}.Proxy _${association.Klass} = new ${association.Klass}.Proxy();
+            _${association.Klass}.${association.ReferenceKey.LowerCamel} = __${field.LowerCamel};
+            _${association.Klass}._daofactory = this.factory;
+            target._${association.Klass} = _${association.Klass};
+        }
+#end##($association.ForeignKey.equals($field))
+#end##foreach($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
 #if ($field.Klass.equals("Boolean") )
         target.${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
 #elseif ($field.Klass.equals("Date") )
@@ -198,32 +250,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #elseif ($field.Klass.equals("String") )
         target.${field.LowerCamel} = cursor.getString(${columnIndex});
 #end##if_field.Klass.equals(*)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#if ($field.Klass.equals("Boolean") )
-        Boolean __${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
-        Boolean __${field.LowerCamel}Default = false;
-#elseif ($field.Klass.equals("Date") )
-        Date __${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
-        Date __${field.LowerCamel}Default = null;
-#elseif ($field.Klass.equals("Long") )
-        Long __${field.LowerCamel} = cursor.getLong(${columnIndex});
-        Long __${field.LowerCamel}Default = (long)0;
-#elseif ($field.Klass.equals("Double") )
-        Double __${field.LowerCamel} = cursor.getDouble(${columnIndex});
-        Double __${field.LowerCamel}Default = (double)0;
-#elseif ($field.Klass.equals("String") )
-        String __${field.LowerCamel} = cursor.getString(${columnIndex});
-        String __${field.LowerCamel}Default = null;
-#end##if_field.Klass.equals(*)
-        if (!__${field.LowerCamel}.equals(__${field.LowerCamel}Default)){
-            ${association.Klass}.Proxy _${association.Klass} = new ${association.Klass}.Proxy();
-            _${association.Klass}.${association.ReferenceKey.LowerCamel} = __${field.LowerCamel};
-            _${association.Klass}._daofactory = this.factory;
-            target._${association.Klass} = _${association.Klass};
-        }
-#end##($association.ForeignKey.equals($field))
-#end##foreach($association in $manyToOneAssociations)
+#end##if (!$fieldIsForeignKey)
 #end##foreach
         return target;
     }
@@ -231,7 +258,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     @Override
     public String[] getColumns() {
         return new String[] {
-            #foreach ($field in $fields)"${field.UpperAndUnderscores}",#end
+#foreach ($field in $fields)
+            "${field.UpperAndUnderscores}",
+#end
         };
     }
 
@@ -343,7 +372,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         @Override
         protected Table.Column<?> [] getColunas() {
             return new Table.Column[] {
-                #foreach ($field in $fields)#if ($foreach.index != 0),#end ${Target}.${field.UpperAndUnderscores}#end
+#foreach ($field in $fields)
+                ${Target}.${field.UpperAndUnderscores},
+#end
             };
         }
 
