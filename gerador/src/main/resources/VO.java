@@ -49,11 +49,20 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end
 
 #foreach ($field in $fields)
-    ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
-#end
+## Conferir se o campo eh uma chave estrangeira
+##   Se sim, criar uma instancia da classe associada
+##   Se nao, criar apenas o campo
+#set ($fieldIsForeignKey = false)
 #foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
     ${association.Klass} _${association.Klass};
-#end
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+    ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($field in $fields)
 
     public DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
@@ -84,20 +93,11 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end
 #foreach ($association in $manyToOneAssociations)
     public ${association.Klass} get${association.Klass}(){
-        if (_${association.Klass} == null){
-            if (this._daofactory == null)
-                return null;
-            _${association.Klass} = ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class))
-                .query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${association.ForeignKey.LowerCamel}))
-                .first();
-        }
         return _${association.Klass};
     }
 
     public void set${association.Klass}(${association.Klass} obj){
         _${association.Klass} = obj;
-        ${association.ReferenceKey.Type} key = (obj == null) ? ${defaultId} : obj.get${association.ReferenceKey.UpperCamel}();
-        this.${association.ForeignKey.LowerCamel} = key;
     }
 
 #end
@@ -126,7 +126,14 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #else##if_not_alias
 #set ($alias = $field.LowerAndUnderscores)
 #end##end_if_alias
-#if ($primaryKeys.contains($field))
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+        $field.Type $field.LowerCamel = _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if ($primaryKeys.contains($field) || $fieldIsForeignKey)
         if (${field.LowerCamel} != ${defaultId}) {
             map.put("${alias}", ${field.LowerCamel});
         }
@@ -138,6 +145,16 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
     @Override
     public $Klass mapToObject(Map<String, Object> map)
+        throws ClassCastException
+    {
+        return mapToObject(map);
+    }
+
+#if ($manyToOneAssociations.size() >0 )
+    @SuppressWarnings("unchecked")
+#end##($manyToOneAssociations.size() >0 )
+    @Override
+    public $Klass mapToObject(Map<String, Object> map, DAOFactory daofactory)
         throws ClassCastException
     {
         CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =
@@ -154,8 +171,26 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #if ($primaryKeys.contains($field))
 #set ($fallback = $defaultId)
 #else##if_primary_key
-#set ($fallback = "this.${field.LowerCamel}")
+#set ($fallback = ${field.LowerCamel})
 #end##if_primary_key
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+#set ($submap = "submapFor${association.Klass}")
+        Object ${submap} = mapAnyCamelCase.get("${association.Klass}");
+        if (${submap} != null && ${submap} instanceof Map){
+            obj._${association.Klass} = new ${association.Klass}().mapToObject((Map<String,Object>)${submap}, daofactory);
+        } else if(daofactory != null){
+            long ${field.LowerCamel} = ((Number)mapAnyCamelCase.get("${association.Klass}")).longValue();
+            DAO<${association.Klass}> dao = daofactory.getDaoFor(${association.Klass}.class);
+            if (${field.LowerCamel} != ${defaultId} && dao != null){
+                obj._${association.Klass} = dao.query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq((Long)${field.LowerCamel})).first();
+            }
+        }
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
         temp = mapAnyCamelCase.get("${alias}");
 #if (${field.Klass} == "Long" || ${field.Klass} == "Double")
         obj.${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
@@ -164,6 +199,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #else##if_Klass_eq_***
         obj.${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
 #end##if_Klass_eq_***
+#end##if (!$fieldIsForeignKey)
 #end##foreach
         return obj;
     }
