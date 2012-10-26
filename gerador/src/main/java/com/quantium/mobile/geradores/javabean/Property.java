@@ -9,20 +9,22 @@ public final class Property {
 	private String alias;
 	private boolean get;
 	private boolean set;
+	private boolean primaryKey;
 
 	public Property(String name, Class<?> klass,
-	                   boolean get, boolean set)
+	                   boolean get, boolean set, boolean primaryKey)
 	{
 		this.name = name;
 		this.klass = klass;
 		this.get = get;
 		this.set = set;
+		this.primaryKey = primaryKey;
 	}
 
-	public Property(String name, Class<?> klass,
-	                   boolean get, boolean set, String alias)
+	public Property(String name, Class<?> klass, boolean get,
+	                boolean set, String alias, boolean primaryKey)
 	{
-		this(name, klass, get, set);
+		this(name, klass, get, set, primaryKey);
 		this.alias = alias;
 	}
 
@@ -91,6 +93,10 @@ public final class Property {
 
 	public void setSet(boolean set) {
 		this.set = set;
+	}
+
+	public boolean isPrimaryKey(){
+		return primaryKey;
 	}
 
 	@Override

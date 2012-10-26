@@ -142,11 +142,13 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         return _${association.Klass};
     }
 
+#if (!$primaryKeys.contains($association.ForeignKey))
     public void set${association.Klass}(${association.Klass} obj){
         _${association.Klass} = obj;
     }
+#end##if (!$primaryKeys.contains($association.ForeignKey))
 
-#end
+#end##foreach ($association in $manyToOneAssociations)
 #foreach ($association in $manyToManyAssociations)
     public QuerySet<${association.Klass}> get${association.Pluralized}(){
         if (this._daofactory == null)

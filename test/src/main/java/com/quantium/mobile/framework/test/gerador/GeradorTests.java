@@ -171,10 +171,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		document.setAuthor(author);
 		assertTrue(docDao.save(document));
 
-		Score score = new Score();
-		score.setAuthor(author);
-		score.setDocument(document);
-		score.setScore( (new Random().nextInt())%100 );
+		Score score = new Score(author, document, (new Random().nextInt())%100);
 		assertTrue(scoreDao.save(score));
 
 		Customer customer = randomCustomer();

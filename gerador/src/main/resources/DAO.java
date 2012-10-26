@@ -337,7 +337,14 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##foreach_manyToManyAssociation
 
     public ToManyDAO with(${Target} obj){
-#if ($manyToManyAssociations.size() == 0 && $oneToManyAssociations.size() == 0)
+#set ($hasMutableAssociations = $manyToManyAssociations.size() > 0)
+#foreach ($association in $oneToManyAssociations)
+#if (!$association.ForeignKey.PrimaryKey)
+#set ($hasMutableAssociations = true)
+#break
+#end##if (!$association.KeyToA.PrimaryKey)
+#end##foreach ($association in oneToManyAssociations)
+#if (!$hasMutableAssociations)
          throw new UnsupportedOperationException();
 #else##has_toManyAssociations
          return new ${Target}ToManyDAO(obj);
@@ -396,13 +403,18 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
         @Override
         public boolean add(Object obj) throws IOException{
+#if (!$hasMutableAssociations)
+            throw new UnsupportedOperationException();
+#else##if (!$hasMutableAssociations)
 #set ($assocIndex = 0)
 #foreach ($association in $oneToManyAssociations)
+#if (!$association.ForeignKey.PrimaryKey)
            #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
                 ${association.Klass} objCast = ((${association.Klass})obj);
                 objCast.set${Target}(this.target);
                 return factory.getDaoFor(${association.Klass}.class).save(objCast);
 #set ($assocIndex = $assocIndex+1)
+#end##if (!$association.ForeignKey.PrimaryKey)
 #end##foreach_oneToMany
 #foreach ($association in $manyToManyAssociations)
            #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
@@ -413,6 +425,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             } else {
                 throw new IllegalArgumentException(obj.getClass().getName());
             }
+#end##if (!$hasMutableAssociations)
         }
 
         @Override

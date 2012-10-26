@@ -94,12 +94,22 @@ public class JavaBeanSchema{
 		@Override
 		public Property getPropriedade(String coluna) {
 			for(TabelaSchema.Coluna it : tabela.getColunas()){
+				boolean isNotPrimaryKey = true;
+				String constraints [] = it.getConstraints();
+				if (constraints != null){
+					for (String constraint : constraints){
+						if (constraint.equals(TabelaSchema.PRIMARY_KEY_CONSTRAINT)){
+							isNotPrimaryKey = false;
+						}
+					}
+				}
 				if(it.getNome().equals(coluna)) {
 					return new Property(
 							it.getNome(),
 							it.getType(),
 							true,
-							true
+							isNotPrimaryKey,
+							!isNotPrimaryKey
 					);
 				}
 			}

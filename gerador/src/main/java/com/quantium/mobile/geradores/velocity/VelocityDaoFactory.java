@@ -193,14 +193,14 @@ public class VelocityDaoFactory {
 				m2m.getReferenciaA());
 		Property keyPropA = new Property(
 				m2m.getKeyToA(), refPropA.getPropertyClass(),
-				false, false);
+				false, false, false);
 			map.put("KeyToA", keyPropA);
 			map.put("ReferenceA", refPropA);
 		Property refPropB = schemaB.getPropriedade(
 				m2m.getReferenciaB());
 		Property keyPropB = new Property(
 				m2m.getKeyToB(), refPropB.getPropertyClass(),
-				false, false);
+				false, false, false);
 		map.put("KeyToB", keyPropB);
 		map.put("ReferenceB", refPropB);
 		map.put("Klass", klassname);
