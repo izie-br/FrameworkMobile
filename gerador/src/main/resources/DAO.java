@@ -57,6 +57,7 @@ import com.quantium.mobile.framework.db.DAOSQLite;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.ToManyDAO;
 #if ( $hasDateField)
+import java.util.Date;
 import com.quantium.mobile.framework.utils.DateUtil;
 #end##if_hasDateField
 import com.quantium.mobile.framework.Save;
@@ -160,7 +161,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
     public QuerySet<${Target}> query(Q q) {
         QuerySet<${Target}> queryset =
-            new QuerySetImpl<${Target}>(this.factory, new ${Target}());
+            new QuerySetImpl(this.factory);
         if (q == null) {
             return queryset;
         }
@@ -218,11 +219,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 
     @Override
-    public  $Target cursorToObject(Cursor cursor, ${Target} _prototype){
-        if (_prototype instanceof LazyProxy)
-            ((LazyProxy)_prototype).load();
-        ${Target} target = _prototype.clone();
-        target._daofactory = this.factory;
+    public  $Target cursorToObject(Cursor cursor){
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
 #set ($fieldIsForeignKey = false)
@@ -230,28 +227,47 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if ($association.ForeignKey.equals($field))
 #set ($fieldIsForeignKey = true)
         Long __${field.LowerCamel} = cursor.getLong(${columnIndex});
+        ${association.Klass}.Proxy _${association.Klass} = null;
         if (!__${field.LowerCamel}.equals((long)${defaultId})) {
-            ${association.Klass}.Proxy _${association.Klass} = new ${association.Klass}.Proxy();
+            _${association.Klass} = new ${association.Klass}.Proxy();
             _${association.Klass}.${association.ReferenceKey.LowerCamel} = __${field.LowerCamel};
             _${association.Klass}._daofactory = this.factory;
-            target._${association.Klass} = _${association.Klass};
         }
+
 #end##($association.ForeignKey.equals($field))
 #end##foreach($association in $manyToOneAssociations)
 #if (!$fieldIsForeignKey)
 #if ($field.Klass.equals("Boolean") )
-        target.${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
+        ${field.Type} ${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
 #elseif ($field.Klass.equals("Date") )
-        target.${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
+        ${field.Type} ${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
 #elseif ($field.Klass.equals("Long") )
-        target.${field.LowerCamel} = cursor.getLong(${columnIndex});
+        ${field.Type} ${field.LowerCamel} = cursor.getLong(${columnIndex});
 #elseif ($field.Klass.equals("Double") )
-        target.${field.LowerCamel} = cursor.getDouble(${columnIndex});
+        ${field.Type} ${field.LowerCamel} = cursor.getDouble(${columnIndex});
 #elseif ($field.Klass.equals("String") )
-        target.${field.LowerCamel} = cursor.getString(${columnIndex});
+        ${field.Type} ${field.LowerCamel} = cursor.getString(${columnIndex});
 #end##if_field.Klass.equals(*)
 #end##if (!$fieldIsForeignKey)
-#end##foreach
+#end##foreach ($field in $fields)
+
+        ${Target} target = new ${Target}(
+#foreach ($field in $fields)
+#set ($columnIndex = $foreach.index)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+            _${association.Klass}#if ($foreach.count < $fields.size()),#else);#end
+
+#end##($association.ForeignKey.equals($field))
+#end##foreach($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+            ${field.LowerCamel}#if ($foreach.count < $fields.size()),#else);#end
+
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($field in $fields)
+        target._daofactory = this.factory;
         return target;
     }
 
@@ -351,19 +367,16 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##has_toManyAssociations
     }
 
-    final class QuerySetImpl<T extends ${Target} >
-        extends SQLiteQuerySet<T>
+    final class QuerySetImpl
+        extends SQLiteQuerySet<${Target}>
     {
 
         private SQLiteDAOFactory factory;
         private ${Klass} dao;
-        private T mPrototype;
 
-        protected QuerySetImpl(SQLiteDAOFactory factory, T _prototype) {
+        protected QuerySetImpl(SQLiteDAOFactory factory) {
             this.factory = factory;
-            this.dao = (${Klass})factory.getDaoFor(
-                _prototype.getClass());
-            this.mPrototype = _prototype;
+            this.dao = (${Klass})factory.getDaoFor(${Target}.class);
         }
 
         @Override
@@ -385,9 +398,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             };
         }
 
-        @SuppressWarnings("unchecked")
-        protected T cursorToObject(Cursor cursor) {
-            return (T)dao.cursorToObject(cursor, mPrototype);
+        protected ${Target} cursorToObject(Cursor cursor) {
+            return dao.cursorToObject(cursor);
         }
 
     }
