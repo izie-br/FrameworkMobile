@@ -7,6 +7,7 @@ import java.util.Set;
 import java.util.TreeSet;
 
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;
 
@@ -34,9 +35,19 @@ public class ColumnsUtils {
 			);
 		setOrdenado.addAll(javaBeanSchema.getTabela().getColunas());
 
-		List<String> colunasEmOrdem = new ArrayList<String>(setOrdenado.size());
-		for(TabelaSchema.Coluna coluna: setOrdenado)
-			colunasEmOrdem.add(coluna.getNome());
+		List<String> primaryKeys = new ArrayList<String>();
+		List<String> notPrimaryKeys = new ArrayList<String>();
+
+		// Separando as chaves primarias do resto
+		for(TabelaSchema.Coluna column : setOrdenado){
+			Property prop = javaBeanSchema.getPropriedade(column.getNome());
+			((prop.isPrimaryKey()) ? primaryKeys : notPrimaryKeys)
+				.add(column.getNome());
+		}
+
+		List<String> colunasEmOrdem = new ArrayList<String>();
+		colunasEmOrdem.addAll(primaryKeys);
+		colunasEmOrdem.addAll(notPrimaryKeys);
 
 		return colunasEmOrdem;
 

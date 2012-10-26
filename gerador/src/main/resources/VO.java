@@ -70,18 +70,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public ${Klass}(){}
 
     public ${Klass}(
-#foreach ($field in $primaryKeys)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-        ${field.Type} ${field.LowerCamel}#if ($foreach.index != ($fields.size() - 1)), #end
-
-#end##if (!$fieldIsForeignKey)
-#end##foreach ($field in $primaryKeys)
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index)
 #set ($fieldIsForeignKey = false)
@@ -92,10 +80,10 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
 #end##if($association.ForeignKey.equals($field))
 #end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey && !$primaryKeys.contains($field))
+#if (!$fieldIsForeignKey)
         ${field.Type} ${field.LowerCamel}#if ($fieldIndex != ($fields.size() - 1)), #else)#end
 
-#end##if (!$fieldIsForeignKey && !$primaryKeys.contains($field))
+#end##if (!$fieldIsForeignKey)
 #end##foreach ($field in $fields)
     {
 #foreach ($field in $fields)
