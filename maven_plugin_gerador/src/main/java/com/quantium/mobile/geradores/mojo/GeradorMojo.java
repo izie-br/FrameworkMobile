@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.log4j.Logger;
+import org.apache.maven.execution.MavenSession;
 import org.apache.maven.plugin.AbstractMojo;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.apache.maven.plugin.MojoFailureException;
+import org.apache.maven.plugin.logging.Log;
 
 import com.pyx4j.log4j.MavenLogAppender;
 import com.quantium.mobile.geradores.GeradorDeBeans;
@@ -40,6 +42,20 @@ public class GeradorMojo extends AbstractMojo{
      * @parameter
      */
     private String androidSrcDir;
+
+    /**
+     * The Maven Session.
+     *
+     * @parameter expression="${session}"
+     * @required
+     * @readonly
+     */
+    protected MavenSession mavenSession;
+
+    /**
+     * @parameter expression="false"
+     */
+    protected boolean runOnRootOnly;
 
     /**
      * @parameter
@@ -128,6 +144,11 @@ public class GeradorMojo extends AbstractMojo{
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException
     {
+        if (runOnRootOnly  && !isThisTheExecutionRoot()){
+            getLog().info("not root");
+            return;
+        }
+
         MavenLogAppender.startPluginLog(this);
         Logger log = Logger.getLogger(getClass().getName());
         log.info("iniciando gerador");
@@ -166,6 +187,24 @@ public class GeradorMojo extends AbstractMojo{
         }
         log.info("finalizando gerador");
         MavenLogAppender.endPluginLog(this);
+    }
+
+    // Para rodar apenas no projeto pai
+    protected boolean isThisTheExecutionRoot()
+    {
+        Log log = getLog();
+        log.debug("Root Folder:" + mavenSession.getExecutionRootDirectory());
+        log.debug("Current Folder:"+ basedir );
+        boolean result = mavenSession.getExecutionRootDirectory().equalsIgnoreCase(basedir.toString());
+        if (result)
+        {
+            log.debug( "This is the execution root." );
+        }
+        else
+        {
+            log.debug( "This is NOT the execution root." );
+        }
+        return result;
     }
 
 /*    private Properties getPropertiesFile() throws MojoFailureException{
