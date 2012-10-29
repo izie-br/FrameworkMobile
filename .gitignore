@@ -1,6 +1,7 @@
 tempgen/*
 gerador/script/schema.sql
 lib/target/*
+lib_android/target/*
 gerador/customGen/*
 gerador/target/*
 .project

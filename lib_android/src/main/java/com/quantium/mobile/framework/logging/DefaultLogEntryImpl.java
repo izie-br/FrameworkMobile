@@ -107,7 +107,7 @@ public class DefaultLogEntryImpl implements LogEntry{
 		json.put(DB_VERSION, getDbVersion());
 		json.put(LEVEL, level);
 		json.put(MESSAGE, message);
-		json.put(HASH_CODE, StringUtil.SHA1(message));
+		json.put(HASH_CODE, StringUtil.toMd5(message));
 		return json;
 	}
 
