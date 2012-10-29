@@ -24,10 +24,22 @@ import com.quantium.mobile.geradores.GeradorException;
  */
 public class GeradorMojo extends AbstractMojo{
 
+	private static final String PROPRIEDADE_INDEFINIDA_ERRMSG = "propriedade '%s' indefinida";
+
 	/**
      * @parameter expression="${basedir}"
      */
     private String basedir;
+
+    /**
+     * @parameter
+     */
+    private String coreSrcDir;
+
+    /**
+     * @parameter
+     */
+    private String androidSrcDir;
 
     /**
      * @parameter
@@ -120,6 +132,13 @@ public class GeradorMojo extends AbstractMojo{
         Logger log = Logger.getLogger(getClass().getName());
         log.info("iniciando gerador");
 
+        if (basedir == null)
+            throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "basedir"));
+        if (coreSrcDir == null)
+            throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "coreSrcDir"));
+        if (androidSrcDir == null)
+            throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "androidSrcDir"));
+
         Map<String,Object> defaultProperties = new HashMap<String,Object>();
         String ignored = getIgnored();
         if (ignored != null)
@@ -132,7 +151,8 @@ public class GeradorMojo extends AbstractMojo{
             new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
                     getAndroidManifest(),
                     getSqlResource(),
-                    basedir+getSrcFolder(),
+                    new File(basedir, coreSrcDir),
+                    new File(basedir, androidSrcDir),
                     "gen",
                     getConfigResource(),
                     defaultProperties
@@ -146,10 +166,6 @@ public class GeradorMojo extends AbstractMojo{
         }
         log.info("finalizando gerador");
         MavenLogAppender.endPluginLog(this);
-    }
-
-    private String getSrcFolder() {
-        return "/src/main/java";
     }
 
 /*    private Properties getPropertiesFile() throws MojoFailureException{

@@ -27,46 +27,46 @@ public class StringUtilTests extends TestCase {
 	}
 
 	public void testHashes(){
-		String sha1Regex = "[0-9a-fA-F]{40}";
+//		String sha1Regex = "[0-9a-fA-F]{40}";
 		String md5Regex = "[0-9a-fA-F]{32}";
 
 		String strA = new String("igual");
 		String strB = new String("igual");
 		String strC = new String("diferente");
 
-		String shaA = StringUtil.SHA1(strA);
-		String shaB = StringUtil.SHA1(strB);
-		String shaC = StringUtil.SHA1(strC);
+//		String shaA = StringUtil.SHA1(strA);
+//		String shaB = StringUtil.SHA1(strB);
+//		String shaC = StringUtil.SHA1(strC);
 
 		String mdA = StringUtil.toMd5(strA);
 		String mdB = StringUtil.toMd5(strB);
 		String mdC = StringUtil.toMd5(strC);
 
-		for(String sha1X : new String[]{shaA,shaB,shaC}){
-			assertTrue(sha1X.matches(sha1Regex));
-		}
+//		for(String sha1X : new String[]{shaA,shaB,shaC}){
+//			assertTrue(sha1X.matches(sha1Regex));
+//		}
 
 		for(String md5X : new String[]{mdA,mdB,mdC}){
 			assertTrue(md5X.matches(md5Regex));
 		}
 
-		assertEquals(shaA, shaB);
+//		assertEquals(shaA, shaB);
 		assertEquals(mdA, mdB);
 
-		assertFalse(shaA.equals(shaC));
+//		assertFalse(shaA.equals(shaC));
 		assertFalse(mdA.equals(mdC));
 
 	}
 
-	public void testBase64(){
-		String strA = new String("igual");
-		String strB = new String("igual");
-		String strC = new String("diferente");
-
-		assertEquals(strA, StringUtil.fromBase64(StringUtil.toBase64(strB)));
-
-		assertFalse(strA.equals(StringUtil.fromBase64(StringUtil.toBase64(strC))));
-
-	}
+//	public void testBase64(){
+//		String strA = new String("igual");
+//		String strB = new String("igual");
+//		String strC = new String("diferente");
+//
+//		assertEquals(strA, StringUtil.fromBase64(StringUtil.toBase64(strB)));
+//
+//		assertFalse(strA.equals(StringUtil.fromBase64(StringUtil.toBase64(strC))));
+//
+//	}
 
 }

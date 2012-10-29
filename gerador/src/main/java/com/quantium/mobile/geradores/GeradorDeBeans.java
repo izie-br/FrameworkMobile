@@ -5,13 +5,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
-import java.math.BigDecimal;
 import java.nio.channels.FileChannel;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -27,19 +25,6 @@ import java.util.regex.Pattern;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
-import net.sf.jsqlparser.parser.CCJSqlParserManager;
-import net.sf.jsqlparser.statement.Statement;
-import net.sf.jsqlparser.statement.StatementVisitor;
-import net.sf.jsqlparser.statement.create.table.ColumnDefinition;
-import net.sf.jsqlparser.statement.create.table.CreateTable;
-import net.sf.jsqlparser.statement.delete.Delete;
-import net.sf.jsqlparser.statement.drop.Drop;
-import net.sf.jsqlparser.statement.insert.Insert;
-import net.sf.jsqlparser.statement.replace.Replace;
-import net.sf.jsqlparser.statement.select.Select;
-import net.sf.jsqlparser.statement.truncate.Truncate;
-import net.sf.jsqlparser.statement.update.Update;
-
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
@@ -51,17 +36,6 @@ import com.quantium.mobile.geradores.util.XMLUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
-import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JClassAlreadyExistsException;
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JConditional;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JVar;
 
 public class GeradorDeBeans {
 
@@ -98,7 +72,7 @@ public class GeradorDeBeans {
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					GeradorDeBeans.class.getName()+ " " +
-					"androidManifest arquivo_sql pastaSrc [properties]"
+					"androidManifest arquivo_sql coreSrc androidSrc [properties]"
 			);
 			return;
 		}
@@ -107,12 +81,14 @@ public class GeradorDeBeans {
 		String manifest = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
-		String properties = (args.length >3) ? args[3] : DEFAULT_GENERATOR_CONFIG;
+		String androidSrc = args[3];
+		String properties = (args.length >4) ? args[4] : DEFAULT_GENERATOR_CONFIG;
 
 		try {
 			new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
 				new File(manifest), new File (arquivo),
-				pastaSrc, "gen", new File(properties), defaultProperties);
+				new File(pastaSrc), new File(androidSrc),
+				"gen", new File(properties), defaultProperties);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -188,18 +164,19 @@ public class GeradorDeBeans {
 	}
 
 	public void generateBeansWithJsqlparserAndVelocity(
-			File androidManifestFile, File sqlResource, String pastaSrc,
+			File androidManifestFile, File sqlResource,
+			File coreSrcDir, File androidSrcDir,
 			String pacoteGen, File properties, Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException {
 		String pacote = getBasePackage(androidManifestFile);
-		conferirArquivosCustomSrc(pacote, pastaSrc);
+//		conferirArquivosCustomSrc(pacote, androidSrcDir);
 
 		PropertiesLocal props = getProperties(properties);
 		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
 
-		Integer dbVersion = getDBVersion(pastaSrc, pacote);
+		Integer dbVersion = getDBVersion(androidSrcDir, pacote);
 		if(dbVersion==null)
 			throw new GeradorException("versao do banco nao encontrada");
 
@@ -258,10 +235,15 @@ public class GeradorDeBeans {
 //		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
 //				new HashMap<JavaBeanSchema, JDefinedClass>();
 
-		File tempdir = new File("tempgen");
-		if (tempdir.exists())
-			deleteFolderR(tempdir);
-		tempdir.mkdir();
+		File coreTempDir = new File("__tempgen_core");
+		if (coreTempDir.exists())
+			deleteFolderR(coreTempDir);
+		coreTempDir.mkdir();
+		File androidTempDir = new File("__tempgen_android");
+		if (androidTempDir.exists())
+			deleteFolderR(androidTempDir);
+		androidTempDir.mkdir();
+
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
 			      LoggerUtil.class.getName() );
@@ -273,9 +255,9 @@ public class GeradorDeBeans {
 		ve.setProperty("class.resource.loader.class",
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
-		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, tempdir,
+		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, androidTempDir,
 				pacote+ "."+ pacoteGen);
-		VelocityVOFactory vvof = new VelocityVOFactory(ve, tempdir,
+		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
@@ -296,36 +278,54 @@ public class GeradorDeBeans {
 			vvof.generateVOClass(javaBeanSchema, javaBeanSchemas);
 		}
 		VelocityCustomClassesFactory.generateDAOFactory(
-				ve, javaBeanSchemas, pacote+'.'+pacoteGen, tempdir);
+				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);
+
 
 		String pastaGen = (pacote + "."+ pacoteGen)
 				.replaceAll("\\.", File.separator);
-		File pastaGenFolder = new File(pastaSrc, pastaGen);
-		if(pastaGenFolder.exists()){
-			LoggerUtil.getLog().info("Deletando " + pastaGenFolder.getAbsolutePath());
-			deleteFolderR(pastaGenFolder);
+		File coreGenFolder = new File(coreSrcDir, pastaGen);
+		if(coreGenFolder.exists()){
+			LoggerUtil.getLog().info("Deletando " + coreGenFolder.getAbsolutePath());
+			deleteFolderR(coreGenFolder);
 		} else {
 			LoggerUtil.getLog().info(
 				"Pasta " +
-				pastaGenFolder.getAbsolutePath() +
+				coreGenFolder.getAbsolutePath() +
 				" nao encontrada"
 			);
 		}
-		pastaGenFolder.mkdirs();
+		coreGenFolder.mkdirs();
+		File androidGenDir = new File(androidSrcDir, pastaGen);
+		if(androidGenDir.exists()){
+			LoggerUtil.getLog().info("Deletando " + androidGenDir.getAbsolutePath());
+			deleteFolderR(androidGenDir);
+		} else {
+			LoggerUtil.getLog().info(
+				"Pasta " +
+				androidGenDir.getAbsolutePath() +
+				" nao encontrada"
+			);
+		}
+		androidGenDir.mkdirs();
 
-		for (File f : tempdir.listFiles())
-			copyFile(f, new File(pastaGenFolder, f.getName()));
+		for (File f : coreTempDir.listFiles())
+			copyFile(f, new File(coreGenFolder, f.getName()));
+		for (File f : androidTempDir.listFiles())
+			copyFile(f, new File(androidGenDir, f.getName()));
+
 		//props.save();
 	}
 
 
-	public Integer getDBVersion(String srcFolder, String basePackage)
+	public Integer getDBVersion(File srcFolder, String basePackage)
 			throws GeradorException {
 		String packageFolder;
 		packageFolder = basePackage.replaceAll("\\.", File.separator);
-		File dbFile = new File(srcFolder + File.separator + packageFolder
+		File dbFile = new File(
+				srcFolder,
+				(packageFolder
 				+ File.separator + GeradorDeBeans.DB_PACKAGE + File.separator
-				+ GeradorDeBeans.DB_CLASS + ".java");
+				+ GeradorDeBeans.DB_CLASS + ".java" ) );
 		if (!dbFile.exists()) {
 			String errmsg = dbFile.getAbsolutePath() + " nao encontrado";
 			LoggerUtil.getLog().error(errmsg);
@@ -565,80 +565,6 @@ public class GeradorDeBeans {
 	            destination.close();
 	        }
 	    }
-	}
-
-
-
-	/***********************************
-	 * Exemplos de uso das bibliotecas *
-	 *     jCodeModel e jSqlParser     *
-	 **********************************/
-
-
-	/**
-	 * exemplo de uso do codemodel
-	 * @throws JClassAlreadyExistsException
-	 * @throws IOException
-	 */
-	public static void exemploDeUsoDoCodeModel()
-			throws JClassAlreadyExistsException, IOException {
-		JCodeModel jcm = new JCodeModel();
-		//classe
-		JDefinedClass klass = jcm._class(JMod.PUBLIC,"br.com.cds.mobile.flora.eb.ClienteBean",ClassType.CLASS);
-		JDocComment comment = klass.javadoc();
-		comment.add("Classe gerada automaticamente");
-		// public BigDecimal precoFromString(String precoString)
-		JMethod metodo = klass.method(JMod.PUBLIC, BigDecimal.class, "precoFromString");
-		comment = metodo.javadoc();
-		comment.add("Comentario do metodo");
-		JVar var = metodo.param(jcm._ref(String.class), "precoString");
-		//escrevendo o corpo
-		JBlock blocoMetodo = metodo.body();
-		// if(precoString==null||precoString.equals(""))
-		JConditional cond = blocoMetodo._if(var.eq(JExpr._null()).cor(var.invoke("trim").invoke("equals").arg("")));
-		// precoString = new String("0")
-		cond._then().assign(var, JExpr._new(jcm._ref(String.class)).arg("0"));
-		// else
-		// System.out.print("OK")
-		cond._else().invoke(jcm.ref(System.class).staticRef("out"),"print").arg("OK");
-		// return new BigDecimal(precoString)
-		blocoMetodo._return(JExpr._new(jcm.ref(BigDecimal.class)).arg(var));
-		jcm.build(new File("customGen"));
-	}
-
-	public static void exemploDeUsoJSqlParser(){
-		try {
-			CCJSqlParserManager manager = new CCJSqlParserManager();
-			
-			BufferedReader reader = new BufferedReader(new FileReader("script/schema.sql"));
-			for(;;){
-				String stringStm = reader.readLine();
-				if(stringStm==null)
-					break;
-				Statement stm = manager.parse(new StringReader(stringStm));
-				stm.accept(new StatementVisitor() {
-					
-					@Override
-					public void visit(CreateTable ct) {
-						LoggerUtil.getLog().info("create" + ct.getTable().getName());
-						for(Object obj :ct.getColumnDefinitions())
-							LoggerUtil.getLog().info( ((ColumnDefinition)obj).getColumnName()+"  "+ ((ColumnDefinition)obj).getColDataType().getDataType() );
-						LoggerUtil.getLog().info("-------------");
-					}
-					
-					@Override public void visit(Truncate arg0) {}
-					@Override public void visit(Drop arg0) {}
-					@Override public void visit(Replace arg0) {}
-					@Override public void visit(Insert arg0) {}
-					@Override public void visit(Update arg0) {}
-					@Override public void visit(Delete arg0) {}
-					@Override public void visit(Select arg0) {}
-				});
-			}
-			reader.close();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
 	}
 
 }

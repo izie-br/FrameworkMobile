@@ -32,7 +32,7 @@
         </dependency>
         <dependency>
             <groupId>com.quantium.mobile.framework</groupId>
-            <artifactId>lib</artifactId>
+            <artifactId>lib_android</artifactId>
             <version>0.9-alpha</version>
             <scope>compile</scope>
         </dependency>
@@ -66,12 +66,14 @@
               <artifactId>maven-plugin-gerador</artifactId>
               <version>0.9-alpha</version>
               <configuration>
-                  <ignore>
-                       <ignore>sqlite_sequence</ignore>
-                  </ignore>
-                  <serializationAlias>
-                       <document.id>id_document</document.id>
-                  </serializationAlias>
+                <coreSrcDir>src/main/java/</coreSrcDir>
+                <androidSrcDir>src/main/java/</androidSrcDir>
+                <ignore>
+                  <ignore>sqlite_sequence</ignore>
+                </ignore>
+                <serializationAlias>
+                  <document.id>id_document</document.id>
+                </serializationAlias>
               </configuration>
               <executions>
                 <execution>

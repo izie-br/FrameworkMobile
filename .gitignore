@@ -1,4 +1,5 @@
-tempgen/*
+__tempgen_core/*
+__tempgen_android/*
 gerador/script/schema.sql
 lib/target/*
 lib_android/target/*
