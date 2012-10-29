@@ -76,7 +76,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($association in $manyToOneAssociations)
 #if ($association.ForeignKey.equals($field))
 #set ($fieldIsForeignKey = true)
-        ${association.Klass} _${association.Klass}#if ($fieldIndex != ($fields.size() - 1)), #end
+        ${association.Klass} _${association.Klass}#if ($fieldIndex != ($fields.size() - 1)),#else)#end
 
 #end##if($association.ForeignKey.equals($field))
 #end##($association in $manyToOneAssociations)
@@ -196,7 +196,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =
             new CamelCaseUtils.AnyCamelMap<Object>();
         mapAnyCamelCase.putAll(map);
-        $Klass obj = clone();
+        $Klass obj = (${Klass})clone();
         Object temp;
 #foreach ($field in $fields)
 #if ($field.SerializationAlias)
@@ -242,23 +242,18 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
     @Override
-    public $Klass clone() {
-        $Klass obj;
-        try {
-            obj = ((${Klass}) super.clone());
+    public $Klass cloneImpl(Object obj) {
+        $Klass target = (${Klass})obj;
 #foreach ($field in $fields)
 #if ($field.Klass == "Date")
-            obj.${field.LowerCamel} = (${field.LowerCamel} == null)? null: new Date(${field.LowerCamel}.getTime());
+        target.${field.LowerCamel} = (${field.LowerCamel} == null)? null: new Date(${field.LowerCamel}.getTime());
 #end##if
 #end##foreach
-        } catch (CloneNotSupportedException e) {
-            return null;
-        }
-        return obj;
+        return target;
     }
 
     @Override
-    public int hashCode() {
+    public int hashCodeImpl() {
         int value = 1;
 #foreach ($field in $fields)
 #set ($fieldIsForeignKey = false)
@@ -281,7 +276,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equalsImpl(Object obj) {
         if (obj == null) {
             return false;
         }
@@ -374,22 +369,23 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             return super.mapToObject(map);
         }
 
-        public $Klass clone() {
+        @Override
+        public $Klass cloneImpl(Object obj) {
             if (!_proxy_loaded)
                 load();
-            return super.clone();
+            return (${Klass})super.cloneImpl(obj);
         }
 
-        public int hashCode() {
+        public int hashCodeImpl() {
             if (!_proxy_loaded)
                 load();
-            return super.hashCode();
+            return super.hashCodeImpl();
         }
 
         public boolean equals(Object obj) {
             if (!_proxy_loaded)
                 load();
-            return super.equals(obj);
+            return super.equalsImpl(obj);
         }
 
         private void writeObject(ObjectOutputStream oos) throws IOException {

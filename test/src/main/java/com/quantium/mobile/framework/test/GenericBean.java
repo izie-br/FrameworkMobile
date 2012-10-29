@@ -24,4 +24,28 @@ public abstract class GenericBean
     public abstract GenericBean mapToObject(Map<String,Object> json);
     public abstract GenericBean mapToObject(Map<String, Object> map, DAOFactory daoFactory);
 
+    public abstract int hashCodeImpl();
+    public abstract boolean equalsImpl(Object obj);
+    public abstract GenericBean cloneImpl(Object obj);
+
+    @Override
+    public int hashCode() {
+        return hashCodeImpl();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return equalsImpl(obj);
+    }
+
+    @Override
+    protected Object clone() {
+        Object obj;
+        try {
+            obj = cloneImpl(super.clone());
+        } catch (CloneNotSupportedException e) {
+            return null;
+        }
+        return obj;
+    }
 }
