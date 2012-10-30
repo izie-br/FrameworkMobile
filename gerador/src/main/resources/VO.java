@@ -179,17 +179,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
     @Override
-    public $Klass cloneImpl(Object obj) {
-        $Klass target = (${Klass})obj;
-#foreach ($field in $fields)
-#if ($field.Klass == "Date")
-        target.${field.LowerCamel} = (${field.LowerCamel} == null)? null: new Date(${field.LowerCamel}.getTime());
-#end##if
-#end##foreach
-        return target;
-    }
-
-    @Override
     public int hashCodeImpl() {
         int value = 1;
 #foreach ($field in $fields)
@@ -298,13 +287,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             if (!_proxy_loaded)
                 load();
             super.toMap(map);
-        }
-
-        @Override
-        public $Klass cloneImpl(Object obj) {
-            if (!_proxy_loaded)
-                load();
-            return (${Klass})super.cloneImpl(obj);
         }
 
         public int hashCodeImpl() {

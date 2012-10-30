@@ -6,9 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 @SuppressWarnings("serial")
-public abstract class GenericBean
-    implements Serializable
-{
+public abstract class GenericBean implements Serializable {
+
     public abstract void toMap(Map<String,Object> map);
 
     public Map<String,Object> toMap(){
@@ -21,7 +20,6 @@ public abstract class GenericBean
 
     public abstract int hashCodeImpl();
     public abstract boolean equalsImpl(Object obj);
-    public abstract GenericBean cloneImpl(Object obj);
 
     @Override
     public int hashCode() {
@@ -32,4 +30,5 @@ public abstract class GenericBean
     public boolean equals(Object obj) {
         return equalsImpl(obj);
     }
+
 }
