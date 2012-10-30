@@ -7,16 +7,16 @@ import com.quantium.mobile.framework.utils.JSONUtils;
 
 public class MapToObjectIterator<T extends MapSerializable<T>> implements Iterator<T>{
 
-	private static final String ERR_PROTOTYPE_NULL = "Prototipo nao pode ser null";
+	private static final String ERR_PROTOTYPE_NULL = "DAO nao pode ser null";
 
 
 	StreamJsonIterator jsonIterator;
-	private T prototype;
+	DAO<T> dao;
 
-	public MapToObjectIterator(Reader reader,T prototype) {
+	public MapToObjectIterator(Reader reader,DAO<T> dao) {
 		jsonIterator = new StreamJsonIterator(reader);
-		this.prototype = prototype;
-		if(prototype==null)
+		this.dao = dao;
+		if(dao==null)
 			throw new RuntimeException(ERR_PROTOTYPE_NULL);
 	}
 
@@ -27,7 +27,7 @@ public class MapToObjectIterator<T extends MapSerializable<T>> implements Iterat
 
 	@Override
 	public T next() {
-		return prototype.mapToObject(
+		return dao.mapToObject(
 				JSONUtils.desserializeJsonObject(jsonIterator.next()));
 	}
 

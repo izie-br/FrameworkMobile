@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -30,14 +31,18 @@ public class VelocityDaoFactory {
 	private File targetDirectory;
 	private Template template;
 	private VelocityContext parentCtx;
+	private Map<String,String> aliases;
 
-	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, String genPackage){
+	public VelocityDaoFactory(
+			VelocityEngine ve, File targetDirectory,
+			String genPackage, Map<String,String> serializationAliases){
 		//this.ve = ve;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate("DAO.java");
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
+		this.aliases = serializationAliases;
 		//parentCtx.put("basePackage", basePackage);
 	}
 
@@ -77,6 +82,7 @@ public class VelocityDaoFactory {
 		List<Property> pks = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property f = schema.getPropriedade(col);
+			f.setAlias(VelocityVOFactory.getAlias(aliases, targetclass, col));
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
 					pks.add(f);

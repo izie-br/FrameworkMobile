@@ -255,8 +255,10 @@ public class GeradorDeBeans {
 		ve.setProperty("class.resource.loader.class",
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
-		VelocityDaoFactory vdaof = new VelocityDaoFactory(ve, androidTempDir,
-				pacote+ "."+ pacoteGen);
+		VelocityDaoFactory vdaof = new VelocityDaoFactory(
+				ve, androidTempDir,
+				pacote+ "."+ pacoteGen,
+				serializationAliases);
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
 

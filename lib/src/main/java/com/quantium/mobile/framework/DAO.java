@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework;
 
 import java.io.IOException;
+import java.util.Map;
 
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
@@ -12,4 +13,5 @@ public interface DAO<T> {
 	boolean save(T obj, int flags) throws IOException;
 	boolean delete(T obj) throws IOException;
 	ToManyDAO with(T obj);
+	T mapToObject(Map<String, Object> map);
 }

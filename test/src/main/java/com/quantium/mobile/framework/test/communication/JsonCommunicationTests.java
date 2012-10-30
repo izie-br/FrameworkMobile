@@ -16,6 +16,7 @@ import com.quantium.mobile.framework.communication.SerializedCommunicationRespon
 import com.quantium.mobile.framework.test.gen.Author;
 import com.quantium.mobile.framework.test.server.Echo;
 import com.quantium.mobile.framework.test.server.RouterBean;
+import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
 
@@ -25,6 +26,8 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	private static final String URL = "http://10.0.2.2:9091/";
 	private static final String PLAIN_TEXT_URL = URL + "text_plain.jsp";
 
+	SessionFacade session;
+
 	public JsonCommunicationTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
@@ -33,6 +36,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 	protected void setUp() throws Exception {
 		super.setUp();
 		clear();
+		session = new SessionFacade();
 	}
 
 	private void clear() {
@@ -126,7 +130,9 @@ ActivityInstrumentationTestCase2<TestActivity> {
 			Map<String, Object> responseMap = resp.getResponseMap();
 			assertEquals("success", responseMap.get("status"));
 
-			received = resp.getIterator(new Author(), "objects","list");
+			received = resp.getIterator(
+					session.getDAOFactory().getDaoFor(Author.class),
+					"objects","list");
 
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> objectsMap =
@@ -160,7 +166,9 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
 		Iterator<Author> it = null;
 		try {
-			it = authorsDao.get().getIterator(new Author(), "list");
+			it = authorsDao.get().getIterator(
+					session.getDAOFactory().getDaoFor(Author.class),
+					"list");
 		} catch (RuntimeException e) {
 			fail(StringUtil.getStackTrace(e));
 		}

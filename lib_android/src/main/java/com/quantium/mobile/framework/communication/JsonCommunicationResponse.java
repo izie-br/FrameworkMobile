@@ -8,8 +8,8 @@ import java.util.Map;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.FrameworkJSONTokener;
-import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.MapToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.JSONUtils;
@@ -51,8 +51,8 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> Iterator<T> getIterator(T prototype, String... keysToObjectList) {
-		if ( !( prototype instanceof MapSerializable) )
+	public <T> Iterator<T> getIterator(DAO<T> dao, String... keysToObjectList) {
+		if (dao == null)
 			return null;
 		checkOutput();
 		try {
@@ -71,7 +71,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 					last.remove(key);
 				return new MapToObjectIterator(
 						new StringReader(current.toString()),
-						(MapSerializable) prototype
+						dao
 				);
 			}
 		}catch (Exception e){

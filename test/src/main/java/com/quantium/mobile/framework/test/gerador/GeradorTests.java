@@ -106,6 +106,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testMapSerialization(){
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
 		Author author = randomAuthor();
 		try {
 		assertTrue(dao.save(author));
@@ -116,29 +117,30 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Map<String, Object> map = author.toMap();
 		assertNotNull(map);
 		Author authorDesserialized =
-				new Author().mapToObject(map);
+				dao.mapToObject(map);
 		assertEquals(author, authorDesserialized);
 		Author authorIdNull = randomAuthor();
 		Map<String, Object> mapIdNull = authorIdNull.toMap();
 		Author authorIdNullDesserialized =
-				new Author().mapToObject(mapIdNull);
+				dao.mapToObject(mapIdNull);
 		assertEquals(authorIdNull, authorIdNullDesserialized);
 		// A classe document tem um campo date mais "desafiador"
 		Document doc = randomDocument();
 		map = doc.toMap();
 		assertNotNull(map);
-		Document docDesserialized = new Document()
+		Document docDesserialized = documentDao
 			.mapToObject(map);
 		assertEquals(doc, docDesserialized);
 	}
 
 	public void testSerializationAlias(){
+		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
 		int idDocument = 9;
 		Map<String,Object> map = new HashMap<String, Object>();
 		// idDocmuent eh o alias de document.id
 		// ver no pom.xml
 		map.put("id_document", idDocument);
-		Document document = new Document().mapToObject(map);
+		Document document = documentDao.mapToObject(map);
 		assertEquals(idDocument, document.getId());
 	}
 

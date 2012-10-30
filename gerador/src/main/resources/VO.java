@@ -16,14 +16,13 @@ import java.util.Date;
 #end##if
 #end##foreach
 import com.quantium.mobile.framework.MapSerializable;
-import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.LazyProxy;
 #if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.DAO;
 #end
 import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import ${basePackage}.GenericBean;
 
 public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
@@ -180,68 +179,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     }
 
     @Override
-    public $Klass mapToObject(Map<String, Object> map)
-        throws ClassCastException
-    {
-        return mapToObject(map, null);
-    }
-
-#if ($manyToOneAssociations.size() >0 )
-    @SuppressWarnings("unchecked")
-#end##($manyToOneAssociations.size() >0 )
-    @Override
-    public $Klass mapToObject(Map<String, Object> map, DAOFactory daofactory)
-        throws ClassCastException
-    {
-        CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =
-            new CamelCaseUtils.AnyCamelMap<Object>();
-        mapAnyCamelCase.putAll(map);
-        $Klass obj = (${Klass})clone();
-        Object temp;
-#foreach ($field in $fields)
-#if ($field.SerializationAlias)
-#set ($alias = $field.SerializationAlias)
-#else##if_not_alias
-#set ($alias = $field.LowerCamel)
-#end##end_if_alias
-#if ($primaryKeys.contains($field))
-#set ($fallback = $defaultId)
-#else##if_primary_key
-#set ($fallback = ${field.LowerCamel})
-#end##if_primary_key
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-#set ($submap = "submapFor${association.Klass}")
-        Object ${submap} = mapAnyCamelCase.get("${association.Klass}");
-        if (${submap} != null && ${submap} instanceof Map){
-            obj._${association.Klass} = new ${association.Klass}().mapToObject((Map<String,Object>)${submap}, daofactory);
-        } else if(daofactory != null){
-            temp = mapAnyCamelCase.get("${alias}");
-            long ${field.LowerCamel} = ((temp!= null)?((Number) temp).longValue(): ${defaultId});
-            DAO<${association.Klass}> dao = daofactory.getDaoFor(${association.Klass}.class);
-            if (${field.LowerCamel} != ${defaultId} && dao != null){
-                obj._${association.Klass} = dao.query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq((Long)${field.LowerCamel})).first();
-            }
-        }
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-        temp = mapAnyCamelCase.get("${alias}");
-#if (${field.Klass} == "Long" || ${field.Klass} == "Double")
-        obj.${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
-#elseif (${field.Klass} == "Boolean")
-        obj.${field.LowerCamel} = ((temp!= null)?((Boolean) temp): ${fallback});
-#else##if_Klass_eq_***
-        obj.${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
-#end##if_Klass_eq_***
-#end##if (!$fieldIsForeignKey)
-#end##foreach
-        return obj;
-    }
-
-    @Override
     public $Klass cloneImpl(Object obj) {
         $Klass target = (${Klass})obj;
 #foreach ($field in $fields)
@@ -361,12 +298,6 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             if (!_proxy_loaded)
                 load();
             super.toMap(map);
-        }
-
-        public $Klass mapToObject(Map<String, Object> map){
-            if (!_proxy_loaded)
-                load();
-            return super.mapToObject(map);
         }
 
         @Override

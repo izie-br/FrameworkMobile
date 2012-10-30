@@ -67,7 +67,7 @@ public class VelocityVOFactory {
 		List<Property> pks = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property prop = schema.getPropriedade(col);
-			prop.setAlias(getAlias(classname, col));
+			prop.setAlias(getAlias(aliases, classname, col));
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
 					pks.add(prop);
@@ -85,7 +85,8 @@ public class VelocityVOFactory {
 		w.close();
 	}
 
-	private String getAlias(String classname, String field){
+	public static String getAlias(Map<String, String> aliases,
+	                               String classname, String field){
 		String name = classname + '.' + field;
 		if (aliases != null){
 			for (String k : aliases.keySet()){
