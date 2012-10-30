@@ -49,7 +49,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 
+#if ($hasNotNullableAssociation || $manyToOneAssociations.size() > 0)
 import com.quantium.mobile.framework.DAO;
+#end##if ($hasNotNullableAssociation || $manyToOneAssociations.size() > 0)
 import com.quantium.mobile.framework.LazyProxy;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
