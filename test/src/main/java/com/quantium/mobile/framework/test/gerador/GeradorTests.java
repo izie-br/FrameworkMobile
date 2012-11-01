@@ -234,6 +234,38 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
+	public void testFirstLevelCache() {
+		try {
+			Author author = randomAuthor();
+			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			assertTrue(authorDao.save(author));
+
+			Document document = randomDocument();
+			DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+			assertTrue(documentDao.save(document));
+
+			// Se o cache funcionar, a busca pelo mesmo autor (mesma PrimaryKey)
+			//   deve retornar o mesmo objeto ja em memoria
+			Author sameAuthor = authorDao.query(Author.ID.eq(author.getId())).first();
+			assertTrue (author == sameAuthor);
+
+			// Adiciona o "author" ao objeto "document" em cache.
+			// O objeto "document" nao eh salvo, logo o banco nao muda
+			document.setAuthor(author);
+
+			// Mesmo o objeto "document" nao sendo salvo apos o setAuthor()
+			//   ele deve estar em cache e deve ter o campo _Author anulado
+			//   apos a delecao do "author"
+			// Como "document" nao foi salvo, o banco nao altera
+			assertTrue(authorDao.delete(author));
+			assertTrue(document.getAuthor() == null);
+
+			assertTrue(documentDao.delete(document));
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
 	private Author randomAuthor() {
 		Author author = new Author();
 		author.setName(RandomStringUtils.random(60));

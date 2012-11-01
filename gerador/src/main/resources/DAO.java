@@ -244,15 +244,13 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if ($relation.Nullable)
             contentValues = new ContentValues();
             contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
-            int affected${relation.Klass} = db.update(
+            db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
            Runnable _${relation.Klass}NullFkThread = null;
-           if(affected${relation.Klass} >0) {
-               _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
-               //_${relation.Klass}NullFkThread.start();
-           }
+           _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
+           //_${relation.Klass}NullFkThread.start();
 
 #else##association_nullable
             DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
