@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.quantium.mobile.framework</groupId>
         <artifactId>frameworkMobile</artifactId>
-        <version>0.10-alpha</version>
+        <version>0.13-alpha</version>
     </parent>
 
     <dependencies>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.quantium.mobile.framework</groupId>
             <artifactId>lib_android</artifactId>
-            <version>0.10-alpha</version>
+            <version>0.13-alpha</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -64,7 +64,7 @@
             <plugin>
               <groupId>com.quantium.mobile.framework</groupId>
               <artifactId>maven-plugin-gerador</artifactId>
-              <version>0.10-alpha</version>
+              <version>0.13-alpha</version>
               <configuration>
                 <coreSrcDir>src/main/java/</coreSrcDir>
                 <androidSrcDir>src/main/java/</androidSrcDir>

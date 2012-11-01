@@ -8,7 +8,7 @@
   <parent>
     <groupId>com.quantium.mobile.framework</groupId>
     <artifactId>frameworkMobile</artifactId>
-    <version>0.10-alpha</version>
+    <version>0.13-alpha</version>
   </parent>
 
   <repositories>
@@ -22,7 +22,7 @@
     <dependency>
       <groupId>com.quantium.mobile.framework</groupId>
       <artifactId>lib</artifactId>
-      <version>0.10-alpha</version>
+      <version>0.13-alpha</version>
       <scope>compile</scope>
     </dependency>
 
