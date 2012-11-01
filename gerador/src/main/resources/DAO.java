@@ -42,6 +42,7 @@
 package $package;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Map;
 
 import android.content.ContentValues;
@@ -141,19 +142,41 @@ public class ${Klass} implements DAOSQLite<${Target}> {
                 throw new IOException(StringUtil.getStackTrace(e));
             }
 #if ($compoundPk)
-            return (value > 0);
+            if (value > 0) {
+                Serializable pks [] = new Serializable[]{
+#foreach ($key in $primaryKeys)
+                     target.${key.LowerCamel},
+#end##foreach ($key in $primaryKeys)
+                };
+                factory.pushToCache(${Target}.class, pks, target);
+                return true;
+            } else {
+                return false;
+            }
 #else##not_compoundPk
-           if (value > 0){
-               target.${primaryKey.LowerCamel} = value;
-               return true;
-           } else {
-               return false;
-           }
+            if (value > 0){
+                target.${primaryKey.LowerCamel} = value;
+                Serializable pks [] = new Serializable[]{ value };
+                factory.pushToCache(${Target}.class, pks, target);
+                return true;
+            } else {
+                return false;
+            }
 #end##not_compoundPk
         } else {
             int value = db.update(
                 "${table}", contentValues, queryByPrimaryKey, primaryKeysArgs);
-            return (value > 0);
+            if (value > 0) {
+                Serializable pks [] = new Serializable[]{
+#foreach ($key in $primaryKeys)
+                     target.${key.LowerCamel},
+#end##foreach ($key in $primaryKeys)
+                };
+                factory.pushToCache(${Target}.class, pks, target);
+                return true;
+            } else {
+                return false;
+            }
         }
     }
 
@@ -217,41 +240,73 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         } finally {
             db.endTransaction();
         }
+        Serializable pks [] = new Serializable[]{
+#foreach ($key in $primaryKeys)
+            target.${key.LowerCamel},
+#end##foreach ($key in $primaryKeys)
+        };
+        factory.removeFromCache(${Target}.class, pks);
         return true;
     }
 
 
     @Override
-    public  $Target cursorToObject(Cursor cursor){
+    public  $Target cursorToObject(Cursor cursor, boolean useCache){
+#set ($primaryKeyIndex = 0)
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
 #set ($fieldIsForeignKey = false)
 #foreach ($association in $manyToOneAssociations)
 #if ($association.ForeignKey.equals($field))
 #set ($fieldIsForeignKey = true)
-        Long __${field.LowerCamel} = cursor.getLong(${columnIndex});
-        ${association.Klass}.Proxy _${association.Klass} = null;
-        if (!__${field.LowerCamel}.equals((long)${defaultId})) {
-            _${association.Klass} = new ${association.Klass}.Proxy();
-            _${association.Klass}.${association.ReferenceKey.LowerCamel} = __${field.LowerCamel};
-            _${association.Klass}._daofactory = this.factory;
+        Long _${field.LowerCamel} = cursor.getLong(${columnIndex});
+        ${association.Klass} _${association.Klass} = null;
+        if (!_${field.LowerCamel}.equals((long)${defaultId})) {
+            _${association.Klass} = factory.cacheLookup(
+                ${association.Klass}.class,
+                new Serializable[]{_${field.LowerCamel}});
+            if (_${association.Klass} == null) {
+                _${association.Klass} = new ${association.Klass}.Proxy();
+                _${association.Klass}.${association.ReferenceKey.LowerCamel} = _${field.LowerCamel};
+                _${association.Klass}._daofactory = this.factory;
+            }
         }
 
 #end##($association.ForeignKey.equals($field))
 #end##foreach($association in $manyToOneAssociations)
 #if (!$fieldIsForeignKey)
 #if ($field.Klass.equals("Boolean") )
-        ${field.Type} ${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
+        ${field.Type} _${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
 #elseif ($field.Klass.equals("Date") )
-        ${field.Type} ${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
+        ${field.Type} _${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
 #elseif ($field.Klass.equals("Long") )
-        ${field.Type} ${field.LowerCamel} = cursor.getLong(${columnIndex});
+        ${field.Type} _${field.LowerCamel} = cursor.getLong(${columnIndex});
 #elseif ($field.Klass.equals("Double") )
-        ${field.Type} ${field.LowerCamel} = cursor.getDouble(${columnIndex});
+        ${field.Type} _${field.LowerCamel} = cursor.getDouble(${columnIndex});
 #elseif ($field.Klass.equals("String") )
-        ${field.Type} ${field.LowerCamel} = cursor.getString(${columnIndex});
+        ${field.Type} _${field.LowerCamel} = cursor.getString(${columnIndex});
 #end##if_field.Klass.equals(*)
 #end##if (!$fieldIsForeignKey)
+#if ($field.PrimaryKey)
+#set ($primaryKeyIndex = $primaryKeyIndex + 1)
+#end##if ($field.PrimaryKey)
+#if ($primaryKeyIndex.equals($primaryKeys.size()))
+        Serializable pks [];
+        if (useCache) {
+            pks = new Serializable[]{
+#foreach ($key in $primaryKeys)
+                 _${key.LowerCamel},
+#end##foreach ($key in $primaryKeys)
+            };
+            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
+            if (cacheItem != null &&
+                (cacheItem instanceof ${Target}))
+            {
+                return (${Target})cacheItem;
+            }
+        }
+#set ($primaryKeyIndex = 0)
+#end##if ($primaryKeyIndex.equals($primaryKeys.size()))
 #end##foreach ($field in $fields)
 
         ${Target} target = new ${Target}(
@@ -266,11 +321,15 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##($association.ForeignKey.equals($field))
 #end##foreach($association in $manyToOneAssociations)
 #if (!$fieldIsForeignKey)
-            ${field.LowerCamel}#if ($foreach.count < $fields.size()),#else);#end
+            _${field.LowerCamel}#if ($foreach.count < $fields.size()),#else);#end
 
 #end##if (!$fieldIsForeignKey)
 #end##foreach ($field in $fields)
         target._daofactory = this.factory;
+
+        if (useCache)
+            factory.pushToCache(${Target}.class, pks, target);
+
         return target;
     }
 
@@ -480,7 +539,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         }
 
         protected ${Target} cursorToObject(Cursor cursor) {
-            return dao.cursorToObject(cursor);
+            return dao.cursorToObject(cursor, true);
         }
 
     }
