@@ -5,6 +5,7 @@ import java.lang.ref.SoftReference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 
 import com.quantium.mobile.framework.DAOFactory;
@@ -40,6 +41,19 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 		if (obj == null)
 			entityCache.remove(key);
 		return obj;
+	}
+
+	@SuppressWarnings("unchecked")
+	public <T> Collection<SoftReference<T>> lookupForClass(Class<T> klass) {
+		ArrayList<SoftReference<T>> list =
+				new ArrayList<SoftReference<T>>();
+		for (SoftReference<?> reference : entityCache.values()) {
+			Object obj = reference.get();
+			if ( obj != null && klass.isInstance(obj) ){
+				list.add((SoftReference<T>)reference);
+			}
+		}
+		return list;
 	}
 
 	public void trim(){

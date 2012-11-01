@@ -67,6 +67,11 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+#if ($hasNullableAssociation)
+import java.util.Collection;
+import java.lang.ref.SoftReference;
+import com.quantium.mobile.framework.logging.LogPadrao;
+#end##if ($hasNullableAssociation)
 
 public class ${Klass} implements DAOSQLite<${Target}> {
 
@@ -129,6 +134,20 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
             cursor.close();
         }
+        Serializable pks [] = new Serializable[]{
+#foreach ($field in $primaryKeys)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+            target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+            target.${field.LowerCamel},
+#end##if (!$fieldIsForeignKey)
+#end##foreach ($key in $primaryKeys)
+        };
         if (insert) {
 #if (!$compoundPk)
             if (insertIfNotExists) {
@@ -143,11 +162,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             }
 #if ($compoundPk)
             if (value > 0) {
-                Serializable pks [] = new Serializable[]{
-#foreach ($key in $primaryKeys)
-                     target.${key.LowerCamel},
-#end##foreach ($key in $primaryKeys)
-                };
                 factory.pushToCache(${Target}.class, pks, target);
                 return true;
             } else {
@@ -156,7 +170,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else##not_compoundPk
             if (value > 0){
                 target.${primaryKey.LowerCamel} = value;
-                Serializable pks [] = new Serializable[]{ value };
+                pks = new Serializable[]{ value };
                 factory.pushToCache(${Target}.class, pks, target);
                 return true;
             } else {
@@ -167,11 +181,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             int value = db.update(
                 "${table}", contentValues, queryByPrimaryKey, primaryKeysArgs);
             if (value > 0) {
-                Serializable pks [] = new Serializable[]{
-#foreach ($key in $primaryKeys)
-                     target.${key.LowerCamel},
-#end##foreach ($key in $primaryKeys)
-                };
                 factory.pushToCache(${Target}.class, pks, target);
                 return true;
             } else {
@@ -194,7 +203,33 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         return queryset.filter(q);
     }
 
+#foreach ($association in $oneToManyAssociations)
+#if ($association.Nullable)
+    private static class ${association.Klass}NullFkThread implements Runnable {
 
+        ${Target} target;
+        SQLiteDAOFactory factory;
+
+        private ${association.Klass}NullFkThread(SQLiteDAOFactory factory, ${Target} target) {
+            this.factory = factory;
+            this.target = target;
+        }
+
+        @Override
+        public void run() {
+            Collection<SoftReference<${association.Klass}>> references = factory.lookupForClass(${association.Klass}.class);
+            for (SoftReference<${association.Klass}> reference : references) {
+                ${association.Klass} obj = (${association.Klass})reference.get();
+                if (obj == null)
+                    continue;
+                if (target.equals(obj.get${Target}()) )
+                    obj.set${Target}(null);
+            }
+        }
+
+    }
+#end##if ($association.Nullable)
+#end##foreach ($association in $oneToManyAssociations)
     public boolean delete(${Target} target) throws IOException {
         if (${nullPkCondition}) {
             return false;
@@ -209,10 +244,16 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if ($relation.Nullable)
             contentValues = new ContentValues();
             contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
-            db.update(
+            int affected${relation.Klass} = db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
                 new String[] {((${relation.ForeignKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
+           Runnable _${relation.Klass}NullFkThread = null;
+           if(affected${relation.Klass} >0) {
+               _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
+               //_${relation.Klass}NullFkThread.start();
+           }
+
 #else##association_nullable
             DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
             for (${relation.Klass} obj: target.get${relation.Pluralized}().all()) {
@@ -237,12 +278,33 @@ public class ${Klass} implements DAOSQLite<${Target}> {
                 return false;
             }
             db.setTransactionSuccessful();
+#foreach ($relation in $oneToManyAssociations)
+#if ($relation.Nullable)
+            if (_${relation.Klass}NullFkThread != null) {
+                try {
+                    // _${relation.Klass}NullFkThread.join();
+                    _${relation.Klass}NullFkThread.run();
+                } catch (Exception e) {
+                    LogPadrao.e(e);
+                }
+            }
+#end##if ($relation.Nullable)
+#end##foreach ($relation in $oneToManyAssociations)
         } finally {
             db.endTransaction();
         }
         Serializable pks [] = new Serializable[]{
-#foreach ($key in $primaryKeys)
-            target.${key.LowerCamel},
+#foreach ($field in $primaryKeys)
+#set ($fieldIsForeignKey = false)
+#foreach ($association in $manyToOneAssociations)
+#if ($association.ForeignKey.equals($field))
+#set ($fieldIsForeignKey = true)
+            target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
+#end##if($association.ForeignKey.equals($field))
+#end##($association in $manyToOneAssociations)
+#if (!$fieldIsForeignKey)
+            target.${field.LowerCamel},
+#end##if (!$fieldIsForeignKey)
 #end##foreach ($key in $primaryKeys)
         };
         factory.removeFromCache(${Target}.class, pks);
@@ -262,13 +324,15 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         Long _${field.LowerCamel} = cursor.getLong(${columnIndex});
         ${association.Klass} _${association.Klass} = null;
         if (!_${field.LowerCamel}.equals((long)${defaultId})) {
-            _${association.Klass} = factory.cacheLookup(
+            Object cacheItem = factory.cacheLookup(
                 ${association.Klass}.class,
                 new Serializable[]{_${field.LowerCamel}});
-            if (_${association.Klass} == null) {
+            if (cacheItem == null) {
                 _${association.Klass} = new ${association.Klass}.Proxy();
                 _${association.Klass}.${association.ReferenceKey.LowerCamel} = _${field.LowerCamel};
                 _${association.Klass}._daofactory = this.factory;
+            } else if (cacheItem instanceof ${association.Klass}) {
+                _${association.Klass} = (${association.Klass})cacheItem;
             }
         }
 
@@ -291,7 +355,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #set ($primaryKeyIndex = $primaryKeyIndex + 1)
 #end##if ($field.PrimaryKey)
 #if ($primaryKeyIndex.equals($primaryKeys.size()))
-        Serializable pks [];
+        Serializable pks [] = null;
         if (useCache) {
             pks = new Serializable[]{
 #foreach ($key in $primaryKeys)
