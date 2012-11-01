@@ -69,7 +69,7 @@ import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 #if ($hasNullableAssociation)
 import java.util.Collection;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 import com.quantium.mobile.framework.logging.LogPadrao;
 #end##if ($hasNullableAssociation)
 
@@ -217,8 +217,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
         @Override
         public void run() {
-            Collection<SoftReference<${association.Klass}>> references = factory.lookupForClass(${association.Klass}.class);
-            for (SoftReference<${association.Klass}> reference : references) {
+            Collection<Reference<${association.Klass}>> references = factory.lookupForClass(${association.Klass}.class);
+            for (Reference<${association.Klass}> reference : references) {
                 ${association.Klass} obj = (${association.Klass})reference.get();
                 if (obj == null)
                     continue;

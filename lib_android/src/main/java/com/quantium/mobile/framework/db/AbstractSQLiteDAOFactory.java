@@ -1,30 +1,25 @@
 package com.quantium.mobile.framework.db;
 
 import java.io.Serializable;
-import java.lang.ref.SoftReference;
+import java.lang.ref.Reference;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 import com.quantium.mobile.framework.DAOFactory;
-import com.quantium.mobile.framework.logging.LogPadrao;
 
 public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 
-	private final HashMap<EntityKey, SoftReference<Object>> entityCache =
-			new HashMap<EntityKey, SoftReference<Object>>();
-
-	public AbstractSQLiteDAOFactory(){
-		new TrimThread(this);
-	}
+	private final Map<EntityKey, Object> entityCache = new WeakHashMap<EntityKey, Object>();
 
 	public void pushToCache(Object klassId, Serializable keys [],
 	                        Object entity)
 	{
 		EntityKey key = new EntityKey(klassId, keys);
-		entityCache.put(key, new SoftReference<Object>(entity));
+		entityCache.put(key, entity);
 	}
 
 	public void removeFromCache(Object klassId, Serializable keys []) {
@@ -34,61 +29,23 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 
 	public Object cacheLookup(Object klassId, Serializable keys []){
 		EntityKey key = new EntityKey(klassId, keys);
-		SoftReference<Object> softReference = entityCache.get(key);
-		if (softReference == null)
-			return null;
-		Object obj = softReference.get();
-		if (obj == null)
-			entityCache.remove(key);
+		Object obj = entityCache.get(key);
 		return obj;
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T> Collection<SoftReference<T>> lookupForClass(Class<T> klass) {
-		ArrayList<SoftReference<T>> list =
-				new ArrayList<SoftReference<T>>();
-		for (SoftReference<?> reference : entityCache.values()) {
-			Object obj = reference.get();
+	public <T> Collection<Reference<T>> lookupForClass(Class<T> klass) {
+		ArrayList<Reference<T>> list =
+				new ArrayList<Reference<T>>();
+		for (Object obj : entityCache.values()) {
 			if ( obj != null && klass.isInstance(obj) ){
-				list.add((SoftReference<T>)reference);
+				list.add(  new WeakReference<T>( (T)obj )  );
 			}
+		}
+		for (Object obj : entityCache.values()) {
+			list.add(  new WeakReference<T>( (T)obj )  );
 		}
 		return list;
-	}
-
-	public void trim(){
-		ArrayList<Object> deleted = new ArrayList<Object>();
-		for (Object key : entityCache.keySet()){
-			SoftReference<Object> softReference = entityCache.get(key);
-			if (softReference.get() == null)
-				deleted.add(key);
-		}
-		for (Object key : deleted)
-			entityCache.remove(key);
-	}
-
-	private static class TrimThread extends Thread {
-
-		WeakReference<AbstractSQLiteDAOFactory> factory;
-
-		private TrimThread(AbstractSQLiteDAOFactory factory){
-			this.factory = new WeakReference<AbstractSQLiteDAOFactory>(factory);
-		}
-
-		@Override
-		public void run() {
-			for (;;){
-				AbstractSQLiteDAOFactory factoryIns = factory.get();
-				if (factoryIns == null)
-					return;
-				factoryIns.trim();
-				try {
-					Thread.sleep(10000);
-				} catch (InterruptedException e) {
-					LogPadrao.e(e);
-				}
-			}
-		}
 	}
 
 }
