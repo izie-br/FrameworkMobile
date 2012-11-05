@@ -53,19 +53,12 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end
 
 #foreach ($field in $fields)
-## Conferir se o campo eh uma chave estrangeira
-##   Se sim, criar uma instancia da classe associada
-##   Se nao, criar apenas o campo
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
     ${association.Klass} _${association.Klass};
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$association = $associationForField[$field])
     ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
-#end##if (!$fieldIsForeignKey)
+#end##if ($association = $associationForField[$field])
 #end##foreach ($field in $fields)
 
     public DAOFactory _daofactory;
@@ -78,15 +71,14 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #set ($fieldIndex = $foreach.index + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        ${association.Klass} _${association.Klass}#if ($fieldIndex != $fields.size()), #end
+        ${association.Klass} _${association.Klass}#if ($fieldIndex != $fields.size()),#end
 
 #else##if (!$associationForField[$field])
-        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != $fields.size()), #end
+        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != $fields.size()),#end
 
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
-)
-    {
+    ) {
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
