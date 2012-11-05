@@ -104,15 +104,7 @@ public class VelocityDaoFactory {
 		//ctx.put("ForeignKeys", getForeignKeys(schema));
 
 		Map<Property, Object> associationsFromFK =
-				new HashMap<Property, Object>();
-		for (Object o2mObj : manyToOne){
-			@SuppressWarnings("unchecked")
-			Map<String, Object> o2mMap = (Map<String, Object>) o2mObj;
-			for (Property property : fields){
-				if (property.equals(o2mMap.get("ForeignKey")))
-					associationsFromFK.put(property, o2mObj);
-			}
-		}
+				getAssociationsForFK(fields,manyToOne);
 		ctx.put("associationForField", associationsFromFK);
 
 		Writer w = new OutputStreamWriter(
@@ -263,6 +255,22 @@ public class VelocityDaoFactory {
 		map.put("ReferenceKey", refProp);
 		map.put("Nullable", o2m.isNullable());
 		return map;
+	}
+
+	public static Map<Property, Object> getAssociationsForFK(
+			List<Property> fields,List<Object> manyToOne)
+	{
+		Map<Property, Object> associationsFromFK =
+				new HashMap<Property, Object>();
+		for (Object o2mObj : manyToOne){
+			@SuppressWarnings("unchecked")
+			Map<String, Object> o2mMap = (Map<String, Object>) o2mObj;
+			for (Property property : fields){
+				if (property.equals(o2mMap.get("ForeignKey")))
+					associationsFromFK.put(property, o2mObj);
+			}
+		}
+		return associationsFromFK;
 	}
 
 }

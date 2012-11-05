@@ -126,10 +126,11 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${primaryKey.LowerCamel} == ${defaultId};
-#end##not_compoundPk
-        #if (!$compoundPk)if (insertIfNotExists)#end{
+        if (insertIfNotExists)
+#end
+        {
             Cursor cursor = this.factory.getDb().rawQuery(
-                "SELECT COUNT(*) FROM ${table} WHERE "+ queryByPrimaryKey,
+                "SELECT COUNT(*) FROM ${table} WHERE " + queryByPrimaryKey,
                 primaryKeysArgs);
             insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
             cursor.close();
@@ -224,6 +225,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         }
 
     }
+
 #end##if ($association.Nullable)
 #end##foreach ($association in $oneToManyAssociations)
     public boolean delete(${Target} target) throws IOException {

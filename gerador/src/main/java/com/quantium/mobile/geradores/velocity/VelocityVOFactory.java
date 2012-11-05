@@ -7,7 +7,6 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -81,15 +80,7 @@ public class VelocityVOFactory {
 		ctx.put("primaryKeys", pks);
 		
 		Map<Property, Object> associationsFromFK =
-				new HashMap<Property, Object>();
-		for (Object o2mObj : manyToOne){
-			@SuppressWarnings("unchecked")
-			Map<String, Object> o2mMap = (Map<String, Object>) o2mObj;
-			for (Property property : fields){
-				if (property.equals(o2mMap.get("ForeignKey")))
-					associationsFromFK.put(property, o2mObj);
-			}
-		}
+				VelocityDaoFactory.getAssociationsForFK(fields, manyToOne);
 		ctx.put("associationForField", associationsFromFK);
 
 		Writer w = new OutputStreamWriter(
