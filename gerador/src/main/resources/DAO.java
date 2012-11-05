@@ -23,22 +23,28 @@
 #set ($queryByPrimaryKey = $queryByPrimaryKey + " AND ")
 #set ($nullPkCondition = $nullPkCondition + " || ")
 #end##if ($foreach.index !=0)
-#set ($queryByPrimaryKey = $queryByPrimaryKey + "${field.LowerAndUnderscores} = ?")
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-#set ($primaryKeysArgs = $primaryKeysArgs + "((${field.Klass})target._${association.Klass}.get${association.ReferenceKey.UpperCamel}()).toString(),")
-#set ($nullPkCondition = $nullPkCondition + "target._${association.Klass} == null ||" +
-                         "target._${association.Klass}.get${association.ReferenceKey.UpperCamel}() == ${defaultId}")
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-#set ($primaryKeysArgs = $primaryKeysArgs + "((${field.Klass})target.${field.LowerCamel}).toString(),")
-#set ($nullPkCondition = $nullPkCondition + "target.get${field.UpperCamel}() == ${defaultId}" )
-#end##if (!$fieldIsForeignKey)
+#set ($queryByPrimaryKey = $queryByPrimaryKey +
+                           "${field.LowerAndUnderscores} = ?")
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+#set ($primaryKeysArgs = $primaryKeysArgs +
+                         "((${field.Klass})target._${association.Klass}" +
+                         ".get${association.ReferenceKey.UpperCamel}())" +
+                         ".toString(),")
+#set ($nullPkCondition = $nullPkCondition +
+                         "target._${association.Klass} == null ||" +
+                         "target._${association.Klass}" +
+                         ".get${association.ReferenceKey.UpperCamel}() " +
+                         "== ${defaultId}")
+#else##if (!$associationForField[$field])
+#set ($primaryKeysArgs = $primaryKeysArgs +
+                         "((${field.Klass})target.${field.LowerCamel})" +
+                         ".toString(),")
+#set ($nullPkCondition = $nullPkCondition +
+                         "target.get${field.UpperCamel}() == ${defaultId}" )
+#end##if ($associationForField[$field])
 #end##foreach ($field in $primaryKeys)
-#set ($primaryKeysArgs = ${primaryKeysArgs} + "}")
+#set ($primaryKeysArgs = $primaryKeysArgs + "}")
 package $package;
 
 import java.io.IOException;
@@ -98,16 +104,11 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
         contentValues.put("${field.LowerAndUnderscores}",
                           (target._${association.Klass} == null) ? 0 : target._${association.Klass}.get${association.ReferenceKey.UpperCamel}());
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-#if ($compoundPk || !$primaryKey.equals($field))
+#elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
         contentValues.put("${field.LowerAndUnderscores}",
                           DateUtil.timestampToString(target.${field.LowerCamel}));
@@ -116,8 +117,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else##if_class_equals
         contentValues.put("${field.LowerAndUnderscores}", target.${field.LowerCamel});
 #end##if_class_equals
-#end##if ($compoundPk || !$primaryKey.equals($field))
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach
         SQLiteDatabase db = this.factory.getDb();
         boolean insert;
@@ -136,16 +136,12 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         }
         Serializable pks [] = new Serializable[]{
 #foreach ($field in $primaryKeys)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
             target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$associationForField[$field])
             target.${field.LowerCamel},
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($key in $primaryKeys)
         };
         if (insert) {
@@ -293,16 +289,12 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         }
         Serializable pks [] = new Serializable[]{
 #foreach ($field in $primaryKeys)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
             target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$associationForField[$field])
             target.${field.LowerCamel},
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($key in $primaryKeys)
         };
         factory.removeFromCache(${Target}.class, pks);
@@ -315,10 +307,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #set ($primaryKeyIndex = 0)
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
         Long _${field.LowerCamel} = cursor.getLong(${columnIndex});
         ${association.Klass} _${association.Klass} = null;
         if (!_${field.LowerCamel}.equals((long)${defaultId})) {
@@ -334,9 +324,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             }
         }
 
-#end##($association.ForeignKey.equals($field))
-#end##foreach($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if ($!associationForField[$field])
 #if ($field.Klass.equals("Boolean") )
         ${field.Type} _${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
 #elseif ($field.Klass.equals("Date") )
@@ -348,7 +336,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #elseif ($field.Klass.equals("String") )
         ${field.Type} _${field.LowerCamel} = cursor.getString(${columnIndex});
 #end##if_field.Klass.equals(*)
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #if ($field.PrimaryKey)
 #set ($primaryKeyIndex = $primaryKeyIndex + 1)
 #end##if ($field.PrimaryKey)
@@ -374,18 +362,14 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         ${Target} target = new ${Target}(
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
             _${association.Klass}#if ($foreach.count < $fields.size()),#else);#end
 
-#end##($association.ForeignKey.equals($field))
-#end##foreach($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$associationForField[$field])
             _${field.LowerCamel}#if ($foreach.count < $fields.size()),#else);#end
 
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
         target._daofactory = this.factory;
 
@@ -421,10 +405,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else
 #set ($fallback = "null")
 #end##if_primary_key
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
 #set ($submap = "submapFor${association.Klass}")
         Object ${submap} = mapAnyCamelCase.get("${association.Klass}");
         ${association.Klass} _${association.Klass};
@@ -439,9 +421,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
                 dao.query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq((Long)${field.LowerCamel})).first():
                 null;
         }
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$associationForField[$field])
         temp = mapAnyCamelCase.get("${alias}");
 #if (${field.Klass} == "Long" || ${field.Klass} == "Double")
         ${field.Type} _${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
@@ -450,25 +430,22 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else##if_Klass_eq_***
         ${field.Type} _${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
 #end##if_Klass_eq_***
-#end##if (!$fieldIsForeignKey)
+#end##if (!$associationForField[$field])
 #end##foreach
 
         ${Target} target = new ${Target}(
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-            _${association.Klass}#if ($foreach.count < $fields.size()),#else);#end
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+            _${association.Klass}#if ($foreach.count < $fields.size()),#end
 
-#end##($association.ForeignKey.equals($field))
-#end##foreach($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-            _${field.LowerCamel}#if ($foreach.count < $fields.size()),#else);#end
+#else##if (!$associationForField[$field])
+            _${field.LowerCamel}#if ($foreach.count < $fields.size()),#end
 
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
+        );
         target._daofactory = this.factory;
         return target;
     }
