@@ -103,6 +103,18 @@ public class VelocityDaoFactory {
 		ctx.put("manyToOneAssociations", manyToOne);
 		//ctx.put("ForeignKeys", getForeignKeys(schema));
 
+		Map<Property, Object> associationsFromFK =
+				new HashMap<Property, Object>();
+		for (Object o2mObj : manyToOne){
+			@SuppressWarnings("unchecked")
+			Map<String, Object> o2mMap = (Map<String, Object>) o2mObj;
+			for (Property property : fields){
+				if (property.equals(o2mMap.get("ForeignKey")))
+					associationsFromFK.put(property, o2mObj);
+			}
+		}
+		ctx.put("associationForField", associationsFromFK);
+
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
 				"UTF-8");

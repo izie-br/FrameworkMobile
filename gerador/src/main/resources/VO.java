@@ -1,6 +1,14 @@
 #if ($oneToManyAssociations.size() > 0)
 #set ($createProxy = true)
 #end##($oneToManyAssociations.size() > 0)
+#foreach ($field in $fields)
+##
+#if ( $field.Klass.equals("Date") )
+#set ($haveDateField = true)
+#break
+#end##if
+#end##foreach
+##
 package $package;
 
 #if ($createProxy)
@@ -9,12 +17,9 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 #end##if($createProxy)
 import java.util.Map;
-#foreach ($field in $fields)
-#if ( $field.Klass.equals("Date") )
+#if ( $haveDateField )
 import java.util.Date;
-#break
-#end##if
-#end##foreach
+#end##if ( $haveDateField )
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.LazyProxy;
@@ -70,33 +75,25 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
     public ${Klass}(
 #foreach ($field in $fields)
-#set ($fieldIndex = $foreach.index)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-        ${association.Klass} _${association.Klass}#if ($fieldIndex != ($fields.size() - 1)),#else)#end
+#set ($fieldIndex = $foreach.index + 1)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+        ${association.Klass} _${association.Klass}#if ($fieldIndex != $fields.size()), #end
 
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != ($fields.size() - 1)), #else)#end
+#else##if (!$associationForField[$field])
+        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != $fields.size()), #end
 
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
+)
     {
 #foreach ($field in $fields)
-#set ($fieldIndex = $foreach.index)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
         this._${association.Klass} = _${association.Klass};
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#else##if (!$associationForField[$field])
         this.${field.LowerCamel} = ${field.LowerCamel};
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
     }
 
@@ -161,14 +158,12 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #else##if_not_alias
 #set ($alias = $field.LowerAndUnderscores)
 #end##end_if_alias
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#set ($association = false)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
         $field.Type $field.LowerCamel = (_${association.Klass} == null)? 0 : _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if ($primaryKeys.contains($field) || $fieldIsForeignKey)
+#end##if ($associationForField[$field])
+#if ($primaryKeys.contains($field) || $association)
         if (${field.LowerCamel} != ${defaultId}) {
             map.put("${alias}", ${field.LowerCamel});
         }
@@ -182,13 +177,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public int hashCodeImpl() {
         int value = 1;
 #foreach ($field in $fields)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+#if (!$associationForField[$field])
 #if ($field.Klass.equals("Boolean"))
         value += (${field.LowerCamel}) ? 1 : 0;
 #elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
@@ -196,7 +185,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #else
         value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
 #end##if(field.Klass.equals(*))
-#end##if(!$fieldIsForeignKey)
+#end##if (!$associationForField[$field])
 #end##foreach
         return value;
     }
@@ -213,10 +202,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         if (other instanceof LazyProxy)
             ((LazyProxy)other).load();
 #foreach ($field in $fields)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
 #set ($otherAssoc = "other${association.Klass}")
         ${association.Klass} ${otherAssoc} = other.get${association.Klass}();
         if (_${association.Klass} == null){
@@ -227,10 +214,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
                 return false;
             if (_${association.Klass}.get${association.ReferenceKey.UpperCamel}() != ${otherAssoc}.get${association.ReferenceKey.UpperCamel}())
                 return false;
-       }
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
+        }
+#else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
         if(${field.LowerCamel} != other.${field.LowerCamel})
             return false;
@@ -238,7 +223,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         if( ( ${field.LowerCamel}==null)? (other.${field.LowerCamel} != null) :  !${field.LowerCamel}.equals(other.${field.LowerCamel}) )
             return false;
 #end##if(field.Klass.equals(*))
-#end##if(!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach
         return true;
     }
@@ -324,18 +309,12 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
             if (temp == null)
                 throw new RuntimeException();
 #foreach ($field in $fields)
-#set ($fieldIsForeignKey = false)
-#foreach ($association in $manyToOneAssociations)
-#if ($association.ForeignKey.equals($field))
-#set ($fieldIsForeignKey = true)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
             this._${association.Klass} = temp._${association.Klass};
-#end##if($association.ForeignKey.equals($field))
-#end##($association in $manyToOneAssociations)
-#if (!$fieldIsForeignKey)
-#if (!$primaryKeys.contains($field))
+#elseif (!$primaryKeys.contains($field))##if ($associationForField[$field])
             this.${field.LowerCamel} = temp.${field.LowerCamel};
-#end##if(!$primaryKeys.contains($field))
-#end##if (!$fieldIsForeignKey)
+#end##if ($associationForField[$field])
 #end##foreach
             _proxy_loaded = true;
         }
