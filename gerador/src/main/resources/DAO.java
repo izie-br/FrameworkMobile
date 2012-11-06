@@ -57,7 +57,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 
 #if ($hasNotNullableAssociation || $manyToOneAssociations.size() > 0)
+import java.lang.reflect.Proxy;
 import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.LazyInvocationHandler;
 #end##if ($hasNotNullableAssociation || $manyToOneAssociations.size() > 0)
 import com.quantium.mobile.framework.LazyProxy;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
@@ -318,9 +320,16 @@ public class ${Klass} implements DAOSQLite<${Target}> {
                 ${association.Klass}.class,
                 new Serializable[]{_${field.LowerCamel}});
             if (cacheItem == null) {
-                _${association.Klass} = new ${association.Klass}.Proxy();
-                _${association.Klass}.${association.ReferenceKey.LowerCamel} = _${field.LowerCamel};
-                _${association.Klass}._daofactory = this.factory;
+                LazyInvocationHandler<${association.Klass}> handler =
+                    new LazyInvocationHandler<${association.Klass}>(
+                        factory.getDaoFor(${association.Klass}.class).query(
+                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
+                        _${field.LowerCamel},
+                        "${getter[$field]}");
+                _${association.Klass} = (${association.Klass})Proxy.newProxyInstance(
+                    this.getClass().getClassLoader(),
+                    new Class[]{ ${association.Klass}Editable.class },
+                    handler);
             } else if (cacheItem instanceof ${association.Klass}) {
                 _${association.Klass} = (${association.Klass})cacheItem;
             }

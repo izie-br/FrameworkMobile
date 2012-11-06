@@ -14,6 +14,7 @@ import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.gen.AuthorImpl;
 import com.quantium.mobile.framework.test.server.Echo;
 import com.quantium.mobile.framework.test.server.RouterBean;
 import com.quantium.mobile.framework.test.SessionFacade;
@@ -87,7 +88,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		ArrayList<Author> list = new ArrayList<Author>();
 		int count = 5;
 		for(int i = 0; i< count; i++){
-			Author a = new Author();
+			Author a = new AuthorImpl();
 			a.setName(RandomStringUtils.randomAscii(25));
 			list.add(a);
 		}
@@ -153,7 +154,7 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		ArrayList<Author> list = new ArrayList<Author>();
 		int count = 5;
 		for(int i = 0; i< count; i++){
-			Author a = new Author();
+			Author a = new AuthorImpl();
 			a.setName(RandomStringUtils.randomAscii(25));
 			list.add(a);
 		}

@@ -15,9 +15,13 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.gen.AuthorImpl;
 import com.quantium.mobile.framework.test.gen.Customer;
+import com.quantium.mobile.framework.test.gen.CustomerImpl;
 import com.quantium.mobile.framework.test.gen.Document;
+import com.quantium.mobile.framework.test.gen.DocumentImpl;
 import com.quantium.mobile.framework.test.gen.Score;
+import com.quantium.mobile.framework.test.gen.ScoreImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
@@ -173,7 +177,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		document.setAuthor(author);
 		assertTrue(docDao.save(document));
 
-		Score score = new Score(author, document, (new Random().nextInt())%100);
+		Score score = new ScoreImpl(author, document, (new Random().nextInt())%100);
 		assertTrue(scoreDao.save(score));
 
 		Customer customer = randomCustomer();
@@ -267,7 +271,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	private Author randomAuthor() {
-		Author author = new Author();
+		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
 		Date now = new Date();
 		author.setCreatedAt(new Date(
@@ -278,7 +282,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	private Document randomDocument () {
-		Document document = new Document();
+		Document document = new DocumentImpl();
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
 		Date now = new Date();
@@ -290,7 +294,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	private Customer randomCustomer () {
-		Customer customer = new Customer();
+		Customer customer = new CustomerImpl();
 		customer.setName(RandomStringUtils.random(60));
 		return customer;
 	}

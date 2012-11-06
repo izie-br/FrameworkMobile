@@ -21,6 +21,7 @@ import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.gen.AuthorImpl;
 
 public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -174,16 +175,16 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 
 	public void testLikeAndGlob(){
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-		Author author1 = new Author();
+		Author author1 = new AuthorImpl();
 		author1.setName("um nome");
 		Date now = new Date();
 		now = new Date(now.getYear(), now.getMonth(), now.getDate(),
 				now.getHours(), now.getMinutes());
 		author1.setCreatedAt(now);
-		Author author2 = new Author();
+		Author author2 = new AuthorImpl();
 		author2.setName("outro nome");
 		author2.setCreatedAt(now);
-		Author author3 = new Author();
+		Author author3 = new AuthorImpl();
 		author3.setName("outro");
 		author3.setCreatedAt(now);
 		try {
@@ -284,7 +285,7 @@ public class QueryTests  extends ActivityInstrumentationTestCase2<TestActivity> 
 	public void testImmutableQuerySet() throws Exception{
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		for (int i=0; i< 10; i++){
-			Author author1 = new Author();
+			Author author1 = new AuthorImpl();
 			author1.setName("nome["+i+"]");
 			author1.setCreatedAt(new Date());
 			try {
