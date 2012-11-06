@@ -42,6 +42,7 @@ public class VelocityDaoFactory {
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
+		this.parentCtx.put("getter", new GetterFactory());
 		this.aliases = serializationAliases;
 		//parentCtx.put("basePackage", basePackage);
 	}
@@ -75,6 +76,8 @@ public class VelocityDaoFactory {
 		File file = new File(targetDirectory, filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Klass", classname);
+		ctx.put("EditableInterface", targetclass + "Editable");
+		ctx.put("KlassImpl", targetclass + "Impl");
 		ctx.put("BaseClass", base);
 		ctx.put("Target", targetclass);
 		ctx.put("table", schema.getTabela().getNome());

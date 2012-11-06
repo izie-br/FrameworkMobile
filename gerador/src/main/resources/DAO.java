@@ -28,20 +28,20 @@
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
 #set ($primaryKeysArgs = $primaryKeysArgs +
-                         "((${field.Klass})target._${association.Klass}" +
+                         "((${field.Klass})target.get${association.Klass}()" +
                          ".get${association.ReferenceKey.UpperCamel}())" +
                          ".toString(),")
 #set ($nullPkCondition = $nullPkCondition +
-                         "target._${association.Klass} == null ||" +
-                         "target._${association.Klass}" +
+                         "target.get${association.Klass}() == null ||" +
+                         "target.get${association.Klass}()" +
                          ".get${association.ReferenceKey.UpperCamel}() " +
                          "== ${defaultId}")
 #else##if (!$associationForField[$field])
 #set ($primaryKeysArgs = $primaryKeysArgs +
-                         "((${field.Klass})target.${field.LowerCamel})" +
+                         "((${field.Klass})target.${getter[$field]}())" +
                          ".toString(),")
 #set ($nullPkCondition = $nullPkCondition +
-                         "target.get${field.UpperCamel}() == ${defaultId}" )
+                         "target.${getter[$field]}() == ${defaultId}" )
 #end##if ($associationForField[$field])
 #end##foreach ($field in $primaryKeys)
 #set ($primaryKeysArgs = $primaryKeysArgs + "}")
@@ -99,7 +99,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             return false;
         }
 #end##if ($compoundPk)
-        target._daofactory = this.factory;
+        ((${KlassImpl})target)._daofactory = this.factory;
         if (target instanceof LazyProxy)
             ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
@@ -107,15 +107,15 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
         contentValues.put("${field.LowerAndUnderscores}",
-                          (target._${association.Klass} == null) ? 0 : target._${association.Klass}.get${association.ReferenceKey.UpperCamel}());
+                          (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
         contentValues.put("${field.LowerAndUnderscores}",
-                          DateUtil.timestampToString(target.${field.LowerCamel}));
+                          DateUtil.timestampToString(target.${getter[$field]}()));
 #elseif ($field.Klass.equals("Boolean") )
-        contentValues.put("${field.LowerAndUnderscores}", (target.${field.LowerCamel})?1:0 );
+        contentValues.put("${field.LowerAndUnderscores}", (target.${getter[$field]}())?1:0 );
 #else##if_class_equals
-        contentValues.put("${field.LowerAndUnderscores}", target.${field.LowerCamel});
+        contentValues.put("${field.LowerAndUnderscores}", target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##foreach
@@ -125,7 +125,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         String primaryKeysArgs [] = ${primaryKeysArgs};
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
-        insert = target.${primaryKey.LowerCamel} == ${defaultId};
+        insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists)
 #end
         {
@@ -139,16 +139,16 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #foreach ($field in $primaryKeys)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-            target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
+            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
 #else##if (!$associationForField[$field])
-            target.${field.LowerCamel},
+            target.${getter[$field]}(),
 #end##if ($associationForField[$field])
 #end##foreach ($key in $primaryKeys)
         };
         if (insert) {
 #if (!$compoundPk)
             if (insertIfNotExists) {
-                contentValues.put("${primaryKey.LowerAndUnderscores}", target.${primaryKey.LowerCamel});
+                contentValues.put("${primaryKey.LowerAndUnderscores}", target.${getter[$primaryKey]}());
             }
 #end##not_compoundPk
             long value;
@@ -166,7 +166,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             }
 #else##not_compoundPk
             if (value > 0){
-                target.${primaryKey.LowerCamel} = value;
+                ((${EditableInterface})target).set${primaryKey.UpperCamel}(value);
                 pks = new Serializable[]{ value };
                 factory.pushToCache(${Target}.class, pks, target);
                 return true;
@@ -245,7 +245,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             db.update(
                 "${relation.Table}", contentValues,
                 "${relation.ForeignKey.LowerAndUnderscores} = ?",
-                new String[] {((${relation.ForeignKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
+                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
            Runnable _${relation.Klass}NullFkThread = null;
            _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
            //_${relation.Klass}NullFkThread.start();
@@ -259,7 +259,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##foreach_oneToMany
 #foreach ($relation in $manyToManyRelation)
             db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
-                      new String[] {((${relation.ReferenceKey.Klass}) target.${relation.ReferenceKey.LowerCamel}).toString()});
+                      new String[] {((${relation.ReferenceKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
 #end##foreach_manyToMany
             int affected;
             try {
@@ -293,9 +293,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #foreach ($field in $primaryKeys)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-            target._${association.Klass}.get${association.ReferenceKey.UpperCamel}(),
+            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
 #else##if (!$associationForField[$field])
-            target.${field.LowerCamel},
+            target.${getter[$field]}(),
 #end##if ($associationForField[$field])
 #end##foreach ($key in $primaryKeys)
         };
@@ -361,7 +361,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##if ($primaryKeyIndex.equals($primaryKeys.size()))
 #end##foreach ($field in $fields)
 
-        ${Target} target = new ${Target}(
+        ${KlassImpl} target = new ${KlassImpl}(
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
 #if ($associationForField[$field])
@@ -435,7 +435,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##if (!$associationForField[$field])
 #end##foreach
 
-        ${Target} target = new ${Target}(
+        ${KlassImpl} target = new ${KlassImpl}(
 #foreach ($field in $fields)
 #set ($columnIndex = $foreach.index)
 #if ($associationForField[$field])
@@ -469,17 +469,17 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
 #if (${association.IsThisTableA})
-        if (target.${association.ReferenceA.LowerCamel} == ${defaultId}) {
+        if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToA.LowerAndUnderscores}", target.${association.ReferenceA.LowerCamel});
-        contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${association.ReferenceB.LowerCamel});
+        contentValues.put("${association.KeyToA.LowerAndUnderscores}", target.${getter[$association.ReferenceA]}());
+        contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${getter[$association.ReferenceB]}());
 #else##(${association.IsThisTableA)
-        if (target.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+        if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToB.LowerAndUnderscores}", target.${association.ReferenceB.LowerCamel});
-        contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${association.ReferenceA.LowerCamel});
+        contentValues.put("${association.KeyToB.LowerAndUnderscores}", target.${getter[$association.ReferenceB]}());
+        contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${getter[$association.ReferenceA]}());
 #end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();
         long value;
@@ -498,22 +498,22 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         if (target instanceof LazyProxy)
             ((LazyProxy)target).load();
 #if (${association.IsThisTableA})
-        if (target.${association.ReferenceA.LowerCamel} == ${defaultId}) {
+        if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
         }
         String whereSql = "${association.KeyToA.LowerAndUnderscores} = ? AND ${association.KeyToB.LowerAndUnderscores} = ?";
         String [] args = new String[]{
-            ((${association.KeyToA.Klass})target.${association.ReferenceA.LowerCamel}).toString(),
-            ((${association.KeyToB.Klass})obj.${association.ReferenceB.LowerCamel}).toString()
+            ((${association.KeyToA.Klass})target.${getter[$association.ReferenceA]}()).toString(),
+            ((${association.KeyToB.Klass})obj.${getter[$association.ReferenceB]}()).toString()
        };
 #else##(${association.IsThisTableA})
-        if (target.${association.ReferenceB.LowerCamel} == ${defaultId}) {
+        if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
         }
         String whereSql = "${association.KeyToB.LowerAndUnderscores} = ? AND ${association.KeyToA.LowerAndUnderscores} = ?";
         String [] args = new String[]{
-            ((${association.KeyToA.Klass})obj.${association.ReferenceA.LowerCamel}).toString(),
-            ((${association.KeyToB.Klass})target.${association.ReferenceB.LowerCamel}).toString()
+            ((${association.KeyToA.Klass})obj.${getter[$association.ReferenceA]}()).toString(),
+            ((${association.KeyToB.Klass})target.${getter[$association.ReferenceB]}()).toString()
        };
 #end##(${association.IsThisTableA})
         SQLiteDatabase db = this.factory.getDb();

@@ -277,7 +277,12 @@ public class GeradorDeBeans {
 //			mapClasses.put(javaBeanSchema, classeGerada);
 			//vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
 			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
-			vvof.generateVOClass(javaBeanSchema, javaBeanSchemas);
+			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
+			                VelocityVOFactory.Type.INTERFACE);
+			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
+			                VelocityVOFactory.Type.IMPLEMENTATION);
+			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
+			                VelocityVOFactory.Type.EDITABLE_INTERFACE);
 		}
 		VelocityCustomClassesFactory.generateDAOFactory(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);

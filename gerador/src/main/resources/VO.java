@@ -28,10 +28,23 @@ import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.DAO;
 #end
 import com.quantium.mobile.framework.query.Table;
+#if ($implementation)
 import ${basePackage}.GenericBean;
+#else
+import ${basePackage}.GenericVO;
+#end
 
-public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
+#if ($implementation)
+public class ${Filename} extends GenericBean implements ${EditableInterface}
+#elseif ($interface)
+public interface ${Klass} extends GenericVO, MapSerializable<${Klass}>
+#elseif ($editableInterface)
+public interface ${Filename} extends ${Klass}
+#end
+{
+
+#if ($interface)
     public final static Table _TABLE = new Table("${table}");
 #foreach ($field in $fields)
     public final static Table.Column<${field.Klass}> ${field.UpperAndUnderscores} = _TABLE.addColumn(${field.Klass}.class, "${field.LowerAndUnderscores}");
@@ -52,6 +65,8 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end
 #end
 
+#end##if ($interface)
+#if ($implementation)
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
@@ -64,9 +79,9 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
     public DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
-    public ${Klass}(){}
+    public ${Filename}(){}
 
-    public ${Klass}(
+    public ${Filename}(
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index + 1)
 #if ($associationForField[$field])
@@ -89,44 +104,59 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #end##foreach ($field in $fields)
     }
 
+#end##if ($implementation)
 #foreach ($field in $fields)
+#if ($interface || $implementation)
 #if ($field.Get)
-    public ${field.Type} ${getter[$field]} () {
+    public ${field.Type} ${getter[$field]} () #if($implementation){
         return ${field.LowerCamel};
-    }
+    }#else;#end
 
-#end
-#if ($field.Set && !$primaryKeys.contains($field) )
-    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
+
+#end##if ($interface || $implementation)
+#end##if ($field.Get)
+#if ( (!$associationForField[$field] && $implementation) ||
+      (!$editableInterface && $field.Set && !$primaryKeys.contains($field)) ||
+      ($primaryKeys.contains($field) && $editableInterface && !$associationForField[$field]) )
+    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
         this.${field.LowerCamel} = ${field.LowerCamel};
         triggerObserver("${field.LowerAndUnderscores}");
-    }
+    }#else;#end
 
-#end##($field.Set && !primaryKeys.contains($field) )
+
+#end##if ( generate_setter )
 #end##foreach
 #foreach ($association in $oneToManyAssociations)
-    public QuerySet<${association.Klass}> get${association.Pluralized}(){
+#if ($interface || $implementation)
+    public QuerySet<${association.Klass}> get${association.Pluralized}() #if($implementation){
         if (this._daofactory == null)
             return null;
         return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class)).query(
             ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
-    }
+    }#else;#end
 
+
+#end##if ($interface || $implementation)
 #end
 #foreach ($association in $manyToOneAssociations)
-    public ${association.Klass} get${association.Klass}(){
+#if ($interface || $implementation)
+    public ${association.Klass} get${association.Klass}() #if ($implementation){
         return _${association.Klass};
-    }
+    }#else;#end
 
-#if (!$primaryKeys.contains($association.ForeignKey))
-    public void set${association.Klass}(${association.Klass} obj){
+
+#end##if ($interface || $implementation)
+#if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
+    public void set${association.Klass}(${association.Klass} obj) #if ($implementation) {
         _${association.Klass} = obj;
-    }
-#end##if (!$primaryKeys.contains($association.ForeignKey))
+    }#else;#end
 
+
+#end##if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
 #end##foreach ($association in $manyToOneAssociations)
 #foreach ($association in $manyToManyAssociations)
-    public QuerySet<${association.Klass}> get${association.Pluralized}(){
+#if ($interface || $implementation)
+    public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
         if (this._daofactory == null)
             return null;
         return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class))
@@ -139,9 +169,12 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
                 (${association.Klass}.${association.ReferenceA.UpperAndUnderscores}.eq(_${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}))
                 .and( _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}.eq(${association.ReferenceB.LowerCamel}) ));
 #end
-    }
+    }#else;#end
 
+
+#end##if ($interface || $implementation)
 #end
+#if ($implementation)
     @Override
     public void toMap(Map<String, Object> map) {
 #foreach ($field in $fields)
@@ -209,108 +242,16 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
         }
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
-        if(${field.LowerCamel} != other.${field.LowerCamel})
+        if(${field.LowerCamel} != other.${getter[$field]}())
             return false;
 #else
-        if( ( ${field.LowerCamel}==null)? (other.${field.LowerCamel} != null) :  !${field.LowerCamel}.equals(other.${field.LowerCamel}) )
+        if( ( ${field.LowerCamel}==null)? (other.${getter[$field]}() != null) :  !${field.LowerCamel}.equals(other.${getter[$field]}()) )
             return false;
 #end##if(field.Klass.equals(*))
 #end##if ($associationForField[$field])
 #end##foreach
         return true;
     }
-#if ($createProxy)
 
-    @SuppressWarnings("serial")
-    public static class Proxy extends ${Klass} implements LazyProxy {
-        DAOFactory _daofactory;
-        boolean _proxy_loaded;
-
-#foreach ($field in $fields)
-#if (!$primaryKeys.contains($field))
-#if ($field.Get)
-        public ${field.Type} ${getter[$field]} () {
-            if (!_proxy_loaded)
-                load();
-            return super.${getter[$field]} ();
-        }
-
-#end
-#if ($field.Set)
-        public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
-            if (!_proxy_loaded)
-                load();
-            super.set${field.UpperCamel}(${field.LowerCamel});
-        }
-
-#end##if_is_Set
-#end##(!$primaryKeys.contains($field))
-#end##foreach
-#foreach ($association in $manyToOneAssociations)
-        public ${association.Klass} get${association.Klass}(){
-            if (!_proxy_loaded)
-                load();
-            return super.get${association.Klass}();
-        }
-
-        public void set${association.Klass}(${association.Klass} assoc){
-            if (!_proxy_loaded)
-                load();
-            super.set${association.Klass}(assoc);
-        }
-
-#end
-        public void toMap(Map<String, Object> map) {
-            if (!_proxy_loaded)
-                load();
-            super.toMap(map);
-        }
-
-        public int hashCodeImpl() {
-            if (!_proxy_loaded)
-                load();
-            return super.hashCodeImpl();
-        }
-
-        public boolean equals(Object obj) {
-            if (!_proxy_loaded)
-                load();
-            return super.equalsImpl(obj);
-        }
-
-        private void writeObject(ObjectOutputStream oos) throws IOException {
-            if (!_proxy_loaded)
-                load();
-            oos.defaultWriteObject();
-        }
-
-        private void readObject(ObjectInputStream ois)
-            throws ClassNotFoundException, IOException
-        {
-            if (!_proxy_loaded)
-                load();
-            ois.defaultReadObject();
-        }
-
-        public void load(){
-            $Klass temp = ((DAO<${Klass}>)_daofactory.getDaoFor(${Klass}.class)).query(
-#foreach ($field in $primaryKeys)
-              #if ($foreach.index != 0).and#else    #end (${Klass}.${field.UpperAndUnderscores}.eq(${field.LowerCamel}))
-#end##foreach
-            ).first();
-            if (temp == null)
-                throw new RuntimeException();
-#foreach ($field in $fields)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-            this._${association.Klass} = temp._${association.Klass};
-#elseif (!$primaryKeys.contains($field))##if ($associationForField[$field])
-            this.${field.LowerCamel} = temp.${field.LowerCamel};
-#end##if ($associationForField[$field])
-#end##foreach
-            _proxy_loaded = true;
-        }
-    }
-#end##if($createProxy)
-
+#end##if ($implementation)
 }

@@ -14,6 +14,8 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
+import android.text.Editable;
+
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
@@ -44,14 +46,30 @@ public class VelocityVOFactory {
 		this.aliases = serializationAliases;
 	}
 
-	public void generateVOClass(
-			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
+	public void generateVO(
+			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
+			VelocityVOFactory.Type type)
 			throws IOException
 	{
 		String classname = CamelCaseUtils.toUpperCamelCase(schema.getNome());
-		String filename = classname + ".java";
-		File file = new File(targetDirectory, filename);
+		String editableInterfaceName = classname + "Editable";
+		String filename = null;
 		VelocityContext ctx = new VelocityContext(parentCtx);
+		switch (type){
+		case INTERFACE:
+			ctx.put("interface", true);
+			filename = classname;
+			break;
+		case EDITABLE_INTERFACE:
+			ctx.put("editableInterface", true);
+			filename = editableInterfaceName;
+			break;
+		case IMPLEMENTATION:
+			ctx.put("implementation", true);
+			filename = classname + "Impl";
+		}
+		ctx.put("Filename", filename);
+		ctx.put("EditableInterface", editableInterfaceName);
 		ctx.put("table", schema.getTabela().getNome());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
@@ -84,6 +102,7 @@ public class VelocityVOFactory {
 				VelocityDaoFactory.getAssociationsForFK(fields, manyToOne);
 		ctx.put("associationForField", associationsFromFK);
 
+		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
 				"UTF-8");
@@ -130,4 +149,5 @@ public class VelocityVOFactory {
 		return result;
 	}
 
+	public enum Type { INTERFACE, EDITABLE_INTERFACE , IMPLEMENTATION };
 }
