@@ -62,7 +62,6 @@ import com.quantium.mobile.framework.LazyInvocationHandler;
 #elseif ($hasNotNullableAssociation)
 import com.quantium.mobile.framework.DAO;
 #end##if ($manyToOneAssociations.size() > 0)
-import com.quantium.mobile.framework.LazyProxy;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
@@ -103,8 +102,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         }
 #end##if ($compoundPk)
         ((${KlassImpl})target)._daofactory = this.factory;
-        if (target instanceof LazyProxy)
-            ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #if ($associationForField[$field])
@@ -473,10 +470,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #foreach ($association in $manyToManyAssociations)
     public boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target target) throws IOException {
-        if (obj instanceof LazyProxy)
-            ((LazyProxy)obj).load();
-        if (target instanceof LazyProxy)
-            ((LazyProxy)target).load();
         ContentValues contentValues = new ContentValues();
 #if (${association.IsThisTableA})
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
@@ -503,10 +496,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 
     public boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target target) throws IOException {
-        if (obj instanceof LazyProxy)
-            ((LazyProxy)obj).load();
-        if (target instanceof LazyProxy)
-            ((LazyProxy)target).load();
 #if (${association.IsThisTableA})
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
