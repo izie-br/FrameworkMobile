@@ -1,36 +1,31 @@
-#if ($oneToManyAssociations.size() > 0)
-#set ($createProxy = true)
-#end##($oneToManyAssociations.size() > 0)
 #foreach ($field in $fields)
 ##
 #if ( $field.Klass.equals("Date") )
 #set ($haveDateField = true)
-#break
+#if ($primaryKeys.contains($field))
+#set ($hasDatePK = true)
+#end##if ($primaryKeys.contains($field))
 #end##if
 #end##foreach
 ##
 package $package;
 
-#if ($createProxy)
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-#end##if($createProxy)
-import java.util.Map;
-#if ( $haveDateField )
+#if ( $haveDateField && (!$editableInterface || $hasDatePK) )
 import java.util.Date;
-#end##if ( $haveDateField )
-import com.quantium.mobile.framework.MapSerializable;
-import com.quantium.mobile.framework.DAOFactory;
-import com.quantium.mobile.framework.LazyProxy;
+#end##if ( $haveDateField && (!$editableInterface || $hasDatePK) )
 #if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
+#if ($implementation)
 import com.quantium.mobile.framework.DAO;
-#end
-import com.quantium.mobile.framework.query.Table;
+#end##if ($implementation)
+#end##if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 #if ($implementation)
 import ${basePackage}.GenericBean;
-#else
+import java.util.Map;
+import com.quantium.mobile.framework.DAOFactory;
+#elseif ($interface)
+import com.quantium.mobile.framework.MapSerializable;
+import com.quantium.mobile.framework.query.Table;
 import ${basePackage}.GenericVO;
 #end
 
@@ -224,8 +219,6 @@ public interface ${Filename} extends ${Klass}
             return false;
         }
         ${Klass} other = ((${Klass}) obj);
-        if (other instanceof LazyProxy)
-            ((LazyProxy)other).load();
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
