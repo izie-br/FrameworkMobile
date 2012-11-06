@@ -14,8 +14,6 @@ import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
-import android.text.Editable;
-
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeradorDeBeans;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
@@ -82,6 +80,10 @@ public class VelocityVOFactory {
 		ctx.put("manyToOneAssociations", manyToOne);
 		ctx.put("oneToManyAssociations", oneToMany);
 		ctx.put("manyToManyAssociations", manyToMany);
+		List<Object> toMany = new ArrayList<Object>();
+		toMany.addAll(oneToMany);
+		toMany.addAll(manyToMany);
+		ctx.put("toManyAssociations", toMany);
 		List<Property> fields = new ArrayList<Property>();
 		List<Property> pks = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){

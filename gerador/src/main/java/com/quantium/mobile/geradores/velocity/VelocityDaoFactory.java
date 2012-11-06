@@ -104,6 +104,10 @@ public class VelocityDaoFactory {
 		ctx.put("oneToManyAssociations", oneToMany);
 		ctx.put("manyToManyAssociations", manyToMany);
 		ctx.put("manyToOneAssociations", manyToOne);
+		List<Object> toMany = new ArrayList<Object>();
+		toMany.addAll(oneToMany);
+		toMany.addAll(manyToMany);
+		ctx.put("toManyAssociations", toMany);
 		//ctx.put("ForeignKeys", getForeignKeys(schema));
 
 		Map<Property, Object> associationsFromFK =
