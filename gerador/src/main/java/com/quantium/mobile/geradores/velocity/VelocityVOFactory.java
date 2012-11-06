@@ -40,6 +40,7 @@ public class VelocityVOFactory {
 		this.parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
 		this.parentCtx.put("package", genPackage);
 		this.parentCtx.put("basePackage", basePackage);
+		this.parentCtx.put("getter", new GetterFactory());
 		this.aliases = serializationAliases;
 	}
 

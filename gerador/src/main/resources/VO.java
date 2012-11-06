@@ -91,7 +91,7 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 
 #foreach ($field in $fields)
 #if ($field.Get)
-    public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
+    public ${field.Type} ${getter[$field]} () {
         return ${field.LowerCamel};
     }
 
@@ -229,10 +229,10 @@ public class $Klass extends GenericBean implements MapSerializable<${Klass}>{
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
 #if ($field.Get)
-        public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
+        public ${field.Type} ${getter[$field]} () {
             if (!_proxy_loaded)
                 load();
-            return super#if ($field.Klass.equals("Boolean")) .is#else .get#end${field.UpperCamel}();
+            return super.${getter[$field]} ();
         }
 
 #end
