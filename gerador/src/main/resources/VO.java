@@ -253,5 +253,100 @@ public interface ${Filename} extends ${Klass}
         return true;
     }
 
+###if ($createProxy && $implementation)
+##
+##    @SuppressWarnings("serial")
+##    public static class Proxy extends ${Filename} {
+##
+##        private transient QuerySet<${Klass}> querySet;
+##        private transient boolean _proxy_loaded;
+##
+##        Proxy(
+##            QuerySet<${Klass}> querySet
+##        ) {
+##            super(
+##            );
+##            this.
+##        }
+###foreach ($field in $fields)
+###if (!${associationForField[$field]})
+##        public ${field.Type}#if ($field.Klass.equals("Boolean")) is#else get#end${field.UpperCamel}(){
+###if (!$primaryKeys.contains($field))
+##            if (!_proxy_loaded)
+##                load();
+###end##if (!$primaryKeys.contains($field))
+##            return super#if ($field.Klass.equals("Boolean")) .is#else .get#end${field.UpperCamel}();
+##        }
+##
+##        public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}){
+##            if (!_proxy_loaded)
+##                load();
+##            super.set${field.UpperCamel}(${field.LowerCamel});
+##        }
+##
+###end##if (!${associationForField[$field])
+###end##foreach
+###foreach ($association in $manyToOneAssociations)
+##        public ${association.Klass} get${association.Klass}(){
+##            if (!_proxy_loaded)
+##                load();
+##            return super.get${association.Klass}();
+##        }
+##
+##        public void set${association.Klass}(${association.Klass} assoc){
+##            if (!_proxy_loaded)
+##                load();
+##            super.set${association.Klass}(assoc);
+##        }
+##
+###end
+##        public void toMap(Map<String, Object> map) {
+##            if (!_proxy_loaded)
+##                load();
+##            super.toMap(map);
+##        }
+##
+##        public int hashCodeImpl() {
+##            if (!_proxy_loaded)
+##                load();
+##            return super.hashCodeImpl();
+##        }
+##
+##        public boolean equals(Object obj) {
+##            if (!_proxy_loaded)
+##                load();
+##            return super.equalsImpl(obj);
+##        }
+##
+##        private void writeObject(ObjectOutputStream oos) throws IOException {
+##            if (!_proxy_loaded)
+##                load();
+##            oos.defaultWriteObject();
+##        }
+##
+##        private void readObject(ObjectInputStream ois)
+##            throws ClassNotFoundException, IOException
+##        {
+##            if (!_proxy_loaded)
+##                load();
+##            ois.defaultReadObject();
+##        }
+##
+##        public void load(){
+##            $Klass temp = (${Klass})querySet.first();
+##            if (temp == null)
+##                throw new RuntimeException();
+###foreach ($field in $fields)
+###if ($associationForField[$field])
+###set ($association = $associationForField[$field])
+##            this._${association.Klass} = temp.get${association.Klass}();
+###elseif (!$primaryKeys.contains($field))##if ($associationForField[$field])
+##            this.${field.LowerCamel} = temp.${getter[$field]}();
+###end##if ($associationForField[$field])
+###end##foreach
+##            _proxy_loaded = true;
+##        }
+##    }
+###end##if ($createProxy && $implementation)
 #end##if ($implementation)
 }
