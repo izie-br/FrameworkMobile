@@ -15,14 +15,10 @@ import java.util.Date;
 #end##if ( $haveDateField && (!$editableInterface || $hasDatePK) )
 #if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 import com.quantium.mobile.framework.query.QuerySet;
-#if ($implementation)
-import com.quantium.mobile.framework.DAO;
-#end##if ($implementation)
 #end##if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 #if ($implementation)
 import ${basePackage}.GenericBean;
 import java.util.Map;
-import com.quantium.mobile.framework.DAOFactory;
 #elseif ($interface)
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.query.Table;

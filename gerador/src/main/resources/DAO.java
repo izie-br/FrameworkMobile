@@ -79,7 +79,6 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 #if ($hasNullableAssociation)
 import java.util.Collection;
 import java.lang.ref.Reference;
-import com.quantium.mobile.framework.logging.LogPadrao;
 #end##if ($hasNullableAssociation)
 
 public class ${Klass} implements DAOSQLite<${Target}> {
@@ -160,7 +159,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #if ($compoundPk)
             if (value > 0) {
                 if (target instanceof ${EditableInterface}) {
+#if ($toManyAssociations.size() > 0)
                     $EditableInterface editable = (${EditableInterface})target;
+#end##if ($toManyAssociations.size() > 0)
 #foreach ($association in $toManyAssociations)
 #if ($association.ReferenceKey)
 #set ($referenceKey = $association.ReferenceKey)
