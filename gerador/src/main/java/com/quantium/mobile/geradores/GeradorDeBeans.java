@@ -35,6 +35,7 @@ import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.geradores.util.XMLUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
+import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
 public class GeradorDeBeans {
@@ -261,6 +262,8 @@ public class GeradorDeBeans {
 				serializationAliases);
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
+		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, coreTempDir,
+				pacote, pacote+'.'+pacoteGen, serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
@@ -283,6 +286,12 @@ public class GeradorDeBeans {
 			                VelocityVOFactory.Type.IMPLEMENTATION);
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
 			                VelocityVOFactory.Type.EDITABLE_INTERFACE);
+			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
+							VelocityObjcFactory.Type.INTERFACE);
+			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
+							VelocityObjcFactory.Type.IMPLEMENTATION);
+			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
+							VelocityObjcFactory.Type.EDITABLE_INTERFACE);
 		}
 		VelocityCustomClassesFactory.generateDAOFactory(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);
