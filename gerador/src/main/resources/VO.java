@@ -75,7 +75,6 @@ public interface ${Filename} extends ${Klass}
     QuerySet<${association.Klass}> _${association.Pluralized};
 #end##foreach ($association in $toManyAssociations)
 
-    public DAOFactory _daofactory;
     private final static long serialVersionUID = ${serialVersionUID};
 
     public ${Filename}(){}
@@ -134,18 +133,6 @@ public interface ${Filename} extends ${Klass}
 
 #end##if ( generate_setter )
 #end##foreach
-#foreach ($association in $oneToManyAssociations)
-#if ($interface || $implementation)
-    public QuerySet<${association.Klass}> get${association.Pluralized}() #if($implementation){
-        if (this._daofactory == null)
-            return null;
-        return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class)).query(
-            ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
-    }#else;#end
-
-
-#end##if ($interface || $implementation)
-#end
 #foreach ($association in $manyToOneAssociations)
 #if ($interface || $implementation)
     public ${association.Klass} get${association.Klass}() #if ($implementation){
@@ -162,25 +149,21 @@ public interface ${Filename} extends ${Klass}
 
 #end##if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
 #end##foreach ($association in $manyToOneAssociations)
-#foreach ($association in $manyToManyAssociations)
+#foreach ($association in $toManyAssociations)
 #if ($interface || $implementation)
     public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
-        if (this._daofactory == null)
-            return null;
-        return ((DAO<${association.Klass}>)_daofactory.getDaoFor(${association.Klass}.class))
-#if ($association.IsThisTableA)
-            .query(
-                (${association.Klass}.${association.ReferenceB.UpperAndUnderscores}.eq(_${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}))
-                .and( _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}.eq(${association.ReferenceA.LowerCamel}) ));
-#else
-            .query(
-                (${association.Klass}.${association.ReferenceA.UpperAndUnderscores}.eq(_${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}))
-                .and( _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}.eq(${association.ReferenceB.LowerCamel}) ));
-#end
+        return _${association.Pluralized};
     }#else;#end
 
 
 #end##if ($interface || $implementation)
+#if ($implementation || $editableInterface)
+    public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
+        this._${association.Pluralized} = querySet;
+    }#else;#end
+
+
+#end##if ($implementation || $editableInterface)
 #end
 #if ($implementation)
     @Override

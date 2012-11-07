@@ -55,6 +55,7 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
+import com.quantium.mobile.framework.logging.LogPadrao;
 #if ($manyToOneAssociations.size() > 0)
 import java.lang.reflect.Proxy;
 import com.quantium.mobile.framework.DAO;
@@ -101,7 +102,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             return false;
         }
 #end##if ($compoundPk)
-        ((${KlassImpl})target)._daofactory = this.factory;
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #if ($associationForField[$field])
@@ -159,16 +159,52 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             }
 #if ($compoundPk)
             if (value > 0) {
-                factory.pushToCache(${Target}.class, pks, target);
+                if (target instanceof ${EditableInterface}) {
+                    $EditableInterface editable = (${EditableInterface})target;
+#foreach ($association in $toManyAssociations)
+#if ($association.ReferenceKey)
+#set ($referenceKey = $association.ReferenceKey)
+#elseif ($association.IsThisTableA)
+#set ($referenceKey = $association.ReferenceA)
+#else##if ($association.ReferenceKey)
+#set ($referenceKey = $association.ReferenceB)
+#end##if ($association.ReferenceKey)
+                    if (editable.get${association.Pluralized}() == null) {
+                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
+                    }
+#end##foreach ($association in $toManyAssociations)
+                    factory.pushToCache(${Target}.class, pks, target);
+                } else {
+                    factory.removeFromCache(${Target}.class, pks);
+                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
+                }
                 return true;
             } else {
                 return false;
             }
 #else##not_compoundPk
             if (value > 0){
-                ((${EditableInterface})target).set${primaryKey.UpperCamel}(value);
-                pks = new Serializable[]{ value };
-                factory.pushToCache(${Target}.class, pks, target);
+                if (target instanceof ${EditableInterface}) {
+                    $EditableInterface editable = (${EditableInterface})target;
+                    editable.set${primaryKey.UpperCamel}(value);
+#foreach ($association in $toManyAssociations)
+#if ($association.ReferenceKey)
+#set ($referenceKey = $association.ReferenceKey)
+#elseif ($association.IsThisTableA)
+#set ($referenceKey = $association.ReferenceA)
+#else##if ($association.ReferenceKey)
+#set ($referenceKey = $association.ReferenceB)
+#end##if ($association.ReferenceKey)
+                    if (editable.get${association.Pluralized}() == null) {
+                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
+                    }
+#end##foreach ($association in $toManyAssociations)
+                    pks = new Serializable[]{ value };
+                    factory.pushToCache(${Target}.class, pks, target);
+                } else {
+                    factory.removeFromCache(${Target}.class, pks);
+                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
+                }
                 return true;
             } else {
                 return false;
@@ -426,7 +462,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #end##foreach ($association in $manyToManyAssociations)
         );
-        target._daofactory = this.factory;
+        //target._daofactory = this.factory;
 
         if (useCache)
             factory.pushToCache(${Target}.class, pks, target);
@@ -516,7 +552,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #end##foreach ($association in $manyToManyAssociations)
         );
-        target._daofactory = this.factory;
+        //target._daofactory = this.factory;
         return target;
     }
 
