@@ -8,6 +8,9 @@
 #end##if
 #end##foreach
 ##
+
+
+
 //package $package;
 #import "JreEmulation.h"
 #if ( $haveDateField && (!$editableInterface || $hasDatePK) )
@@ -18,6 +21,7 @@
 #end##if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
 #if ($implementation)
 #import "GenericBean.h"
+#import "${Klass}.h"
 @protocol JavaUtilMap;
 #elseif ($interface)
 @class ComQuantiumMobileFrameworkQueryTable;
@@ -31,12 +35,22 @@
 @implementation ComQuantiumMobileCoreGen${Filename}
 #elseif ($interface)
 @interface ComQuantiumMobileCoreGen${Klass} : ComQuantiumMobileCoreGenericVO < ComQuantiumMobileFrameworkMapSerializable > {
+ @public
+#foreach ($field in $fields)
+ ${field.Type} ${field.LowerCamel}_;
+#end##foreach ($field in $fields)
+}
+#foreach ($field in $fields)
+@property (nonatomic, assign) ${field.Type} ${field.LowerCamel};
+#end##foreach ($field in $fields)
 #elseif ($editableInterface)
 @interface ComQuantiumMobileCoreGen${Filename} {
 #end
-{
 
 #if ($interface)
+- (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map;
+- (ComQuantiumMobileCoreGen${Filename} *)mapToObjectWithJavaUtilMap:(id<JavaUtilMap>)map;
+- (id)init;
 + (ComQuantiumMobileFrameworkQueryTable *)_TABLE;
 #foreach ($field in $fields)
 + (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores};
@@ -60,7 +74,7 @@
 #set ($association = $associationForField[$field])
 @dynamic _${association.Klass};
 #else##if (!$association = $associationForField[$field])
-    ${field.Type} ${field.LowerCamel}#if ($primaryKeys.contains($field)) = ${defaultId}#end;
+@dynamic ${field.LowerCamel};
 #end##if ($association = $associationForField[$field])
 #end##foreach ($field in $fields)
 
@@ -68,39 +82,41 @@
 @dynamic _${association.Pluralized};
 #end##foreach ($association in $toManyAssociations)
 
-    private final static long serialVersionUID = ${serialVersionUID};
-
-    public ${Filename}(){}
+- (id)init {
+  if ((self = [super init])) {
+  }
+  return self;
+}
 
 #set ($argCount = $fields.size() + $toManyAssociations.size())
-    public ${Filename}(
+- (id)initWithParams:(id *) test
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        ${association.Klass} _${association.Klass}#if ($fieldIndex != $argCount),#end
+        with${association.Klass}:(${association.Klass} *) _${association.Klass}#if ($fieldIndex != $argCount) #end
 
 #else##if (!$associationForField[$field])
-        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != $argCount),#end
+        with${field.Type}:(${field.Type} *) ${field.LowerCamel}#if ($fieldIndex != $argCount) #end
 
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
 #set ($fieldIndex = $fields.size() + $foreach.index + 1)
-        QuerySet<${association.Klass}> _${association.Pluralized}#if ($fieldIndex != $argCount),#end
+       withComQuantiumMobileFrameworkQuerySet:(ComQuantiumMobileFrameworkQuerySet<${association.Klass}> *) _${association.Pluralized}#if ($fieldIndex != $argCount) #end
 
 #end##foreach ($association in $toManyAssociations)
     ) {
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        this._${association.Klass} = _${association.Klass};
+        [[self _${association.Klass}] = _${association.Klass}];
 #else##if (!$associationForField[$field])
-        this.${field.LowerCamel} = ${field.LowerCamel};
+        [[self ${field.LowerCamel}] = ${field.LowerCamel}];
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
-        this._${association.Pluralized} = _${association.Pluralized};
+        [[self _${association.Pluralized}] = _${association.Pluralized}];
 #end##foreach ($association in $toManyAssociations)
     }
 
@@ -108,9 +124,6 @@
 #foreach ($field in $fields)
 #if ($interface || $implementation)
 #if ($field.Get)
-    public ${field.Type} ${getter[$field]} () #if($implementation){
-        return ${field.LowerCamel};
-    }#else;#end
 
 
 #end##if ($interface || $implementation)
@@ -118,10 +131,6 @@
 #if ( (!$associationForField[$field] && $implementation) ||
       (!$editableInterface && $field.Set && !$primaryKeys.contains($field)) ||
       ($primaryKeys.contains($field) && $editableInterface && !$associationForField[$field]) )
-    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
-        this.${field.LowerCamel} = ${field.LowerCamel};
-        triggerObserver("${field.LowerAndUnderscores}");
-    }#else;#end
 
 
 #end##if ( generate_setter )
@@ -144,16 +153,16 @@
 #end##foreach ($association in $manyToOneAssociations)
 #foreach ($association in $toManyAssociations)
 #if ($interface || $implementation)
-    public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
-        return _${association.Pluralized};
-    }#else;#end
+- (ComQuantiumMobileFrameworkQueryQuerySet *)get${association.Pluralized} #if ($implementation) {
+        return [self _${association.Pluralized}];
+}#else;#end
 
 
 #end##if ($interface || $implementation)
 #if ($implementation || $editableInterface)
-    public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-        this._${association.Pluralized} = querySet;
-    }#else;#end
+    //public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
+    //    this._${association.Pluralized} = querySet;
+    //}#else;#end
 
 
 #end##if ($implementation || $editableInterface)
@@ -331,4 +340,4 @@
 ##    }
 ###end##if ($createProxy && $implementation)
 #end##if ($implementation)
-}
+@end
