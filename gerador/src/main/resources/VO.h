@@ -68,17 +68,12 @@
 @dynamic _${association.Pluralized};
 #end##foreach ($association in $toManyAssociations)
 
-#define ComQuantiumMobileCoreGen${Filename}_serialVersionUID ${serialVersionUID}
+    private final static long serialVersionUID = ${serialVersionUID};
 
-- (id)init {
-  if ((self = [super init])) {
-  }
-  return self;
-}
-
+    public ${Filename}(){}
 
 #set ($argCount = $fields.size() + $toManyAssociations.size())
-- (id)init
+    public ${Filename}(
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index + 1)
 #if ($associationForField[$field])
