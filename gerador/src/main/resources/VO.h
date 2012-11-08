@@ -48,26 +48,10 @@
 @property (nonatomic, assign) ${Type[$field]} ${field.LowerCamel};
 #end##foreach ($field in $fields)
 #end
-##
+
 #if ($interface)
 - (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map;
-- (${package}${Filename} *)mapToObjectWithJavaUtilMap:(id<JavaUtilMap>)map;
 - (id)init;
-+ (ComQuantiumMobileFrameworkQueryTable *)_TABLE;
-#foreach ($field in $fields)
-+ (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores};
-#end
-#foreach ($association in $manyToManyAssociations)
-#if ($association.IsThisTableA)
-+ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
-#else
-+ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper} = ${association.Klass}._${association.JoinTableUpper};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
-#end
-#end
 ##
 #end##if ($interface)
 #if ($implementation)
@@ -247,4 +231,62 @@
         return true;
     }
 #end##if ($implementation)
+##
+##
+## Implementacao da classe com campos estaticos de tabela e colunas
+## A interface encotra-se abaixo
+##
+##
+#if ($ProtocolImpl)
+  static ComQuantiumMobileFrameworkQueryTable *_TABLE_;
+#foreach ($field in $fields)
+  static ComQuantiumMobileFrameworkQueryTable_Column *${field.UpperAndUnderscores}_;
+#end##foreach ($field in $fields)
+
++ (ComQuantiumMobileFrameworkQueryTable *)_TABLE {
+    return _TABLE;
+}
+#foreach ($field in $fields)
+
++ (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores}{
+    return ${field.UpperAndUnderscores}_;
+}
+#end
+
++ (void)initialize {
+  _TABLE_ = [[ComQuantiumMobileFrameworkQueryTable alloc] initWithNSString:@"${table}"];
+#foreach ($field in $fields)
+  ${field.UpperAndUnderscores}_ =
+    ((ComQuantiumMobileFrameworkQueryTable_Column *) [
+      _TABLE_ addColumnWithIOSClass: [
+        IOSClass classWithClass:[JavaLangLong class]]
+      withNSString:@"${field.LowerAndUnderscores}"]);
+#end##foreach ($field in $fields)
+}
+#end##if ($ProtocolImpl)
 @end
+##
+##
+## INterface da classe com campos estaticos de tabela e colunas
+##
+##
+#if ($Protocol)
+
+@interface ${package}${Filename}
++ (ComQuantiumMobileFrameworkQueryTable *)_TABLE;
+#foreach ($field in $fields)
++ (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores};
+#end
+#foreach ($association in $manyToManyAssociations)
+#if ($association.IsThisTableA)
++ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper};
++ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
++ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
+#else
++ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper} = ${association.Klass}._${association.JoinTableUpper};
++ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
++ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
+#end##if ($association.IsThisTableA)
+#end##foreach ($association in $manyToManyAssociations)
+@end
+#end##if ($Protocol)

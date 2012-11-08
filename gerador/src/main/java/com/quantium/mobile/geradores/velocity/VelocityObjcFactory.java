@@ -191,15 +191,34 @@ public class VelocityObjcFactory {
 	 */
 	public static class PropId extends Property {
 
+		Property wrapped;
+
 		public PropId(Property prop) {
 			super(prop.getNome(), prop.getPropertyClass(), prop.isGet(),
 			      prop.isSet(), prop.isPrimaryKey());
+			wrapped = prop;
 		}
 
 		@Override
 		public String getLowerCamel() {
-			return super.getLowerCamel() + '_';
+			return wrapped.getLowerCamel() + '_';
 		}
+
+		@Override
+		public String getLowerAndUnderscores() {
+			return wrapped.getLowerAndUnderscores() + '_';
+		}
+
+		@Override
+		public String getUpperAndUnderscores() {
+			return wrapped.getUpperAndUnderscores();
+		}
+
+		@Override
+		public String getUpperCamel() {
+			return wrapped.getUpperCamel();
+		}
+
 	}
 
 }
