@@ -244,6 +244,10 @@ public class GeradorDeBeans {
 		if (androidTempDir.exists())
 			deleteFolderR(androidTempDir);
 		androidTempDir.mkdir();
+		File appiosTempDir = new File("__tempgen_appios");
+		if (appiosTempDir.exists())
+			deleteFolderR(appiosTempDir);
+		appiosTempDir.mkdir();
 
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
@@ -262,7 +266,7 @@ public class GeradorDeBeans {
 				serializationAliases);
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
-		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, coreTempDir,
+		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
@@ -286,12 +290,17 @@ public class GeradorDeBeans {
 			                VelocityVOFactory.Type.IMPLEMENTATION);
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
 			                VelocityVOFactory.Type.EDITABLE_INTERFACE);
+
 			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
-							VelocityObjcFactory.Type.INTERFACE);
+			                  VelocityObjcFactory.Type.PROTOCOL);
 			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
-							VelocityObjcFactory.Type.IMPLEMENTATION);
+			                  VelocityObjcFactory.Type.PROTOCOL_IMPL);
 			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
-							VelocityObjcFactory.Type.EDITABLE_INTERFACE);
+			                  VelocityObjcFactory.Type.IMPLEMENTATION);
+			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
+			                  VelocityObjcFactory.Type.INTERFACE);
+			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
+			                  VelocityObjcFactory.Type.EDITABLE_PROTOCOL);
 		}
 		VelocityCustomClassesFactory.generateDAOFactory(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);

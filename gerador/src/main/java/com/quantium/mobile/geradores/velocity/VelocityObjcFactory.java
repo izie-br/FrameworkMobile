@@ -38,9 +38,10 @@ public class VelocityObjcFactory {
 		this.targetDirectory = targetDirectory;
 		this.parentCtx = new VelocityContext();
 		this.parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
-		this.parentCtx.put("package", genPackage);
-		this.parentCtx.put("basePackage", basePackage);
+		this.parentCtx.put("package", CamelCaseUtils.toUpperCamelCase( genPackage.replace('.', '_') ));
+		this.parentCtx.put("basePackage", CamelCaseUtils.toUpperCamelCase( basePackage.replace('.', '_') ));
 		this.parentCtx.put("getter", new GetterFactory());
+		this.parentCtx.put("Type", new ObjcTypes());
 		this.aliases = serializationAliases;
 	}
 
@@ -55,21 +56,30 @@ public class VelocityObjcFactory {
 		String extension = ".h";
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		switch (type){
-		case INTERFACE:
-			ctx.put("interface", true);
+		case PROTOCOL:
+			ctx.put("Protocol", true);
 			filename = classname;
 			break;
-		case EDITABLE_INTERFACE:
-			ctx.put("editableInterface", true);
+		case PROTOCOL_IMPL:
+			ctx.put("ProtocolImpl", true);
+			filename = classname;
+			extension = ".m";
+			break;
+		case EDITABLE_PROTOCOL:
+			ctx.put("EditableProtocol", true);
 			filename = editableInterfaceName;
 			break;
+		case INTERFACE:
+			ctx.put("Interface", true);
+			filename = classname + "Impl";
+			break;
 		case IMPLEMENTATION:
-			ctx.put("implementation", true);
-			filename = classname;
+			ctx.put("Implementation", true);
+			filename = classname + "Impl";
 			extension = ".m";
 		}
 		ctx.put("Filename", filename);
-		ctx.put("EditableInterface", editableInterfaceName);
+		//ctx.put("EditableInterfaceName", editableInterfaceName);
 		ctx.put("table", schema.getTabela().getNome());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
@@ -153,5 +163,20 @@ public class VelocityObjcFactory {
 		return result;
 	}
 
-	public enum Type { INTERFACE, EDITABLE_INTERFACE , IMPLEMENTATION };
+	public enum Type { PROTOCOL, PROTOCOL_IMPL, EDITABLE_PROTOCOL , INTERFACE, IMPLEMENTATION };
+}
+
+class ObjcTypes {
+	public String get(Property prop){
+		String type = prop.getType();
+		if (type.equals("String"))
+			return "NSString";
+		if (type.equals("boolean"))
+			return "BOOL";
+		if (type.equals("Date"))
+			return "NSCalendar";
+		if (type.equals("long"))
+			return "long long";
+		return type;
+	}
 }
