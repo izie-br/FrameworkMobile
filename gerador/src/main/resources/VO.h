@@ -27,11 +27,13 @@
 #import "MapSerializable.h"
 #import "GenericVO.h"
 ##end ($implementation)
-##
-##
+
+
 #if ($Protocol)
 @protocol ${package}${Filename}
-#elseif ($EditableInterface)
+#elseif ($ProtocolImpl)
+@implementation ${package}${Filename}
+#elseif ($EditableProtocol)
 @interface ${package}${Filename} {
 #elseif ($Implementation)
 @implementation ${package}${Filename}

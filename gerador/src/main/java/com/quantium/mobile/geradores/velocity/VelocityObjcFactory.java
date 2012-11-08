@@ -100,6 +100,8 @@ public class VelocityObjcFactory {
 		List<Property> pks = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property prop = schema.getPropriedade(col);
+			if (prop.getLowerCamel().equals("id"))
+				prop = new PropId(prop);
 			prop.setAlias(getAlias(aliases, classname, col));
 			for (String pk : schema.getPrimaryKeyColumns()){
 				if (col.equals(pk))
@@ -164,19 +166,42 @@ public class VelocityObjcFactory {
 	}
 
 	public enum Type { PROTOCOL, PROTOCOL_IMPL, EDITABLE_PROTOCOL , INTERFACE, IMPLEMENTATION };
+
+	public static class ObjcTypes {
+		public String get(Property prop){
+			String type = prop.getType();
+			if (type.equals("String"))
+				return "NSString";
+			if (type.equals("boolean"))
+				return "BOOL";
+			if (type.equals("Date"))
+				return "NSCalendar";
+			if (type.equals("long"))
+				return "long long";
+			return type;
+		}
+	}
+
+	/**
+	 * Classe para usada para adicionar um underscore '_' em LowerCamel;
+	 * Util para fazer o  escape de "id" para "id_"
+	 * 
+	 * @author bruno
+	 *
+	 */
+	public static class PropId extends Property {
+
+		public PropId(Property prop) {
+			super(prop.getNome(), prop.getPropertyClass(), prop.isGet(),
+			      prop.isSet(), prop.isPrimaryKey());
+		}
+
+		@Override
+		public String getLowerCamel() {
+			return super.getLowerCamel() + '_';
+		}
+	}
+
 }
 
-class ObjcTypes {
-	public String get(Property prop){
-		String type = prop.getType();
-		if (type.equals("String"))
-			return "NSString";
-		if (type.equals("boolean"))
-			return "BOOL";
-		if (type.equals("Date"))
-			return "NSCalendar";
-		if (type.equals("long"))
-			return "long long";
-		return type;
-	}
-}
+

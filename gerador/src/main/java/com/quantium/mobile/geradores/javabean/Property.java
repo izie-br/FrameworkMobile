@@ -2,7 +2,7 @@ package com.quantium.mobile.geradores.javabean;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 
-public final class Property {
+public class Property {
 
 	private String name;
 	private Class<?> klass;
