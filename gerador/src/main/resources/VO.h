@@ -30,7 +30,7 @@
 
 
 #if ($Protocol)
-@protocol ${package}${Filename}
+@protocol ${package}${Filename} < GenericVO >
 #elseif ($ProtocolImpl)
 @implementation ${package}${Filename}
 #elseif ($EditableProtocol)
@@ -38,7 +38,7 @@
 #elseif ($Implementation)
 @implementation ${package}${Filename}
 #elseif ($Interface)
-@interface ${package}${Filename} : ${basePackage}GenericVO < ComQuantiumMobileFrameworkMapSerializable > {
+@interface ${package}${Filename} : ${basePackage}GenericBean < ComQuantiumMobileFrameworkMapSerializable > {
   @public
 #foreach ($field in $fields)
     ${Type[$field]} ${field.LowerCamel}_;

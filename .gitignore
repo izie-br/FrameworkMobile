@@ -1,5 +1,6 @@
 __tempgen_core/*
 __tempgen_android/*
+__tempgen_appios/*
 gerador/script/schema.sql
 lib/target/*
 lib_android/target/*
