@@ -272,7 +272,7 @@
 ##
 #if ($Protocol)
 
-@interface ${package}${Filename}
+@interface ${package}${Filename} : NSObject
 + (ComQuantiumMobileFrameworkQueryTable *)_TABLE;
 #foreach ($field in $fields)
 + (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores};
