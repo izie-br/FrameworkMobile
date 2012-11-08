@@ -272,21 +272,11 @@
 ##
 #if ($Protocol)
 
-@interface ${package}${Filename} : NSObject
+@interface ${package}${Filename} : NSObject {
+}
 + (ComQuantiumMobileFrameworkQueryTable *)_TABLE;
 #foreach ($field in $fields)
 + (ComQuantiumMobileFrameworkQueryTable_Column *)${field.UpperAndUnderscores};
-#end
-#foreach ($association in $manyToManyAssociations)
-#if ($association.IsThisTableA)
-+ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
-#else
-+ (ComQuantiumMobileFrameworkQueryTable *) _${association.JoinTableUpper} = ${association.Klass}._${association.JoinTableUpper};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores};
-+ (ComQuantiumMobileFrameworkQueryTable_Column *) _${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores};
-#end##if ($association.IsThisTableA)
-#end##foreach ($association in $manyToManyAssociations)
+#end##foreach ($field in $fields)
 @end
 #end##if ($Protocol)
