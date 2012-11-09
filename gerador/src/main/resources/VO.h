@@ -41,19 +41,29 @@
 @interface ${package}${Filename} : ${basePackage}GenericBean < ComQuantiumMobileFrameworkMapSerializable > {
   @public
 #foreach ($field in $fields)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+    id<${package}${association.Klass}> _${association.Klass}_;
+#else##if !($associationForField[$field])
 #if ( $field.Type.equals("String") || $field.Type.equals("Date") )
     ${Type[$field]} *${field.LowerCamel}_;
 #else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
     ${Type[$field]} ${field.LowerCamel}_;
 #end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 }
 #foreach ($field in $fields)
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+@property (nonatomic, strong) id<${package}${association.Klass}> _${association.Klass};
+#else##if !($associationForField[$field])
 #if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 @property (nonatomic, copy) ${Type[$field]} *${field.LowerCamel};
 #else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
 @property (nonatomic, assign) ${Type[$field]} ${field.LowerCamel};
 #end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+#end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #end##if ($Protocol)
 #if ($Interface || $Implementation)
@@ -77,7 +87,7 @@
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-#@dynamic _${association.Klass};
+@dynamic _${association.Klass};
 #else##if (!$association = $associationForField[$field])
 @dynamic ${field.LowerCamel};
 #end##if ($association = $associationForField[$field])
