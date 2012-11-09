@@ -42,6 +42,7 @@ public class VelocityObjcFactory {
 		this.parentCtx.put("basePackage", CamelCaseUtils.toUpperCamelCase( basePackage.replace('.', '_') ));
 		this.parentCtx.put("getter", new GetterFactory());
 		this.parentCtx.put("Type", new ObjcTypes());
+		this.parentCtx.put("TypeName", new ObjcTypeNames());
 		this.aliases = serializationAliases;
 	}
 
@@ -79,7 +80,7 @@ public class VelocityObjcFactory {
 			extension = ".m";
 		}
 		ctx.put("Filename", filename);
-		//ctx.put("EditableInterfaceName", editableInterfaceName);
+		ctx.put("EditableInterfaceName", editableInterfaceName);
 		ctx.put("table", schema.getTabela().getNome());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
@@ -175,9 +176,25 @@ public class VelocityObjcFactory {
 			if (type.equals("boolean"))
 				return "BOOL";
 			if (type.equals("Date"))
-				return "NSCalendar";
+				return "NSDate";
 			if (type.equals("long"))
 				return "long long";
+			return type;
+		}
+	}
+
+	public static class ObjcTypeNames {
+
+		public String get(Property prop){
+			String type = prop.getType();
+			if (type.equals("String"))
+				return "NSString";
+			if (type.equals("boolean"))
+				return "BOOL";
+			if (type.equals("Date"))
+				return "NSCalendar";
+			if (type.equals("long"))
+				return "LongInt";
 			return type;
 		}
 	}

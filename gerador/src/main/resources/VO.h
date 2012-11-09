@@ -38,7 +38,9 @@
 #elseif ($Implementation)
 @implementation ${package}${Filename}
 #elseif ($Interface)
-@interface ${package}${Filename} : ${basePackage}GenericBean < ComQuantiumMobileFrameworkMapSerializable > {
+@interface ${package}${Filename} : ${basePackage}GenericBean
+  < ComQuantiumMobileFrameworkMapSerializable, ${package}${EditableInterfaceName}>
+{
   @public
 #foreach ($field in $fields)
 #if ($associationForField[$field])
@@ -74,12 +76,14 @@
 }
 #end##if ($Interface)
 
-- (id)init #if ($Interface);#elseif ($Implementation)
+- (id)init #if ($Interface);
+#elseif ($Implementation)
 {
     if ((self = [super init])) {
     }
     return self;
 }
+
 #end##if ($Interface)
 ##
 #end##if ($interface)
@@ -97,37 +101,56 @@
 ##@dynamic _${association.Pluralized};
 ###end##foreach ($association in $toManyAssociations)
 ##
-##
-- (id)initWithParams:(id *) test
+#end##if ($implementation)
+#if ($Implementation || $Interface)
 #set ($argCount = $fields.size() + $toManyAssociations.size())
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index + 1)
+#if ($fieldIndex == 1)
+- (id)initWith#else##if!($fieldIndex == 1)  Deve-se terminar com "end" ou "else" antes da
+          with#end###if ($fieldIndex == 1)  quebra de linha, para concatenar com a proxima
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        with${association.Klass}:(${association.Klass} *) _${association.Klass}
+##
+${package}${association.Klass}: (id<${package}${association.Klass}>) new${association.Klass}
+##
 #else##if (!$associationForField[$field])
-        with${field.Type}:(${field.Type} *) ${field.LowerCamel}
+#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+##
+${TypeName[$field]}: (${Type[$field]} *) new${field.UpperCamel}
+##
+#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
+##
+${TypeName[$field]}: (${Type[$field]}) new${field.UpperCamel}
+##
+#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
 #set ($fieldIndex = $fields.size() + $foreach.index + 1)
-        withComQuantiumMobileFrameworkQuerySet:(id<ComQuantiumMobileFrameworkQuerySet>) _${association.Pluralized}
+#if ($fieldIndex == 1)
+- (id)initWith#else##if!($fieldIndex == 1)  Deve-se terminar com "end" ou "else" antes da
+          with#end###if ($fieldIndex == 1)  quebra de linha, para concatenar com a proxima
+#set ($fieldIndex = $fields.size() + $foreach.index + 1)
+ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new${association.Pluralized}
 #end##foreach ($association in $toManyAssociations)
+#if ($Interface);#elseif ($Implementation)
 {
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-    [[self _${association.Klass}] = _${association.Klass}];
+    [[self _${association.Klass}] = new${association.Klass}];
 #else##if (!$associationForField[$field])
-    [[self ${field.LowerCamel}] = ${field.LowerCamel}];
+    [[self ${field.LowerCamel}] = new${field.UpperCamel}];
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
-    [[self _${association.Pluralized}] = _${association.Pluralized}];
+    [[self _${association.Pluralized}] = new${association.Pluralized}];
 #end##foreach ($association in $toManyAssociations)
 }
+#end##if ($Interface)
 
-#end##if ($implementation)
+#end##if ($associationForField[$field])
 #foreach ($field in $fields)
 #if ($interface || $implementation)
 #if ($field.Get)
