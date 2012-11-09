@@ -41,71 +41,81 @@
 @interface ${package}${Filename} : ${basePackage}GenericBean < ComQuantiumMobileFrameworkMapSerializable > {
   @public
 #foreach ($field in $fields)
+#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+    ${Type[$field]} *${field.LowerCamel}_;
+#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
     ${Type[$field]} ${field.LowerCamel}_;
+#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 #end##foreach ($field in $fields)
 }
 #foreach ($field in $fields)
+#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+@property (nonatomic, copy) ${Type[$field]} *${field.LowerCamel};
+#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
 @property (nonatomic, assign) ${Type[$field]} ${field.LowerCamel};
+#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 #end##foreach ($field in $fields)
-#end
+#end##if ($Protocol)
+#if ($Interface || $Implementation)
 
-#if ($interface)
-- (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map;
-- (id)init;
+- (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map #if ($Interface);#elseif ($Implementation)
+{
+    
+}
+#end##if ($Interface)
+
+- (id)init #if ($Interface);#elseif ($Implementation)
+{
+    if ((self = [super init])) {
+    }
+    return self;
+}
+#end##if ($Interface)
 ##
 #end##if ($interface)
-#if ($implementation)
+#if ($Implementation)
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-@dynamic _${association.Klass};
+#@dynamic _${association.Klass};
 #else##if (!$association = $associationForField[$field])
 @dynamic ${field.LowerCamel};
 #end##if ($association = $associationForField[$field])
 #end##foreach ($field in $fields)
 ##
-#foreach ($association in $toManyAssociations)
-@dynamic _${association.Pluralized};
-#end##foreach ($association in $toManyAssociations)
+###foreach ($association in $toManyAssociations)
+##@dynamic _${association.Pluralized};
+###end##foreach ($association in $toManyAssociations)
 ##
-- (id)init {
-  if ((self = [super init])) {
-  }
-  return self;
-}
-
+##
 - (id)initWithParams:(id *) test
-
 #set ($argCount = $fields.size() + $toManyAssociations.size())
 #foreach ($field in $fields)
 #set ($fieldIndex = $foreach.index + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        with${association.Klass}:(${association.Klass} *) _${association.Klass}#if ($fieldIndex != $argCount) #end
-
+        with${association.Klass}:(${association.Klass} *) _${association.Klass}
 #else##if (!$associationForField[$field])
-        with${field.Type}:(${field.Type} *) ${field.LowerCamel}#if ($fieldIndex != $argCount) #end
-
+        with${field.Type}:(${field.Type} *) ${field.LowerCamel}
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
 #set ($fieldIndex = $fields.size() + $foreach.index + 1)
-       withComQuantiumMobileFrameworkQuerySet:(ComQuantiumMobileFrameworkQuerySet<${association.Klass}> *) _${association.Pluralized}#if ($fieldIndex != $argCount) #end
-
+        withComQuantiumMobileFrameworkQuerySet:(id<ComQuantiumMobileFrameworkQuerySet>) _${association.Pluralized}
 #end##foreach ($association in $toManyAssociations)
-    ) {
+{
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-        [[self _${association.Klass}] = _${association.Klass}];
+    [[self _${association.Klass}] = _${association.Klass}];
 #else##if (!$associationForField[$field])
-        [[self ${field.LowerCamel}] = ${field.LowerCamel}];
+    [[self ${field.LowerCamel}] = ${field.LowerCamel}];
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
-        [[self _${association.Pluralized}] = _${association.Pluralized}];
+    [[self _${association.Pluralized}] = _${association.Pluralized}];
 #end##foreach ($association in $toManyAssociations)
-    }
+}
 
 #end##if ($implementation)
 #foreach ($field in $fields)
