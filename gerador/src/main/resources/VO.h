@@ -155,15 +155,31 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 
 #end##if ($associationForField[$field])
 #foreach ($field in $fields)
-#if ($interface || $implementation)
-#if ($field.Get)
+#if ( ($Protocol || $Interface || $Implementation) && !$associationForField[$field])
+#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+- (${J2ObjcType[$field]}*) ${getter[$field]} #if ($Implementation) {
+    return [self ${field.LowerCamel}];
+}#else;#end
+#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
+- (${J2ObjcType[$field]}) ${getter[$field]} #if ($Implementation) {
+    return [self ${field.LowerCamel}];
+}#else;#end
+#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 
 
-#end##if ($interface || $implementation)
-#end##if ($field.Get)
-#if ( (!$associationForField[$field] && $implementation) ||
-      (!$editableInterface && $field.Set && !$primaryKeys.contains($field)) ||
-      ($primaryKeys.contains($field) && $editableInterface && !$associationForField[$field]) )
+#end##if (generate_getter)
+#if ( (!$associationForField[$field] && ($Interface || $Implementation) ) ||
+      (!$EditableProtocol && $field.Set && !$primaryKeys.contains($field)) ||
+      ($primaryKeys.contains($field) && $EditableProtocol && !$associationForField[$field]) )
+#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+- (void) set${field.UpperCamel}With${J2ObjcType[$field]}: (${J2ObjcType[$field]}*) new${field.UpperCamel} #if ($Implementation) {
+    [[self ${field.LowerCamel}] = new${field.LowerCamel}];
+}#else;#end
+#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
+- (void) set${field.UpperCamel}With${J2ObjcType[$field]}: (${J2ObjcType[$field]}) new${field.UpperCamel} #if ($Implementation) {
+    [[self ${field.LowerCamel}] = new${field.LowerCamel}];
+}#else;#end
+#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 
 
 #end##if ( generate_setter )
@@ -195,7 +211,7 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #end##if ($interface || $implementation)
 #if ($Interface || $Implementation || $EditableInterface)
 - (void) set${association.Pluralized}WithComQuantiumMobileFrameworkQueryQuerySet: (id<ComQuantiumMobileFrameworkQueryQuerySet>) querySet #if ($Implementation){
-    self _${association.Pluralized} = querySet;
+    [[self _${association.Pluralized}] = querySet];
 }#else;#end
 
 

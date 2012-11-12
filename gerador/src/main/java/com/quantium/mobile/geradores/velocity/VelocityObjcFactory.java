@@ -42,6 +42,7 @@ public class VelocityObjcFactory {
 		this.parentCtx.put("basePackage", CamelCaseUtils.toUpperCamelCase( basePackage.replace('.', '_') ));
 		this.parentCtx.put("getter", new GetterFactory());
 		this.parentCtx.put("Type", new ObjcTypes());
+		this.parentCtx.put("J2ObjcType", new J2ObjcType());
 		this.parentCtx.put("TypeName", new ObjcTypeNames());
 		this.aliases = serializationAliases;
 	}
@@ -183,19 +184,24 @@ public class VelocityObjcFactory {
 		}
 	}
 
-	public static class ObjcTypeNames {
+	public static class ObjcTypeNames extends ObjcTypes {
 
+		@Override
 		public String get(Property prop){
 			String type = prop.getType();
-			if (type.equals("String"))
-				return "NSString";
-			if (type.equals("boolean"))
-				return "BOOL";
-			if (type.equals("Date"))
-				return "NSCalendar";
 			if (type.equals("long"))
 				return "LongInt";
-			return type;
+			return super.get(prop);
+		}
+	}
+
+	public static class J2ObjcType extends ObjcTypes {
+		@Override
+		public String get(Property prop) {
+			String type = prop.getType();
+			if (type.equals("Date"))
+				return "JavaUtilDate";
+			return super.get(prop);
 		}
 	}
 
