@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -43,6 +44,7 @@ public class VelocityObjcFactory {
 		this.parentCtx.put("getter", new GetterFactory());
 		this.parentCtx.put("Type", new ObjcTypes());
 		this.parentCtx.put("J2ObjcType", new J2ObjcType());
+		this.parentCtx.put("MapType", new MapTypes());
 		this.parentCtx.put("TypeName", new ObjcTypeNames());
 		this.aliases = serializationAliases;
 	}
@@ -202,6 +204,26 @@ public class VelocityObjcFactory {
 			if (type.equals("Date"))
 				return "JavaUtilDate";
 			return super.get(prop);
+		}
+	}
+
+	public static class MapTypes {
+		public String get(Property prop) {
+			String type = prop.getType();
+			if (type.equals("String"))
+				return "NSString";
+			if (type.equals("boolean"))
+				return "JavaLangBoolean";
+			if (type.equals("Date"))
+				return "JavaLangDate";
+			if (type.equals("long"))
+				return "JavaLangLong";
+			if (type.equals("double"))
+				return "JavaLangDouble";
+			Method method = new Object(){}.getClass().getEnclosingMethod();
+			return "/*" + type + " not found in "+
+					method.getDeclaringClass().getName()+ "::" +
+					method.getName() + "*/";
 		}
 	}
 

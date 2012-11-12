@@ -75,7 +75,28 @@
 
 - (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map #if ($Interface);#elseif ($Implementation)
 {
-    
+  id<JavaUtilMap> mapInst = NIL_CHK(map);
+#foreach ($field in $fields)
+  id<${MapType[$field]}> _${field.LowerCamel} =
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+    ( [self _${association.Klass}] == nil)?
+      [JavaLangLong valueOfWithInt: ${defaultId}] :
+      [JavaLangLong valueOfWithLongInt: [[self _${association.Klass}] ${getter[$association.ReferenceKey]}] ];
+#elseif ($field.Type.equals("long") || $field.Type.equals("boolean") || $field.Type.equals("double"))
+      [${MapType[$field]} valueOfWith${TypeName[$field]}: [self ${getter[$field]}] ];
+#else##if !($field.Type.equals("long") || $field.Type.equals("boolean") || $field.Type.equals("double"))
+      [self ${getter[$field]}];
+#end##if ($associationForField[$field])
+#if ($primaryKeys.contains($field) || $associationForField[$field])
+  if (! _${field.LowerCamel}.equals(${defaultId})) {
+    [mapInst putWithId:@"${field.LowerAndUnderscores}" withId: _${field.LowerCamel}];
+  }
+#else##if !($primaryKeys.contains($field))
+  [mapInst putWithId:@"${field.LowerAndUnderscores}" withId: _${field.LowerCamel}];
+
+#end##if ($primaryKeys.contains($field))
+#end##foreach ($field in $fields)
 }
 #end##if ($Interface)
 
