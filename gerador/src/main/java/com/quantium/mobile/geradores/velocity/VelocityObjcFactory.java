@@ -44,6 +44,7 @@ public class VelocityObjcFactory {
 		this.parentCtx.put("getter", new GetterFactory());
 		this.parentCtx.put("Type", new ObjcTypes());
 		this.parentCtx.put("J2ObjcType", new J2ObjcType());
+		this.parentCtx.put("J2ObjcTypeName", new J2ObjcTypeNames());
 		this.parentCtx.put("MapType", new MapTypes());
 		this.parentCtx.put("MapKey", new MapKey());
 		this.parentCtx.put("TypeName", new ObjcTypeNames());
@@ -204,6 +205,16 @@ public class VelocityObjcFactory {
 			String type = prop.getType();
 			if (type.equals("Date"))
 				return "JavaUtilDate";
+			return super.get(prop);
+		}
+	}
+
+	public static class J2ObjcTypeNames extends J2ObjcType {
+		@Override
+		public String get(Property prop) {
+			String type = prop.getType();
+			if (type.equals("long"))
+				return new ObjcTypeNames().get(prop);
 			return super.get(prop);
 		}
 	}

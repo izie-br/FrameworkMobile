@@ -203,7 +203,7 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
     [[self ${field.LowerCamel}] = new${field.LowerCamel}];
 }#else;#end
 #else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
-- (void) set${field.UpperCamel}With${J2ObjcType[$field]}: (${J2ObjcType[$field]}) new${field.UpperCamel} #if ($Implementation) {
+- (void) set${field.UpperCamel}With${J2ObjcTypeName[$field]}: (${J2ObjcType[$field]}) new${field.UpperCamel} #if ($Implementation) {
     [[self ${field.LowerCamel}] = new${field.LowerCamel}];
 }#else;#end
 #end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
