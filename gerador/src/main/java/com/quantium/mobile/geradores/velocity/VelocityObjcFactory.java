@@ -45,6 +45,7 @@ public class VelocityObjcFactory {
 		this.parentCtx.put("Type", new ObjcTypes());
 		this.parentCtx.put("J2ObjcType", new J2ObjcType());
 		this.parentCtx.put("MapType", new MapTypes());
+		this.parentCtx.put("MapKey", new MapKey());
 		this.parentCtx.put("TypeName", new ObjcTypeNames());
 		this.aliases = serializationAliases;
 	}
@@ -224,6 +225,15 @@ public class VelocityObjcFactory {
 			return "/*" + type + " not found in "+
 					method.getDeclaringClass().getName()+ "::" +
 					method.getName() + "*/";
+		}
+	}
+
+	public static class MapKey {
+		public String get(Property prop){
+			String key = prop.getLowerAndUnderscores();
+			if (key.equals("id_"))
+				return "id";
+			return key;
 		}
 	}
 

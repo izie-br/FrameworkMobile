@@ -94,10 +94,11 @@
 #end##if ($associationForField[$field])
 #if ($primaryKeys.contains($field) || $associationForField[$field])
   if (! _${field.LowerCamel}.equals(${defaultId})) {
-    [mapInst putWithId:@"${field.LowerAndUnderscores}" withId: _${field.LowerCamel}];
+    [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
   }
+
 #else##if !($primaryKeys.contains($field))
-  [mapInst putWithId:@"${field.LowerAndUnderscores}" withId: _${field.LowerCamel}];
+  [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
 
 #end##if ($primaryKeys.contains($field))
 #end##foreach ($field in $fields)
