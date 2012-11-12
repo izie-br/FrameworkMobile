@@ -41,19 +41,22 @@
 @interface ${package}${Filename} : ${basePackage}GenericBean
   < ComQuantiumMobileFrameworkMapSerializable, ${package}${EditableInterfaceName}>
 {
-  @public
-#foreach ($field in $fields)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-    id<${package}${association.Klass}> _${association.Klass}_;
-#else##if !($associationForField[$field])
-#if ( $field.Type.equals("String") || $field.Type.equals("Date") )
-    ${Type[$field]} *${field.LowerCamel}_;
-#else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
-    ${Type[$field]} ${field.LowerCamel}_;
-#end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
-#end##if ($associationForField[$field])
-#end##foreach ($field in $fields)
+##  @public
+###foreach ($field in $fields)
+###if ($associationForField[$field])
+###set ($association = $associationForField[$field])
+##    id<${package}${association.Klass}> _${association.Klass}_;
+###else##if !($associationForField[$field])
+###if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+##    ${Type[$field]} *${field.LowerCamel}_;
+###else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
+##    ${Type[$field]} ${field.LowerCamel}_;
+###end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
+###end##if ($associationForField[$field])
+###end##foreach ($field in $fields)
+#if ($toManyAssociations.size() > 0)
+  @private
+#end##if ($toManyAssociations.size() > 0)
 #foreach ($association in $toManyAssociations)
     id<ComQuantiumMobileFrameworkQuerySet> _${association.Pluralized};
 #end##foreach ($association in $toManyAssociations)
@@ -76,6 +79,7 @@
 - (id<JavaUtilMap>)toMapWithJavaUtilMap:(id<JavaUtilMap>)map #if ($Interface);#elseif ($Implementation)
 {
   id<JavaUtilMap> mapInst = NIL_CHK(map);
+
 #foreach ($field in $fields)
   id<${MapType[$field]}> _${field.LowerCamel} =
 #if ($associationForField[$field])
@@ -125,6 +129,7 @@
 ##@dynamic _${association.Pluralized};
 ###end##foreach ($association in $toManyAssociations)
 ##
+
 #end##if ($implementation)
 #if ($Implementation || $Interface)
 #set ($argCount = $fields.size() + $toManyAssociations.size())
@@ -238,83 +243,6 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 
 #end##if ($implementation || $editableInterface)
 #end
-#if ($implementation)
-    @Override
-    public void toMap(Map<String, Object> map) {
-#foreach ($field in $fields)
-#if ($field.SerializationAlias)
-#set ($alias = $field.SerializationAlias)
-#else##if_not_alias
-#set ($alias = $field.LowerAndUnderscores)
-#end##end_if_alias
-#set ($association = false)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-        $field.Type $field.LowerCamel = (_${association.Klass} == null)? 0 : _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
-#end##if ($associationForField[$field])
-#if ($primaryKeys.contains($field) || $association)
-        if (${field.LowerCamel} != ${defaultId}) {
-            map.put("${alias}", ${field.LowerCamel});
-        }
-#else##if_primary_key
-        map.put("${alias}", ${field.LowerCamel});
-#end##if_primary_key
-#end##foreach
-    }
-
-    @Override
-    public int hashCodeImpl() {
-        int value = 1;
-#foreach ($field in $fields)
-#if (!$associationForField[$field])
-#if ($field.Klass.equals("Boolean"))
-        value += (${field.LowerCamel}) ? 1 : 0;
-#elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
-        value +=(int) ${field.LowerCamel};
-#else
-        value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
-#end##if(field.Klass.equals(*))
-#end##if (!$associationForField[$field])
-#end##foreach
-        return value;
-    }
-
-    @Override
-    public boolean equalsImpl(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        if ( !(obj instanceof ${Klass}) ) {
-            return false;
-        }
-        ${Klass} other = ((${Klass}) obj);
-#foreach ($field in $fields)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-#set ($otherAssoc = "other${association.Klass}")
-        ${association.Klass} ${otherAssoc} = other.get${association.Klass}();
-        if (_${association.Klass} == null){
-            if (${otherAssoc} != null)
-                return false;
-        } else {
-            if (${otherAssoc} == null)
-                return false;
-            if (_${association.Klass}.get${association.ReferenceKey.UpperCamel}() != ${otherAssoc}.get${association.ReferenceKey.UpperCamel}())
-                return false;
-        }
-#else##if (!$associationForField[$field])
-#if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer") || $field.Klass.equals("Double"))
-        if(${field.LowerCamel} != other.${getter[$field]}())
-            return false;
-#else
-        if( ( ${field.LowerCamel}==null)? (other.${getter[$field]}() != null) :  !${field.LowerCamel}.equals(other.${getter[$field]}()) )
-            return false;
-#end##if(field.Klass.equals(*))
-#end##if ($associationForField[$field])
-#end##foreach
-        return true;
-    }
-#end##if ($implementation)
 ##
 ##
 ## Implementacao da classe com campos estaticos de tabela e colunas
