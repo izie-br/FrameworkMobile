@@ -30,11 +30,11 @@
 
 
 #if ($Protocol)
-@protocol ${package}${Filename} < GenericVO >
+@protocol ${package}${Klass} < GenericVO >
 #elseif ($ProtocolImpl)
 @implementation ${package}${Filename}
 #elseif ($EditableProtocol)
-@interface ${package}${Filename} {
+@protocol ${package}${Filename} <${package}${Klass}> {
 #elseif ($Implementation)
 @implementation ${package}${Filename}
 #elseif ($Interface)
