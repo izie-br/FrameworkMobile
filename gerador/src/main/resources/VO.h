@@ -169,33 +169,34 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #end##if ( generate_setter )
 #end##foreach
 #foreach ($association in $manyToOneAssociations)
-#if ($interface || $implementation)
-    public ${association.Klass} get${association.Klass}() #if ($implementation){
-        return _${association.Klass};
+#if ($Protocol || $Interface || $Implementation)
+- (id<${package}${association.Klass}>) get${association.Klass} #if ($implementation){
+        return [self _${association.Klass}];
     }#else;#end
 
 
-#end##if ($interface || $implementation)
-#if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
-    public void set${association.Klass}(${association.Klass} obj) #if ($implementation) {
-        _${association.Klass} = obj;
+#end##if ($Protocol || $Interface || $Implementation)
+#if ( (!$primaryKeys.contains($association.ForeignKey) && $Protocol) ||
+      $Interface || $Implementation || $EditableProtocol )
+- (void) set${association.Klass}With${package}${association.Klass}: (id<${package}${association.Klass}>)new${association.Klass} #if ($Implementation) {
+        [[self _${association.Klass}] = new${association.Klass}];
     }#else;#end
 
 
-#end##if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
+#end##if ( generate_many-to-one-setter)
 #end##foreach ($association in $manyToOneAssociations)
 #foreach ($association in $toManyAssociations)
-#if ($interface || $implementation)
-- (ComQuantiumMobileFrameworkQueryQuerySet *)get${association.Pluralized} #if ($implementation) {
+#if ($Protocol || $Interface || $Implementation)
+- (id<ComQuantiumMobileFrameworkQueryQuerySet>) get${association.Pluralized} #if ($Implementation) {
         return [self _${association.Pluralized}];
 }#else;#end
 
 
 #end##if ($interface || $implementation)
-#if ($implementation || $editableInterface)
-    //public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-    //    this._${association.Pluralized} = querySet;
-    //}#else;#end
+#if ($Interface || $Implementation || $EditableInterface)
+- (void) set${association.Pluralized}WithComQuantiumMobileFrameworkQueryQuerySet: (id<ComQuantiumMobileFrameworkQueryQuerySet>) querySet #if ($Implementation){
+    self _${association.Pluralized} = querySet;
+}#else;#end
 
 
 #end##if ($implementation || $editableInterface)
