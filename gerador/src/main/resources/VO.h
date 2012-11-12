@@ -54,6 +54,9 @@
 #end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
+#foreach ($association in $toManyAssociations)
+    id<ComQuantiumMobileFrameworkQuerySet> _${association.Pluralized};
+#end##foreach ($association in $toManyAssociations)
 }
 #foreach ($field in $fields)
 #if ($associationForField[$field])
