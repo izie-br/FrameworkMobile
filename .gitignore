@@ -3,6 +3,7 @@ __tempgen_android/*
 __tempgen_appios/*
 gerador/script/schema.sql
 lib/target/*
+memorytables/target/*
 lib_android/target/*
 gerador/customGen/*
 gerador/target/*
