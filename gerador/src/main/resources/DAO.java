@@ -1,17 +1,3 @@
-#set ($compoundPk = $primaryKeys.size() > 1)
-#foreach ($association in $oneToManyAssociations)
-#if ($association.Nullable)
-#set ($hasNullableAssociation = true)
-#else
-#set ($hasNotNullableAssociation = true)
-#end##if
-#end##foreach
-#foreach ($field in $fields)
-#if ( $field.Klass.equals("Date") )
-#set ($hasDateField = true)
-#break
-#end##if_Klass_equals_Date
-#end##foreach
 ##
 ## String de busca e arrays de argumentos
 ##

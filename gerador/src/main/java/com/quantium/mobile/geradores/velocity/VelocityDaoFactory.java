@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
+import java.sql.Date;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -26,6 +27,10 @@ import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 
 public class VelocityDaoFactory {
+
+	private static final int HAS_NULLABLE_ASSOCIATION = 1;
+	private static final int HAS_NOT_NULLABLE_ASSOCIATION = 1 << 1;
+	private static final int HAS_DATE_FIELD = 1 << 2;
 
 	//private VelocityEngine ve;
 	private File targetDirectory;
@@ -96,6 +101,7 @@ public class VelocityDaoFactory {
 		if (pks.size()==1)
 			ctx.put("primaryKey", pks.get(0));
 		ctx.put("primaryKeys", pks);
+		ctx.put("compoundPk", (pks.size() > 1) );
 
 		ArrayList<Object> oneToMany = new ArrayList<Object>();
 		ArrayList<Object> manyToMany = new ArrayList<Object>();
@@ -109,6 +115,14 @@ public class VelocityDaoFactory {
 		toMany.addAll(manyToMany);
 		ctx.put("toManyAssociations", toMany);
 		//ctx.put("ForeignKeys", getForeignKeys(schema));
+
+		int options = getOptions(schema);
+		ctx.put("hasNullableAssociation",
+		        (options & HAS_NULLABLE_ASSOCIATION) != 0 );
+		ctx.put("hasNotNullableAssociation",
+		        (options & HAS_NOT_NULLABLE_ASSOCIATION) != 0 );
+		ctx.put("hasDateField", 
+				(options & HAS_DATE_FIELD) != 0 );
 
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields,manyToOne);
@@ -279,5 +293,35 @@ public class VelocityDaoFactory {
 		}
 		return associationsFromFK;
 	}
+
+	public static int getOptions(JavaBeanSchema schema){
+		Collection<Associacao> assocs = schema.getAssociacoes();
+		int returnValue = 0;
+		if ( !(assocs == null) ) {
+			for (Object obj : assocs){
+				if ( !(obj instanceof AssociacaoOneToMany) )
+					continue;
+
+				AssociacaoOneToMany o2m = (AssociacaoOneToMany) obj;
+				if ( !(o2m.getTabelaA().equals(schema.getTabela())) )
+					continue;
+
+				if (o2m.isNullable())
+					returnValue |= HAS_NULLABLE_ASSOCIATION;
+				else
+					returnValue |= HAS_NOT_NULLABLE_ASSOCIATION;
+			}
+		}
+		Collection<String> fieldNames = schema.getColunas();
+		if (fieldNames != null) {
+			for (String fieldName : fieldNames) {
+				Property prop = schema.getPropriedade(fieldName);
+				if (prop.getKlass().equals(Date.class.getSimpleName()))
+					returnValue |= HAS_DATE_FIELD;
+			}
+		}
+		return returnValue;
+	}
+
 
 }
