@@ -1,4 +1,4 @@
-package com.quantium.mobile.framework.test.server;
+package com.quantium.mobile.framework.libandroidtest.server;
 
 import org.json.JSONException;
 import org.json.JSONObject;

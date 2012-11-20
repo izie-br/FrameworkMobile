@@ -1,25 +1,25 @@
-package com.quantium.mobile.framework.test.communication;
+package com.quantium.mobile.framework.libandroidtest.communication;
 
 import java.io.ByteArrayOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.junit.Assert.*;
+
 import org.apache.http.NameValuePair;
 import org.json.JSONException;
 import org.json.JSONObject;
-
-import android.test.ActivityInstrumentationTestCase2;
+import org.junit.Before;
+import org.junit.Test;
 
 import com.quantium.mobile.framework.communication.IndexedKeyParametersSerializer;
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.ParametersSerializer;
-import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
 
-public class ParameterSerializationTests extends
-ActivityInstrumentationTestCase2<TestActivity>{
+public class ParameterSerializationTest {
 
 	private static final String key1 = "key1";
 	private static final String val1 = "val1";
@@ -30,15 +30,11 @@ ActivityInstrumentationTestCase2<TestActivity>{
 	private static final String key211 = "key211";
 	private static final String val211 = "val211";
 
-	public ParameterSerializationTests() {
-		super("com.quantium.mobile.framework.test", TestActivity.class);
+	@Before
+	public void setUp() throws Exception {
 	}
 
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-	}
-
+	@Test
 	public void testJsonSerialization(){
 		Map<String,Object> map = new HashMap<String, Object>();
 		map.put(key1, val1);
@@ -65,6 +61,7 @@ ActivityInstrumentationTestCase2<TestActivity>{
 		}
 	}
 
+	@Test
 	public void testInnerJsonParameterSerialization(){
 		Map<String,Object> map = new HashMap<String, Object>();
 		map.put(key1, val1);
@@ -94,6 +91,7 @@ ActivityInstrumentationTestCase2<TestActivity>{
 		}
 	}
 
+	@Test
 	public void testIndexedKeysParameterSerialization(){
 		Map<String,Object> map = new HashMap<String, Object>();
 		map.put(key1, val1);

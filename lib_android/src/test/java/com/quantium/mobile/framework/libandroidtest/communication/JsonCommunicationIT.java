@@ -1,4 +1,4 @@
-package com.quantium.mobile.framework.test.communication;
+package com.quantium.mobile.framework.libandroidtest.communication;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -6,54 +6,50 @@ import java.util.Map;
 import java.util.Iterator;
 
 import org.apache.commons.lang.RandomStringUtils;
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
-import android.test.ActivityInstrumentationTestCase2;
+import static org.junit.Assert.*;
+
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.communication.GenericCommunication;
 import com.quantium.mobile.framework.communication.InnerJsonParametersSerializer;
 import com.quantium.mobile.framework.communication.JsonCommunication;
 import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
-import com.quantium.mobile.framework.test.gen.Author;
-import com.quantium.mobile.framework.test.gen.AuthorImpl;
-import com.quantium.mobile.framework.test.server.Echo;
-import com.quantium.mobile.framework.test.server.RouterBean;
-import com.quantium.mobile.framework.test.SessionFacade;
-import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.libandroidtest.User;
+import com.quantium.mobile.framework.libandroidtest.UserMapDAO;
+import com.quantium.mobile.framework.libandroidtest.server.Echo;
+import com.quantium.mobile.framework.libandroidtest.server.RouterBean;
 import com.quantium.mobile.framework.utils.StringUtil;
 
-public class JsonCommunicationTests extends
-ActivityInstrumentationTestCase2<TestActivity> {
+public class JsonCommunicationIT {
 
-	private static final String URL = "http://10.0.2.2:9091/";
+	private static final String URL = "http://127.0.0.1:9091/";
 	private static final String PLAIN_TEXT_URL = URL + "text_plain.jsp";
 
-	SessionFacade session;
+	private static final DAO<User> USER_DAO = new UserMapDAO();
 
-	public JsonCommunicationTests() {
-		super("com.quantium.mobile.framework.test", TestActivity.class);
-	}
-
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
+	@Before
+	public void setUp() throws Exception {
 		clear();
-		session = new SessionFacade();
 	}
 
 	private void clear() {
 		GenericCommunication comm = new JsonCommunication();
 		comm.setURL(URL);
 		comm.setParameter(RouterBean.METHOD_PARAM, "clear");
-		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
+		comm.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
 		comm.post();
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
-		super.tearDown();
-		clear();
+	@After
+	public void tearDown() throws Exception {
+		//clear();
 	}
 
+	@Test
 	public void testJsonCommunication() {
 		JsonCommunication jsonComm = new JsonCommunication();
 		String param1 = "param1";
@@ -84,56 +80,55 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		}
 	}
 
+	@Test
 	public void testEnviarJson(){
-		ArrayList<Author> list = new ArrayList<Author>();
+		ArrayList<User> list = new ArrayList<User>();
 		int count = 5;
 		for(int i = 0; i< count; i++){
-			Author a = new AuthorImpl();
+			User a = new User();
 			a.setName(RandomStringUtils.randomAscii(25));
 			list.add(a);
 		}
 
-		Iterator<Author> received = saveOnServer(list);
+		Iterator<User> received = saveOnServer(list);
 
-		comparaAuthors(list, received);
+		comparaUsers(list, received);
 	}
 
-	protected void comparaAuthors(ArrayList<Author> list, Iterator<Author> received) {
+	protected void comparaUsers(ArrayList<User> list, Iterator<User> received) {
 		if (received == null)
 			fail ();
 		received_loop:
 		for(int i=0; i< list.size();i++){
 			if(!received.hasNext())
 				fail();
-			Author receivedAuthor = received.next();
-			for(Author a : list)
-				if(a.getName().equals(receivedAuthor.getName()))
+			User receivedUser = received.next();
+			for(User a : list)
+				if(a.getName().equals(receivedUser.getName()))
 					continue received_loop;
 			fail();
 		}
 	}
 
-	protected Iterator<Author> saveOnServer(ArrayList<Author> list) {
+	protected Iterator<User> saveOnServer(ArrayList<User> list) {
 		GenericCommunication comm = new JsonCommunication();
 		comm.setURL(URL);
 		comm.setParameterSerializer(new InnerJsonParametersSerializer());
 		comm.setParameter(RouterBean.METHOD_PARAM, "insert");
-		comm.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
+		comm.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
 		HashMap<String, Object> objects = new HashMap<String, Object>();
 		HashMap<String, Object> jsonBody = new HashMap<String, Object>();
 		objects.put("list", list);
 		jsonBody.put("objects", objects);
 		comm.setParameter("json", jsonBody);
 
-		Iterator<Author> received = null;
+		Iterator<User> received = null;
 		try {
 			SerializedCommunicationResponse resp = comm.post();
 			Map<String, Object> responseMap = resp.getResponseMap();
 			assertEquals("success", responseMap.get("status"));
 
-			received = resp.getIterator(
-					session.getDAOFactory().getDaoFor(Author.class),
-					"objects","list");
+			received = resp.getIterator(USER_DAO, "objects","list");
 
 			@SuppressWarnings("unchecked")
 			HashMap<String, Object> objectsMap =
@@ -150,11 +145,12 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		return received;
 	}
 
+	@Test
 	public void testGetJson(){
-		ArrayList<Author> list = new ArrayList<Author>();
+		ArrayList<User> list = new ArrayList<User>();
 		int count = 5;
 		for(int i = 0; i< count; i++){
-			Author a = new AuthorImpl();
+			User a = new User();
 			a.setName(RandomStringUtils.randomAscii(25));
 			list.add(a);
 		}
@@ -164,19 +160,18 @@ ActivityInstrumentationTestCase2<TestActivity> {
 		GenericCommunication authorsDao = new JsonCommunication();
 		authorsDao.setURL(URL);
 		authorsDao.setParameter(RouterBean.METHOD_PARAM, "query");
-		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, Author.class.getSimpleName());
-		Iterator<Author> it = null;
+		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
+		Iterator<User> it = null;
 		try {
-			it = authorsDao.get().getIterator(
-					session.getDAOFactory().getDaoFor(Author.class),
-					"list");
+			it = authorsDao.get().getIterator(USER_DAO,"list");
 		} catch (RuntimeException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
 		
-		comparaAuthors(list, it);
+		comparaUsers(list, it);
 	}
 
+	@Test
 	public void testJsonPlainTextCommunication(){
 		GenericCommunication comm = new JsonCommunication();
 		comm.setContentType("application/json");

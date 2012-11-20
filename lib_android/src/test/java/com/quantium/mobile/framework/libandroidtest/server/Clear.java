@@ -1,4 +1,4 @@
-package com.quantium.mobile.framework.test.server;
+package com.quantium.mobile.framework.libandroidtest.server;
 
 public class Clear extends BaseServerBean {
 
