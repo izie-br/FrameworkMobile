@@ -73,7 +73,7 @@
 
           <!-- Webapp acessivel em "127.0.0.1:9091/" -->
           <!-- Note tambem o contextPath apontando para ROOT (/) -->
-          <!-- Deve compativel com a URL em JsonCommunicationIT.URL -->
+          <!-- Deve ser compativel com a URL em "JsonCommunicationIT.URL" -->
           <contextPath>/</contextPath>
           <connectors>
             <connector implementation="org.eclipse.jetty.server.nio.SelectChannelConnector">
@@ -93,13 +93,14 @@
             <!-- Estas configuracoes so executam em pre-integration test -->
             <!--   nao em "mvn jetty:run", por exemplo -->
             <configuration>
-              <!-- Opcao daemon para forcar jetty a rodar apenas enquanto -->
-              <!--   o Maven roda e sem parar a execucao dos testes. -->
+              <!-- Opcao daemon para forcar jetty a rodar enquanto -->
+              <!--   o Maven roda sem parar a execucao dos testes. -->
               <!-- http://wiki.eclipse.org/Jetty/Feature/Jetty_Maven_Plugin#jetty:start__:__Starting_jetty_without_first_executing_the_build_up_to_.22test-compile.22_phase -->
               <daemon>true</daemon>
             </configuration>
           </execution>
 
+          <!-- Para parar o jetty que esta rodando como daemon -->
           <execution>
             <id>stop-jetty</id>
             <phase>post-integration-test</phase>
