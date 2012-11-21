@@ -4,6 +4,7 @@ __tempgen_appios/*
 gerador/script/schema.sql
 lib/target/*
 memorytables/target/*
+lib_jdbc/target/*
 lib_android/target/*
 gerador/customGen/*
 gerador/target/*

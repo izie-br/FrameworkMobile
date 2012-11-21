@@ -6,7 +6,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>com.quantium.mobile.framework</groupId>
   <artifactId>frameworkMobile</artifactId>
-  <version>0.14-alpha</version>
+  <version>0.15-alpha</version>
   <packaging>pom</packaging>
 
   <modules>
@@ -14,6 +14,7 @@
     <module>maven_plugin_gerador</module>
     <module>lib</module>
     <module>memorytables</module>
+    <module>lib_jdbc</module>
     <module>lib_android</module>
     <module>test</module>
   </modules>
