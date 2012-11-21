@@ -1,14 +1,16 @@
-package com.quantium.mobile.framework.test.utils;
+package com.quantium.mobile.framework.libtests;
 
 import java.util.Arrays;
+
+import org.junit.Test;
 
 import junit.framework.TestCase;
 
 import com.quantium.mobile.framework.utils.StringUtil;
 
-public class StringUtilTests extends TestCase {
+public class StringUtilTest extends TestCase {
 
-
+	@Test
 	public void testCollectionToCSV(){
 		String input[] = { "val0", "val1,val1", "\"val2\"", "val3\nval3\rval3" };
 		String expectedOtput =
@@ -20,12 +22,14 @@ public class StringUtilTests extends TestCase {
 		assertEquals(expectedOtput, output);
 	}
 
+	@Test
 	public void testStringIsNull(){
 		String blankStrings[] = {null,""," ", "\t"};
 		for(String blankString : blankStrings)
 			assertTrue(StringUtil.isNull(blankString));
 	}
 
+	@Test
 	public void testHashes(){
 //		String sha1Regex = "[0-9a-fA-F]{40}";
 		String md5Regex = "[0-9a-fA-F]{32}";
@@ -58,6 +62,7 @@ public class StringUtilTests extends TestCase {
 
 	}
 
+//	@Test
 //	public void testBase64(){
 //		String strA = new String("igual");
 //		String strB = new String("igual");

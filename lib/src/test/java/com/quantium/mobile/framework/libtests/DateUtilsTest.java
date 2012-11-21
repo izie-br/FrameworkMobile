@@ -1,19 +1,17 @@
-package com.quantium.mobile.framework.test.utils;
+package com.quantium.mobile.framework.libtests;
+
+import static org.junit.Assert.*;
 
 import java.util.Date;
+
+import org.junit.Test;
+
 import com.quantium.mobile.framework.utils.DateUtil;
-import android.test.ActivityInstrumentationTestCase2;
-import com.quantium.mobile.framework.test.TestActivity;
 
-public class DateUtilsTests extends 
-        ActivityInstrumentationTestCase2<TestActivity>
-    {
+public class DateUtilsTest {
 
-    public DateUtilsTests(){
-        super("com.quantium.mobile.framework.test", TestActivity.class);
-    }
-
-
+    @SuppressWarnings("deprecation")
+    @Test
     public void testStringToDate() {
         Date now = new Date();
         String dateStr = DateUtil.timestampToString(now);

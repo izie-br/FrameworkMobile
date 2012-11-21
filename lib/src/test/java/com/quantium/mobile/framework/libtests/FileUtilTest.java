@@ -1,20 +1,33 @@
-package com.quantium.mobile.framework.test.utils;
+package com.quantium.mobile.framework.libtests;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.Reader;
 
-import android.test.ActivityInstrumentationTestCase2;
-import com.quantium.mobile.framework.test.TestActivity;
+import org.junit.AfterClass;
+import org.junit.BeforeClass;
+import org.junit.Test;
+
+import static org.junit.Assert.*;
+
 import com.quantium.mobile.framework.utils.FileUtil;
 
-public class FileUtilTests extends 
-		ActivityInstrumentationTestCase2<TestActivity> {
+public class FileUtilTest {
 
-	public FileUtilTests() {
-		super("com.quantium.mobile.framework.test", TestActivity.class);
+	private static final String TESTDIR = "__testdir";
+
+	@BeforeClass
+	public static void setUpClass() {
+		// Cria o datadir se nao existe
+		getDataDir();
+	}
+
+	@AfterClass
+	public static void tearDownClass(){
+		deleteDataDir();
 	}
 
 	/**
@@ -23,6 +36,7 @@ public class FileUtilTests extends
 	 * usando FileUtil.openFileToRead, conferindo se o conteudo
 	 * eh o mesmo
 	 */
+	@Test
 	public void testWriteRead(){
 		File file = new File(
 				new File(getDataDir()),
@@ -52,6 +66,7 @@ public class FileUtilTests extends
 	/**
 	 * Zipa um arquivo, des-zipa, e confere se o conteudo eh o mesmo
 	 */
+	@Test
 	public void testZipAndUnzip(){
 		int count = 5;
 		String fileNames[] = new String[count];
@@ -135,6 +150,7 @@ public class FileUtilTests extends
 	/**
 	 * Gzipa um arquivo, des-gzipa, e confere se o conteudo eh o mesmo
 	 */
+	@Test
 	public void testGzip(){
 		// Arquivo de entrada, nome e conteudo
 		File file = new File(new File(getDataDir()),
@@ -201,8 +217,39 @@ public class FileUtilTests extends
 		}
 	}
 
-	private String getDataDir(){
-		return getActivity().getApplicationInfo().dataDir;
+	private static String getDataDir(){
+		File dir = new File(TESTDIR);
+		if (!dir.exists()){
+			try {
+				dir.mkdir();
+			} catch (Exception e) {
+				fail(e.getMessage());
+			}
+		}
+		return dir.getAbsolutePath();
+	}
+
+	private static void deleteDataDir(){
+		File dir = new File(TESTDIR);
+		if (dir.exists()){
+			try {
+				deleteFolderR(dir);
+			} catch (IOException e) {
+				fail(e.getMessage());
+			}
+		}
+	}
+
+	private static void deleteFolderR(File f) throws IOException {
+		if (f.isDirectory()) {
+			for (File c : f.listFiles())
+				deleteFolderR(c);
+		}
+		if (!f.delete()){
+			throw new FileNotFoundException(
+				"Failed to delete file: " + f
+			);
+		}
 	}
 
 }
