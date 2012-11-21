@@ -40,6 +40,9 @@
             <groupId>org.json</groupId>
             <artifactId>json</artifactId>
             <version>20090211</version>
+            <!-- Esta eh uma dependencia do "lib_android" e para evitar -->
+            <!--   que seja enviado ao dispositivo, onde as classes jah -->
+            <!--   existem, deve ser marcado como provided -->
             <scope>provided</scope>
         </dependency>
     </dependencies>
@@ -67,14 +70,26 @@
               <artifactId>maven-plugin-gerador</artifactId>
               <version>0.14-alpha</version>
               <configuration>
+
+                <!-- pasta para enviar os fontes gerados para o "core" -->
                 <coreSrcDir>src/main/java/</coreSrcDir>
+
+                <!-- pasta para enviar os fontes gerados para o "aplicativo" -->
                 <androidSrcDir>src/main/java/</androidSrcDir>
+
+                <!-- Lista de tabelas para serem ignoradas pelo gerador -->
                 <ignore>
                   <ignore>sqlite_sequence</ignore>
                 </ignore>
+
+                <!-- Alias de serializacao em usadas em "Entity.toMap" e -->
+                <!--   em "DAO.mapToObject" -->
                 <serializationAlias>
+                  <!-- Propriedade "id" da classe "Document" e escrita em -->
+                  <!--   um Map como "id_document" -->
                   <document.id>id_document</document.id>
                 </serializationAlias>
+
               </configuration>
               <executions>
                 <execution>
@@ -88,6 +103,9 @@
         </plugins>
 
         <pluginManagement>
+          <!-- O Eclipse percisa de um conector para executar um plugin -->
+          <!--   do Maven. Como nao eh necessario a geracao continua de -->
+          <!--   classes pelo plugin, optei por fazer o eclipse o ignorar -->
           <plugins>
             <plugin>
               <groupId>org.eclipse.m2e</groupId>
