@@ -112,11 +112,12 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 			this.q = new Q (getTable());
 		}
 		String args [] = null;
-		ArrayList<String> listArg = new ArrayList<String>();
+		ArrayList<Object> listArg = new ArrayList<Object>();
 		String qstr = new QSQLProvider(q).select(getColunas(),listArg);
 		if (listArg.size() > 0) {
 			args = new String[listArg.size()];
-			listArg.toArray(args);
+			for (int i=0; i < args.length; i++)
+				args[i] = listArg.get(i).toString();
 		}
 		String orderByLocal = orderBy == null  ? "" : (" ORDER BY " + orderBy + " ");
 		Cursor cursor = getDb().rawQuery(

@@ -27,7 +27,7 @@ public class QueryTest {
 		Table.Column<Date> colDate = t.addColumn(Date.class, "col_date");
 
 		Q q = colDate.le(new Date()).and( colStr.eq("blah").or(colStr2.lt("blah2")) ).and(colInt.ge(2));
-		String selectString = new QSQLProvider(q).select(new Table.Column<?>[] {colDate, colStr},new ArrayList<String>());
+		String selectString = new QSQLProvider(q).select(new Table.Column<?>[] {colDate, colStr},new ArrayList<Object>());
 
 		String qstrmatch =
 			// parentese de abertura, opcional neste caso
@@ -81,7 +81,7 @@ public class QueryTest {
 		Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
 		String select = new QSQLProvider(q).select(
 				new Table.Column<?> []{colTab1Id, colTab2Id},
-				new ArrayList<String>()
+				new ArrayList<Object>()
 		);
 
 		String qstringRegex =
@@ -136,7 +136,7 @@ public class QueryTest {
 		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");
 
 		Q q = colInt.eq((Integer)null);
-		String select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
+		String select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<Object>());
 		assertTrue(
 			select.matches(
 				".*"+colInt.getName()+ "\\s+" +
@@ -145,7 +145,7 @@ public class QueryTest {
 		);
 
 		q = colInt.ne((Integer)null);
-		select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
+		select = new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<Object>());
 		assertTrue(
 			select.matches(
 				".*"+colInt.getName()+ "\\s+" +
@@ -155,7 +155,7 @@ public class QueryTest {
 
 		q = colInt.lt((Integer)null);
 		try {
-			new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<String>());
+			new QSQLProvider(q).select(new Table.Column []{colInt}, new ArrayList<Object>());
 			fail ("A query " +select + " eh absurda");
 		} catch (QueryParseException e) {
 			/* Aqui deve acontencer esta excecao mesmo. */
@@ -171,7 +171,7 @@ public class QueryTest {
 		Q q = colTab1Id.in(1L,2L,4L);
 		String qstring = new QSQLProvider(q).select(
 				new Table.Column<?>[]{colTab1Id},
-				new ArrayList<String>());
+				new ArrayList<Object>());
 		String qstrregex = ".*WHERE\\s+"+
 			"\\(?" +
 				colTab1Id.getTable().getName() + "\\." +
@@ -197,16 +197,16 @@ public class QueryTest {
 		final Q q1 = colTab1Id.lt(100L);
 		final String q1Str = new QSQLProvider(q1).select(
 				new Table.Column<?>[]{colTab1Id},
-				new ArrayList<String>());
+				new ArrayList<Object>());
 		{
 			Q q2 = q1.and(colTab1Id.gt(10L));
 			String q1StrAfterOperation = new QSQLProvider(q1).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertEquals(q1Str, q1StrAfterOperation);
 			String q2Str = new QSQLProvider(q2).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertFalse( q2Str.equals(q1Str));
 		}
 
@@ -214,11 +214,11 @@ public class QueryTest {
 			Q q3 = Q.not(q1);
 			String q1StrAfterNotOperation = new QSQLProvider(q1).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertEquals(q1Str, q1StrAfterNotOperation);
 			String q3Str = new QSQLProvider(q3).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertFalse("String::"+q3Str, q3Str.equals(q1Str));
 		}
 
@@ -226,11 +226,11 @@ public class QueryTest {
 			Q q4 = q1.or(colTab1Id.eq(11L));
 			String q1StrAfterOROperation = new QSQLProvider(q1).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertEquals(q1Str, q1StrAfterOROperation);
 			String q4Str = new QSQLProvider(q4).select(
 					new Table.Column<?>[]{colTab1Id},
-					new ArrayList<String>());
+					new ArrayList<Object>());
 			assertFalse( q4Str.equals(q1Str));
 		}
 	}
