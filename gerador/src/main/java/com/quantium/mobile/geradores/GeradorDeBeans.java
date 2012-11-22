@@ -6,8 +6,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.Reader;
 import java.io.StringReader;
 import java.nio.channels.FileChannel;
@@ -53,14 +51,6 @@ public class GeradorDeBeans {
 
 	public static final long DEFAULT_ID = 0;
 
-	private static final String CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES[][] ={
-		{DB_PACKAGE,	DB_CLASS,	DB_RESOURCE_FILE},
-		{"",	"Aplicacao",	"/Aplicacao.java"},
-		{"",	"Constantes",	"/Constantes.java"},
-		{"",	GENERIC_BEAN_CLASS,	"/GenericBean.java"}
-	};
-
-
 	/**
 	 * @param args
 	 */
@@ -96,73 +86,6 @@ public class GeradorDeBeans {
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-	public static void conferirArquivosCustomSrc(
-			String pacote,
-			String pastaSrc
-	){
-		for(
-			String pacoteClassResource [] :
-			CUSTOM_SRC_PACKAGES_CLASSES_RESOURCES
-		){
-			String pacoteClass =
-				pacote + '.' +
-				pacoteClassResource[0];
-			String pacotePath = getPacotePath(pacoteClass);
-			File folder = new File(pastaSrc + "/" + pacotePath);
-			if(!folder.exists())
-				folder.mkdirs();
-			File f = new File(
-				folder,
-				pacoteClassResource[1] + ".java"
-			);
-			if(!f.exists()){
-				LoggerUtil.getLog().info(
-					"Criando arquivo " + f.getPath()
-				);
-				try{
-					gerarClasseCustomSrc(
-						pacoteClass,
-						f,
-						pacoteClassResource[2]
-					);
-				} catch (IOException e ) {
-					throw new RuntimeException(e);
-				}
-			}
-		}
-	}
-
-	public static void gerarClasseCustomSrc(
-			String pacote,
-			File classFile,
-			String classResource
-	)
-			throws IOException
-	{
-		classFile.createNewFile();
-		InputStream is = GeradorDeBeans.class
-			.getResourceAsStream(classResource);
-		if(is == null)
-			throw new RuntimeException(
-				"Resource " + classResource + " nao encontrado"
-			);
-		classFile.createNewFile();
-		OutputStream os = new FileOutputStream(classFile);
-		if(pacote.charAt(pacote.length()-1)=='.')
-			pacote = pacote.substring(0,pacote.length()-1);
-		os.write( ("package " + pacote + ";\n\n").getBytes("ASCII"));
-		byte buffer [] = new byte[255];
-		for(
-			int charsRead = is.read(buffer);
-			charsRead >= 0;
-			charsRead = is.read(buffer)
-		){
-			os.write(buffer,0,charsRead);
-		}
-		os.close();
-		buffer = null;
 	}
 
 	public void generateBeansWithJsqlparserAndVelocity(
@@ -254,7 +177,7 @@ public class GeradorDeBeans {
 		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
 			      LoggerUtil.class.getName() );
 		ve.setProperty("runtime.log.logsystem.log4j.logger",
-                LoggerUtil.LOG_NAME);
+		               LoggerUtil.LOG_NAME);
 //		ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
 //				"classpath");
 		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
@@ -463,37 +386,6 @@ public class GeradorDeBeans {
 		}
 	}
 
-
-/*    private static String convertStreamToString(InputStream is)
-            throws IOException
-    {
-        /*
-         * To convert the InputStream to String we use the Reader.read(char[]
-         * buffer) method. We iterate until the Reader return -1 which means
-         * there's no more data to read. We use the StringWriter class to
-         * produce the string.
-         */
-/*        if (is != null) {
-            Writer writer = new StringWriter();
-
-            char[] buffer = new char[1024];
-            try {
-                Reader reader = new BufferedReader(
-                        new InputStreamReader(is,DEFAULT_ENCODING)
-                );
-                int n;
-                while ((n = reader.read(buffer)) != -1) {
-                    writer.write(buffer, 0, n);
-                }
-            } finally {
-                is.close();
-            }
-            return writer.toString();
-        } else {
-            return "";
-        }
-    }
-*/
 	protected static String getPacotePath(String pacote) {
 		return pacote.replaceAll("\\.", File.separator);
 	}
