@@ -55,8 +55,6 @@ public class Generator {
 	 * @param args
 	 */
 	public static void main(String[] args) throws GeradorException{
-		// exemploDeUsoDoCodeModel();
-		// exemploDeUsoJSqlParser();
 
 		if(args==null||args.length < 4){
 			LoggerUtil.getLog().info(
@@ -92,11 +90,16 @@ public class Generator {
 			File androidManifestFile, File sqlResource,
 			File coreSrcDir, File androidSrcDir, File jdbcSrcDir,
 			String pacoteGen, File properties, Map<String,Object> defaultProperties)
-			throws IOException, FileNotFoundException, GeradorException {
-		String pacote = getBasePackage(androidManifestFile);
-//		conferirArquivosCustomSrc(pacote, androidSrcDir);
+			throws IOException, FileNotFoundException, GeradorException
+	{
 
+		String pacote = getBasePackage(androidManifestFile);
+
+		// Arquivo de propriedades para armazenar dados internos do gerador
 		PropertiesLocal props = getProperties(properties);
+		// Ultima versao do banco lida pelo gerador
+		// Se for diferente da versao em DB.VERSION, o gerador deve
+		//   reescrever os arquivos
 		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
@@ -106,16 +109,14 @@ public class Generator {
 			throw new GeradorException("versao do banco nao encontrada");
 
 		/*
-		 * Se a versao do banco é a mesma, finaliza o gerador
+		 * Se a versao do banco é a mesma no generator.xml, finaliza o gerador
 		 */
 		LoggerUtil.getLog().info(
 				"Last dbVersion:" + propertyVersion +
 				" current dbVersion" + dbVersion);
 		if (propertyVersion == (int)dbVersion)
 			return;
-//		String basePackage = getBasePackage();
-//		if(basePackage!=null)
-//			getLog().info("package "+basePackage);
+
 		String val = getSqlTill(sqlResource,dbVersion);
 		if(val!=null){
 			val = sqliteSchema(val);
@@ -143,8 +144,6 @@ public class Generator {
 		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
 				"{COLUMN=id}_{TABLE}"
 		));
-//		factory.addFiltroFactory(
-//			new CamelCaseFilter.Factory());
 
 		// gerando os JavaBeanSchemas
 		Collection<JavaBeanSchema> javaBeanSchemas =
@@ -157,33 +156,16 @@ public class Generator {
 		Map<String,String> serializationAliases =
 			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);
 
-//		HashMap<JavaBeanSchema,JDefinedClass> mapClasses =
-//				new HashMap<JavaBeanSchema, JDefinedClass>();
 
-		File coreTempDir = new File("__tempgen_core");
-		if (coreTempDir.exists())
-			deleteFolderR(coreTempDir);
-		coreTempDir.mkdir();
-		File androidTempDir = new File("__tempgen_android");
-		if (androidTempDir.exists())
-			deleteFolderR(androidTempDir);
-		androidTempDir.mkdir();
-		File appiosTempDir = new File("__tempgen_appios");
-		if (appiosTempDir.exists())
-			deleteFolderR(appiosTempDir);
-		appiosTempDir.mkdir();
+		// Removendo os diretoros temporarios dos arquivos gerados e
+		//   recriando-os vazios.
+		File coreTempDir = resetDir("__tempgen_core");
+		File androidTempDir = resetDir("__tempgen_android");
+		File appiosTempDir = resetDir("__tempgen_appios");
 
-		VelocityEngine ve = new VelocityEngine();
-		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
-			      LoggerUtil.class.getName() );
-		ve.setProperty("runtime.log.logsystem.log4j.logger",
-		               LoggerUtil.LOG_NAME);
-//		ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
-//				"classpath");
-		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
-		ve.setProperty("class.resource.loader.class",
-				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
-		ve.init();
+		//inicializa e configura a VelocityEngine
+		VelocityEngine ve = initVelocityEngine();
+
 		VelocityDaoFactory vdaof = new VelocityDaoFactory(
 				"DAO.java",
 				ve, androidTempDir,
@@ -197,16 +179,7 @@ public class Generator {
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
-//			try {
-//				classeGerada = jbf.generateClass(
-//					pacote,
-//					pacoteGen,
-//					javaBeanSchema.getNome()
-//				);
-//			} catch (JClassAlreadyExistsException e) {
-//				throw new RuntimeException(e);
-//			}
-//			mapClasses.put(javaBeanSchema, classeGerada);
+
 			//vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
 			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
@@ -227,13 +200,35 @@ public class Generator {
 			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
 			                  VelocityObjcFactory.Type.EDITABLE_PROTOCOL);
 		}
+
 		VelocityCustomClassesFactory.generateDAOFactory(
 				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);
 
 
 		String pastaGen = (pacote + "."+ pacoteGen)
 				.replaceAll("\\.", File.separator);
-		File coreGenFolder = new File(coreSrcDir, pastaGen);
+
+		// Substitui os pacotes gen por pastas vazias, para remover os
+		//   arquivos antigos
+		File coreGenFolder = replaceGenFolder(coreTempDir, coreSrcDir, pastaGen);
+		File androidGenDir = replaceGenFolder(androidTempDir, androidSrcDir, pastaGen);
+
+		// Copia os novos arquivos para os pacotes gen vazios
+		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
+		//       no caso do "replaceGenFolder"
+		for (File f : coreTempDir.listFiles())
+			copyFile(f, new File(coreGenFolder, f.getName()));
+		for (File f : androidTempDir.listFiles())
+			copyFile(f, new File(androidGenDir, f.getName()));
+
+//		props.save();
+	}
+
+	private File replaceGenFolder(
+			File tempDir, File srcDir, String genFolder)
+			throws IOException
+	{
+		File coreGenFolder = new File(srcDir, genFolder);
 		if(coreGenFolder.exists()){
 			LoggerUtil.getLog().info("Deletando " + coreGenFolder.getAbsolutePath());
 			deleteFolderR(coreGenFolder);
@@ -245,29 +240,35 @@ public class Generator {
 			);
 		}
 		coreGenFolder.mkdirs();
-		File androidGenDir = new File(androidSrcDir, pastaGen);
-		if(androidGenDir.exists()){
-			LoggerUtil.getLog().info("Deletando " + androidGenDir.getAbsolutePath());
-			deleteFolderR(androidGenDir);
-		} else {
-			LoggerUtil.getLog().info(
-				"Pasta " +
-				androidGenDir.getAbsolutePath() +
-				" nao encontrada"
-			);
-		}
-		androidGenDir.mkdirs();
+		return coreGenFolder;
+	}
 
-		for (File f : coreTempDir.listFiles())
-			copyFile(f, new File(coreGenFolder, f.getName()));
-		for (File f : androidTempDir.listFiles())
-			copyFile(f, new File(androidGenDir, f.getName()));
+	private VelocityEngine initVelocityEngine() {
+		VelocityEngine ve = new VelocityEngine();
+		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
+			      LoggerUtil.class.getName() );
+		ve.setProperty("runtime.log.logsystem.log4j.logger",
+		               LoggerUtil.LOG_NAME);
+//		ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
+//				"classpath");
+		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
+		ve.setProperty("class.resource.loader.class",
+				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+		ve.init();
+		return ve;
+	}
 
-		//props.save();
+	
+	private File resetDir(String dirName) throws IOException {
+		File dir = new File(dirName);
+		if (dir.exists())
+			deleteFolderR(dir);
+		dir.mkdir();
+		return dir;
 	}
 
 
-	public Integer getDBVersion(File srcFolder, String basePackage)
+	private Integer getDBVersion(File srcFolder, String basePackage)
 			throws GeradorException {
 		String packageFolder;
 		packageFolder = basePackage.replaceAll("\\.", File.separator);
@@ -345,11 +346,11 @@ public class Generator {
 
 	}
 
-	public PropertiesLocal getProperties(File f){
+	private PropertiesLocal getProperties(File f){
 		return new PropertiesLocal(f);
 	}
 
-	public String sqliteSchema(String sql) {
+	private String sqliteSchema(String sql) {
 		try {
 			return SQLiteGeradorUtils.getSchema(sql);
 		} catch (SQLException e) {
@@ -358,7 +359,7 @@ public class Generator {
 		}
 	}
 
-	public String getSqlTill(File sqlResource, Integer version) {
+	private String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
 				+ "contains(@name,\"db_versao_\") and "
@@ -386,7 +387,7 @@ public class Generator {
 		}
 	}
 
-	protected static String getPacotePath(String pacote) {
+	public static String getPacotePath(String pacote) {
 		return pacote.replaceAll("\\.", File.separator);
 	}
 
