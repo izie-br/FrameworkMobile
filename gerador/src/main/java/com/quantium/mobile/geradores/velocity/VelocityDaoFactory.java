@@ -39,11 +39,12 @@ public class VelocityDaoFactory {
 	private Map<String,String> aliases;
 
 	public VelocityDaoFactory(
+			String templateName,
 			VelocityEngine ve, File targetDirectory,
 			String genPackage, Map<String,String> serializationAliases){
 		//this.ve = ve;
 		this.targetDirectory = targetDirectory;
-		template = ve.getTemplate("DAO.java");
+		template = ve.getTemplate(templateName);
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
 		parentCtx.put("package", genPackage);

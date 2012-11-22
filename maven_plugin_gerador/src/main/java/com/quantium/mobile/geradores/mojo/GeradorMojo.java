@@ -44,6 +44,11 @@ public class GeradorMojo extends AbstractMojo{
     private String androidSrcDir;
 
     /**
+     * @parameter
+     */
+    private String jdbcSrcDir;
+
+    /**
      * The Maven Session.
      *
      * @parameter expression="${session}"
@@ -157,8 +162,10 @@ public class GeradorMojo extends AbstractMojo{
             throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "basedir"));
         if (coreSrcDir == null)
             throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "coreSrcDir"));
-        if (androidSrcDir == null)
-            throw new MojoFailureException(String.format(PROPRIEDADE_INDEFINIDA_ERRMSG, "androidSrcDir"));
+        if (androidSrcDir == null && jdbcSrcDir == null)
+            throw new MojoFailureException(String.format(
+                    PROPRIEDADE_INDEFINIDA_ERRMSG,
+                    "androidSrcDir OR jdbcSrcDir"));
 
         Map<String,Object> defaultProperties = new HashMap<String,Object>();
         String ignored = getIgnored();
@@ -173,7 +180,12 @@ public class GeradorMojo extends AbstractMojo{
                     getAndroidManifest(),
                     getSqlResource(),
                     new File(basedir, coreSrcDir),
-                    new File(basedir, androidSrcDir),
+                    (androidSrcDir == null) ?
+                        null :
+                        new File(basedir, androidSrcDir),
+                    (jdbcSrcDir == null) ?
+                        null:
+                        new File(basedir, jdbcSrcDir),
                     "gen",
                     getConfigResource(),
                     defaultProperties

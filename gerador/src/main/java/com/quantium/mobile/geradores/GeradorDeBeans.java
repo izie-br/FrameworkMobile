@@ -68,12 +68,12 @@ public class GeradorDeBeans {
 		// exemploDeUsoDoCodeModel();
 		// exemploDeUsoJSqlParser();
 
-		if(args==null||args.length<3){
+		if(args==null||args.length < 4){
 			LoggerUtil.getLog().info(
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					GeradorDeBeans.class.getName()+ " " +
-					"androidManifest arquivo_sql coreSrc androidSrc [properties]"
+					"androidManifest arquivo_sql coreSrc androidSrc jdbcSrc [properties]"
 			);
 			return;
 		}
@@ -83,12 +83,13 @@ public class GeradorDeBeans {
 		String arquivo = args[1];
 		String pastaSrc = args[2];
 		String androidSrc = args[3];
-		String properties = (args.length >4) ? args[4] : DEFAULT_GENERATOR_CONFIG;
+		String jdbcSrc = args[4];
+		String properties = (args.length > 5) ? args[5] : DEFAULT_GENERATOR_CONFIG;
 
 		try {
 			new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
 				new File(manifest), new File (arquivo),
-				new File(pastaSrc), new File(androidSrc),
+				new File(pastaSrc), new File(androidSrc), new File(jdbcSrc),
 				"gen", new File(properties), defaultProperties);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
@@ -166,7 +167,7 @@ public class GeradorDeBeans {
 
 	public void generateBeansWithJsqlparserAndVelocity(
 			File androidManifestFile, File sqlResource,
-			File coreSrcDir, File androidSrcDir,
+			File coreSrcDir, File androidSrcDir, File jdbcSrcDir,
 			String pacoteGen, File properties, Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException {
 		String pacote = getBasePackage(androidManifestFile);
@@ -261,6 +262,7 @@ public class GeradorDeBeans {
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
 		VelocityDaoFactory vdaof = new VelocityDaoFactory(
+				"DAO.java",
 				ve, androidTempDir,
 				pacote+ "."+ pacoteGen,
 				serializationAliases);
