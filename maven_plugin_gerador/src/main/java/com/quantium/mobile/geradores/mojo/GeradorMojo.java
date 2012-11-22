@@ -16,7 +16,7 @@ import org.apache.maven.plugin.MojoFailureException;
 import org.apache.maven.plugin.logging.Log;
 
 import com.pyx4j.log4j.MavenLogAppender;
-import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.Generator;
 import com.quantium.mobile.geradores.GeradorException;
 
 
@@ -102,7 +102,7 @@ public class GeradorMojo extends AbstractMojo{
         else
             resource = new File(
                 basedir + "/" +
-                GeradorDeBeans.DEFAULT_GENERATOR_CONFIG);
+                Generator.DEFAULT_GENERATOR_CONFIG);
         return resource;
     }
 
@@ -170,13 +170,13 @@ public class GeradorMojo extends AbstractMojo{
         Map<String,Object> defaultProperties = new HashMap<String,Object>();
         String ignored = getIgnored();
         if (ignored != null)
-            defaultProperties.put(GeradorDeBeans.PROPERTIY_IGNORED,ignored);
+            defaultProperties.put(Generator.PROPERTIY_IGNORED,ignored);
         Map<String, String> aliases = getAliases();
         if (aliases != null)
-            defaultProperties.put(GeradorDeBeans.PROPERTIY_SERIALIZATION_ALIAS,
+            defaultProperties.put(Generator.PROPERTIY_SERIALIZATION_ALIAS,
                                   aliases);
         try {
-            new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
+            new Generator().generateBeansWithJsqlparserAndVelocity(
                     getAndroidManifest(),
                     getSqlResource(),
                     new File(basedir, coreSrcDir),

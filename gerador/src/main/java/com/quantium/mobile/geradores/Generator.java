@@ -36,7 +36,7 @@ import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
-public class GeradorDeBeans {
+public class Generator {
 
 	public static final String DEFAULT_GENERATOR_CONFIG = "generator.xml";
 	public static final String PROPERTIY_DB_VERSION = "dbVersion";
@@ -62,7 +62,7 @@ public class GeradorDeBeans {
 			LoggerUtil.getLog().info(
 					"Uso:\n"+
 					"java -classpath <JARS> " +
-					GeradorDeBeans.class.getName()+ " " +
+					Generator.class.getName()+ " " +
 					"androidManifest arquivo_sql coreSrc androidSrc jdbcSrc [properties]"
 			);
 			return;
@@ -77,7 +77,7 @@ public class GeradorDeBeans {
 		String properties = (args.length > 5) ? args[5] : DEFAULT_GENERATOR_CONFIG;
 
 		try {
-			new GeradorDeBeans().generateBeansWithJsqlparserAndVelocity(
+			new Generator().generateBeansWithJsqlparserAndVelocity(
 				new File(manifest), new File (arquivo),
 				new File(pastaSrc), new File(androidSrc), new File(jdbcSrc),
 				"gen", new File(properties), defaultProperties);
@@ -274,8 +274,8 @@ public class GeradorDeBeans {
 		File dbFile = new File(
 				srcFolder,
 				(packageFolder
-				+ File.separator + GeradorDeBeans.DB_PACKAGE + File.separator
-				+ GeradorDeBeans.DB_CLASS + ".java" ) );
+				+ File.separator + Generator.DB_PACKAGE + File.separator
+				+ Generator.DB_CLASS + ".java" ) );
 		if (!dbFile.exists()) {
 			String errmsg = dbFile.getAbsolutePath() + " nao encontrado";
 			LoggerUtil.getLog().error(errmsg);

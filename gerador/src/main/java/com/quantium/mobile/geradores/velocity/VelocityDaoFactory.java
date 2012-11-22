@@ -17,7 +17,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
-import com.quantium.mobile.geradores.GeradorDeBeans;
+import com.quantium.mobile.geradores.Generator;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
@@ -46,7 +46,7 @@ public class VelocityDaoFactory {
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate(templateName);
 		parentCtx = new VelocityContext();
-		parentCtx.put("defaultId", GeradorDeBeans.DEFAULT_ID);
+		parentCtx.put("defaultId", Generator.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
 		this.parentCtx.put("getter", new GetterFactory());
 		this.aliases = serializationAliases;
