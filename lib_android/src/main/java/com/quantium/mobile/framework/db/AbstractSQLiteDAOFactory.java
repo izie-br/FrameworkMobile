@@ -18,6 +18,7 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 	public void pushToCache(Object klassId, Serializable keys [],
 	                        Object entity)
 	{
+		// Conferir se eh proxy e extrair
 		EntityKey key = new EntityKey(klassId, keys);
 		entityCache.put(key, entity);
 	}

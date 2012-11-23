@@ -120,23 +120,6 @@ public class ${Klass} implements SqlDao<${Target}> {
             return false;
         }
 #end##if ($compoundPk)
-##        ContentValues contentValues = new ContentValues();
-###foreach ($field in $fields)
-###if ($associationForField[$field])
-###set ($association = $associationForField[$field])
-##        contentValues.put("${field.LowerAndUnderscores}",
-##                          (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-###elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
-###if ($field.Klass.equals("Date") )
-##        contentValues.put("${field.LowerAndUnderscores}",
-##                          DateUtil.timestampToString(target.${getter[$field]}()));
-###elseif ($field.Klass.equals("Boolean") )
-##        contentValues.put("${field.LowerAndUnderscores}", (target.${getter[$field]}())?1:0 );
-###else##if_class_equals
-##        contentValues.put("${field.LowerAndUnderscores}", target.${getter[$field]}());
-###end##if_class_equals
-###end##if ($associationForField[$field])
-###end##foreach
         boolean insert;
 #if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
@@ -148,7 +131,7 @@ public class ${Klass} implements SqlDao<${Target}> {
                 PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
 #foreach ($field in $primaryKeys)
 #if (!$field.Klass.equals("Date"))
-                stm.set${field.Klass}(${foreach.count}, target.${getter[$field.UpperCamel]}());
+                stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
 #else
                 #primary key ${field.Klass}
 #end##if($field.Klass.equals(****))
@@ -174,68 +157,70 @@ public class ${Klass} implements SqlDao<${Target}> {
             long value;
             try{
                 PreparedStatement stm;
-                if (insertIfNotExists) {
+                #if (!$compoundPk)if (insertIfNotExists) #end{
                     stm = getStatement(
                             "INSERT INTO ${table} (" +
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
-                            "${field.LowerAndUnderscores}"
+                                "${field.LowerAndUnderscores}" + "," +
 #end##if (!$primaryKeys.contains($field))
 #end##foreach ($field in $fields)
-#foreach ($field in $primaryKey)
-                            "${field.LowerAndUnderscores}"##
-#if ($foreach.count == $primaryKeys.size())
- + "," +
-#else##if ($foreach.count == $primaryKeys.size())
- + ")" +
-#end##if ($foreach.count == $primaryKeys.size())
+#foreach ($field in $primaryKeys)
+                                "${field.LowerAndUnderscores}" +#if ($foreach.count < $primaryKeys.size()) "," +#end
+
 #end##foreach ($field in $primaryKey)
-                            "VALUES (#foreach ($field in $fields)?#if ($foreach.count < $fields.size()),#else)#end");
-                } else {
+                            ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $fields.size()),#else)#end#end");
+                }
+#if (!$compoundPk)
+                else {
                     stm = getStatement(
                             "INSERT INTO ${table} (" +
+#set ($argCount = $fields.size() - $primaryKeys.size())
+#set ($argIndex = 0)
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
-                            "${field.LowerAndUnderscores}"##
+#set ($argIndex = $argIndex + 1)
+                                "${field.LowerAndUnderscores}" +#if ($argIndex < $argCount ) "," +#end
+
 #end##if (!$primaryKeys.contains($field))
-#if ($foreach.count == $primaryKeys.size())
- + "," +
-#else##if ($foreach.count == $primaryKeys.size())
- + ")" +
-#end##if ($foreach.count == $primaryKeys.size())
-#set ($argCount = $fields.size() - $primaryKeys.size())
-                            "VALUES (#foreach ($field in $fields)?#if ($foreach.count < $argCount),#else)#break#end");
+#end##foreach ($field in $fields)
+                            ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $argCount),#else)#break#end#end");
                 }
+#end##if (!$compoundPk)
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-                stm.set${field.Klass}(${foreach.count},
-                                      (target.get${association.Klass}() == null) ?
-                                          0 :
-                                          target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+                stm.set${field.Klass}(
+                        ${foreach.count},
+                        (target.get${association.Klass}() == null) ?
+                            0 :
+                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
-                stm.setTimestamp(${foreach.index},
-                                 new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                stm.setTimestamp(
+                        ${foreach.index},
+                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                 stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##if (!$primaryKeys.contains($field))
 #end##foreach
-                if (insertIfNotExists){
+                #if (!$compoundPk)if (insertIfNotExists) #end{
 #foreach ($field in $primaryKeys)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-                    stm.set${field.Klass}(${foreach.count},
-                                          (target.get${association.Klass}() == null) ?
-                                              0 :
-                                              target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+                    stm.set${field.Klass}(
+                            ${foreach.count},
+                            (target.get${association.Klass}() == null) ?
+                                0 :
+                                target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
-                    stm.setTimestamp(${foreach.index},
-                                     new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                    stm.setTimestamp(
+                            ${foreach.index},
+                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                     stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
 #end##if_class_equals
@@ -253,7 +238,7 @@ public class ${Klass} implements SqlDao<${Target}> {
                 ResultSet rs = stm.getGeneratedKeys();
                 value = (rs.next() ) ? rs.getLong(1) : -1;
                 if (value <= 0){
-                    LogPadrao.e("id '%d' gerado");
+                    LogPadrao.e("id '%d' gerado", value);
                     return false;
                 }
 #end##if ($compoundPk)
@@ -314,18 +299,18 @@ public class ${Klass} implements SqlDao<${Target}> {
             } else {
                 return false;
             }
-#end##not_compoundPk
+#end##if ($compoundPk)
         } else {
             try {
                 PreparedStatement stm = getStatement(
                         "UPDATE ${table} SET " +
-#set ($argCount = $fields.size() - primaryKeys.size())
+#set ($argCount = $fields.size() - $primaryKeys.size())
+#set ($argIndex = 0)
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
-                            "${field.LowerAndUnderscores}=?"##
-#if ($foreach.count == $argCount)
- + ", " +
-#end##if ($foreach.count == $argCount)
+#set ($argIndex = $argIndex + 1)
+                            "${field.LowerAndUnderscores}=?" +#if ($argIndex < $argCount) ", " +#end
+
 #end##if (!$primaryKeys.contains($field))
 #end##foreach ($field in $fields)
                         " WHERE ${queryByPrimaryKey}");
@@ -333,14 +318,16 @@ public class ${Klass} implements SqlDao<${Target}> {
 #if (!$primaryKeys.contains($field))
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-                stm.set${field.Klass}(${foreach.count},
-                                      (target.get${association.Klass}() == null) ?
-                                          0 :
-                                          target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+                stm.set${field.Klass}(
+                        ${foreach.count},
+                        (target.get${association.Klass}() == null) ?
+                            0 :
+                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
-                stm.setTimestamp(${foreach.index},
-                                 new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                stm.setTimestamp(
+                        ${foreach.index},
+                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                 stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
 #end##if_class_equals
@@ -350,14 +337,16 @@ public class ${Klass} implements SqlDao<${Target}> {
 #foreach ($field in $primaryKeys)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-                stm.set${field.Klass}(${foreach.count},
-                                      (target.get${association.Klass}() == null) ?
-                                          0 :
-                                          target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+                stm.set${field.Klass}(
+                        ${foreach.count},
+                        (target.get${association.Klass}() == null) ?
+                            0 :
+                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
-                stm.setTimestamp(${foreach.index},
-                                 new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                stm.setTimestamp(
+                        ${foreach.index},
+                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                  stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
 #end##if_class_equals
@@ -425,29 +414,22 @@ public class ${Klass} implements SqlDao<${Target}> {
         SQLiteDatabase db = this.factory.getDb();
         try {
             PreparedStatement stm;
-#foreach ($relation in $oneToManyAssociations)
-#if ($relation.Nullable)
+#foreach ($association in $oneToManyAssociations)
+#if ($association.Nullable)
             stm = getStatement(
-                    "UPDATE ${table} SET " +
-#foreach ($field in $primaryKeys)
-                    "id_author=NULL " +##
-#if ($foreach.count < $primaryKeys.size())
- ',' +
-#end##if ($foreach.count < $primaryKeys.size())
-#end##foreach ($field in $primaryKeys)
-                    "WHERE ${queryByPrimaryKey}");
-#foreach ($field in $primaryKeys)
-            stm.set${field.Klass}(${foreach.count}, target.get${field.UpperCamel}());
-#end##foreach ($field in $primaryKeys)
+                    "UPDATE ${association.Table} SET " +
+                    "${association.ForeignKey.LowerAndUnderscores}=NULL " +
+                    "WHERE ${association.ForeignKey.LowerAndUnderscores}=?");
+            stm.set${association.ReferenceKey.Klass}(1, target.${getter[$association.ReferenceKey]});
             stm.executeUpdate();
-            Runnable _${relation.Klass}NullFkThread = null;
-            _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
-            //_${relation.Klass}NullFkThread.start();
+            Runnable _${association.Klass}NullFkThread = null;
+            _${association.Klass}NullFkThread = new ${association.Klass}NullFkThread(factory, target);
+            //_${association.Klass}NullFkThread.start();
 
 #else##association_nullable
-            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
-            for (${relation.Klass} obj: target.get${relation.Pluralized}().all()) {
-                daoFor${relation.Klass}.delete(obj);
+            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>)factory.getDaoFor(${association.Klass}.class);
+            for (${association.Klass} obj: target.get${association.Pluralized}().all()) {
+                daoFor${association.Klass}.delete(obj);
             }
 #end##association_nullable
 #end##foreach_oneToMany
@@ -466,14 +448,16 @@ public class ${Klass} implements SqlDao<${Target}> {
 #foreach ($field in $primaryKeys)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
-                stm.set${field.Klass}(${foreach.count},
-                                      (target.get${association.Klass}() == null) ?
-                                          0 :
-                                          target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+                stm.set${field.Klass}(
+                        ${foreach.count},
+                        (target.get${association.Klass}() == null) ?
+                            0 :
+                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
-                stm.setTimestamp(${foreach.index},
-                                 new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                stm.setTimestamp(
+                        ${foreach.index},
+                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                  stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
 #end##if_class_equals
@@ -582,9 +566,9 @@ public class ${Klass} implements SqlDao<${Target}> {
 
 #else##if ($!associationForField[$field])
         try{
-#elseif ($field.Klass.equals("Date") )
+#if ($field.Klass.equals("Date") )
         ${field.Type} _${field.LowerCamel} = new Date(cursor.getTimestamp(${columnIndex}).getTime());
-#else#if ($associationForField[$field])
+#else##if ($associationForField[$field])
         ${field.Type} _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
 #end##if_field.Klass.equals(*)
         } catch (java.sql.SQLException e) {
@@ -751,20 +735,29 @@ public class ${Klass} implements SqlDao<${Target}> {
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToA.LowerAndUnderscores}", target.${getter[$association.ReferenceA]}());
-        contentValues.put("${association.KeyToB.LowerAndUnderscores}", obj.${getter[$association.ReferenceB]}());
+        PreparedStatement stm = getStatement(
+            "INSERT INTO ${association.JoinTable} (" +
+                "${association.KeyToA.LowerAndUnderscores}" +
+                "${association.KeyToB.LowerAndUnderscores}"
+            ") VALUES (?,?)";
+        stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
+        stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
 #else##(${association.IsThisTableA)
         if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
         }
-        contentValues.put("${association.KeyToB.LowerAndUnderscores}", target.${getter[$association.ReferenceB]}());
-        contentValues.put("${association.KeyToA.LowerAndUnderscores}", obj.${getter[$association.ReferenceA]}());
+        PreparedStatement stm = getStatement(
+            "INSERT INTO ${association.JoinTable} (" +
+                "${association.KeyToA.LowerAndUnderscores}" +
+                "${association.KeyToB.LowerAndUnderscores}"
+            ") VALUES (?,?)";
+        stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
+        stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
 #end##(${association.IsThisTableA})
-        SQLiteDatabase db = this.factory.getDb();
         long value;
         try{
-            value = db.insertOrThrow("${association.JoinTable}", null, contentValues);
-        } catch (SQLException e){
+            value = stm.executeUpdate();
+        } catch (java.sql.SQLException e){
             throw new IOException(StringUtil.getStackTrace(e));
         }
         return (value > 0);
@@ -776,38 +769,35 @@ public class ${Klass} implements SqlDao<${Target}> {
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
         }
-        String whereSql = "${association.KeyToA.LowerAndUnderscores} = ? AND ${association.KeyToB.LowerAndUnderscores} = ?";
-        String [] args = new String[]{
-            ((${association.KeyToA.Klass})target.${getter[$association.ReferenceA]}()).toString(),
-            ((${association.KeyToB.Klass})obj.${getter[$association.ReferenceB]}()).toString()
-       };
+        PreparedStatement stm = getStatement(
+            "DELETE FROM ${association.JoinTable} WHERE " +
+            "${association.KeyToA.LowerAndUnderscores} = ? AND " +
+            "${association.KeyToB.LowerAndUnderscores} = ?" +
+            "LIMIT 1";
+        stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
+        stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
 #else##(${association.IsThisTableA})
         if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
         }
-        String whereSql = "${association.KeyToB.LowerAndUnderscores} = ? AND ${association.KeyToA.LowerAndUnderscores} = ?";
-        String [] args = new String[]{
-            ((${association.KeyToA.Klass})obj.${getter[$association.ReferenceA]}()).toString(),
-            ((${association.KeyToB.Klass})target.${getter[$association.ReferenceB]}()).toString()
-       };
+        PreparedStatement stm = getStatement(
+            "DELETE FROM ${association.JoinTable} WHERE " +
+            "${association.KeyToA.LowerAndUnderscores} = ? AND " +
+            "${association.KeyToB.LowerAndUnderscores} = ?" +
+            "LIMIT 1";
+        stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
+        stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
 #end##(${association.IsThisTableA})
-        SQLiteDatabase db = this.factory.getDb();
-        Cursor cursor = db.query(
-            "${association.JoinTable}", (new String[]{"rowid"}),
-            whereSql, args, null, null, null, "1");
-        if (!cursor.moveToNext()) {
-            return false;
+        try {
+            long affected = stm.executeUpdate();
+            return (affected == 1);
+        } catch (java.sql.SQLException e) {
+            throw new IOException(StringUtil.getStackTrace(e));
         }
-        long rowid = cursor.getLong(0);
-        cursor.close();
-        if (rowid<= 0) {
-            return false;
-        }
-        long affected = db.delete("${association.JoinTable}", "rowid=?", new String[] {((Long) rowid).toString()});
-        return (affected == 1);
     }
 #end##foreach_manyToManyAssociation
 
+    @Override
     public ToManyDAO with(${Target} obj){
 #set ($hasMutableAssociations = $manyToManyAssociations.size() > 0)
 #foreach ($association in $oneToManyAssociations)

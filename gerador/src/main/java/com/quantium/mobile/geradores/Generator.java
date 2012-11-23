@@ -234,7 +234,7 @@ public class Generator {
 		if (jdbcSrcDir != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"JdbcDAOFactory.java",ve, javaBeanSchemas,
-					pacote+'.'+pacoteGen, androidTempDir);
+					pacote+'.'+pacoteGen, jdbcTempDir);
 		}
 
 
