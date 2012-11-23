@@ -160,17 +160,35 @@ public class Generator {
 		// Removendo os diretoros temporarios dos arquivos gerados e
 		//   recriando-os vazios.
 		File coreTempDir = resetDir("__tempgen_core");
-		File androidTempDir = resetDir("__tempgen_android");
+		File androidTempDir =
+			(androidSrcDir == null) ?
+				null :
+				resetDir("__tempgen_android");
+		File jdbcTempDir =
+			(jdbcSrcDir == null) ?
+				null :
+				resetDir("__tempgen_jdbc");
 		File appiosTempDir = resetDir("__tempgen_appios");
 
 		//inicializa e configura a VelocityEngine
 		VelocityEngine ve = initVelocityEngine();
 
-		VelocityDaoFactory vdaof = new VelocityDaoFactory(
+		VelocityDaoFactory vdaof = null;
+		VelocityDaoFactory vJdbcDaoFactory = null;
+		if (androidSrcDir != null) {
+			vdaof = new VelocityDaoFactory(
 				"DAO.java",
 				ve, androidTempDir,
 				pacote+ "."+ pacoteGen,
 				serializationAliases);
+		}
+		if (jdbcSrcDir != null) {
+			vJdbcDaoFactory = new VelocityDaoFactory(
+					"JdbcDao.java",
+					ve, jdbcTempDir,
+					pacote+ "."+ pacoteGen,
+					serializationAliases);
+		}
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
 				pacote, pacote+'.'+pacoteGen, serializationAliases);
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
@@ -181,7 +199,14 @@ public class Generator {
 				continue;
 
 			//vdaof.generateDAOAbstractClasses(javaBeanSchema, javaBeanSchemas);
-			vdaof.generateDAOImplementationClasses(javaBeanSchema, javaBeanSchemas);
+			if (vdaof != null){
+				vdaof.generateDAOImplementationClasses(
+						javaBeanSchema, javaBeanSchemas);
+			}
+			if (vJdbcDaoFactory != null){
+				vJdbcDaoFactory.generateDAOImplementationClasses(
+						javaBeanSchema, javaBeanSchemas);
+			}
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
 			                VelocityVOFactory.Type.INTERFACE);
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
@@ -201,8 +226,16 @@ public class Generator {
 			                  VelocityObjcFactory.Type.EDITABLE_PROTOCOL);
 		}
 
-		VelocityCustomClassesFactory.generateDAOFactory(
-				ve, javaBeanSchemas, pacote+'.'+pacoteGen, androidTempDir);
+		if (androidSrcDir != null) {
+			VelocityCustomClassesFactory.generateDAOFactory(
+					"SQLiteDAOFactory.java",ve, javaBeanSchemas,
+					pacote+'.'+pacoteGen, androidTempDir);
+		}
+		if (jdbcSrcDir != null) {
+			VelocityCustomClassesFactory.generateDAOFactory(
+					"JdbcDAOFactory.java",ve, javaBeanSchemas,
+					pacote+'.'+pacoteGen, androidTempDir);
+		}
 
 
 		String pastaGen = (pacote + "."+ pacoteGen)
