@@ -90,10 +90,10 @@ public class ${Klass} implements JdbcDao<${Target}> {
             stmCache.get(statement);
         Connection connection = factory.getConnection();
         try{
-            if (entry.connection.isClosed() || entry.lock ){
+            if (entry == null || entry.connection.isClosed() || entry.lock ){
                 PreparedStatement stm =
                     connection.prepareStatement(statement);
-                if ( !(entry.lock) ) {
+                /* if ( !(entry.lock) )*/ {
                     entry = new StatementCacheStruct();
                     entry.connection = connection;
                     entry.statement = stm;
@@ -194,39 +194,42 @@ public class ${Klass} implements JdbcDao<${Target}> {
                             ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $argCount),#else)#break#end#end");
                 }
 #end##if (!$compoundPk)
+#set ($argIndex = 0)
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
+#set ($argIndex = $argIndex + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
                 stm.set${field.Klass}(
-                        ${foreach.count},
+                        ${argIndex},
                         (target.get${association.Klass}() == null) ?
                             0 :
                             target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
-                        ${foreach.index},
+                        ${argIndex},
                         new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
-                stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
+                stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##if (!$primaryKeys.contains($field))
 #end##foreach
                 #if (!$compoundPk)if (insertIfNotExists) #end{
 #foreach ($field in $primaryKeys)
+#set ($argIndex = $argIndex + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
                     stm.set${field.Klass}(
-                            ${foreach.count},
+                            ${argIndex},
                             (target.get${association.Klass}() == null) ?
                                 0 :
                                 target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
                     stm.setTimestamp(
-                            ${foreach.index},
+                            ${argIndex},
                             new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                     stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
@@ -321,41 +324,44 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #end##if (!$primaryKeys.contains($field))
 #end##foreach ($field in $fields)
                         " WHERE ${queryByPrimaryKey}");
+#set ($argIndex = 0)
 #foreach ($field in $fields)
 #if (!$primaryKeys.contains($field))
+#set ($argIndex = $argIndex + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
                 stm.set${field.Klass}(
-                        ${foreach.count},
+                        ${argIndex},
                         (target.get${association.Klass}() == null) ?
                             0 :
                             target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
-                        ${foreach.index},
+                        ${argIndex},
                         new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
-                stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
+                stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##if (!$primaryKeys.contains($field))
 #end##foreach
 #foreach ($field in $primaryKeys)
+#set ($argIndex = $argIndex + 1)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
                 stm.set${field.Klass}(
-                        ${foreach.count},
+                        ${argIndex},
                         (target.get${association.Klass}() == null) ?
                             0 :
                             target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
-                        ${foreach.index},
+                        ${argIndex},
                         new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
-                 stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
+                 stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##foreach
@@ -466,10 +472,10 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #else##if (!$associationForField[$field])
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
-                        ${foreach.index},
+                        ${foreach.count},
                         new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
-                 stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
+                 stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##foreach
@@ -748,7 +754,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
         }
         PreparedStatement stm = getStatement(
             "INSERT INTO ${association.JoinTable} (" +
-                "${association.KeyToA.LowerAndUnderscores}" +
+                "${association.KeyToA.LowerAndUnderscores}," +
                 "${association.KeyToB.LowerAndUnderscores}" +
             ") VALUES (?,?)");
         try {
@@ -760,7 +766,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
         }
         PreparedStatement stm = getStatement(
             "INSERT INTO ${association.JoinTable} (" +
-                "${association.KeyToA.LowerAndUnderscores}" +
+                "${association.KeyToA.LowerAndUnderscores}," +
                 "${association.KeyToB.LowerAndUnderscores}" +
             ") VALUES (?,?)");
         try {

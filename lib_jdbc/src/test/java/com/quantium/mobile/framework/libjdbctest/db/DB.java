@@ -3,7 +3,9 @@ package com.quantium.mobile.framework.libjdbctest.db;
 
 import java.io.InputStream;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -19,10 +21,10 @@ public class DB {
 
 	public static Connection getConnection(){
 		Properties props = new Properties();
-		props.put("user","");
+		props.put("user","sa");
 		props.put("password", "");
 		try {
-			Connection connection = new org.h2.Driver().connect("jbcd:h2:mem:", props);
+			Connection connection = new org.h2.Driver().connect("jdbc:h2:mem:", props);
 			String script = getSqlScriptPorVersao(DB_VERSAO);
 			String statments [] = splitSql(script);
 			execMultipleSQL(connection, statments);
@@ -50,7 +52,8 @@ public class DB {
 		}
 		for (int i = 0; i < sql.length; i++) {
 			if (sql[i].trim().length() > 0) {
-				db.prepareStatement(sql[i]).execute();
+				Statement stm = db.createStatement();
+				stm.execute(sql[i]);
 			}
 		}
 	}
@@ -72,9 +75,10 @@ public class DB {
 				}while (j < (sqlArray.length-1) &&
 						!triggerEnd.matcher(sqlArray[i]).find() );
 				i = j;
+			} else {
+				list.add(sqlArray[last].replace("AUTOINCREMENT", "AUTO_INCREMENT"));
+				LogPadrao.d(sqlArray[last]);
 			}
-			list.add(sqlArray[last]);
-			LogPadrao.d(sqlArray[last]);
 		}
 		String out [] = new String[list.size()];
 		list.toArray(out);
