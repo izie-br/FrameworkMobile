@@ -7,6 +7,9 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Scanner;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.maven.execution.MavenSession;
@@ -146,6 +149,20 @@ public class GeradorMojo extends AbstractMojo{
         return manifest;
     }
 
+    /**
+     * @parameter
+     */
+    String basePackage;
+    
+    private String getBasePackage()
+        throws MojoExecutionException, GeradorException
+    {
+        File manifest = getAndroidManifest();
+        if (manifest != null && manifest.exists())
+            return getBasePackageFromManifest(manifest);
+        return this.basePackage;
+    }
+
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException
     {
@@ -177,7 +194,7 @@ public class GeradorMojo extends AbstractMojo{
                                   aliases);
         try {
             new Generator().generateBeansWithJsqlparserAndVelocity(
-                    getAndroidManifest(),
+                    getBasePackage(),
                     getSqlResource(),
                     new File(basedir, coreSrcDir),
                     (androidSrcDir == null) ?
@@ -218,6 +235,25 @@ public class GeradorMojo extends AbstractMojo{
         }
         return result;
     }
+
+	private String getBasePackageFromManifest(File androidManifest)
+			throws GeradorException
+	{
+		try {
+			Pattern pat = Pattern.compile(
+					".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
+					Pattern.MULTILINE);
+			String manifestStr = new Scanner(androidManifest)
+				.findWithinHorizon(pat, 0);
+			Matcher mobj = pat.matcher(manifestStr);
+			if (mobj.find())
+				return mobj.group(1);
+			return null;
+		} catch (Exception e) {
+			throw new GeradorException(e);
+		}
+	}
+
 
 /*    private Properties getPropertiesFile() throws MojoFailureException{
         try {

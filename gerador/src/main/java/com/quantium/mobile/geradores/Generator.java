@@ -61,13 +61,13 @@ public class Generator {
 					"Uso:\n"+
 					"java -classpath <JARS> " +
 					Generator.class.getName()+ " " +
-					"androidManifest arquivo_sql coreSrc androidSrc jdbcSrc [properties]"
+					"pacote arquivo_sql coreSrc androidSrc jdbcSrc [properties]"
 			);
 			return;
 		}
 
 		Map<String,Object> defaultProperties = new HashMap<String,Object>();
-		String manifest = args[0];
+		String basePackage = args[0];
 		String arquivo = args[1];
 		String pastaSrc = args[2];
 		String androidSrc = args[3];
@@ -76,7 +76,7 @@ public class Generator {
 
 		try {
 			new Generator().generateBeansWithJsqlparserAndVelocity(
-				new File(manifest), new File (arquivo),
+				basePackage, new File (arquivo),
 				new File(pastaSrc), new File(androidSrc), new File(jdbcSrc),
 				"gen", new File(properties), defaultProperties);
 		} catch (FileNotFoundException e) {
@@ -87,13 +87,11 @@ public class Generator {
 	}
 
 	public void generateBeansWithJsqlparserAndVelocity(
-			File androidManifestFile, File sqlResource,
+			String basePackage, File sqlResource,
 			File coreSrcDir, File androidSrcDir, File jdbcSrcDir,
 			String pacoteGen, File properties, Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException
 	{
-
-		String pacote = getBasePackage(androidManifestFile);
 
 		// Arquivo de propriedades para armazenar dados internos do gerador
 		PropertiesLocal props = getProperties(properties);
@@ -104,7 +102,7 @@ public class Generator {
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
 
-		Integer dbVersion = getDBVersion(androidSrcDir, pacote);
+		Integer dbVersion = getDBVersion(androidSrcDir, basePackage);
 		if(dbVersion==null)
 			throw new GeradorException("versao do banco nao encontrada");
 
@@ -179,20 +177,20 @@ public class Generator {
 			vdaof = new VelocityDaoFactory(
 				"DAO.java",
 				ve, androidTempDir,
-				pacote+ "."+ pacoteGen,
+				basePackage+ "."+ pacoteGen,
 				serializationAliases);
 		}
 		if (jdbcSrcDir != null) {
 			vJdbcDaoFactory = new VelocityDaoFactory(
 					"JdbcDao.java",
 					ve, jdbcTempDir,
-					pacote+ "."+ pacoteGen,
+					basePackage+ "."+ pacoteGen,
 					serializationAliases);
 		}
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
-				pacote, pacote+'.'+pacoteGen, serializationAliases);
+				basePackage, basePackage+'.'+pacoteGen, serializationAliases);
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
-				pacote, pacote+'.'+pacoteGen, serializationAliases);
+				basePackage, basePackage+'.'+pacoteGen, serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
@@ -229,16 +227,16 @@ public class Generator {
 		if (androidSrcDir != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"SQLiteDAOFactory.java",ve, javaBeanSchemas,
-					pacote+'.'+pacoteGen, androidTempDir);
+					basePackage+'.'+pacoteGen, androidTempDir);
 		}
 		if (jdbcSrcDir != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"JdbcDAOFactory.java",ve, javaBeanSchemas,
-					pacote+'.'+pacoteGen, jdbcTempDir);
+					basePackage+'.'+pacoteGen, jdbcTempDir);
 		}
 
 
-		String pastaGen = (pacote + "."+ pacoteGen)
+		String pastaGen = (basePackage + "."+ pacoteGen)
 				.replaceAll("\\.", File.separator);
 
 		// Substitui os pacotes gen por pastas vazias, para remover os
@@ -400,24 +398,6 @@ public class Generator {
 		for (String node : nodes)
 			out.append(node);
 		return out.toString();
-	}
-
-	private String getBasePackage(File androidManifest)
-			throws GeradorException
-	{
-		try {
-			Pattern pat = Pattern.compile(
-					".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
-					Pattern.MULTILINE);
-			String manifestStr = new Scanner(androidManifest)
-				.findWithinHorizon(pat, 0);
-			Matcher mobj = pat.matcher(manifestStr);
-			if (mobj.find())
-				return mobj.group(1);
-			return null;
-		} catch (Exception e) {
-			throw new GeradorException(e);
-		}
 	}
 
 	public static String getPacotePath(String pacote) {
