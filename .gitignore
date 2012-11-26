@@ -1,10 +1,12 @@
-__tempgen_core/*
-__tempgen_android/*
-__tempgen_appios/*
+__tempgen_core
+__tempgen_android
+__tempgen_jdbc
+__tempgen_appios
 gerador/script/schema.sql
 lib/target/*
 memorytables/target/*
 lib_jdbc/target/*
+lib_jdbc/src/test/java/com/quantium/mobile/framework/libjdbctest/gen/*
 lib_android/target/*
 gerador/customGen/*
 gerador/target/*

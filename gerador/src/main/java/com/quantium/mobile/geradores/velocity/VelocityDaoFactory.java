@@ -69,7 +69,7 @@ public class VelocityDaoFactory {
 		         true, allSchemas);
 	}
 
-	private void generate(JavaBeanSchema schema, String suffix,
+	public void generate(JavaBeanSchema schema, String suffix,
 	                      String base, boolean implementation,
 	                      Collection<JavaBeanSchema> allSchemas)
 			throws IOException

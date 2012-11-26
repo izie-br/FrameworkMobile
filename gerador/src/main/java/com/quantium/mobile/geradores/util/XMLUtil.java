@@ -1,6 +1,7 @@
 package com.quantium.mobile.geradores.util;
 
 import java.io.File;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,10 +17,17 @@ import org.w3c.dom.NodeList;
 
 public class XMLUtil {
 
-	public static List<String> xpath(File f,String xpexp){
+	public static List<String> xpath(Object f,String xpexp){
 		try {
 			DocumentBuilder builder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-			Document doc = builder.parse(f);
+			Document doc;
+			if (f instanceof File) {
+				doc = builder.parse((File)f);
+			} else if (f instanceof InputStream){
+				doc = builder.parse((InputStream)f);
+			} else {
+				throw new RuntimeException();
+			}
 			XPathExpression exp = XPathFactory.newInstance().newXPath().compile(xpexp);
 			NodeList list = (NodeList)exp.evaluate(doc, XPathConstants.NODESET);
 			ArrayList<String> out = new ArrayList<String>();

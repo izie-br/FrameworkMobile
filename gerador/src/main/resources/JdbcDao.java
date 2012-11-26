@@ -36,6 +36,9 @@ package $package;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.Map;
+import java.util.WeakHashMap;
+
+import java.sql.*;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
 #if ($manyToOneAssociations.size() > 0)
@@ -45,14 +48,13 @@ import com.quantium.mobile.framework.LazyInvocationHandler;
 #elseif ($hasNotNullableAssociation)
 import com.quantium.mobile.framework.DAO;
 #end##if ($manyToOneAssociations.size() > 0)
-import com.quantium.mobile.framework.query.SQLiteQuerySet;
+import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
 import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.db.DAOSQLite;
+import com.quantium.mobile.framework.jdbc.JdbcDao;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.ToManyDAO;
 #if ( $hasDateField)
 import java.util.Date;
-import com.quantium.mobile.framework.utils.DateUtil;
 #end##if_hasDateField
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
@@ -63,7 +65,7 @@ import java.util.Collection;
 import java.lang.ref.Reference;
 #end##if ($hasNullableAssociation)
 
-public class ${Klass} implements SqlDao<${Target}> {
+public class ${Klass} implements JdbcDao<${Target}> {
 
     private static final String COUNT_BY_PRIMARY_KEYS =
         "SELECT COUNT(*) FROM ${table} WHERE ${queryByPrimaryKey}";
@@ -130,7 +132,12 @@ public class ${Klass} implements SqlDao<${Target}> {
             try {
                 PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
 #foreach ($field in $primaryKeys)
-#if (!$field.Klass.equals("Date"))
+#if ($associationForField[$field])
+#set ($association = $associationForField[$field])
+                stm.setLong(
+                    ${foreach.count},
+                    (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+#elseif (!$field.Klass.equals("Date"))
                 stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
 #else
                 #primary key ${field.Klass}
@@ -411,7 +418,6 @@ public class ${Klass} implements SqlDao<${Target}> {
         if (${nullPkCondition}) {
             return false;
         }
-        SQLiteDatabase db = this.factory.getDb();
         try {
             PreparedStatement stm;
 #foreach ($association in $oneToManyAssociations)
@@ -420,8 +426,12 @@ public class ${Klass} implements SqlDao<${Target}> {
                     "UPDATE ${association.Table} SET " +
                     "${association.ForeignKey.LowerAndUnderscores}=NULL " +
                     "WHERE ${association.ForeignKey.LowerAndUnderscores}=?");
-            stm.set${association.ReferenceKey.Klass}(1, target.${getter[$association.ReferenceKey]});
-            stm.executeUpdate();
+            try {
+                stm.set${association.ReferenceKey.Klass}(1, target.${getter[$association.ReferenceKey]}());
+                stm.executeUpdate();
+            } catch (java.sql.SQLException e) {
+                throw new RuntimeException(StringUtil.getStackTrace(e));
+            }
             Runnable _${association.Klass}NullFkThread = null;
             _${association.Klass}NullFkThread = new ${association.Klass}NullFkThread(factory, target);
             //_${association.Klass}NullFkThread.start();
@@ -565,11 +575,12 @@ public class ${Klass} implements SqlDao<${Target}> {
         }
 
 #else##if ($!associationForField[$field])
+        ${field.type} _${field.LowerCamel};
         try{
 #if ($field.Klass.equals("Date") )
-        ${field.Type} _${field.LowerCamel} = new Date(cursor.getTimestamp(${columnIndex}).getTime());
+            _${field.LowerCamel} = new Date(cursor.getTimestamp(${columnIndex}).getTime());
 #else##if ($associationForField[$field])
-        ${field.Type} _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
+            _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
 #end##if_field.Klass.equals(*)
         } catch (java.sql.SQLException e) {
             throw new RuntimeException(e);
@@ -730,7 +741,7 @@ public class ${Klass} implements SqlDao<${Target}> {
 
 #foreach ($association in $manyToManyAssociations)
     public boolean add${association.Klass}To${Target}(${association.Klass} obj, $Target target) throws IOException {
-        ContentValues contentValues = new ContentValues();
+        long value;
 #if (${association.IsThisTableA})
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
             return false;
@@ -738,10 +749,11 @@ public class ${Klass} implements SqlDao<${Target}> {
         PreparedStatement stm = getStatement(
             "INSERT INTO ${association.JoinTable} (" +
                 "${association.KeyToA.LowerAndUnderscores}" +
-                "${association.KeyToB.LowerAndUnderscores}"
-            ") VALUES (?,?)";
-        stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
-        stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
+                "${association.KeyToB.LowerAndUnderscores}" +
+            ") VALUES (?,?)");
+        try {
+            stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
+            stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
 #else##(${association.IsThisTableA)
         if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
@@ -749,13 +761,12 @@ public class ${Klass} implements SqlDao<${Target}> {
         PreparedStatement stm = getStatement(
             "INSERT INTO ${association.JoinTable} (" +
                 "${association.KeyToA.LowerAndUnderscores}" +
-                "${association.KeyToB.LowerAndUnderscores}"
-            ") VALUES (?,?)";
-        stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
-        stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
+                "${association.KeyToB.LowerAndUnderscores}" +
+            ") VALUES (?,?)");
+        try {
+            stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
+            stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
 #end##(${association.IsThisTableA})
-        long value;
-        try{
             value = stm.executeUpdate();
         } catch (java.sql.SQLException e){
             throw new IOException(StringUtil.getStackTrace(e));
@@ -773,9 +784,10 @@ public class ${Klass} implements SqlDao<${Target}> {
             "DELETE FROM ${association.JoinTable} WHERE " +
             "${association.KeyToA.LowerAndUnderscores} = ? AND " +
             "${association.KeyToB.LowerAndUnderscores} = ?" +
-            "LIMIT 1";
-        stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
-        stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
+            "LIMIT 1");
+        try {
+            stm.set${association.KeyToA.Klass}(1, target.${getter[$association.ReferenceA]}());
+            stm.set${association.KeyToB.Klass}(2, obj.${getter[$association.ReferenceB]}());
 #else##(${association.IsThisTableA})
         if (target.${getter[$association.ReferenceB]}() == ${defaultId}) {
             return false;
@@ -784,11 +796,11 @@ public class ${Klass} implements SqlDao<${Target}> {
             "DELETE FROM ${association.JoinTable} WHERE " +
             "${association.KeyToA.LowerAndUnderscores} = ? AND " +
             "${association.KeyToB.LowerAndUnderscores} = ?" +
-            "LIMIT 1";
-        stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
-        stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
-#end##(${association.IsThisTableA})
+            "LIMIT 1");
         try {
+            stm.set${association.KeyToA.Klass}(1, obj.${getter[$association.ReferenceA]}());
+            stm.set${association.KeyToB.Klass}(2, target.${getter[$association.ReferenceB]}());
+#end##(${association.IsThisTableA})
             long affected = stm.executeUpdate();
             return (affected == 1);
         } catch (java.sql.SQLException e) {

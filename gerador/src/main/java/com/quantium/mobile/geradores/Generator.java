@@ -203,8 +203,9 @@ public class Generator {
 						javaBeanSchema, javaBeanSchemas);
 			}
 			if (vJdbcDaoFactory != null){
-				vJdbcDaoFactory.generateDAOImplementationClasses(
-						javaBeanSchema, javaBeanSchemas);
+				vJdbcDaoFactory.generate(
+						javaBeanSchema, "JdbcDAO", "",
+						true, javaBeanSchemas);
 			}
 			vvof.generateVO(javaBeanSchema, javaBeanSchemas,
 			                VelocityVOFactory.Type.INTERFACE);
