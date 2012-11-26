@@ -117,7 +117,7 @@ public class GeradorMojo extends AbstractMojo{
     public File getSqlResource() throws MojoExecutionException{
         File resource = null;
         if(sqlResource!=null)
-            resource = new File(sqlResource);
+            resource = new File(basedir, sqlResource);
         else
             resource = new File(basedir+"/res/values/sql.xml");
         if (!resource.exists()){
@@ -141,10 +141,7 @@ public class GeradorMojo extends AbstractMojo{
         else
             manifest = new File(basedir+"/AndroidManifest.xml");
         if (!manifest.exists()) {
-            throw new MojoExecutionException(
-                    "Manifest nao encontrado em "+
-                     manifest.getAbsolutePath()
-            );
+            return null;
         }
         return manifest;
     }

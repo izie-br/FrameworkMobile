@@ -69,6 +69,37 @@
           </execution>
         </executions>
       </plugin>
+      <plugin>
+        <groupId>com.quantium.mobile.framework</groupId>
+        <artifactId>maven-plugin-gerador</artifactId>
+        <version>0.15-alpha</version>
+        <configuration>
+
+          <!-- nome do pacote base -->
+          <basePackage>com.quantium.mobile.framework.libjdbctest</basePackage>
+
+          <!-- resource sql, substituir por json depois-->
+          <sqlResource>src/test/resources/sql.xml</sqlResource>
+
+          <!-- pasta para enviar os fontes gerados para o "core" -->
+          <coreSrcDir>src/test/java/</coreSrcDir>
+
+          <!-- pasta para enviar os fontes gerados para os "daos jdbc" -->
+          <jdbcSrcDir>src/test/java/</jdbcSrcDir>
+          <!-- Lista de tabelas para serem ignoradas pelo gerador -->
+          <ignore>
+            <ignore>sqlite_sequence</ignore>
+          </ignore>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>generate-test-sources</phase>
+            <goals>
+              <goal>gerar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
     </plugins>
   </build>
 </project>

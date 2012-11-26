@@ -102,7 +102,8 @@ public class Generator {
 				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
 				0;
 
-		Integer dbVersion = getDBVersion(androidSrcDir, basePackage);
+		File srcDir = (androidSrcDir != null) ? androidSrcDir : coreSrcDir;
+		Integer dbVersion = getDBVersion(srcDir, basePackage);
 		if(dbVersion==null)
 			throw new GeradorException("versao do banco nao encontrada");
 
@@ -243,14 +244,21 @@ public class Generator {
 		//   arquivos antigos
 		File coreGenFolder = replaceGenFolder(coreTempDir, coreSrcDir, pastaGen);
 		File androidGenDir = replaceGenFolder(androidTempDir, androidSrcDir, pastaGen);
+		File jdbcGenDir    = replaceGenFolder(jdbcTempDir, jdbcSrcDir, pastaGen);
 
 		// Copia os novos arquivos para os pacotes gen vazios
 		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
 		//       no caso do "replaceGenFolder"
 		for (File f : coreTempDir.listFiles())
 			copyFile(f, new File(coreGenFolder, f.getName()));
-		for (File f : androidTempDir.listFiles())
-			copyFile(f, new File(androidGenDir, f.getName()));
+		if (androidSrcDir != null) {
+			for (File f : androidTempDir.listFiles())
+				copyFile(f, new File(androidGenDir, f.getName()));
+		}
+		if (jdbcSrcDir != null) {
+			for (File f : jdbcTempDir.listFiles())
+				copyFile(f, new File(jdbcGenDir, f.getName()));
+		}
 
 //		props.save();
 	}
