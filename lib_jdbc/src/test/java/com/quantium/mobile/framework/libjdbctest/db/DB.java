@@ -1,9 +1,8 @@
 package com.quantium.mobile.framework.libjdbctest.db;
 
-
 import java.io.InputStream;
 import java.sql.Connection;
-import java.sql.PreparedStatement;
+import java.sql.Driver;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
@@ -24,7 +23,8 @@ public class DB {
 		props.put("user","sa");
 		props.put("password", "");
 		try {
-			Connection connection = new org.h2.Driver().connect("jdbc:h2:mem:", props);
+			Driver driver = new org.h2.Driver();
+			Connection connection = driver.connect("jdbc:h2:mem:", props);
 			String script = getSqlScriptPorVersao(DB_VERSAO);
 			String statments [] = splitSql(script);
 			execMultipleSQL(connection, statments);

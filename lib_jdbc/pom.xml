@@ -46,42 +46,6 @@
   <build>
     <plugins>
       <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-surefire-plugin</artifactId>
-        <version>2.11</version>
-        <dependencies>
-          <dependency>
-            <groupId>org.apache.maven.surefire</groupId>
-            <artifactId>surefire-junit47</artifactId>
-            <version>2.12</version>
-          </dependency>
-        </dependencies>
-        <configuration>
-          <!-- Arquivos para executar testes unitarios JUnit -->
-          <!-- De prefenrencia, nao devem incluir os testes de integracao  -->
-          <includes>
-            <include>**/*Test.java</include>
-          </includes>
-        </configuration>
-        <executions>
-          <!-- Execucao de testes de integracao -->
-          <execution>
-            <id>integration-tests</id>
-            <phase>integration-test</phase>
-            <goals>
-              <goal>test</goal>
-            </goals>
-            <configuration>
-              <!-- Arquivos para executar testes de integracao JUnit -->
-              <!-- Estes serao executados em paralelo ao jetty   -->
-              <includes>
-                <include>**/*IT.java</include>
-              </includes>
-            </configuration>
-          </execution>
-        </executions>
-      </plugin>
-      <plugin>
         <groupId>com.quantium.mobile.framework</groupId>
         <artifactId>maven-plugin-gerador</artifactId>
         <version>0.15-alpha</version>

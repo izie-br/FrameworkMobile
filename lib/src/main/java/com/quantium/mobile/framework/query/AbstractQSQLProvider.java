@@ -62,7 +62,7 @@ public abstract class AbstractQSQLProvider {
         output(node, q.getTable(), sb, args);
     }
 
-    void output(Q.QNode node, Table table, StringBuilder sb, List<Object> args) {
+    protected void output(Q.QNode node, Table table, StringBuilder sb, List<Object> args) {
         if (node == null)
             return;
         if (node instanceof Q.QNodeGroup){
@@ -78,7 +78,7 @@ public abstract class AbstractQSQLProvider {
         }
     }
 
-    void outputQNodeGroup(Q.QNodeGroup node, Table table, StringBuilder sb, List<Object> args) {
+    protected void outputQNodeGroup(Q.QNodeGroup node, Table table, StringBuilder sb, List<Object> args) {
         boolean parenthesis = node.isNot() ||
                               (node.child() instanceof Q.QNodeGroup);
         if (node.isNot())
@@ -99,7 +99,7 @@ public abstract class AbstractQSQLProvider {
             sb.append(')');
     }
 
-    void outputQNode1X1(Q.QNode1X1 node, Table table, StringBuilder sb, List<Object> args) {
+    protected void outputQNode1X1(Q.QNode1X1 node, Table table, StringBuilder sb, List<Object> args) {
         Table.Column<?> column = node.column();
         Q.Op1x1 op = node.op();
         Object arg = node.getArg();
@@ -135,7 +135,7 @@ public abstract class AbstractQSQLProvider {
         }
     }
 
-    void outputQNode1XN(Q.QNode1xN node, Table table, StringBuilder sb, List<Object> args) {
+    protected void outputQNode1XN(Q.QNode1xN node, Table table, StringBuilder sb, List<Object> args) {
         Table.Column<?> column = node.column();
         Q.Op1xN op = node.op();
         Collection<?> arg = node.getArgs();
@@ -165,7 +165,7 @@ public abstract class AbstractQSQLProvider {
     }
 
 
-    void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<Object> args) {
+    protected void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<Object> args) {
         Table.Column<?> column = node.column();
         Q.OpUnary op = node.op();
 

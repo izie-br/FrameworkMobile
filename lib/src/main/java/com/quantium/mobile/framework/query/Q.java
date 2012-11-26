@@ -3,6 +3,7 @@ package com.quantium.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.Collection;
 
+import com.quantium.mobile.framework.query.Table.Column;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 /**
@@ -52,10 +53,7 @@ public final class Q {
     }
 
     private <T> void init1x1(Table.Column<T> column, Op1x1 op, Object arg) {
-        QNode1X1 node = new QNode1X1();
-        node.column = column;
-        node.op = op;
-        node.arg = arg;
+        QNode1X1 node = new QNode1X1(column, op, arg);
         this.root = node;
     }
 
@@ -275,10 +273,17 @@ public final class Q {
 
     }
 
-    static class QNode1X1 extends QNode implements Cloneable{
+    public static class QNode1X1 extends QNode implements Cloneable{
         private Table.Column<?> column;
         private Op1x1 op;
         private Object arg;
+
+        public QNode1X1(Column<?> column, Op1x1 op, Object arg) {
+            super();
+            this.column = column;
+            this.op = op;
+            this.arg = arg;
+        }
 
         public Table.Column<?> column(){
             return column;
@@ -294,7 +299,7 @@ public final class Q {
 
     }
 
-    static class QNode1xN extends QNode implements Cloneable{
+    public static class QNode1xN extends QNode implements Cloneable{
         private Table.Column<?> column;
         private Op1xN op;
         private Collection<?> args;
@@ -312,7 +317,7 @@ public final class Q {
         }
     }
 
-    static class QNodeUnary extends QNode {
+    public static class QNodeUnary extends QNode {
         private Table.Column<?> column;
         private OpUnary op;
 

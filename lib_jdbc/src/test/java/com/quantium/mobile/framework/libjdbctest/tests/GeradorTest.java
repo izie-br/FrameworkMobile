@@ -3,7 +3,6 @@ package com.quantium.mobile.framework.libjdbctest.tests;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.Random;
 
