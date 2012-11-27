@@ -11,7 +11,7 @@ import java.util.Properties;
 import java.util.regex.Pattern;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.geradores.util.XMLUtil;
+import com.quantium.mobile.shared.util.XMLUtil;
 
 public class DB {
 

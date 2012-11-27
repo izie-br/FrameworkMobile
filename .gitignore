@@ -4,7 +4,7 @@ __tempgen_jdbc
 __tempgen_appios
 gerador/script/schema.sql
 lib/target/*
-memorytables/target/*
+shared/target/*
 lib_jdbc/target/*
 lib_jdbc/src/test/java/com/quantium/mobile/framework/libjdbctest/gen/*
 lib_android/target/*

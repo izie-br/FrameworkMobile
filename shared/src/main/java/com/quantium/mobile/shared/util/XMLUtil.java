@@ -1,4 +1,4 @@
-package com.quantium.mobile.geradores.util;
+package com.quantium.mobile.shared.util;
 
 import java.io.File;
 import java.io.InputStream;

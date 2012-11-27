@@ -1,21 +1,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
   xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <artifactId>memorytables</artifactId>
+  <artifactId>shared</artifactId>
   <packaging>jar</packaging>
   <parent>
     <groupId>com.quantium.mobile.framework</groupId>
     <artifactId>frameworkMobile</artifactId>
     <version>0.15-alpha</version>
   </parent>
-  <name>memorytables</name>
+  <name>shared</name>
 
   <dependencies>
-    <dependency>
-      <groupId>com.quantium.mobile.framework</groupId>
-      <artifactId>lib</artifactId>
-      <version>0.15-alpha</version>
-      <scope>compile</scope>
-    </dependency>
   </dependencies>
+
 </project>

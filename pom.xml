@@ -13,7 +13,7 @@
     <module>gerador</module>
     <module>maven_plugin_gerador</module>
     <module>lib</module>
-    <module>memorytables</module>
+    <module>shared</module>
     <module>lib_jdbc</module>
     <module>lib_android</module>
     <module>test</module>

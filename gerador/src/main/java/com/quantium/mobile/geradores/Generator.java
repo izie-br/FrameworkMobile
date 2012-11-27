@@ -30,7 +30,7 @@ import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
-import com.quantium.mobile.geradores.util.XMLUtil;
+import com.quantium.mobile.shared.util.XMLUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;

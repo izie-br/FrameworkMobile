@@ -37,7 +37,7 @@
     </dependency>
     <dependency>
       <groupId>com.quantium.mobile.framework</groupId>
-      <artifactId>gerador</artifactId>
+      <artifactId>shared</artifactId>
       <version>0.15-alpha</version>
       <scope>test</scope>
     </dependency>
