@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.quantium.mobile.framework</groupId>
         <artifactId>frameworkMobile</artifactId>
-        <version>0.15-alpha</version>
+        <version>0.16-alpha</version>
     </parent>
 
     <dependencies>
@@ -33,7 +33,7 @@
         <dependency>
             <groupId>com.quantium.mobile.framework</groupId>
             <artifactId>lib_android</artifactId>
-            <version>0.15-alpha</version>
+            <version>${project.version}</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
@@ -68,7 +68,7 @@
             <plugin>
               <groupId>com.quantium.mobile.framework</groupId>
               <artifactId>maven-plugin-gerador</artifactId>
-              <version>0.15-alpha</version>
+              <version>${project.version}</version>
               <configuration>
 
                 <!-- pasta para enviar os fontes gerados para o "core" -->
