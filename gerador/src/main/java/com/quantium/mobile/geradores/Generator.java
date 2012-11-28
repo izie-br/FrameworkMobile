@@ -116,40 +116,9 @@ public class Generator {
 		if (propertyVersion == (int)dbVersion)
 			return;
 
-		String val = getSqlTill(sqlResource,dbVersion);
-		if(val!=null){
-			val = sqliteSchema(val);
-			BufferedReader reader = new BufferedReader(new StringReader(val));
-			String line = reader.readLine();
-			while (line != null) {
-				LoggerUtil.getLog().info(line);
-				line = reader.readLine();
-			}
-		}
-
-//		String genericBeanClass = pacote;
-//		if (GENERIC_BEAN_PACKAGE != null && !GENERIC_BEAN_PACKAGE.matches("\\s*"))
-//			genericBeanClass += "." + GENERIC_BEAN_PACKAGE;
-//		genericBeanClass += GENERIC_BEAN_CLASS;
-
-		Collection<TabelaSchema> tabelasBanco =
-				getTabelasDoSchema(
-						new StringReader(val),
-						(String)defaultProperties.get(PROPERTIY_IGNORED));
-
-		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
-		factory.addFiltroFactory(
-			new PrefixoTabelaFilter.Factory("tb_"));
-		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
-				"{COLUMN=id}_{TABLE}"
-		));
-
-		// gerando os JavaBeanSchemas
 		Collection<JavaBeanSchema> javaBeanSchemas =
-			new ArrayList<JavaBeanSchema>();
-		for(TabelaSchema tabela : tabelasBanco)
-			javaBeanSchemas.add(
-				factory.javaBeanSchemaParaTabela(tabela));
+				extractSchemasFromSqlResource(
+						sqlResource, defaultProperties, dbVersion);
 
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =
@@ -262,6 +231,55 @@ public class Generator {
 		}
 
 //		props.save();
+	}
+
+	/**
+	 * Extrai as JavaBeanSchema's de um arquivo de strings do padrao android
+	 *   com o schema do banco.
+	 * 
+	 * @param sqlResource arquivo de strings Android
+	 * @param defaultProperties propriedads
+	 * @param dbVersion
+	 * @return
+	 * @throws IOException
+	 */
+	private static Collection<JavaBeanSchema> extractSchemasFromSqlResource(
+			File sqlResource, Map<String, Object> defaultProperties,
+			Integer dbVersion) throws IOException {
+		Collection<JavaBeanSchema> javaBeanSchemas;
+		// Este trecho popu
+		{
+			javaBeanSchemas = new ArrayList<JavaBeanSchema>();
+
+			String val = getSqlTill(sqlResource,dbVersion);
+			if(val!=null){
+				val = sqliteSchema(val);
+				BufferedReader reader = new BufferedReader(new StringReader(val));
+				String line = reader.readLine();
+				while (line != null) {
+					LoggerUtil.getLog().info(line);
+					line = reader.readLine();
+				}
+			}
+	
+			Collection<TabelaSchema> tabelasBanco =
+					getTabelasDoSchema(
+							new StringReader(val),
+							(String)defaultProperties.get(PROPERTIY_IGNORED));
+	
+			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
+			factory.addFiltroFactory(
+				new PrefixoTabelaFilter.Factory("tb_"));
+			factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
+					"{COLUMN=id}_{TABLE}"
+			));
+	
+			// gerando os JavaBeanSchemas
+			for(TabelaSchema tabela : tabelasBanco)
+				javaBeanSchemas.add(
+					factory.javaBeanSchemaParaTabela(tabela));
+		}
+		return javaBeanSchemas;
 	}
 
 	private File replaceGenFolder(
@@ -390,7 +408,7 @@ public class Generator {
 		return new PropertiesLocal(f);
 	}
 
-	private String sqliteSchema(String sql) {
+	private static String sqliteSchema(String sql) {
 		try {
 			return SQLiteGeradorUtils.getSchema(sql);
 		} catch (SQLException e) {
@@ -399,7 +417,7 @@ public class Generator {
 		}
 	}
 
-	private String getSqlTill(File sqlResource, Integer version) {
+	private static String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
 				+ "contains(@name,\"db_versao_\") and "
