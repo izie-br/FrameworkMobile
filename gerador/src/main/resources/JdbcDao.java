@@ -367,7 +367,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #end##foreach
                 int value = stm.executeUpdate();
                 if (value == 1) {
-                    factory.pushToCache(Author.class, pks, target);
+                    factory.pushToCache(${Target}.class, pks, target);
                     return true;
                 } else {
                     return false;
