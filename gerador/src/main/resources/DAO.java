@@ -508,9 +508,19 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             temp = ${field.Klass}.parse${field.Klass}((String)temp);
         ${field.Type} _${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
 #elseif (${field.Klass} == "Boolean")
-        if (temp != null && temp instanceof String)
-            temp = Boolean.parseBoolean((String)temp);
+        if (temp != null && temp instanceof String){
+            if (temp.equals("0"))
+                temp = false;
+            else if (temp.equals("1"))
+                temp = true;
+            else
+                temp = Boolean.parseBoolean((String)temp);
+        }
         ${field.Type} _${field.LowerCamel} = ((temp!= null)?((Boolean) temp): ${fallback});
+#elseif (${field.Klass} == "Date")
+        if (temp != null && temp instanceof String)
+            temp = DateUtil.stringToDate((String)temp);
+        ${field.Type} _${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
 #else##if_Klass_eq_***
         ${field.Type} _${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
 #end##if_Klass_eq_***
