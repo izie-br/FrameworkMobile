@@ -493,6 +493,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
                 .mapToObject((Map<String,Object>)${submap});
         } else {
             temp = mapAnyCamelCase.get("${alias}");
+            if (temp != null && temp instanceof String)
+                temp = Long.parseLong((String)temp);
             long ${field.LowerCamel} = ((temp!= null)?((Number) temp).longValue(): ${defaultId});
             DAO<${association.Klass}> dao = this.factory.getDaoFor(${association.Klass}.class);
             _${association.Klass} = (${field.LowerCamel} != ${defaultId})?
@@ -502,8 +504,12 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #else##if (!$associationForField[$field])
         temp = mapAnyCamelCase.get("${alias}");
 #if (${field.Klass} == "Long" || ${field.Klass} == "Double")
+        if (temp != null && temp instanceof String)
+            temp = ${field.Klass}.parse${field.Klass}((String)temp);
         ${field.Type} _${field.LowerCamel} = ((temp!= null)?((Number) temp).${field.Type}Value(): ${fallback});
 #elseif (${field.Klass} == "Boolean")
+        if (temp != null && temp instanceof String)
+            temp = Boolean.parseBoolean((String)temp);
         ${field.Type} _${field.LowerCamel} = ((temp!= null)?((Boolean) temp): ${fallback});
 #else##if_Klass_eq_***
         ${field.Type} _${field.LowerCamel} = ((temp!= null)? ((${field.Klass})temp): ${fallback});
