@@ -233,7 +233,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
                             ${argIndex},
                             new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
-                    stm.set${field.Klass}(${foreach.index}, target.${getter[$field]}());
+                    stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
 #end##if ($associationForField[$field])
 #end##foreach
