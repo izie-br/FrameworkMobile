@@ -210,7 +210,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
                         ${argIndex},
-                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                        (target.${getter[$field]}() == null) ?
+                            null :
+                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                 stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
@@ -231,7 +233,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #if ($field.Klass.equals("Date") )
                     stm.setTimestamp(
                             ${argIndex},
-                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                            (target.${getter[$field]}() == null) ?
+                                null :
+                                new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                     stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
@@ -243,16 +247,17 @@ public class ${Klass} implements JdbcDao<${Target}> {
                     LogPadrao.e("Insert retornou %d", qty);
                     return false;
                 }
-#if ($compoundPk)
                 value = qty;
-#else##if ($compoundPk)
-                ResultSet rs = stm.getGeneratedKeys();
-                value = (rs.next() ) ? rs.getLong(1) : -1;
-                if (value <= 0){
-                    LogPadrao.e("id '%d' gerado", value);
-                    return false;
+#if (!$compoundPk)
+                if (!insertIfNotExists) {
+                    ResultSet rs = stm.getGeneratedKeys();
+                    value = (rs.next() ) ? rs.getLong(1) : -1;
+                    if (value <= 0){
+                        LogPadrao.e("id '%d' gerado", value);
+                        return false;
+                    }
                 }
-#end##if ($compoundPk)
+#end##if(!$compoundPk)
             } catch (java.sql.SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
@@ -340,7 +345,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
                         ${argIndex},
-                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                        (target.${getter[$field]}() == null) ?
+                            null :
+                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                 stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
@@ -360,7 +367,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
                         ${argIndex},
-                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                        (target.${getter[$field]}() == null) ?
+                            null :
+                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                  stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #end##if_class_equals
@@ -474,7 +483,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #if ($field.Klass.equals("Date") )
                 stm.setTimestamp(
                         ${foreach.count},
-                        new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+                        (target.${getter[$field]}() == null) ?
+                            null :
+                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
 #else##if_class_equals
                  stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
 #end##if_class_equals
@@ -585,7 +596,10 @@ public class ${Klass} implements JdbcDao<${Target}> {
         ${field.type} _${field.LowerCamel};
         try{
 #if ($field.Klass.equals("Date") )
-            _${field.LowerCamel} = new Date(cursor.getTimestamp(${columnIndex}).getTime());
+            Timestamp temp = cursor.getTimestamp(${columnIndex});
+            _${field.LowerCamel} = (temp == null)?
+                null :
+                new Date(temp.getTime());
 #else##if ($associationForField[$field])
             _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
 #end##if_field.Klass.equals(*)
