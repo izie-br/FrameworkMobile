@@ -6,7 +6,7 @@ public class RouterBean extends BaseServerBean {
 	public static final String METHOD_PARAM = "method";
 
 	public static final BaseServerBean SERVER_BEANS [] = {
-		new Echo(), new Clear(), new Insert(), new Query()
+		new Echo(), new Clear(), new Insert(), new Query(), new Array()
 	};
 
 	@Override

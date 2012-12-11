@@ -2,6 +2,7 @@ package com.quantium.mobile.framework.libandroidtest.communication;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Iterator;
 
@@ -20,6 +21,7 @@ import com.quantium.mobile.framework.communication.JsonParametersSerializer;
 import com.quantium.mobile.framework.communication.SerializedCommunicationResponse;
 import com.quantium.mobile.framework.libandroidtest.User;
 import com.quantium.mobile.framework.libandroidtest.UserMapDAO;
+import com.quantium.mobile.framework.libandroidtest.server.Array;
 import com.quantium.mobile.framework.libandroidtest.server.Echo;
 import com.quantium.mobile.framework.libandroidtest.server.RouterBean;
 import com.quantium.mobile.framework.utils.StringUtil;
@@ -75,6 +77,31 @@ public class JsonCommunicationIT {
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
 			assertEquals(params.size() ,map.size());
+		} catch (Exception e) {
+			fail (StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testJsonArrayResponse(){
+		JsonCommunication jsonComm = new JsonCommunication();
+
+		jsonComm.setURL(URL);
+		Map<String,Object> params = jsonComm.getParameters();
+		params.put(RouterBean.METHOD_PARAM, "array");
+		try {
+			Map<String,Object> map = jsonComm.post().getResponseMap();
+			assertEquals(1, map.size());
+			Object listObject = map.get(null);
+			if (listObject instanceof List){
+				List<?> list = (List<?>) listObject;
+				assertEquals(Array.ARRAY.length, list.size());
+				for (Object obj : Array.ARRAY){
+					assertTrue(list.contains(obj));
+				}
+			} else {
+				fail();
+			}
 		} catch (Exception e) {
 			fail (StringUtil.getStackTrace(e));
 		}

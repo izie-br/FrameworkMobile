@@ -2,9 +2,11 @@ package com.quantium.mobile.framework.communication;
 
 import java.io.Reader;
 import java.io.StringReader;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -18,7 +20,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 
 	private Reader reader;
 
-	private JSONObject json;
+	private Object json;
 
 	public JsonCommunicationResponse(Reader reader){
 		this.reader = reader;
@@ -32,7 +34,16 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	private void checkOutput() {
 		if (json == null ) {
 			try {
-				json = new FrameworkJSONTokener(reader).nextJSONObject();
+				FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
+				char c = tokener.nextClean();
+				tokener.back();
+				json =
+					(c == '{') ?
+						tokener.nextJSONObject() :
+					(c == '[') ?
+						tokener.nextJSONArray()  :
+					// default
+						null;
 			} catch (JSONException e) {
 				LogPadrao.e(e);
 			}
@@ -42,12 +53,20 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 	@Override
 	public Map<String, Object> getResponseMap() {
 		checkOutput();
-		return JSONUtils.desserializeJsonObject(json);
+		if (json instanceof JSONObject)
+			return JSONUtils.desserializeJsonObject((JSONObject) json);
+		if (json instanceof JSONArray){
+			Object list = JSONUtils.desserializeJsonArray((JSONArray) json);
+			Map<String, Object> map = new HashMap<String, Object>();
+			map.put(null, list);
+			return map;
+		}
+		return null;
 	}
 
-	public JSONObject getJson(){
-		return json;
-	}
+//	public JSONObject getJson(){
+//		return json;
+//	}
 
 	@Override
 	@SuppressWarnings({ "unchecked", "rawtypes" })
@@ -59,7 +78,7 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 			if(keysToObjectList != null && keysToObjectList.length >0) {
 				int l = keysToObjectList.length;
 				Object current = json;
-				JSONObject last = json;
+				JSONObject last = (JSONObject) json;
 				String key = null;
 				for (int i = 0; i < l; i++) {
 					key = keysToObjectList[i];
@@ -71,6 +90,11 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 					last.remove(key);
 				return new MapToObjectIterator(
 						new StringReader(current.toString()),
+						dao
+				);
+			} else if (json instanceof JSONArray) {
+				return new MapToObjectIterator(
+						new StringReader(json.toString()),
 						dao
 				);
 			}
