@@ -86,15 +86,39 @@ public class Generator {
 		}
 	}
 
+	/**
+	 * Metodo que coordena todo processo de geracao.
+	 * <ul>
+	 *   <li>Busca o arquivo DB.java e busca a constante DB_VERSION;</li>
+	 *   <li>Busca o arquivo sql.xml para gerar os JavaBeanSchema</li>
+	 *   <li>Usa cada um dos JavaBeanScema para gera seus VO's e DAO's em uma
+	 *       pasta temporaria</li>
+	 *   <li>Remove as pastas dos pacotes gerados anteriores e substitui
+	 *       pelas novas</li>
+	 * </ul>
+	 * @param basePackage nome do pacote base
+	 * @param sqlResource recurso sql, fonte do esquema de dados
+	 * @param coreSrcDir  pasta fonte para projeto independente do android
+	 * @param androidSrcDir pasta fonte para aplicativo android
+	 * @param jdbcSrcDir  pasta fonte para receber daos JDBC
+	 * @param pacoteGen   subpacote para fonte gerado (resulta em um pacote
+	 *                    <basePackage>.<pacoteGen>
+	 * @param properties  arquivo de propriedades criado pelo gerador
+	 *                    (atualmente nao e utilizado)
+	 * @param defaultProperties configuracoes do gerador e plugin
+	 * @throws IOException
+	 * @throws FileNotFoundException
+	 * @throws GeradorException
+	 */
 	public void generateBeansWithJsqlparserAndVelocity(
 			String basePackage, File sqlResource,
 			File coreSrcDir, File androidSrcDir, File jdbcSrcDir,
 			String pacoteGen, File properties, Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException
 	{
-
 		// Arquivo de propriedades para armazenar dados internos do gerador
 		PropertiesLocal props = getProperties(properties);
+
 		// Ultima versao do banco lida pelo gerador
 		// Se for diferente da versao em DB.VERSION, o gerador deve
 		//   reescrever os arquivos
@@ -212,9 +236,9 @@ public class Generator {
 
 		// Substitui os pacotes gen por pastas vazias, para remover os
 		//   arquivos antigos
-		File coreGenFolder = replaceGenFolder(coreTempDir, coreSrcDir, pastaGen);
-		File androidGenDir = replaceGenFolder(androidTempDir, androidSrcDir, pastaGen);
-		File jdbcGenDir    = replaceGenFolder(jdbcTempDir, jdbcSrcDir, pastaGen);
+		File coreGenFolder = replaceGenFolder(coreSrcDir, pastaGen);
+		File androidGenDir = replaceGenFolder(androidSrcDir, pastaGen);
+		File jdbcGenDir    = replaceGenFolder(jdbcSrcDir, pastaGen);
 
 		// Copia os novos arquivos para os pacotes gen vazios
 		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
@@ -236,7 +260,17 @@ public class Generator {
 	/**
 	 * Extrai as JavaBeanSchema's de um arquivo de strings do padrao android
 	 *   com o schema do banco.
-	 * 
+	 * <ul>
+	 *   <li>Busca o arquivo sql.xml e le todos os scripts ate a
+	 *       versao do banco no DB.java;</li>
+	 *   <li>Escreve todos os scripts em um banco sqlite na maquina de
+	 *       desenvolvimento, deste modo todos os ALTER TABLE e DROP sao
+	 *       processados</li>
+	 *   <li>Retira um DUMP do banco resultante;</li>
+	 *   <li>Cria uma fabrica de JavaBeanSchema, baseada no SqlParser e
+	 *       adiciona a ela filtros;</li>
+	 *   <li>Usa a fabrica e o DUMP para criar a lista de JavaBeanSchema</li>
+	 * </ul>
 	 * @param sqlResource arquivo de strings Android
 	 * @param defaultProperties propriedads
 	 * @param dbVersion
@@ -282,23 +316,31 @@ public class Generator {
 		return javaBeanSchemas;
 	}
 
+	/**
+	 * Remove um diretorio e todos seus arquivos,e depois o recria.
+	 * 
+	 * @param parentDir diretorio pai
+	 * @param genFolder nome do diretorio a ser recriado
+	 * @return
+	 * @throws IOException
+	 */
 	private File replaceGenFolder(
-			File tempDir, File srcDir, String genFolder)
+			File parentDir, String genFolder)
 			throws IOException
 	{
-		File coreGenFolder = new File(srcDir, genFolder);
-		if(coreGenFolder.exists()){
-			LoggerUtil.getLog().info("Deletando " + coreGenFolder.getAbsolutePath());
-			deleteFolderR(coreGenFolder);
+		File targetFolder = new File(parentDir, genFolder);
+		if(targetFolder.exists()){
+			LoggerUtil.getLog().info("Deletando " + targetFolder.getAbsolutePath());
+			deleteFolderR(targetFolder);
 		} else {
 			LoggerUtil.getLog().info(
 				"Pasta " +
-				coreGenFolder.getAbsolutePath() +
+				targetFolder.getAbsolutePath() +
 				" nao encontrada"
 			);
 		}
-		coreGenFolder.mkdirs();
-		return coreGenFolder;
+		targetFolder.mkdirs();
+		return targetFolder;
 	}
 
 	private VelocityEngine initVelocityEngine() {
@@ -316,7 +358,11 @@ public class Generator {
 		return ve;
 	}
 
-	
+	/**
+	 * TODO
+	 * CODIGO DUOPLICADO
+	 * Faz o mesmo que {@link #replaceGenFolder(File, String)}
+	 */
 	private File resetDir(String dirName) throws IOException {
 		File dir = new File(dirName);
 		if (dir.exists())
@@ -325,7 +371,16 @@ public class Generator {
 		return dir;
 	}
 
-
+	/**
+	 * Busca a versao do banco no arquivo DB.java.
+	 * Encontra o arquivo e busca pela constante DB_VERSAO, que deve ser um
+	 * literal inteiro.
+	 * 
+	 * @param srcFolder   diretorio de fontes do aplicativo
+	 * @param basePackage pacote base do aplicativo
+	 * @return
+	 * @throws GeradorException
+	 */
 	private Integer getDBVersion(File srcFolder, String basePackage)
 			throws GeradorException {
 		String packageFolder;
@@ -361,6 +416,13 @@ public class Generator {
 		return ver;
 	}
 
+	/**
+	 * Classe properties com metodo save para persistir como xml.
+	 * Atualmente nao e utilizada.
+	 * 
+	 * @author Igor Soares
+	 *
+	 */
 	private static class PropertiesLocal extends Properties{
 		private static final long serialVersionUID = -3878975503573330508L;
 
@@ -408,6 +470,15 @@ public class Generator {
 		return new PropertiesLocal(f);
 	}
 
+	/**
+	 * Escreve o sql em um arquivo sqlite temporario, retira um DUMP, ja com
+	 * todos os ALTER e DROP aplicados.
+	 * 
+	 * IMPORTANTE: uma tabela sqlite_sequence vai ser criada, se houver algum 
+	 *             coluna PRIMARYKEY AUTOINCREMENT
+	 * @param sql script inicial
+	 * @return    script DUMP resultante
+	 */
 	private static String sqliteSchema(String sql) {
 		try {
 			return SQLiteGeradorUtils.getSchema(sql);
@@ -417,6 +488,13 @@ public class Generator {
 		}
 	}
 
+	/**
+	 * Busca todos os scripts com nome db_versao_X onde X e um numero menor
+	 * que o parametro de versao
+	 * @param sqlResource arquivo de xml com scripts SQL
+	 * @param version     versao
+	 * @return
+	 */
 	private static String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
@@ -427,10 +505,23 @@ public class Generator {
 		return out.toString();
 	}
 
+	/**
+	 * Transforma o nome de pacote para nome relativo da pasta
+	 * @param pacote
+	 * @return
+	 */
 	public static String getPacotePath(String pacote) {
 		return pacote.replaceAll("\\.", File.separator);
 	}
 
+	/**
+	 * Le um script e busca todos CREATE TABLE, gerando TableSchema deles
+	 * 
+	 * @param input stream do script
+	 * @param ignored lista de tabelas ignoradas, separadas por virgulas (REFATORAR!)
+	 * @return
+	 * @throws IOException
+	 */
 	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input, String ignored)
 			throws IOException
 	{
@@ -492,6 +583,12 @@ public class Generator {
 		return ignored == null ? new String[0] : ignored.split("[\\|,]");
 	}
 
+	/**
+	 * Remover um diretorio e todos seus arquivos e diretorios recursivamente
+	 * 
+	 * @param f
+	 * @throws IOException
+	 */
 	private static void deleteFolderR(File f) throws IOException {
 		if (f.isDirectory()) {
 			for (File c : f.listFiles())
@@ -504,6 +601,13 @@ public class Generator {
 		}
 	}
 
+	/**
+	 * Copia um arquivo
+	 * 
+	 * @param sourceFile
+	 * @param destFile
+	 * @throws IOException
+	 */
 	public static void copyFile(File sourceFile, File destFile) throws IOException {
 	    if(!destFile.exists()) {
 	        destFile.createNewFile();
