@@ -151,16 +151,16 @@ public class Generator {
 
 		// Removendo os diretoros temporarios dos arquivos gerados e
 		//   recriando-os vazios.
-		File coreTempDir = resetDir("__tempgen_core");
+		File coreTempDir = resetDir(new File("__tempgen_core"));
 		File androidTempDir =
 			(androidSrcDir == null) ?
 				null :
-				resetDir("__tempgen_android");
+				resetDir(new File("__tempgen_android"));
 		File jdbcTempDir =
 			(jdbcSrcDir == null) ?
 				null :
-				resetDir("__tempgen_jdbc");
-		File appiosTempDir = resetDir("__tempgen_appios");
+				resetDir(new File("__tempgen_jdbc"));
+		File appiosTempDir = resetDir(new File("__tempgen_appios"));
 
 		//inicializa e configura a VelocityEngine
 		VelocityEngine ve = initVelocityEngine();
@@ -236,9 +236,9 @@ public class Generator {
 
 		// Substitui os pacotes gen por pastas vazias, para remover os
 		//   arquivos antigos
-		File coreGenFolder = replaceGenFolder(coreSrcDir, pastaGen);
-		File androidGenDir = replaceGenFolder(androidSrcDir, pastaGen);
-		File jdbcGenDir    = replaceGenFolder(jdbcSrcDir, pastaGen);
+		File coreGenFolder = resetDir(new File(coreSrcDir, pastaGen));
+		File androidGenDir = resetDir(new File(androidSrcDir, pastaGen));
+		File jdbcGenDir    = resetDir(new File(jdbcSrcDir, pastaGen));
 
 		// Copia os novos arquivos para os pacotes gen vazios
 		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
@@ -316,59 +316,22 @@ public class Generator {
 		return javaBeanSchemas;
 	}
 
-	/**
-	 * Remove um diretorio e todos seus arquivos,e depois o recria.
-	 * 
-	 * @param parentDir diretorio pai
-	 * @param genFolder nome do diretorio a ser recriado
-	 * @return
-	 * @throws IOException
-	 */
-	private File replaceGenFolder(
-			File parentDir, String genFolder)
-			throws IOException
-	{
-		File targetFolder = new File(parentDir, genFolder);
-		if(targetFolder.exists()){
-			LoggerUtil.getLog().info("Deletando " + targetFolder.getAbsolutePath());
-			deleteFolderR(targetFolder);
-		} else {
-			LoggerUtil.getLog().info(
-				"Pasta " +
-				targetFolder.getAbsolutePath() +
-				" nao encontrada"
-			);
-		}
-		targetFolder.mkdirs();
-		return targetFolder;
-	}
-
 	private VelocityEngine initVelocityEngine() {
 		VelocityEngine ve = new VelocityEngine();
 		ve.setProperty( RuntimeConstants.RUNTIME_LOG_LOGSYSTEM_CLASS,
 			      LoggerUtil.class.getName() );
+
+		// Para mandar o log do Velocity para Log do Maven
 		ve.setProperty("runtime.log.logsystem.log4j.logger",
 		               LoggerUtil.LOG_NAME);
-//		ve.setProperty(RuntimeConstants.RESOURCE_LOADER,
-//				"classpath");
+
+		// Para carregar a os templates de dentro do jar,
+		//   localizados em src/main/resources
 		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
 		ve.setProperty("class.resource.loader.class",
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
 		return ve;
-	}
-
-	/**
-	 * TODO
-	 * CODIGO DUOPLICADO
-	 * Faz o mesmo que {@link #replaceGenFolder(File, String)}
-	 */
-	private File resetDir(String dirName) throws IOException {
-		File dir = new File(dirName);
-		if (dir.exists())
-			deleteFolderR(dir);
-		dir.mkdir();
-		return dir;
 	}
 
 	/**
@@ -599,6 +562,20 @@ public class Generator {
 				"Failed to delete file: " + f
 			);
 		}
+	}
+
+	/**
+	 * Remove um diretorio e todos seus arquivos,e depois o recria.
+	 * 
+	 * @param dir
+	 * @return
+	 * @throws IOException
+	 */
+	private File resetDir(File dir) throws IOException {
+		if (dir.exists())
+			deleteFolderR(dir);
+		dir.mkdirs();
+		return dir;
 	}
 
 	/**
