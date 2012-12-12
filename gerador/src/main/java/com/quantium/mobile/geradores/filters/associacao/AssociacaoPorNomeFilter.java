@@ -9,11 +9,44 @@ import java.util.regex.Pattern;
 
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
+import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 
-
+/**
+ * Atencao! Filtro complexo!
+ * 
+ * <p>Ha uma ligacao bidirecional entre este filtro e um
+ *    {@link AssociacoesResolver}.</p>
+ * <p>O {@link AssociacoesResolver} deve contr uma referencia a todos os
+ *    {@link AssociacaoPorNomeFilter}, que servem de fonte de dados.</p>
+ * 
+ * <p>Todos os filtros devem ser inicializados antes do uso (importante).
+ *    Na primeira chamada, o resolver ira iterar por todos os
+ *    {@link AssociacaoPorNomeFilter}, usando-os como fonte de dados.</p>
+ * <p>Importante que todos {@link AssociacaoPorNomeFilter} ja estejam
+ *    inicializados antes de ser usado nos {@link JavaBeanSchema}</p>
+ * <p>A inicializacao do {@link AssociacoesResolver} consiste em
+ *    iterar por todos os {@link AssociacaoPorNomeFilter} e em cada um, buscar
+ *    se ha um padrao de nome, da coluna
+ *    (nomeDaTabelaA)_(nomeDeColunaDaTabelaA).</p>
+ * <ul>
+ *   <li>Criacao da {@link Factory}</li>
+ *   <li>A Factory criada inicializa 1 {@link AssociacoesResolver}, que e
+ *       ligada a todas as instancias {@link AssociacaoPorNomeFilter}</li>
+ *   <li>Para cada chamada a getFilterInstance, uma instancia de
+ *       {@link AssociacaoPorNomeFilter} e criada, em geral,
+ *       uma para cada JavaBeanSchema</li>
+ *   <li>Ao ser chamado pela primeira vez pelo {@link JavaBeanSchema}, o Filtro
+ *       chama a inicializacao do resolver</li>
+ *   <li>Chamadas subsequentes usam dados ja inicializados no
+ *       {@link AssociacoesResolver}</li>
+ * </ul>
+ * 
+ * @author Igor soares
+ *
+ */
 public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 
 	private static final String COLUMN_TABLE_NAME_REGEX = "\\w[\\w_\\d]*";

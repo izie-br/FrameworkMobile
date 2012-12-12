@@ -9,7 +9,27 @@ import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 
-
+/**
+ * Classe base dos esquemas usados pelo gerador.
+ * Usa uma Tabela schema como unica fonte de dados.
+ * Dados derivados sao obtidos por processamento dos filtros.
+ * Filtro e um Design Pattern GOF (chain of responsibility)
+ * 
+ * Fluxo das chamadas ao JavaBeanSchema
+ * <ul>
+ *   <li>Requisita informacao ao JavaBeanSchema</li>
+ *   <li>JavaBeanSchema chama um metodo no FilterChain</li>
+ *   <li>Cada filtro e chamado e, em geral, chama o filtro subsequente</li>
+ *   <li>O FiltroRaiz nao tem filtro subsequente, e busca o dado cru no
+ *       TabelaSchema</li>
+ *   <li>O dado processado por todos filtros e retornado</li>
+ * </ul>
+ * <pre>
+ * JavaBeanSchema -> FilterChain... -> Filtro raiz -> TabelaSchema
+ * </pre>
+ * @author Igor Soares
+ *
+ */
 public class JavaBeanSchema{
 
 	private String constanteDaTabela = "TABELA";
