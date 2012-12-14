@@ -1,40 +1,25 @@
 package com.quantium.mobile.geradores;
 
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.StringReader;
 import java.nio.channels.FileChannel;
-import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
-import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
-import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.parsers.FileParserMapper;
 import com.quantium.mobile.geradores.parsers.InputParser;
 import com.quantium.mobile.geradores.parsers.InputParserRepository;
-import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
-import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
-import com.quantium.mobile.shared.util.XMLUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
@@ -77,7 +62,7 @@ public class Generator {
 		
 		GeneratorConfig config = getInfoFromCommandLineArgs(args);
 		try {
-			new Generator(config).generateBeansWithJsqlparserAndVelocity(defaultProperties);
+			new Generator(config).generate(defaultProperties);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
@@ -99,31 +84,7 @@ public class Generator {
 				androidDirectoryPath, jdbcDirectoryPath, propertiesFilePath, null);
 	}
 
-	/**
-	 * Metodo que coordena todo processo de geracao.
-	 * <ul>
-	 *   <li>Busca o arquivo DB.java e busca a constante DB_VERSION;</li>
-	 *   <li>Busca o arquivo sql.xml para gerar os JavaBeanSchema</li>
-	 *   <li>Usa cada um dos JavaBeanScema para gera seus VO's e DAO's em uma
-	 *       pasta temporaria</li>
-	 *   <li>Remove as pastas dos pacotes gerados anteriores e substitui
-	 *       pelas novas</li>
-	 * </ul>
-	 * @param basePackage nome do pacote base
-	 * @param sqlResource recurso sql, fonte do esquema de dados
-	 * @param coreSrcDir  pasta fonte para projeto independente do android
-	 * @param androidSrcDir pasta fonte para aplicativo android
-	 * @param jdbcSrcDir  pasta fonte para receber daos JDBC
-	 * @param pacoteGen   subpacote para fonte gerado (resulta em um pacote
-	 *                    <basePackage>.<pacoteGen>
-	 * @param properties  arquivo de propriedades criado pelo gerador
-	 *                    (atualmente nao e utilizado)
-	 * @param defaultProperties configuracoes do gerador e plugin
-	 * @throws IOException
-	 * @throws FileNotFoundException
-	 * @throws GeradorException
-	 */
-	public void generateBeansWithJsqlparserAndVelocity(
+	public void generate(
 			Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException
 	{
@@ -327,119 +288,6 @@ public class Generator {
 
 	private PropertiesLocal getProperties(File f){
 		return new PropertiesLocal(f);
-	}
-
-	/**
-	 * Escreve o sql em um arquivo sqlite temporario, retira um DUMP, ja com
-	 * todos os ALTER e DROP aplicados.
-	 * 
-	 * IMPORTANTE: uma tabela sqlite_sequence vai ser criada, se houver algum 
-	 *             coluna PRIMARYKEY AUTOINCREMENT
-	 * @param sql script inicial
-	 * @return    script DUMP resultante
-	 */
-	private static String sqliteSchema(String sql) {
-		try {
-			return SQLiteGeradorUtils.getSchema(sql);
-		} catch (SQLException e) {
-			e.printStackTrace();
-			throw new RuntimeException(e);
-		}
-	}
-
-	/**
-	 * Busca todos os scripts com nome db_versao_X onde X e um numero menor
-	 * que o parametro de versao
-	 * @param sqlResource arquivo de xml com scripts SQL
-	 * @param version     versao
-	 * @return
-	 */
-	private static String getSqlTill(File sqlResource, Integer version) {
-		StringBuilder out = new StringBuilder();
-		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
-				+ "contains(@name,\"db_versao_\") and "
-				+ "number(substring(@name,11)) < " + (++version) + "]//text()");
-		for (String node : nodes)
-			out.append(node);
-		return out.toString();
-	}
-
-	/**
-	 * Transforma o nome de pacote para nome relativo da pasta
-	 * @param pacote
-	 * @return
-	 */
-	public static String getPacotePath(String pacote) {
-		return pacote.replaceAll("\\.", File.separator);
-	}
-
-	/**
-	 * Le um script e busca todos CREATE TABLE, gerando TableSchema deles
-	 * 
-	 * @param input stream do script
-	 * @param ignored lista de tabelas ignoradas, separadas por virgulas (REFATORAR!)
-	 * @return
-	 * @throws IOException
-	 */
-	public static Collection<TabelaSchema> getTabelasDoSchema(Reader input, String ignored)
-			throws IOException
-	{
-		BufferedReader reader = new BufferedReader(input);
-		Collection<TabelaSchema> tabelas =
-			new ArrayList<TabelaSchema>();
-		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
-		Pattern createTablePattern = Pattern.compile(
-				"CREATE\\s+(TEMP\\w*\\s+)?TABLE\\s+(IF\\s+NOT\\s+EXISTS\\s+)?(\\w+)",
-				Pattern.CASE_INSENSITIVE |
-				Pattern.MULTILINE
-			);
-		for(;;){
-			StringBuilder sb = new StringBuilder();
-			int c;
-			for(;;){
-				c = reader.read();
-				if(c<0)
-					break;
-				sb.append((char)c);
-				if(c==';')
-					break;
-			}
-			String createTableStatement = sb.toString();
-			String ignoredTables [] = getIgnoredTables(ignored);
-			if(
-					createTableStatement==null ||
-					createTableStatement.matches("^[\\s\\n]*$")
-			){
-				break;
-			}
-			Matcher mobj = createTablePattern.matcher(createTableStatement);
-			if(
-					!mobj.find() ||
-					checkIfIgnored( mobj.group(3), ignoredTables)
-			){
-				LoggerUtil.getLog().info("IGNORED::" +sb.toString());
-				continue;
-			}
-			TabelaSchema tabela =
-				factory.gerarTabelaSchema(createTableStatement);
-			tabelas.add(tabela);
-			LoggerUtil.getLog().info("tabela: " +tabela.getNome());
-		}
-		return tabelas;
-	}
-
-	private static boolean checkIfIgnored(String table, String ignored[]){
-		if (ignored == null)
-			return false;
-		for (String str : ignored){
-			if(table.equalsIgnoreCase(str))
-				return true;
-		}
-		return false;
-	}
-
-	private static String [] getIgnoredTables(String ignored){
-		return ignored == null ? new String[0] : ignored.split("[\\|,]");
 	}
 
 	/**

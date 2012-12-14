@@ -22,6 +22,15 @@ public class SQLiteGeradorUtils {
 
 	private static final String DB_FILE_FMT = ".sample%s.db";
 
+	/**
+	 * Escreve o sql em um arquivo sqlite temporario, retira um DUMP, ja com
+	 * todos os ALTER e DROP aplicados.
+	 * 
+	 * IMPORTANTE: uma tabela sqlite_sequence vai ser criada, se houver algum 
+	 *             coluna PRIMARYKEY AUTOINCREMENT
+	 * @param sql script inicial
+	 * @return    script DUMP resultante
+	 */
 	public static String getSchema(String sql) throws SQLException{
 		StringBuilder sb = new StringBuilder();
 		File dbFile = new File(String.format(DB_FILE_FMT, ""));

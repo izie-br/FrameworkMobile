@@ -7,9 +7,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import org.apache.log4j.Logger;
 import org.apache.maven.plugin.AbstractMojo;
@@ -20,9 +17,6 @@ import com.pyx4j.log4j.MavenLogAppender;
 import com.quantium.mobile.geradores.Generator;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
-import com.quantium.mobile.geradores.parsers.FileParserMapper;
-import com.quantium.mobile.geradores.parsers.InputParser;
-import com.quantium.mobile.geradores.parsers.InputParserRepository;
 import com.quantium.mobile.geradores.util.Constants;
 
 
@@ -87,36 +81,10 @@ public class GeradorMojo extends AbstractMojo{
         return serializationAlias;
     }
 
-    private File getConfigResource(){
-        File resource;
-        if (config != null)
-            resource = new File(config);
-        else
-            resource = new File(
-                basedir + "/" +
-                Constants.DEFAULT_GENERATOR_CONFIG);
-        return resource;
-    }
-
     /**
      * @parameter
      */
     private String sqlResource;
-
-    public File getSqlResource() throws MojoExecutionException{
-        File resource = null;
-        if(sqlResource!=null)
-            resource = new File(basedir, sqlResource);
-        else
-            resource = new File(basedir+"/res/values/sql.xml");
-        if (!resource.exists()){
-            throw new MojoExecutionException(
-                    "Resources SQL nao encontrados em "+
-                    resource.getAbsolutePath()
-            );
-        }
-        return resource;
-    }
 
     /**
      * @parameter
@@ -139,15 +107,6 @@ public class GeradorMojo extends AbstractMojo{
      * @parameter
      */
     String basePackage;
-    
-    private String getBasePackage()
-        throws MojoExecutionException, GeradorException
-    {
-        File manifest = getAndroidManifest();
-        if (manifest != null && manifest.exists())
-            return getBasePackageFromManifest(manifest);
-        return this.basePackage;
-    }
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException
@@ -179,7 +138,7 @@ public class GeradorMojo extends AbstractMojo{
                                androidSrcDir, jdbcSrcDir, config, null);
 
             new Generator(generatorConfig)
-                .generateBeansWithJsqlparserAndVelocity(defaultProperties);
+                .generate(defaultProperties);
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());
         } catch (IOException e) {
@@ -190,23 +149,5 @@ public class GeradorMojo extends AbstractMojo{
         log.info("finalizando gerador");
         MavenLogAppender.endPluginLog(this);
     }
-
-	private String getBasePackageFromManifest(File androidManifest)
-			throws GeradorException
-	{
-		try {
-			Pattern pat = Pattern.compile(
-					".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
-					Pattern.MULTILINE);
-			String manifestStr = new Scanner(androidManifest)
-				.findWithinHorizon(pat, 0);
-			Matcher mobj = pat.matcher(manifestStr);
-			if (mobj.find())
-				return mobj.group(1);
-			return null;
-		} catch (Exception e) {
-			throw new GeradorException(e);
-		}
-	}
 
 }

@@ -6,7 +6,6 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import com.quantium.mobile.geradores.parsers.FileParserMapper;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 

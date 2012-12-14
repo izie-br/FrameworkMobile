@@ -88,6 +88,13 @@ public class SQLiteInputParser implements InputParser {
 		return javaBeanSchemas;
 	}
 
+	/**
+	 * Busca todos os scripts com nome db_versao_X onde X e um numero menor
+	 * que o parametro de versao
+	 * @param sqlResource arquivo de xml com scripts SQL
+	 * @param version     versao
+	 * @return
+	 */
 	private String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
@@ -107,6 +114,14 @@ public class SQLiteInputParser implements InputParser {
 		}
 	}
 
+	/**
+	 * Le um script e busca todos CREATE TABLE, gerando TableSchema deles
+	 * 
+	 * @param input stream do script
+	 * @param ignored lista de tabelas ignoradas, separadas por virgulas (REFATORAR!)
+	 * @return
+	 * @throws IOException
+	 */
 	public Collection<TabelaSchema> getTabelasDoSchema(Reader input,
 			String ignored) throws IOException {
 		BufferedReader reader = new BufferedReader(input);

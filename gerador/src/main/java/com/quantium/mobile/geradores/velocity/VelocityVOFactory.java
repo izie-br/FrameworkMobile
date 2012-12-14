@@ -15,7 +15,6 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
-import com.quantium.mobile.geradores.Generator;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;

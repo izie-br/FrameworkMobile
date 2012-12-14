@@ -7,6 +7,7 @@ import com.quantium.mobile.geradores.GeradorException;
 
 public class FileParserMapper {
 
+	@SuppressWarnings("serial")
 	private static Map<String, String> fileParserMap = new HashMap<String, String>() {
 		{
 			put("xml", "sqlite");
