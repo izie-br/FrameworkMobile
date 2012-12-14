@@ -18,7 +18,12 @@ import org.apache.maven.plugin.MojoFailureException;
 
 import com.pyx4j.log4j.MavenLogAppender;
 import com.quantium.mobile.geradores.Generator;
+import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
+import com.quantium.mobile.geradores.parsers.FileParserMapper;
+import com.quantium.mobile.geradores.parsers.InputParser;
+import com.quantium.mobile.geradores.parsers.InputParserRepository;
+import com.quantium.mobile.geradores.util.Constants;
 
 
 /**
@@ -89,7 +94,7 @@ public class GeradorMojo extends AbstractMojo{
         else
             resource = new File(
                 basedir + "/" +
-                Generator.DEFAULT_GENERATOR_CONFIG);
+                Constants.DEFAULT_GENERATOR_CONFIG);
         return resource;
     }
 
@@ -163,26 +168,18 @@ public class GeradorMojo extends AbstractMojo{
         Map<String,Object> defaultProperties = new HashMap<String,Object>();
         String ignored = getIgnored();
         if (ignored != null)
-            defaultProperties.put(Generator.PROPERTIY_IGNORED,ignored);
+            defaultProperties.put(Constants.PROPERTIY_IGNORED,ignored);
         Map<String, String> aliases = getAliases();
         if (aliases != null)
-            defaultProperties.put(Generator.PROPERTIY_SERIALIZATION_ALIAS,
+            defaultProperties.put(Constants.PROPERTIY_SERIALIZATION_ALIAS,
                                   aliases);
         try {
-            new Generator().generateBeansWithJsqlparserAndVelocity(
-                    getBasePackage(),
-                    getSqlResource(),
-                    new File(basedir, coreSrcDir),
-                    (androidSrcDir == null) ?
-                        null :
-                        new File(basedir, androidSrcDir),
-                    (jdbcSrcDir == null) ?
-                        null:
-                        new File(basedir, jdbcSrcDir),
-                    "gen",
-                    getConfigResource(),
-                    defaultProperties
-            );
+            GeneratorConfig generatorConfig = new GeneratorConfig(
+                               basePackage, sqlResource,basedir, coreSrcDir,
+                               androidSrcDir, jdbcSrcDir, config, null);
+
+            new Generator(generatorConfig)
+                .generateBeansWithJsqlparserAndVelocity(defaultProperties);
         } catch (FileNotFoundException e) {
             throw new MojoExecutionException(e.getLocalizedMessage());
         } catch (IOException e) {
@@ -211,34 +208,5 @@ public class GeradorMojo extends AbstractMojo{
 			throw new GeradorException(e);
 		}
 	}
-
-
-/*    private Properties getPropertiesFile() throws MojoFailureException{
-        try {
-            File configFile = new File(basedir+"/.gerador.xml");
-            if(!configFile.exists()){
-                configFile.createNewFile();
-            }
-            Properties props = new Properties();
-            try {
-                props.loadFromXML(new FileInputStream(configFile));
-            } catch (InvalidPropertiesFormatException e) {
-                props = new Properties();
-                FileOutputStream out = new FileOutputStream(configFile);
-                props.storeToXML(
-                    out,
-                    null,
-                    DEFAULT_ENCODING
-                );
-                out.close();
-            }
-            return props;
-        }
-        catch (IOException e) {
-            throw new MojoFailureException(
-                    "Arquivo de configuracao inacessivel");
-        }
-    }
-*/
 
 }

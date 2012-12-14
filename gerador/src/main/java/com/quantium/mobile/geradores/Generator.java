@@ -26,8 +26,12 @@ import org.apache.velocity.runtime.RuntimeConstants;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.parsers.FileParserMapper;
+import com.quantium.mobile.geradores.parsers.InputParser;
+import com.quantium.mobile.geradores.parsers.InputParserRepository;
 import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.shared.util.XMLUtil;
@@ -38,18 +42,21 @@ import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
 public class Generator {
 
-	public static final String DEFAULT_GENERATOR_CONFIG = "generator.xml";
-	public static final String PROPERTIY_DB_VERSION = "dbVersion";
-	public static final String PROPERTIY_IGNORED = "ignore";
-	public static final String PROPERTIY_SERIALIZATION_ALIAS = "alias";
+	private GeneratorConfig projectInformation;
+	private InputParser inputParser;
 
-	public static final String DB_CLASS = "DB";
-	public static final String DB_RESOURCE_FILE = "/DB.java";
-	public static final String DB_PACKAGE = "db";
-	public static final String GENERIC_BEAN_CLASS = "GenericBean";
-	public static final String GENERIC_BEAN_PACKAGE = null;
+	public Generator(GeneratorConfig info)
+			throws GeradorException{
+		this.projectInformation = info;
+		InputParser parser = InputParserRepository.getInputParser(
+			FileParserMapper.getTypeFromFileName(
+				info.getInputFilePath()
+			)
+		);
 
-	public static final long DEFAULT_ID = 0;
+		this.inputParser = parser;
+	}
+
 
 	/**
 	 * @param args
@@ -67,23 +74,29 @@ public class Generator {
 		}
 
 		Map<String,Object> defaultProperties = new HashMap<String,Object>();
-		String basePackage = args[0];
-		String arquivo = args[1];
-		String pastaSrc = args[2];
-		String androidSrc = args[3];
-		String jdbcSrc = args[4];
-		String properties = (args.length > 5) ? args[5] : DEFAULT_GENERATOR_CONFIG;
-
+		
+		GeneratorConfig config = getInfoFromCommandLineArgs(args);
 		try {
-			new Generator().generateBeansWithJsqlparserAndVelocity(
-				basePackage, new File (arquivo),
-				new File(pastaSrc), new File(androidSrc), new File(jdbcSrc),
-				"gen", new File(properties), defaultProperties);
+			new Generator(config).generateBeansWithJsqlparserAndVelocity(defaultProperties);
 		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		} catch (IOException e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+	private static GeneratorConfig getInfoFromCommandLineArgs(String[] args)
+			throws GeradorException {
+		String basePackage = args[0];
+		String inputFilePath = args[1];
+		String coreDirectoryPath = args[2];
+		String androidDirectoryPath = args[3];
+		String jdbcDirectoryPath = args[4];
+		String propertiesFilePath = (args.length > 5) ? args[5]
+				: Constants.DEFAULT_GENERATOR_CONFIG;
+		return new GeneratorConfig(basePackage, inputFilePath,
+				System.getProperty("user.dir"), coreDirectoryPath,
+				androidDirectoryPath, jdbcDirectoryPath, propertiesFilePath, null);
 	}
 
 	/**
@@ -111,25 +124,20 @@ public class Generator {
 	 * @throws GeradorException
 	 */
 	public void generateBeansWithJsqlparserAndVelocity(
-			String basePackage, File sqlResource,
-			File coreSrcDir, File androidSrcDir, File jdbcSrcDir,
-			String pacoteGen, File properties, Map<String,Object> defaultProperties)
+			Map<String,Object> defaultProperties)
 			throws IOException, FileNotFoundException, GeradorException
 	{
-		// Arquivo de propriedades para armazenar dados internos do gerador
-		PropertiesLocal props = getProperties(properties);
 
+		// Arquivo de propriedades para armazenar dados internos do gerador
+		PropertiesLocal props = getProperties(projectInformation.getPropertiesFile());
 		// Ultima versao do banco lida pelo gerador
 		// Se for diferente da versao em DB.VERSION, o gerador deve
 		//   reescrever os arquivos
-		int propertyVersion = props.containsKey(PROPERTIY_DB_VERSION) ?
-				Integer.parseInt(props.getProperty(PROPERTIY_DB_VERSION)) :
+		int propertyVersion = props.containsKey(Constants.PROPERTIY_DB_VERSION) ?
+				Integer.parseInt(props.getProperty(Constants.PROPERTIY_DB_VERSION)) :
 				0;
 
-		File srcDir = (androidSrcDir != null) ? androidSrcDir : coreSrcDir;
-		Integer dbVersion = getDBVersion(srcDir, basePackage);
-		if(dbVersion==null)
-			throw new GeradorException("versao do banco nao encontrada");
+		int dbVersion = projectInformation.retrieveDatabaseVersion();
 
 		/*
 		 * Se a versao do banco é a mesma no generator.xml, finaliza o gerador
@@ -140,51 +148,44 @@ public class Generator {
 		if (propertyVersion == (int)dbVersion)
 			return;
 
-		Collection<JavaBeanSchema> javaBeanSchemas =
-				extractSchemasFromSqlResource(
-						sqlResource, defaultProperties, dbVersion);
+		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(
+				null, projectInformation, defaultProperties);
 
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =
-			(Map<String,String>)defaultProperties.get(PROPERTIY_SERIALIZATION_ALIAS);
+			(Map<String,String>)defaultProperties.get(Constants.PROPERTIY_SERIALIZATION_ALIAS);
 
 
 		// Removendo os diretoros temporarios dos arquivos gerados e
 		//   recriando-os vazios.
-		File coreTempDir = resetDir(new File("__tempgen_core"));
-		File androidTempDir =
-			(androidSrcDir == null) ?
-				null :
-				resetDir(new File("__tempgen_android"));
-		File jdbcTempDir =
-			(jdbcSrcDir == null) ?
-				null :
-				resetDir(new File("__tempgen_jdbc"));
-		File appiosTempDir = resetDir(new File("__tempgen_appios"));
+		File coreTempDir = resetDir(projectInformation.getCoreTemporaryDirectory());
+		File androidTempDir = resetDir(projectInformation.getAndroidTemporaryDirectory());
+		File jdbcTempDir = resetDir(projectInformation.getJDBCTemporaryDirectory());
+		File appiosTempDir = resetDir(projectInformation.getIOSTemporaryDirectory());
 
 		//inicializa e configura a VelocityEngine
 		VelocityEngine ve = initVelocityEngine();
 
 		VelocityDaoFactory vdaof = null;
 		VelocityDaoFactory vJdbcDaoFactory = null;
-		if (androidSrcDir != null) {
+		if (projectInformation.getAndroidDirectory() != null) {
 			vdaof = new VelocityDaoFactory(
 				"DAO.java",
 				ve, androidTempDir,
-				basePackage+ "."+ pacoteGen,
+				projectInformation.getGeneratedCodePackage(),
 				serializationAliases);
 		}
-		if (jdbcSrcDir != null) {
+		if (projectInformation.getJdbcDirectory() != null) {
 			vJdbcDaoFactory = new VelocityDaoFactory(
 					"JdbcDao.java",
 					ve, jdbcTempDir,
-					basePackage+ "."+ pacoteGen,
+					projectInformation.getGeneratedCodePackage(),
 					serializationAliases);
 		}
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
-				basePackage, basePackage+'.'+pacoteGen, serializationAliases);
+				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
-				basePackage, basePackage+'.'+pacoteGen, serializationAliases);
+				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
@@ -219,101 +220,41 @@ public class Generator {
 			                  VelocityObjcFactory.Type.EDITABLE_PROTOCOL);
 		}
 
-		if (androidSrcDir != null) {
+		if (projectInformation.getAndroidDirectory() != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"SQLiteDAOFactory.java",ve, javaBeanSchemas,
-					basePackage+'.'+pacoteGen, androidTempDir);
+					projectInformation.getGeneratedCodePackage(), androidTempDir);
 		}
-		if (jdbcSrcDir != null) {
+		if (projectInformation.getJdbcDirectory() != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"JdbcDAOFactory.java",ve, javaBeanSchemas,
-					basePackage+'.'+pacoteGen, jdbcTempDir);
+					projectInformation.getGeneratedCodePackage(), jdbcTempDir);
 		}
 
 
-		String pastaGen = (basePackage + "."+ pacoteGen)
-				.replaceAll("\\.", File.separator);
+		String pastaGen = projectInformation.getGeneratedPackageDirectoryPath();
 
 		// Substitui os pacotes gen por pastas vazias, para remover os
 		//   arquivos antigos
-		File coreGenFolder = resetDir(new File(coreSrcDir, pastaGen));
-		File androidGenDir = resetDir(new File(androidSrcDir, pastaGen));
-		File jdbcGenDir    = resetDir(new File(jdbcSrcDir, pastaGen));
+		File coreGenFolder = resetDir(new File(projectInformation.getCoreDirectory(), pastaGen));
+		File androidGenDir = resetDir(new File(projectInformation.getAndroidDirectory(), pastaGen));
+		File jdbcGenDir    = resetDir(new File(projectInformation.getJdbcDirectory(), pastaGen));
 
 		// Copia os novos arquivos para os pacotes gen vazios
 		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
 		//       no caso do "replaceGenFolder"
 		for (File f : coreTempDir.listFiles())
 			copyFile(f, new File(coreGenFolder, f.getName()));
-		if (androidSrcDir != null) {
+		if (projectInformation.getAndroidDirectory() != null) {
 			for (File f : androidTempDir.listFiles())
 				copyFile(f, new File(androidGenDir, f.getName()));
 		}
-		if (jdbcSrcDir != null) {
+		if (projectInformation.getJdbcDirectory() != null) {
 			for (File f : jdbcTempDir.listFiles())
 				copyFile(f, new File(jdbcGenDir, f.getName()));
 		}
 
 //		props.save();
-	}
-
-	/**
-	 * Extrai as JavaBeanSchema's de um arquivo de strings do padrao android
-	 *   com o schema do banco.
-	 * <ul>
-	 *   <li>Busca o arquivo sql.xml e le todos os scripts ate a
-	 *       versao do banco no DB.java;</li>
-	 *   <li>Escreve todos os scripts em um banco sqlite na maquina de
-	 *       desenvolvimento, deste modo todos os ALTER TABLE e DROP sao
-	 *       processados</li>
-	 *   <li>Retira um DUMP do banco resultante;</li>
-	 *   <li>Cria uma fabrica de JavaBeanSchema, baseada no SqlParser e
-	 *       adiciona a ela filtros;</li>
-	 *   <li>Usa a fabrica e o DUMP para criar a lista de JavaBeanSchema</li>
-	 * </ul>
-	 * @param sqlResource arquivo de strings Android
-	 * @param defaultProperties propriedads
-	 * @param dbVersion
-	 * @return
-	 * @throws IOException
-	 */
-	private static Collection<JavaBeanSchema> extractSchemasFromSqlResource(
-			File sqlResource, Map<String, Object> defaultProperties,
-			Integer dbVersion) throws IOException {
-		Collection<JavaBeanSchema> javaBeanSchemas;
-		// Este trecho popu
-		{
-			javaBeanSchemas = new ArrayList<JavaBeanSchema>();
-
-			String val = getSqlTill(sqlResource,dbVersion);
-			if(val!=null){
-				val = sqliteSchema(val);
-				BufferedReader reader = new BufferedReader(new StringReader(val));
-				String line = reader.readLine();
-				while (line != null) {
-					LoggerUtil.getLog().info(line);
-					line = reader.readLine();
-				}
-			}
-	
-			Collection<TabelaSchema> tabelasBanco =
-					getTabelasDoSchema(
-							new StringReader(val),
-							(String)defaultProperties.get(PROPERTIY_IGNORED));
-	
-			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
-			factory.addFiltroFactory(
-				new PrefixoTabelaFilter.Factory("tb_"));
-			factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
-					"{COLUMN=id}_{TABLE}"
-			));
-	
-			// gerando os JavaBeanSchemas
-			for(TabelaSchema tabela : tabelasBanco)
-				javaBeanSchemas.add(
-					factory.javaBeanSchemaParaTabela(tabela));
-		}
-		return javaBeanSchemas;
 	}
 
 	private VelocityEngine initVelocityEngine() {
@@ -332,51 +273,6 @@ public class Generator {
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
 		ve.init();
 		return ve;
-	}
-
-	/**
-	 * Busca a versao do banco no arquivo DB.java.
-	 * Encontra o arquivo e busca pela constante DB_VERSAO, que deve ser um
-	 * literal inteiro.
-	 * 
-	 * @param srcFolder   diretorio de fontes do aplicativo
-	 * @param basePackage pacote base do aplicativo
-	 * @return
-	 * @throws GeradorException
-	 */
-	private Integer getDBVersion(File srcFolder, String basePackage)
-			throws GeradorException {
-		String packageFolder;
-		packageFolder = basePackage.replaceAll("\\.", File.separator);
-		File dbFile = new File(
-				srcFolder,
-				(packageFolder
-				+ File.separator + Generator.DB_PACKAGE + File.separator
-				+ Generator.DB_CLASS + ".java" ) );
-		if (!dbFile.exists()) {
-			String errmsg = dbFile.getAbsolutePath() + " nao encontrado";
-			LoggerUtil.getLog().error(errmsg);
-			throw new GeradorException(errmsg);
-		}
-		Scanner scan;
-		try {
-			scan = new Scanner(dbFile);
-		} catch (FileNotFoundException e) {
-			throw new GeradorException(e);
-		}
-		Pattern dbVersionPattern = Pattern.compile("DB_VERSAO\\s*=\\s*([^;]+);");
-		int versionNumberGroup = 1;
-		String s = scan.findWithinHorizon(dbVersionPattern, 0);
-		if (s == null) {
-			String errmsg = "DB_VERSAO nao encontrado";
-			LoggerUtil.getLog().error(errmsg);
-			throw new GeradorException(errmsg);
-		}
-
-		Matcher mobj = dbVersionPattern.matcher(s);
-		mobj.find();
-		Integer ver = Integer.parseInt(mobj.group(versionNumberGroup));
-		return ver;
 	}
 
 	/**

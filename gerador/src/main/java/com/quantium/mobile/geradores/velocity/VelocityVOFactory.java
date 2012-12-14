@@ -22,6 +22,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
+import com.quantium.mobile.geradores.util.Constants;
 
 public class VelocityVOFactory {
 
@@ -37,7 +38,7 @@ public class VelocityVOFactory {
 		this.template = ve.getTemplate("VO.java");
 		this.targetDirectory = targetDirectory;
 		this.parentCtx = new VelocityContext();
-		this.parentCtx.put("defaultId", Generator.DEFAULT_ID);
+		this.parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		this.parentCtx.put("package", genPackage);
 		this.parentCtx.put("basePackage", basePackage);
 		this.parentCtx.put("getter", new GetterFactory());

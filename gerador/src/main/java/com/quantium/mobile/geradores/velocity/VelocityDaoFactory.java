@@ -24,6 +24,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
+import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 
 public class VelocityDaoFactory {
@@ -46,7 +47,7 @@ public class VelocityDaoFactory {
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate(templateName);
 		parentCtx = new VelocityContext();
-		parentCtx.put("defaultId", Generator.DEFAULT_ID);
+		parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
 		this.parentCtx.put("getter", new GetterFactory());
 		this.aliases = serializationAliases;
