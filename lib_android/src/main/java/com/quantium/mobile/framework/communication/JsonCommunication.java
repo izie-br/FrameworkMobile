@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.communication;
 
+import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -174,8 +175,8 @@ public class JsonCommunication extends GenericCommunication
 				instream = new GZIPInputStream(instream);
 			}
 			try {
-				InputStreamReader reader =
-						new InputStreamReader(instream, charset);
+				Reader reader = new BufferedReader(
+						new InputStreamReader(instream, charset));
 				return reader;
 			} catch (UnsupportedEncodingException e) {
 				LogPadrao.e (e);
