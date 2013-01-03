@@ -24,6 +24,8 @@ import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
 
+import static com.quantium.mobile.geradores.velocity.Utils.*;
+
 public class VelocityObjcFactory {
 
 	private Template template;
@@ -92,7 +94,7 @@ public class VelocityObjcFactory {
 		List<Object> manyToOne = new ArrayList<Object>();
 		List<Object> oneToMany = new ArrayList<Object>();
 		List<Object> manyToMany = new ArrayList<Object>();
-		VelocityDaoFactory.findAssociations(
+		findAssociations(
 				schema, allSchemas, manyToOne,
 				oneToMany, manyToMany);
 		ctx.put("manyToOneAssociations", manyToOne);
@@ -121,7 +123,7 @@ public class VelocityObjcFactory {
 		ctx.put("primaryKeys", pks);
 		
 		Map<Property, Object> associationsFromFK =
-				VelocityDaoFactory.getAssociationsForFK(fields, manyToOne);
+				getAssociationsForFK(fields, manyToOne);
 		ctx.put("associationForField", associationsFromFK);
 
 		File file = new File(targetDirectory, filename + extension);

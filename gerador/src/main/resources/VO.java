@@ -1,13 +1,3 @@
-#foreach ($field in $fields)
-##
-#if ( $field.Klass.equals("Date") )
-#set ($haveDateField = true)
-#if ($primaryKeys.contains($field))
-#set ($hasDatePK = true)
-#end##if ($primaryKeys.contains($field))
-#end##if
-#end##foreach
-##
 package $package;
 
 #if ( $haveDateField && (!$editableInterface || $hasDatePK) )
