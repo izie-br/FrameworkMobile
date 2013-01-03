@@ -79,9 +79,15 @@ public class Generator {
 		String jdbcDirectoryPath = args[4];
 		String propertiesFilePath = (args.length > 5) ? args[5]
 				: Constants.DEFAULT_GENERATOR_CONFIG;
-		return new GeneratorConfig(basePackage, inputFilePath,
-				System.getProperty("user.dir"), coreDirectoryPath,
-				androidDirectoryPath, jdbcDirectoryPath, propertiesFilePath, null);
+		return GeneratorConfig.builder()
+				.setBasePackage(basePackage)
+				.setInputFile(inputFilePath)
+				.setBaseDirectory(System.getProperty("user.dir"))
+				.setCoreDirectory(coreDirectoryPath)
+				.setAndroidDirectory(androidDirectoryPath)
+				.setJdbcDirectory(jdbcDirectoryPath)
+				.setPropertiesFile(propertiesFilePath)
+				.create();
 	}
 
 	public void generate(

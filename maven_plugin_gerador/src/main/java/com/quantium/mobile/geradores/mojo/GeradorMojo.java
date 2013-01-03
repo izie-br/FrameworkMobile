@@ -89,12 +89,12 @@ public class GeradorMojo extends AbstractMojo{
     /**
      * @parameter
      */
-    private String manifestFile;
+    private String androidManifestFile;
 
     public File getAndroidManifest() throws MojoExecutionException {
         File manifest = null;
-        if(manifestFile!=null)
-            manifest = new File(manifestFile);
+        if(androidManifestFile!=null)
+            manifest = new File(androidManifestFile);
         else
             manifest = new File(basedir+"/AndroidManifest.xml");
         if (!manifest.exists()) {
@@ -133,9 +133,19 @@ public class GeradorMojo extends AbstractMojo{
             defaultProperties.put(Constants.PROPERTIY_SERIALIZATION_ALIAS,
                                   aliases);
         try {
-            GeneratorConfig generatorConfig = new GeneratorConfig(
-                               basePackage, sqlResource,basedir, coreSrcDir,
-                               androidSrcDir, jdbcSrcDir, config, null);
+            String androidManifestPath = (getAndroidManifest() != null) ?
+                getAndroidManifest().getAbsolutePath():
+                null;
+            GeneratorConfig generatorConfig = GeneratorConfig.builder()
+                .setBasePackage(basePackage)
+                .setInputFile(sqlResource)
+                .setBaseDirectory(basedir)
+                .setCoreDirectory(coreSrcDir)
+                .setAndroidDirectory(androidSrcDir)
+                .setJdbcDirectory(jdbcSrcDir)
+                .setPropertiesFile(config)
+                .setAndroidManifest(androidManifestPath)
+                .create();
 
             new Generator(generatorConfig)
                 .generate(defaultProperties);

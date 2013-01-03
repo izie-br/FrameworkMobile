@@ -18,6 +18,7 @@ import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 
+@SuppressWarnings("unused")
 public class JsonInputParser implements InputParser {
 
 	public static final String INPUT_PARSER_IDENTIFIER = "json";
