@@ -103,8 +103,8 @@ public class VelocityVOFactory {
 		ctx.put("primaryKeys", pks);
 
 		int options = getOptions(schema);
-		ctx.put("haveDateField", options&HAS_DATE_FIELD);
-		ctx.put("hasDatePK", options&HAS_DATE_PK);
+		ctx.put("haveDateField", (options&HAS_DATE_FIELD)!=0);
+		ctx.put("hasDatePK", (options&HAS_DATE_PK)!=0);
 
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);
