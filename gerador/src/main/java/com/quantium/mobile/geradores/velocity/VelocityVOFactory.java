@@ -109,6 +109,8 @@ public class VelocityVOFactory {
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);
 		ctx.put("associationForField", associationsFromFK);
+		ctx.put("constructorArgsDecl", ArgsFactory.getConstructorArgsDecl(
+				schema, fields, associationsFromFK, toMany));
 
 		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(

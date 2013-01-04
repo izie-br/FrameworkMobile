@@ -421,35 +421,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##if ($primaryKeyIndex.equals($primaryKeys.size()))
 #end##foreach ($field in $fields)
 
-#set ($argCount = $fields.size() + $toManyAssociations.size())
-        ${KlassImpl} target = new ${KlassImpl}(
-#foreach ($field in $fields)
-#set ($columnIndex = $foreach.index)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-            _${association.Klass}#if ($foreach.count < $argCount),#end
-
-#else##if (!$associationForField[$field])
-            _${field.LowerCamel}#if ($foreach.count < $argCount),#end
-
-#end##if ($associationForField[$field])
-#end##foreach ($field in $fields)
-#foreach ($association in $oneToManyAssociations)
-#set ($argIndex = $fields.size() + $foreach.count)
-            querySetFor${association.Pluralized}(_${association.ReferenceKey.LowerCamel})#if ($argIndex < $argCount),#end
-
-#end##foreach ($association in $toManyAssociations)
-#foreach ($association in $manyToManyAssociations)
-#set ($argIndex = $fields.size() + $oneToManyAssociations.size() + $foreach.count)
-#if ($association.IsThisTableA)
-            querySetFor${association.Pluralized}(_${association.ReferenceA.LowerCamel})#if ($argIndex < $argCount),#end
-#else
-            querySetFor${association.Pluralized}(_${association.ReferenceB.LowerCamel})#if ($argIndex < $argCount),#end
-#end
-
-#end##foreach ($association in $manyToManyAssociations)
-        );
-        //target._daofactory = this.factory;
+        ${KlassImpl} target = new ${KlassImpl}(${constructorArgs});
 
         if (useCache)
             factory.pushToCache(${Target}.class, pks, target);

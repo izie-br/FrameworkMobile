@@ -47,6 +47,9 @@ public interface ${Filename} extends ${Klass}
 #end
 
 #end##if ($interface)
+##
+##
+##
 #if ($implementation)
 #foreach ($field in $fields)
 #if ($associationForField[$field])
@@ -66,30 +69,14 @@ public interface ${Filename} extends ${Klass}
     public ${Filename}(){}
 
 #set ($argCount = $fields.size() + $toManyAssociations.size())
-    public ${Filename}(
-#foreach ($field in $fields)
-#set ($fieldIndex = $foreach.index + 1)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-        ${association.Klass} _${association.Klass}#if ($fieldIndex != $argCount),#end
-
-#else##if (!$associationForField[$field])
-        ${field.Type} ${field.LowerCamel}#if ($fieldIndex != $argCount),#end
-
-#end##if ($associationForField[$field])
-#end##foreach ($field in $fields)
-#foreach ($association in $toManyAssociations)
-#set ($fieldIndex = $fields.size() + $foreach.index + 1)
-        QuerySet<${association.Klass}> _${association.Pluralized}#if ($fieldIndex != $argCount),#end
-
-#end##foreach ($association in $toManyAssociations)
-    ) {
+    public ${Filename}(${constructorArgsDecl})
+    {
 #foreach ($field in $fields)
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
         this._${association.Klass} = _${association.Klass};
 #else##if (!$associationForField[$field])
-        this.${field.LowerCamel} = ${field.LowerCamel};
+        this.${field.LowerCamel} = _${field.LowerCamel};
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
