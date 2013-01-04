@@ -127,4 +127,84 @@ public class ArgsFactory {
 		return sb.toString();
 	}
 
+	public static String getPrimaryKeyArgs(
+			Collection<Property> pks, Map<Property, Object> associations,
+			GetterFactory getter)
+	{
+		StringBuilder sb = new StringBuilder();
+		sb.append("new String[]{");
+
+		int i = 0;
+		for (Property field : pks){
+			@SuppressWarnings("unchecked")
+			Map<String,Object> assoc = (Map<String, Object>) associations.get(field);
+			if (assoc != null) {
+				sb.append("((");
+						sb.append(assoc.get("Klass"));
+					sb.append(")target.get");
+					Property referenceKey = (Property) assoc.get("ReferenceKey");
+					sb.append(assoc.get(referenceKey.getUpperCamel()));
+				sb.append("()).toString()");
+			} else {
+				sb.append("((");
+						sb.append(field.getKlass());
+					sb.append(")target.get");
+					sb.append(getter.get(field));
+				sb.append("()).toString()");
+			}
+			i++;
+			if (i != pks.size()) sb.append(',');
+		}
+		sb.append('}');
+		return sb.toString();
+	}
+
+	public static String getNullPkcondition(
+			Collection<Property> pks, Map<Property, Object> associations,
+			String defaultId)
+	{
+		StringBuilder sb = new StringBuilder();
+
+		int i = 0;
+		for (Property field : pks){
+			@SuppressWarnings("unchecked")
+			Map<String,Object> assoc = (Map<String, Object>) associations.get(field);
+			if (assoc != null) {
+				sb.append("target.get");
+				sb.append(assoc.get("Klass"));
+				sb.append("() == null ||");
+				sb.append("target.get");
+				sb.append(assoc.get("Klass"));
+				sb.append("().get");
+				Property referenceKey = (Property) assoc.get("ReferenceKey");
+				sb.append(referenceKey.getUpperCamel());
+				sb.append("() == ");
+				sb.append(defaultId);
+			} else {
+				sb.append("target.get");
+				sb.append(field.getUpperCamel());
+				sb.append("() == ");
+				sb.append(defaultId);
+			}
+			i++;
+			if (i != pks.size()) sb.append(" || ");
+		}
+		return sb.toString();
+	}
+
+	public static String getPrimaryKeyQuery(
+			Collection<Property> pks, Map<Property, Object> associations)
+	{
+		StringBuilder sb = new StringBuilder();
+
+		int i = 0;
+		for (Property field : pks){
+			sb.append(field.getLowerAndUnderscores());
+			sb.append(" = ?");
+			i++;
+			if (i != pks.size()) sb.append(" AND ");
+		}
+		return sb.toString();
+	}
+
 }

@@ -40,7 +40,6 @@ public class VelocityDaoFactory {
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
-		this.parentCtx.put("getter", new GetterFactory());
 		this.aliases = serializationAliases;
 		//parentCtx.put("basePackage", basePackage);
 	}
@@ -122,6 +121,14 @@ public class VelocityDaoFactory {
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgs", ArgsFactory.getConstructorArguments(
 				schema, fields, associationsFromFK, toMany));
+
+		GetterFactory getterFactory = new GetterFactory();
+		ctx.put("getter", getterFactory);
+		ctx.put("queryByPrimaryKey", ArgsFactory.getPrimaryKeyQuery(
+				pks, associationsFromFK));
+		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(
+				pks, associationsFromFK,
+				((Long)Constants.DEFAULT_ID).toString() + "L"));
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),

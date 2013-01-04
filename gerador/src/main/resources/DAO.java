@@ -2,32 +2,17 @@
 ## String de busca e arrays de argumentos
 ##
 #set ($primaryKeysArgs = "new String[]{")
-#set ($queryByPrimaryKey = "")
-#set ($nullPkCondition = "")
 #foreach ($field in $primaryKeys)
-#if ($foreach.index !=0)
-#set ($queryByPrimaryKey = $queryByPrimaryKey + " AND ")
-#set ($nullPkCondition = $nullPkCondition + " || ")
-#end##if ($foreach.index !=0)
-#set ($queryByPrimaryKey = $queryByPrimaryKey +
-                           "${field.LowerAndUnderscores} = ?")
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
 #set ($primaryKeysArgs = $primaryKeysArgs +
                          "((${field.Klass})target.get${association.Klass}()" +
                          ".get${association.ReferenceKey.UpperCamel}())" +
                          ".toString(),")
-#set ($nullPkCondition = $nullPkCondition +
-                         "target.get${association.Klass}() == null ||" +
-                         "target.get${association.Klass}()" +
-                         ".get${association.ReferenceKey.UpperCamel}() " +
-                         "== ${defaultId}")
 #else##if (!$associationForField[$field])
 #set ($primaryKeysArgs = $primaryKeysArgs +
                          "((${field.Klass})target.${getter[$field]}())" +
                          ".toString(),")
-#set ($nullPkCondition = $nullPkCondition +
-                         "target.${getter[$field]}() == ${defaultId}" )
 #end##if ($associationForField[$field])
 #end##foreach ($field in $primaryKeys)
 #set ($primaryKeysArgs = $primaryKeysArgs + "}")
