@@ -73,33 +73,6 @@
 #**##end
 #end
 
-        ${KlassImpl} target = new ${KlassImpl}(
-#set ($argCount = $fields.size() + $toManyAssociations.size())
-#foreach ($field in $fields)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#            _${association.Klass}#if ($foreach.count < $argCount),#end
-#******#
-#**##else
-#******#            _${field.LowerCamel}#if ($foreach.count < $argCount),#end
-#******#
-#**##end
-#end
-##
-#foreach ($association in $oneToManyAssociations)
-#**##set ($argIndex = $fields.size() + $foreach.count)
-#**#            querySetFor${association.Pluralized}(_${association.ReferenceKey.LowerCamel})#if ($argIndex < $argCount),#end
-#**#
-#end##foreach ($association in $toManyAssociations)
-#foreach ($association in $manyToManyAssociations)
-#**##set ($argIndex = $fields.size() + $oneToManyAssociations.size() + $foreach.count)
-#**##if ($association.IsThisTableA)
-#******#            querySetFor${association.Pluralized}(_${association.ReferenceA.LowerCamel})#if ($argIndex < $argCount),#end
-#**##else
-#******#            querySetFor${association.Pluralized}(_${association.ReferenceB.LowerCamel})#if ($argIndex < $argCount),#end
-#**##end
-#**#
-#end
-        );
+        ${KlassImpl} target = new ${KlassImpl}(${constructorArgs});
         return target;
     }

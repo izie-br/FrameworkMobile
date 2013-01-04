@@ -17,7 +17,8 @@ public class ArgsFactory {
 	{
 		int argCount = orderedFields.size() + toManyAssociations.size();
 		StringBuilder sb = new StringBuilder();
-		String indent = "\n";
+		String indent = "            ";
+		sb.append('\n');
 		sb.append(indent);
 
 		int i = 0;
@@ -35,15 +36,22 @@ public class ArgsFactory {
 			} else {
 				sb.append(field.getLowerCamel());
 			}
-			if (!last) sb.append(',');
+			if (!last){
+				sb.append(',');
+				if ( i%3 == 2){
+					sb.append('\n');
+					sb.append(indent);
+				} else {
+					sb.append(' ');
+				}
+			}
 		}
 		for (Object obj : toManyAssociations){
 			@SuppressWarnings("unchecked")
 			Map<String, Object> assoc = (Map<String, Object>) obj;
 			boolean last = (i == (argCount-1) );
-			i++;
-			sb.append("querysetFor");
-			sb.append(assoc.get("Klass").toString());
+			sb.append("querySetFor");
+			sb.append(assoc.get("Pluralized").toString());
 			sb.append("(_");
 			Property property =
 				(assoc.get("ReferenceKey") != null)?
@@ -54,7 +62,16 @@ public class ArgsFactory {
 					(Property)assoc.get("ReferenceB");
 			sb.append(property.getLowerCamel());
 			sb.append(')');
-			if (!last) sb.append(',');
+			if (!last){
+				sb.append(',');
+				if ( i%3 == 2){
+					sb.append('\n');
+					sb.append(indent);
+				} else {
+					sb.append(' ');
+				}
+			}
+			i++;
 		}
 		return sb.toString();
 	}

@@ -120,6 +120,8 @@ public class VelocityDaoFactory {
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields,manyToOne);
 		ctx.put("associationForField", associationsFromFK);
+		ctx.put("constructorArgs", ArgsFactory.getConstructorArguments(
+				schema, fields, associationsFromFK, toMany));
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
