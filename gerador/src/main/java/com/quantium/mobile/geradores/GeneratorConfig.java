@@ -265,11 +265,6 @@ public class GeneratorConfig {
 						"ser nao-null");
 			}
 
-			generatorConfig.generatedCodePackage =
-					(
-						(this.basePackage==null)? "": (this.basePackage + ".")
-					) + generatorConfig.generatedCodePackageName;
-
 			generatorConfig.androidManifestFilePath = getAndroidManifestPath();
 			generatorConfig.androidManifest = getAndroidManifest();
 			generatorConfig.basePackage = getBasePackage();
@@ -277,6 +272,11 @@ public class GeneratorConfig {
 				throw new GeradorException(
 						"basePackage e androidManifest indefinidos");
 			}
+			generatorConfig.generatedCodePackage =
+					(
+						(this.basePackage==null)? "": (this.basePackage + ".")
+					) + generatorConfig.generatedCodePackageName;
+
 
 			generatorConfig.coreTemporaryDirectory = new File(
 					getBaseDirectory(),
