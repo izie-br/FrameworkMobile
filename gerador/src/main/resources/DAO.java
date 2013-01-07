@@ -62,10 +62,12 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #parse("DAO.java.d/androidSave.java")
 
+    @Override
     public QuerySet<${Target}> query() {
         return query(null);
     }
 
+    @Override
     public QuerySet<${Target}> query(Q q) {
         QuerySet<${Target}> queryset =
             new QuerySetImpl();
@@ -136,7 +138,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
 #end##foreach ($association in $oneToManyAssociations)
-
+##
     @Override
     public  $Target cursorToObject(Cursor cursor, boolean useCache){
 #set ($primaryKeyIndex = 0)
@@ -246,7 +248,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         return (value > 0);
     }
 
-
     public boolean remove${association.Klass}From${Target}(${association.Klass} obj, $Target target) throws IOException {
 #if (${association.IsThisTableA})
         if (target.${getter[$association.ReferenceA]}() == ${defaultId}) {
@@ -284,22 +285,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 #end##foreach_manyToManyAssociation
 
-    public ToManyDAO with(${Target} obj){
-#set ($hasMutableAssociations = $manyToManyAssociations.size() > 0)
-#foreach ($association in $oneToManyAssociations)
-#if (!$association.ForeignKey.PrimaryKey)
-#set ($hasMutableAssociations = true)
-#break
-#end##if (!$association.KeyToA.PrimaryKey)
-#end##foreach ($association in oneToManyAssociations)
-#if (!$hasMutableAssociations)
-         throw new UnsupportedOperationException();
-#else##has_toManyAssociations
-         return new ${Target}ToManyDAO(obj);
-#end##has_toManyAssociations
-    }
+#parse("DAO.java.d/toManyDAO.java")
 
-    final class QuerySetImpl extends SQLiteQuerySet<${Target}> {
+    private final class QuerySetImpl extends SQLiteQuerySet<${Target}> {
 
         @Override
         protected SQLiteDatabase getDb() {
@@ -321,14 +309,11 @@ public class ${Klass} implements DAOSQLite<${Target}> {
             return columns;
         }
 
+        @Override
         protected ${Target} cursorToObject(Cursor cursor) {
             return ${Klass}.this.cursorToObject(cursor, true);
         }
-
     }
 
-#if ( !($manyToManyAssociations.size() == 0) || !($oneToManyAssociations.size() == 0) )
-#parse("DAO.java.d/toManyDAO.java")
-#end
 }
 
