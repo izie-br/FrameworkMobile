@@ -103,80 +103,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #end##if ($association.Nullable)
 #end##foreach ($association in $oneToManyAssociations)
-    public boolean delete(${Target} target) throws IOException {
-        if (${nullPkCondition}) {
-            return false;
-        }
-        SQLiteDatabase db = this.factory.getDb();
-        try {
-            db.beginTransaction();
-#if ($hasNullableAssociation)
-            ContentValues contentValues;
-#end##if_hasNullableAssociation
-#foreach ($relation in $oneToManyAssociations)
-#if ($relation.Nullable)
-            contentValues = new ContentValues();
-            contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
-            db.update(
-                "${relation.Table}", contentValues,
-                "${relation.ForeignKey.LowerAndUnderscores} = ?",
-                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
-           Runnable _${relation.Klass}NullFkThread = null;
-           _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
-           //_${relation.Klass}NullFkThread.start();
 
-#else##association_nullable
-            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
-            for (${relation.Klass} obj: target.get${relation.Pluralized}().all()) {
-                daoFor${relation.Klass}.delete(obj);
-            }
-#end##association_nullable
-#end##foreach_oneToMany
-#foreach ($relation in $manyToManyRelation)
-            db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
-                      new String[] {((${relation.ReferenceKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
-#end##foreach_manyToMany
-            int affected;
-            try {
-                affected = db.delete(
-                    "${table}",
-                    "${queryByPrimaryKey}",
-                    ${primaryKeysArgs});
-            } catch (SQLException e) {
-                throw new IOException(StringUtil.getStackTrace(e));
-            }
-            if (affected == 0) {
-                return false;
-            }
-            db.setTransactionSuccessful();
-#foreach ($relation in $oneToManyAssociations)
-#if ($relation.Nullable)
-            if (_${relation.Klass}NullFkThread != null) {
-                try {
-                    // _${relation.Klass}NullFkThread.join();
-                    _${relation.Klass}NullFkThread.run();
-                } catch (Exception e) {
-                    LogPadrao.e(e);
-                }
-            }
-#end##if ($relation.Nullable)
-#end##foreach ($relation in $oneToManyAssociations)
-        } finally {
-            db.endTransaction();
-        }
-        Serializable pks [] = new Serializable[]{
-#foreach ($field in $primaryKeys)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
-#else##if (!$associationForField[$field])
-            target.${getter[$field]}(),
-#end##if ($associationForField[$field])
-#end##foreach ($key in $primaryKeys)
-        };
-        factory.removeFromCache(${Target}.class, pks);
-        return true;
-    }
+#parse("DAO.java.d/androidDelete.java")
 
 #foreach ($association in $oneToManyAssociations)
     public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
