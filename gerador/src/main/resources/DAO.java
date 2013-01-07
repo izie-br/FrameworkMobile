@@ -299,16 +299,12 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end##has_toManyAssociations
     }
 
-    final class QuerySetImpl
-        extends SQLiteQuerySet<${Target}>
-    {
+    final class QuerySetImpl extends SQLiteQuerySet<${Target}> {
 
         private SQLiteDAOFactory factory;
-        private ${Klass} dao;
 
         protected QuerySetImpl(SQLiteDAOFactory factory) {
             this.factory = factory;
-            this.dao = (${Klass})factory.getDaoFor(${Target}.class);
         }
 
         @Override
@@ -323,15 +319,16 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
         @Override
         protected Table.Column<?> [] getColunas() {
-            return new Table.Column[] {
+            final Table.Column<?>[] columns = {
 #foreach ($field in $fields)
                 ${Target}.${field.UpperAndUnderscores},
 #end
             };
+            return columns;
         }
 
         protected ${Target} cursorToObject(Cursor cursor) {
-            return dao.cursorToObject(cursor, true);
+            return ${Klass}.this.cursorToObject(cursor, true);
         }
 
     }
