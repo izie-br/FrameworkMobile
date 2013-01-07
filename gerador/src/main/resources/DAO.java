@@ -68,7 +68,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
     public QuerySet<${Target}> query(Q q) {
         QuerySet<${Target}> queryset =
-            new QuerySetImpl(this.factory);
+            new QuerySetImpl();
         if (q == null) {
             return queryset;
         }
@@ -301,15 +301,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
     final class QuerySetImpl extends SQLiteQuerySet<${Target}> {
 
-        private SQLiteDAOFactory factory;
-
-        protected QuerySetImpl(SQLiteDAOFactory factory) {
-            this.factory = factory;
-        }
-
         @Override
         protected SQLiteDatabase getDb() {
-            return factory.getDb();
+            return ${Klass}.this.factory.getDb();
         }
 
         @Override
@@ -334,66 +328,7 @@ public class ${Klass} implements DAOSQLite<${Target}> {
     }
 
 #if ( !($manyToManyAssociations.size() == 0) || !($oneToManyAssociations.size() == 0) )
-    private class ${Target}ToManyDAO implements ToManyDAO {
-
-        private $Target target;
-
-        private ${Target}ToManyDAO(${Target} target){
-            this.target = target;
-        }
-
-        @Override
-        public boolean add(Object obj) throws IOException{
-#if (!$hasMutableAssociations)
-            throw new UnsupportedOperationException();
-#else##if (!$hasMutableAssociations)
-#set ($assocIndex = 0)
-#foreach ($association in $oneToManyAssociations)
-#if (!$association.ForeignKey.PrimaryKey)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                objCast.set${Target}(this.target);
-                return factory.getDaoFor(${association.Klass}.class).save(objCast);
-#set ($assocIndex = $assocIndex+1)
-#end##if (!$association.ForeignKey.PrimaryKey)
-#end##foreach_oneToMany
-#foreach ($association in $manyToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                return add${association.Klass}To${Target}(objCast, target);
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_manyToMany
-            } else {
-                throw new IllegalArgumentException(obj.getClass().getName());
-            }
-#end##if (!$hasMutableAssociations)
-        }
-
-        @Override
-        public boolean remove(Object obj) throws IOException {
-#set ($assocIndex = 0)
-#foreach ($association in $oneToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-#if ($association.Nullable)
-                objCast.set${Target}(null);
-                return factory.getDaoFor(${association.Klass}.class).save(objCast);
-#else##if_association_nullabble
-                return factory.getDaoFor(${association.Klass}.class).delete(objCast);
-#end##if_association_nullabble
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_oneToMany
-#foreach ($association in $manyToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                return remove${association.Klass}From${Target}(objCast, target);
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_manyToMany
-            } else {
-                throw new IllegalArgumentException(obj.getClass().getName());
-            }
-        }
-    }
-#end##if_oneToMany_or_manyToMany
+#parse("DAO.java.d/toManyDAO.java")
+#end
 }
 
