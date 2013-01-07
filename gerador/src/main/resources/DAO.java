@@ -79,19 +79,17 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #foreach ($association in $oneToManyAssociations)
 #if ($association.Nullable)
-    private static class ${association.Klass}NullFkThread implements Runnable {
+    private class ${association.Klass}NullFkThread implements Runnable {
 
         ${Target} target;
-        SQLiteDAOFactory factory;
 
-        private ${association.Klass}NullFkThread(SQLiteDAOFactory factory, ${Target} target) {
-            this.factory = factory;
+        private ${association.Klass}NullFkThread(${Target} target) {
             this.target = target;
         }
 
         @Override
         public void run() {
-            Collection<Reference<${association.Klass}>> references = factory.lookupForClass(${association.Klass}.class);
+            Collection<Reference<${association.Klass}>> references = ${Klass}.this.factory.lookupForClass(${association.Klass}.class);
             for (Reference<${association.Klass}> reference : references) {
                 ${association.Klass} obj = (${association.Klass})reference.get();
                 if (obj == null)

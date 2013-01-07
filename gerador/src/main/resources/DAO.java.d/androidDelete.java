@@ -18,8 +18,8 @@
 #**#                "${relation.Table}", contentValues,
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
-#**#           Runnable _${relation.Klass}NullFkThread = null;
-#**#           _${relation.Klass}NullFkThread = new ${relation.Klass}NullFkThread(factory, target);
+#**#           Runnable _${relation.Klass}NullFkThread =
+#**#               new ${relation.Klass}NullFkThread(target);
 #**#           //_${relation.Klass}NullFkThread.start();
 #**#
 #**##else
