@@ -27,30 +27,35 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 import com.quantium.mobile.framework.logging.LogPadrao;
+##
 #if ($manyToOneAssociations.size() > 0)
 import java.lang.reflect.Proxy;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.LazyInvocationHandler;
 #elseif ($hasNotNullableAssociation)
 import com.quantium.mobile.framework.DAO;
-#end##if ($manyToOneAssociations.size() > 0)
+#end
+##
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.db.DAOSQLite;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.ToManyDAO;
+##
 #if ( $hasDateField)
 import java.util.Date;
 import com.quantium.mobile.framework.utils.DateUtil;
-#end##if_hasDateField
+#end
+##
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+##
 #if ($hasNullableAssociation)
 import java.util.Collection;
 import java.lang.ref.Reference;
-#end##if ($hasNullableAssociation)
+#end
 
 public class ${Klass} implements DAOSQLite<${Target}> {
 
@@ -60,46 +65,6 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         this.factory = factory;
     }
 
-#parse("DAO.java.d/androidSave.java")
-
-#parse("DAO.java.d/androidDelete.java")
-
-#foreach ($association in $oneToManyAssociations)
-    public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
-        ${association.ReferenceKey.Type} ${association.ReferenceKey.LowerCamel}
-    ) {
-        return factory.getDaoFor(${association.Klass}.class).query(
-            ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
-    }
-
-#end##foreach ($association in $oneToManyAssociations)
-#foreach ($association in $manyToManyAssociations)
-    public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
-#if ($association.IsThisTableA)
-        ${association.ReferenceA.Type} ${association.ReferenceA.LowerCamel}
-#else
-        ${association.ReferenceB.Type} ${association.ReferenceB.LowerCamel}
-#end
-    ) {
-        return factory.getDaoFor(${association.Klass}.class)
-#if ($association.IsThisTableA)
-            .query(
-                (${association.Klass}.${association.ReferenceB.UpperAndUnderscores}.eq(${Target}._${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}))
-                .and( ${Target}._${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}.eq(${association.ReferenceA.LowerCamel}) ));
-#else
-            .query(
-                (${association.Klass}.${association.ReferenceA.UpperAndUnderscores}.eq(${Target}._${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}))
-                .and( ${Target}._${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}.eq(${association.ReferenceB.LowerCamel}) ));
-#end
-    }
-
-#end##foreach ($association in $oneToManyAssociations)
-##
-##
-#parse("DAO.java.d/androidCursorToObject.java")
-
-#parse("DAO.java.d/mapToObject.java")
-
     @Override
     public String[] getColumns() {
         return new String[] {
@@ -108,6 +73,17 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 #end
         };
     }
+
+#parse("DAO.java.d/androidSave.java")
+
+#parse("DAO.java.d/androidDelete.java")
+
+#parse("DAO.java.d/querySetForAssociations.java")
+##
+##
+#parse("DAO.java.d/androidCursorToObject.java")
+
+#parse("DAO.java.d/mapToObject.java")
 
 #foreach ($association in $manyToManyAssociations)
 #**##parse("DAO.java.d/androidManyToManyHandlers.java")
