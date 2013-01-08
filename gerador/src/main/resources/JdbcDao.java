@@ -81,6 +81,15 @@ public class ${Klass} implements JdbcDao<${Target}> {
         }
     }
 
+    @Override
+    public String[] getColumns() {
+        return new String[] {
+#foreach ($field in $fields)
+            "${field.UpperAndUnderscores}",
+#end
+        };
+    }
+
 #parse("DAO.java.d/jdbcSave.java")
 
 #parse("DAO.java.d/jdbcDelete.java")
@@ -92,14 +101,6 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #parse("DAO.java.d/jdbcCursorToObject.java")
 
 #parse("DAO.java.d/mapToObject.java")
-    @Override
-    public String[] getColumns() {
-        return new String[] {
-#foreach ($field in $fields)
-            "${field.UpperAndUnderscores}",
-#end
-        };
-    }
 
 #parse("DAO.java.d/jdbcManyToManyHandlers.java")
 
