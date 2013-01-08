@@ -8,30 +8,33 @@ import java.util.WeakHashMap;
 import java.sql.*;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
-#if ($manyToOneAssociations.size() > 0)
-import java.lang.reflect.Proxy;
-import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.LazyInvocationHandler;
-#elseif ($hasNotNullableAssociation)
-import com.quantium.mobile.framework.DAO;
-#end##if ($manyToOneAssociations.size() > 0)
 import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.jdbc.JdbcDao;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.ToManyDAO;
-#if ( $hasDateField)
-import java.util.Date;
-import com.quantium.mobile.framework.utils.DateUtil;
-#end##if_hasDateField
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+
 #if ($hasNullableAssociation)
-import java.util.Collection;
-import java.lang.ref.Reference;
-#end##if ($hasNullableAssociation)
+#**#import java.util.Collection;
+#**#import java.lang.ref.Reference;
+#end
+##
+#if ($manyToOneAssociations.size() > 0)
+#**#import java.lang.reflect.Proxy;
+#**#import com.quantium.mobile.framework.DAO;
+#**#import com.quantium.mobile.framework.LazyInvocationHandler;
+#elseif ($hasNotNullableAssociation)
+#**#import com.quantium.mobile.framework.DAO;
+#end
+##
+#if ( $hasDateField)
+#**#import java.util.Date;
+#**#import com.quantium.mobile.framework.utils.DateUtil;
+#end
 
 public class ${Klass} implements JdbcDao<${Target}> {
 
@@ -494,115 +497,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
         return true;
     }
 
-#foreach ($association in $oneToManyAssociations)
-    public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
-        ${association.ReferenceKey.Type} ${association.ReferenceKey.LowerCamel}
-    ) {
-        return factory.getDaoFor(${association.Klass}.class).query(
-            ${association.Klass}.${association.ForeignKey.UpperAndUnderscores}.eq(${association.ReferenceKey.LowerCamel}));
-    }
+#parse("DAO.java.d/querySetForAssociations.java")
 
-#end##foreach ($association in $oneToManyAssociations)
-#foreach ($association in $manyToManyAssociations)
-    public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
-#if ($association.IsThisTableA)
-        ${association.ReferenceA.Type} ${association.ReferenceA.LowerCamel}
-#else
-        ${association.ReferenceB.Type} ${association.ReferenceB.LowerCamel}
-#end
-    ) {
-        return factory.getDaoFor(${association.Klass}.class)
-#if ($association.IsThisTableA)
-            .query(
-                (${association.Klass}.${association.ReferenceB.UpperAndUnderscores}.eq(${Target}._${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}))
-                .and( ${Target}._${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}.eq(${association.ReferenceA.LowerCamel}) ));
-#else
-            .query(
-                (${association.Klass}.${association.ReferenceA.UpperAndUnderscores}.eq(${Target}._${association.JoinTableUpper}_${association.KeyToA.UpperAndUnderscores}))
-                .and( ${Target}._${association.JoinTableUpper}_${association.KeyToB.UpperAndUnderscores}.eq(${association.ReferenceB.LowerCamel}) ));
-#end
-    }
-
-#end##foreach ($association in $oneToManyAssociations)
-
-    @Override
-    public  $Target cursorToObject(ResultSet cursor, boolean useCache){
-#set ($primaryKeyIndex = 0)
-#foreach ($field in $fields)
-#set ($columnIndex = $foreach.count)
-#if ($associationForField[$field])
-#set ($association = $associationForField[$field])
-        Long _${field.LowerCamel};
-        try{
-            _${field.LowerCamel} = cursor.getLong(${columnIndex});
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException(e);
-        }
-        ${association.Klass} _${association.Klass} = null;
-        if (!_${field.LowerCamel}.equals((long)${defaultId})) {
-            Object cacheItem = factory.cacheLookup(
-                ${association.Klass}.class,
-                new Serializable[]{_${field.LowerCamel}});
-            if (cacheItem == null) {
-                LazyInvocationHandler<${association.Klass}> handler =
-                    new LazyInvocationHandler<${association.Klass}>(
-                        factory.getDaoFor(${association.Klass}.class).query(
-                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
-                        _${field.LowerCamel},
-                        "${getter[$field]}");
-                _${association.Klass} = (${association.Klass})Proxy.newProxyInstance(
-                    this.getClass().getClassLoader(),
-                    new Class[]{ ${association.Klass}Editable.class },
-                    handler);
-            } else if (cacheItem instanceof ${association.Klass}) {
-                _${association.Klass} = (${association.Klass})cacheItem;
-            }
-        }
-
-#else##if ($!associationForField[$field])
-        ${field.type} _${field.LowerCamel};
-        try{
-#if ($field.Klass.equals("Date") )
-            Timestamp temp = cursor.getTimestamp(${columnIndex});
-            _${field.LowerCamel} = (temp == null)?
-                null :
-                new Date(temp.getTime());
-#else##if ($associationForField[$field])
-            _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
-#end##if_field.Klass.equals(*)
-        } catch (java.sql.SQLException e) {
-            throw new RuntimeException(e);
-        }
-#end##if ($associationForField[$field])
-#if ($field.PrimaryKey)
-#set ($primaryKeyIndex = $primaryKeyIndex + 1)
-#end##if ($field.PrimaryKey)
-#if ($primaryKeyIndex.equals($primaryKeys.size()))
-        Serializable pks [] = null;
-        if (useCache) {
-            pks = new Serializable[]{
-#foreach ($key in $primaryKeys)
-                 _${key.LowerCamel},
-#end##foreach ($key in $primaryKeys)
-            };
-            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
-            if (cacheItem != null &&
-                (cacheItem instanceof ${Target}))
-            {
-                return (${Target})cacheItem;
-            }
-        }
-#set ($primaryKeyIndex = 0)
-#end##if ($primaryKeyIndex.equals($primaryKeys.size()))
-#end##foreach ($field in $fields)
-
-        ${KlassImpl} target = new ${KlassImpl}(${constructorArgs});
-
-        if (useCache)
-            factory.pushToCache(${Target}.class, pks, target);
-
-        return target;
-    }
+#parse("DAO.java.d/jdbcCursorToObject.java")
 
 #parse("DAO.java.d/mapToObject.java")
     @Override
@@ -684,21 +581,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
     }
 #end##foreach_manyToManyAssociation
 
-    @Override
-    public ToManyDAO with(${Target} obj){
-#set ($hasMutableAssociations = $manyToManyAssociations.size() > 0)
-#foreach ($association in $oneToManyAssociations)
-#if (!$association.ForeignKey.PrimaryKey)
-#set ($hasMutableAssociations = true)
-#break
-#end##if (!$association.KeyToA.PrimaryKey)
-#end##foreach ($association in oneToManyAssociations)
-#if (!$hasMutableAssociations)
-         throw new UnsupportedOperationException();
-#else##has_toManyAssociations
-         return new ${Target}ToManyDAO(obj);
-#end##has_toManyAssociations
-    }
+#parse("DAO.java.d/toManyDAO.java")
 
     final class QuerySetImpl extends JdbcQuerySet<${Target}> {
 
@@ -735,67 +618,5 @@ public class ${Klass} implements JdbcDao<${Target}> {
 
     }
 
-#if ( !($manyToManyAssociations.size() == 0) || !($oneToManyAssociations.size() == 0) )
-    private class ${Target}ToManyDAO implements ToManyDAO {
-
-        private $Target target;
-
-        private ${Target}ToManyDAO(${Target} target){
-            this.target = target;
-        }
-
-        @Override
-        public boolean add(Object obj) throws IOException{
-#if (!$hasMutableAssociations)
-            throw new UnsupportedOperationException();
-#else##if (!$hasMutableAssociations)
-#set ($assocIndex = 0)
-#foreach ($association in $oneToManyAssociations)
-#if (!$association.ForeignKey.PrimaryKey)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                objCast.set${Target}(this.target);
-                return factory.getDaoFor(${association.Klass}.class).save(objCast);
-#set ($assocIndex = $assocIndex+1)
-#end##if (!$association.ForeignKey.PrimaryKey)
-#end##foreach_oneToMany
-#foreach ($association in $manyToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                return add${association.Klass}To${Target}(objCast, target);
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_manyToMany
-            } else {
-                throw new IllegalArgumentException(obj.getClass().getName());
-            }
-#end##if (!$hasMutableAssociations)
-        }
-
-        @Override
-        public boolean remove(Object obj) throws IOException {
-#set ($assocIndex = 0)
-#foreach ($association in $oneToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-#if ($association.Nullable)
-                objCast.set${Target}(null);
-                return factory.getDaoFor(${association.Klass}.class).save(objCast);
-#else##if_association_nullabble
-                return factory.getDaoFor(${association.Klass}.class).delete(objCast);
-#end##if_association_nullabble
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_oneToMany
-#foreach ($association in $manyToManyAssociations)
-           #if ($assocIndex != 0)} else#end if (obj instanceof ${association.Klass}){
-                ${association.Klass} objCast = ((${association.Klass})obj);
-                return remove${association.Klass}From${Target}(objCast, target);
-#set ($assocIndex = $assocIndex+1)
-#end##foreach_manyToMany
-            } else {
-                throw new IllegalArgumentException(obj.getClass().getName());
-            }
-        }
-    }
-#end##if_oneToMany_or_manyToMany
 }
 
