@@ -129,6 +129,9 @@ public class VelocityDaoFactory {
 		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(
 				pks, associationsFromFK,
 				((Long)Constants.DEFAULT_ID).toString() + "L"));
+		//TODO deve executar apenas para gerar daos SQLite
+		ctx.put("primaryKeysArgs", ArgsFactory.getPrimaryKeyArgs(
+				pks, associationsFromFK, getterFactory));
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),

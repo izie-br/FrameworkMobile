@@ -140,15 +140,17 @@ public class ArgsFactory {
 			Map<String,Object> assoc = (Map<String, Object>) associations.get(field);
 			if (assoc != null) {
 				sb.append("((");
-						sb.append(assoc.get("Klass"));
+						sb.append(field.getKlass());
 					sb.append(")target.get");
+					sb.append(assoc.get("Klass"));
+					sb.append("().");
 					Property referenceKey = (Property) assoc.get("ReferenceKey");
-					sb.append(assoc.get(referenceKey.getUpperCamel()));
+					sb.append(getter.get(referenceKey));
 				sb.append("()).toString()");
 			} else {
 				sb.append("((");
 						sb.append(field.getKlass());
-					sb.append(")target.get");
+					sb.append(")target.");
 					sb.append(getter.get(field));
 				sb.append("()).toString()");
 			}
