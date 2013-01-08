@@ -75,3 +75,29 @@
         factory.removeFromCache(${Target}.class, pks);
         return true;
     }
+#foreach ($association in $oneToManyAssociations)
+#**##if ($association.Nullable)
+#**#
+#**#    private class ${association.Klass}NullFkThread implements Runnable {
+#**#
+#**#        ${Target} target;
+#**#
+#**#        private ${association.Klass}NullFkThread(${Target} target) {
+#**#            this.target = target;
+#**#        }
+#**#
+#**#        @Override
+#**#        public void run() {
+#**#            Collection<Reference<${association.Klass}>> references = ${Klass}.this.factory.lookupForClass(${association.Klass}.class);
+#**#            for (Reference<${association.Klass}> reference : references) {
+#**#                ${association.Klass} obj = (${association.Klass})reference.get();
+#**#                if (obj == null)
+#**#                    continue;
+#**#                if (target.equals(obj.get${Target}()) )
+#**#                    obj.set${Target}(null);
+#**#            }
+#**#        }
+#**#
+#**#    }
+#**##end
+#end
