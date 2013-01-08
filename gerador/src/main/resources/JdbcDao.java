@@ -83,20 +83,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 
 #parse("DAO.java.d/jdbcSave.java")
 
-    public QuerySet<${Target}> query() {
-        return query(null);
-    }
-
-    public QuerySet<${Target}> query(Q q) {
-        QuerySet<${Target}> queryset =
-            new QuerySetImpl(this.factory);
-        if (q == null) {
-            return queryset;
-        }
-        return queryset.filter(q);
-    }
-
 #parse("DAO.java.d/jdbcDelete.java")
+
+#parse("DAO.java.d/jdbcQuery.java")
 
 #parse("DAO.java.d/querySetForAssociations.java")
 
@@ -183,41 +172,6 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #end##foreach_manyToManyAssociation
 
 #parse("DAO.java.d/toManyDAO.java")
-
-    final class QuerySetImpl extends JdbcQuerySet<${Target}> {
-
-        private JdbcDAOFactory factory;
-        private ${Klass} dao;
-
-        protected QuerySetImpl(JdbcDAOFactory factory) {
-            this.factory = factory;
-            this.dao = (${Klass})factory.getDaoFor(${Target}.class);
-        }
-
-        @Override
-        protected Connection getConnection() {
-            return factory.getConnection();
-        }
-
-        @Override
-        public Table getTable() {
-            return ${Target}._TABLE;
-        }
-
-        @Override
-        protected Table.Column<?> [] getColunas() {
-            return new Table.Column[] {
-#foreach ($field in $fields)
-                ${Target}.${field.UpperAndUnderscores},
-#end
-            };
-        }
-
-        protected ${Target} cursorToObject(ResultSet cursor) {
-            return dao.cursorToObject(cursor, true);
-        }
-
-    }
 
 }
 
