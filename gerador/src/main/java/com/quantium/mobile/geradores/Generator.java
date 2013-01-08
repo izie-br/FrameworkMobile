@@ -27,6 +27,8 @@ import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
 public class Generator {
 
+	private static final boolean VELOCITY_PERFORMANCE_PARAMS = true;
+
 	private GeneratorConfig projectInformation;
 	private InputParser inputParser;
 
@@ -238,6 +240,25 @@ public class Generator {
 		ve.setProperty(RuntimeConstants.RESOURCE_LOADER, "class");
 		ve.setProperty("class.resource.loader.class",
 				"org.apache.velocity.runtime.resource.loader.ClasspathResourceLoader");
+
+		/*
+		 * parametros para otimizacao da performance
+		 */
+		if (VELOCITY_PERFORMANCE_PARAMS){
+			/*
+			 * Impede reload da bibioteca de macros do velocity
+			 * O valor padrao ja parece ser false
+			 * Redefini apenas para reforcar
+			 */
+			ve.setProperty("velocimacro.library.autoreload", false);
+			/*
+			 *   Os templates nao serao alterados durante execucao do plugin,
+			 * logo, deve-se usar cache e nao conferir  mais por modificacoes
+			 */
+			ve.setProperty("class.resource.loader.cache", true);
+			ve.setProperty("class.resource.loader.modificationCheckInterval", "-1");
+		}
+
 		ve.init();
 		return ve;
 	}
