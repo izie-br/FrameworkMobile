@@ -26,14 +26,26 @@ import static com.quantium.mobile.geradores.velocity.Utils.*;
 public class VelocityDaoFactory {
 
 	public enum Type {
+
 		ANDROID, JDBC;
 
-		public String getTemplateName(){
+		public String getTemplateName() {
 			switch (this) {
 			case ANDROID:
 				return "DAO.java";
 			case JDBC:
 				return "JdbcDao.java";
+			default:
+				throw new RuntimeException();
+			}
+		}
+
+		public String getSuffix() {
+			switch (this) {
+			case ANDROID:
+				return "DAOSQLite";
+			case JDBC:
+				return "JdbcDAO";
 			default:
 				throw new RuntimeException();
 			}
@@ -62,31 +74,21 @@ public class VelocityDaoFactory {
 		//parentCtx.put("basePackage", basePackage);
 	}
 
-	public void generateDAOImplementationClasses(
-			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
-			throws IOException
-	{
-		generate(schema, "DAOSQLite",
-		         CamelCaseUtils.toUpperCamelCase(schema.getNome())+"DAO",
-		         true, allSchemas);
-	}
-
-	public void generate(JavaBeanSchema schema, String suffix,
-	                      String base, boolean implementation,
-	                      Collection<JavaBeanSchema> allSchemas)
+	public void generate(
+			JavaBeanSchema schema,
+			Collection<JavaBeanSchema> allSchemas)
 			throws IOException
 	{
 		if (schema.isNonEntityTable())
 			return;
 		String targetclass = CamelCaseUtils.toUpperCamelCase(schema.getNome());
-		String classname = targetclass + suffix;
+		String classname = targetclass + this.type.getSuffix();
 		String filename = classname + ".java";
 		File file = new File(targetDirectory, filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Klass", classname);
 		ctx.put("EditableInterface", targetclass + "Editable");
 		ctx.put("KlassImpl", targetclass + "Impl");
-		ctx.put("BaseClass", base);
 		ctx.put("Target", targetclass);
 		ctx.put("table", schema.getTabela().getNome());
 		List<Property> fields = new ArrayList<Property>();
