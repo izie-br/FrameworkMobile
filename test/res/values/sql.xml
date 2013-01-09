@@ -37,10 +37,11 @@ CREATE TABLE tb_customer_join_document (
     <string name="db_versao_2">
 ALTER TABLE tb_score RENAME TO tb_score_tmp;
 CREATE TABLE tb_score (
+	_id integer NOT NULL,
     id_author integer NOT NULL,
     id_document integer NOT NULL,
     score integer DEFAULT 0,
-    PRIMARY KEY(id_author,id_document)
+    PRIMARY KEY(_id)
 );
 INSERT INTO tb_score (id_author, id_document, score)
     SELECT id_author, id_document, score FROM tb_score_tmp
