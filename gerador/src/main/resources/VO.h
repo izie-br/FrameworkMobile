@@ -1,9 +1,7 @@
 #foreach ($field in $fields)
 #if ( $field.Klass.equals("Date") )
 #set ($haveDateField = true)
-#if ($primaryKeys.contains($field))
-#set ($hasDatePK = true)
-#end##if ($primaryKeys.contains($field))
+#break
 #end##if ( $field.Klass.equals("Date") )
 #end##foreach ($field in $fields)
 ##
@@ -92,15 +90,15 @@
 #else##if !($field.Type.equals("long") || $field.Type.equals("boolean") || $field.Type.equals("double"))
       [self ${getter[$field]}];
 #end##if ($associationForField[$field])
-#if ($primaryKeys.contains($field) || $associationForField[$field])
+#if ($field.PrimaryKey || $associationForField[$field])
   if (! _${field.LowerCamel}.equals(${defaultId})) {
     [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
   }
 
-#else##if !($primaryKeys.contains($field))
+#else##if !($field.PrimaryKey)
   [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
 
-#end##if ($primaryKeys.contains($field))
+#end##if ($field.PrimaryKey)
 #end##foreach ($field in $fields)
 }
 #end##if ($Interface)
@@ -196,8 +194,8 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 
 #end##if (generate_getter)
 #if ( (!$associationForField[$field] && ($Interface || $Implementation) ) ||
-      (!$EditableProtocol && $field.Set && !$primaryKeys.contains($field)) ||
-      ($primaryKeys.contains($field) && $EditableProtocol && !$associationForField[$field]) )
+      (!$EditableProtocol && $field.Set && !$field.PrimaryKey) ||
+      ($field.PrimaryKey && $EditableProtocol && !$associationForField[$field]) )
 #if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 - (void) set${field.UpperCamel}With${J2ObjcType[$field]}: (${J2ObjcType[$field]}*) new${field.UpperCamel} #if ($Implementation) {
     [[self ${field.LowerCamel}] = new${field.LowerCamel}];
@@ -219,7 +217,7 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 
 
 #end##if ($Protocol || $Interface || $Implementation)
-#if ( (!$primaryKeys.contains($association.ForeignKey) && $Protocol) ||
+#if ( (!$association.ForeignKey.PrimaryKey && $Protocol) ||
       $Interface || $Implementation || $EditableProtocol )
 - (void) set${association.Klass}With${package}${association.Klass}: (id<${package}${association.Klass}>)new${association.Klass} #if ($Implementation) {
         [[self _${association.Klass}] = new${association.Klass}];

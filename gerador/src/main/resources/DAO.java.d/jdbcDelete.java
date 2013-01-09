@@ -40,26 +40,7 @@
             stm = getStatement("DELETE FROM ${table} WHERE ${queryByPrimaryKey}");
             int affected;
             try {
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#                stm.set${field.Klass}(
-#******#                        ${foreach.count},
-#******#                        (target.get${association.Klass}() == null) ?
-#******#                            0 :
-#******#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##else
-#******##if ($field.Klass.equals("Date") )
-#******#                stm.setTimestamp(
-#******#                        ${foreach.count},
-#******#                        (target.${getter[$field]}() == null) ?
-#******#                            null :
-#******#                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
-#******##else
-#******#                 stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
-#******##end
-#**##end
-#end
+                stm.setLong(1, target.${getter[$primaryKey]}());
                 affected = stm.executeUpdate();
             } catch (java.sql.SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));
@@ -83,14 +64,7 @@
             //db.endTransaction();
         }
         Serializable pks [] = new Serializable[]{
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
-#**##else
-#******#            target.${getter[$field]}(),
-#**##end
-#end
+            target.${getter[$primaryKey]}(),
         };
         factory.removeFromCache(${Target}.class, pks);
         return true;

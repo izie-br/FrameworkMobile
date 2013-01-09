@@ -110,9 +110,6 @@ public class VelocityDaoFactory {
 		}
 		ctx.put("fields", fields);
 		ctx.put("primaryKey", primaryKey);
-		ArrayList<Property> pks = new ArrayList<Property>();
-		pks.add(primaryKey);
-		ctx.put("primaryKeys", pks);
 
 		ArrayList<Object> oneToMany = new ArrayList<Object>();
 		ArrayList<Object> manyToMany = new ArrayList<Object>();
@@ -143,6 +140,10 @@ public class VelocityDaoFactory {
 
 		GetterHelper getterHelper = new GetterHelper();
 		ctx.put("getter", getterHelper);
+
+		// remover tudo isso ou enviar para helper
+		ArrayList<Property> pks = new ArrayList<Property>();
+		pks.add(primaryKey);
 		ctx.put("queryByPrimaryKey", ArgsFactory.getPrimaryKeyQuery(
 				pks, associationsFromFK));
 		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(

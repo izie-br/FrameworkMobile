@@ -63,14 +63,7 @@
             db.endTransaction();
         }
         Serializable pks [] = new Serializable[]{
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
-#**##else
-#******#            target.${getter[$field]}(),
-#**##end
-#end
+            target.${getter[$primaryKey]}()
         };
         factory.removeFromCache(${Target}.class, pks);
         return true;

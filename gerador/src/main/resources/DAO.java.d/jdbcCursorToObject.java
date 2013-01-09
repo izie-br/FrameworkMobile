@@ -56,13 +56,11 @@
 #******##set ($primaryKeyIndex = $primaryKeyIndex + 1)
 #**##end
 #**###
-#**##if ($primaryKeyIndex.equals($primaryKeys.size()))
+#**##if ($primaryKeyIndex.equals(1))
 #******#        Serializable pks [] = null;
 #******#        if (useCache) {
 #******#            pks = new Serializable[]{
-#******##foreach ($key in $primaryKeys)
-#******#                 _${key.LowerCamel},
-#******##end
+#******#                 _${primaryKey.LowerCamel},
 #******#            };
 #******#            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
 #******#            if (cacheItem != null &&

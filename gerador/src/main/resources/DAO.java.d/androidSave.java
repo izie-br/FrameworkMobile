@@ -11,7 +11,7 @@
 #******##set ($association = $associationForField[$field])
 #******#        contentValues.put("${field.LowerAndUnderscores}",
 #******#                          (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##elseif (!$primaryKey.equals($field))
+#**##elseif (!$field.PrimaryKey)
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",
 #******#                          DateUtil.timestampToString(target.${getter[$field]}()));
@@ -37,14 +37,7 @@
             cursor.close();
         }
         Serializable pks [] = new Serializable[]{
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
-#**##else
-#******#            target.${getter[$field]}(),
-#**##end
-#end
+            target.${getter[$primaryKey]}()
         };
         if (insert) {
             if (insertIfNotExists) {

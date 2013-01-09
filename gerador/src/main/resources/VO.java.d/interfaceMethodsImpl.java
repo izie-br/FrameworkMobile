@@ -12,7 +12,7 @@
 #******##set ($association = $associationForField[$field])
 #******#        $field.Type $field.LowerCamel = (_${association.Klass} == null)? 0 : _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
 #**##end
-#**##if ($primaryKeys.contains($field) || $association)
+#**##if ($field.PrimaryKey || $association)
 #******#        if (${field.LowerCamel} != ${defaultId}) {
 #******#            map.put("${alias}", ${field.LowerCamel});
 #******#        }

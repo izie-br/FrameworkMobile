@@ -19,7 +19,7 @@
 #******##set ($alias = $field.LowerCamel)
 #**##end
 #**###
-#**##if ($primaryKeys.contains($field))
+#**##if ($field.PrimaryKey)
 #******##set ($fallback = $defaultId)
 #**##elseif (${field.Klass} == "Long" || ${field.Klass} == "Double")
 #******##set ($fallback = "0")

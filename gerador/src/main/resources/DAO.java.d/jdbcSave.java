@@ -10,18 +10,7 @@
         if (insertIfNotExists){
             try {
                 PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#                stm.setLong(
-#******#                    ${foreach.count},
-#******#                    (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##elseif (!$field.Klass.equals("Date"))
-#******#                stm.set${field.Klass}(${foreach.count}, target.${getter[$field]}());
-#**##else
-#******#                #primary key ${field.Klass}
-#**##end
-#end
+                stm.setLong(1, target.${getter[$primaryKey]}());
                 ResultSet rs = stm.executeQuery();
                 insert = rs.next() && rs.getLong(1) == 0L;
                 rs.close();
@@ -30,14 +19,7 @@
             }
         }
         Serializable pks [] = new Serializable[]{
-#foreach ($field in $primaryKeys)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}(),
-#**##else
-#******#            target.${getter[$field]}(),
-#**##end
-#end
+            target.${getter[$primaryKey]}(),
         };
         if (insert) {
             long value;
@@ -47,25 +29,27 @@
                     stm = getStatement(
                             "INSERT INTO ${table} (" +
 #foreach ($field in $fields)
-#**##if (!$primaryKeys.contains($field))
+#**##if (!$field.PrimaryKey)
 #**#                                "${field.LowerAndUnderscores}" + "," +
 #**##end
 #end
 ##
-#foreach ($field in $primaryKeys)
-                                "${field.LowerAndUnderscores}" +#if ($foreach.count < $primaryKeys.size()) "," +#end
+                                "${primaryKey.LowerAndUnderscores}" +
 
-#end
+############################ A linha abaixo produz por exemplo,
+############################ ") VALUES (?,?,?)"
+############################ para um bean com o id e mais 3 campos
+##
                             ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $fields.size()),#else)#end#end");
                 }
                 else
                 {
                     stm = getStatement(
                             "INSERT INTO ${table} (" +
-#set ($argCount = $fields.size() - $primaryKeys.size())
+#set ($argCount = $fields.size() - 1)
 #set ($argIndex = 0)
 #foreach ($field in $fields)
-#**##if (!$primaryKeys.contains($field))
+#**##if (!$field.PrimaryKey)
 #******##set ($argIndex = $argIndex + 1)
 #******#                                "${field.LowerAndUnderscores}" +#if ($argIndex < $argCount ) "," +#end
 #******#
@@ -76,7 +60,7 @@
 
 #set ($argIndex = 0)
 #foreach ($field in $fields)
-#**##if (!$primaryKeys.contains($field))
+#**##if (!$field.PrimaryKey)
 #******##set ($argIndex = $argIndex + 1)
 #******##if ($associationForField[$field])
 #**********##set ($association = $associationForField[$field])
@@ -85,7 +69,7 @@
 #**********#                        (target.get${association.Klass}() == null) ?
 #**********#                            0 :
 #**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#******##elseif (!$primaryKey.equals($field))
+#******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(
 #**********#                        ${argIndex},
@@ -100,27 +84,8 @@
 #end
 ##
                 if (insertIfNotExists) {
-#foreach ($field in $primaryKeys)
-#**##set ($argIndex = $argIndex + 1)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#                    stm.set${field.Klass}(
-#******#                            ${argIndex},
-#******#                            (target.get${association.Klass}() == null) ?
-#******#                                0 :
-#******#                                target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##else
-#******##if ($field.Klass.equals("Date") )
-#******#                    stm.setTimestamp(
-#******#                            ${argIndex},
-#******#                            (target.${getter[$field]}() == null) ?
-#******#                                null :
-#******#                                new java.sql.Timestamp(target.${getter[$field]}().getTime()));
-#******##else
-#******#                    stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
-#******##end
-#**##end
-#end
+#set ($argIndex = $argIndex + 1)
+                    stm.setLong(${argIndex}, target.${getter[$primaryKey]}());
                 }
                 int qty = stm.executeUpdate();
                 if (qty != 1) {
@@ -170,10 +135,10 @@
                 PreparedStatement stm = getStatement(
                         "UPDATE ${table} SET " +
 ##
-#set ($argCount = $fields.size() - $primaryKeys.size())
+#set ($argCount = $fields.size() - 1)
 #set ($argIndex = 0)
 #foreach ($field in $fields)
-#**##if (!$primaryKeys.contains($field))
+#**##if (!$field.PrimaryKey)
 #******##set ($argIndex = $argIndex + 1)
 #******#                            "${field.LowerAndUnderscores}=?" +#if ($argIndex < $argCount) ", " +#end
 #******#
@@ -183,7 +148,7 @@
 ##
 #set ($argIndex = 0)
 #foreach ($field in $fields)
-#**##if (!$primaryKeys.contains($field))
+#**##if (!$field.PrimaryKey)
 #******##set ($argIndex = $argIndex + 1)
 #******##if ($associationForField[$field])
 #**********##set ($association = $associationForField[$field])
@@ -192,7 +157,7 @@
 #**********#                        (target.get${association.Klass}() == null) ?
 #**********#                            0 :
 #**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#******##elseif (!$primaryKey.equals($field))
+#******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(
 #**********#                        ${argIndex},
@@ -206,27 +171,8 @@
 #**##end
 #end
 ##
-#foreach ($field in $primaryKeys)
-#**##set ($argIndex = $argIndex + 1)
-#**##if ($associationForField[$field])
-#******##set ($association = $associationForField[$field])
-#******#                stm.set${field.Klass}(
-#******#                        ${argIndex},
-#******#                        (target.get${association.Klass}() == null) ?
-#******#                            0 :
-#******#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##else
-#******##if ($field.Klass.equals("Date") )
-#******#                stm.setTimestamp(
-#******#                        ${argIndex},
-#******#                        (target.${getter[$field]}() == null) ?
-#******#                            null :
-#******#                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
-#******##else
-#******#                 stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
-#******##end
-#**##end
-#end
+#set ($argIndex = $argIndex + 1)
+                stm.setLong(${argIndex}, target.${getter[$primaryKey]}());
                 int value = stm.executeUpdate();
                 if (value == 1) {
                     factory.pushToCache(${Target}.class, pks, target);

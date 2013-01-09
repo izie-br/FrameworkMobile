@@ -7,8 +7,8 @@
 #******#
 #**##end
 #**##if ( (!$associationForField[$field] && $implementation) ||
-          (!$editableInterface && $field.Set && !$primaryKeys.contains($field)) ||
-          ($primaryKeys.contains($field) && $editableInterface && !$associationForField[$field])
+          (!$editableInterface && $field.Set && !$field.PrimaryKey) ||
+          ($field.PrimaryKey && $editableInterface && !$associationForField[$field])
         )
 #******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
 #******#        this.${field.LowerCamel} = ${field.LowerCamel};
@@ -26,8 +26,6 @@
 #******#    }#else;#end
 #******#
 #******#
-#**##end
-#**##if (!$primaryKeys.contains($association.ForeignKey) || $implementation || $editableInterface )
 #******#    public void set${association.Klass}(${association.Klass} obj) #if ($implementation) {
 #******#        _${association.Klass} = obj;
 #******#    }#else;#end
