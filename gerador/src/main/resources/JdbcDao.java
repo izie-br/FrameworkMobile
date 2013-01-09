@@ -47,7 +47,7 @@ public class ${Klass} implements JdbcDao<${Target}> {
         this.factory = factory;
     }
 
-    private class StatementCacheStruct {
+    private static class StatementCacheStruct {
         Connection connection;
         PreparedStatement statement;
         boolean lock;

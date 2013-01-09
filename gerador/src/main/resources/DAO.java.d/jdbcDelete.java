@@ -17,8 +17,8 @@
 #**#            } catch (java.sql.SQLException e) {
 #**#                throw new RuntimeException(StringUtil.getStackTrace(e));
 #**#            }
-#**#            Runnable _${association.Klass}NullFkThread = null;
-#**#            _${association.Klass}NullFkThread = new ${association.Klass}NullFkThread(factory, target);
+#**#            Runnable _${association.Klass}NullFkThread =
+#**#                    new ${association.Klass}NullFkThread(target);
 #**#            //_${association.Klass}NullFkThread.start();
 #**##else
 #**#            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>)factory.getDaoFor(${association.Klass}.class);
@@ -99,19 +99,18 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($association.Nullable)
 #**#
-#**#    private static class ${association.Klass}NullFkThread implements Runnable {
+#**#    private class ${association.Klass}NullFkThread implements Runnable {
 #**#
 #**#        ${Target} target;
-#**#        JdbcDAOFactory factory;
 #**#
-#**#        private ${association.Klass}NullFkThread(JdbcDAOFactory factory, ${Target} target) {
-#**#            this.factory = factory;
+#**#        private ${association.Klass}NullFkThread(${Target} target) {
 #**#            this.target = target;
 #**#        }
 #**#
 #**#        @Override
 #**#        public void run() {
-#**#            Collection<Reference<${association.Klass}>> references = factory.lookupForClass(${association.Klass}.class);
+#**#            Collection<Reference<${association.Klass}>> references =
+#**#                    ${Klass}.this.factory.lookupForClass(${association.Klass}.class);
 #**#            for (Reference<${association.Klass}> reference : references) {
 #**#                ${association.Klass} obj = (${association.Klass})reference.get();
 #**#                if (obj == null)
