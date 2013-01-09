@@ -1,0 +1,277 @@
+{
+  "id": "21",
+  "projectName": "AndroidTest",
+  "packageList": [
+    {
+      "id": "21",
+      "name": "Commom",
+      "isLibrary": "0",
+      "classList": [
+        {
+          "id": "21",
+          "name": "Author",
+          "isAbstractt": "0",
+          "label": "Autor",
+          "parentClass": "",
+          "databaseTable": "",
+          "primaryKey": "",
+          "sequence": "",
+          "databaseSchema": "",
+          "hasHistory": "1",
+          "hasForm": "1",
+          "hasList": "1",
+          "attributeList": [
+            {
+              "id": "21",
+              "name": "name",
+              "type": "String",
+              "isHiddenField": "0",
+              "label": "name",
+              "formElement": "",
+              "min": "5",
+              "max": "79",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            },
+            {
+              "id": "22",
+              "name": "createdAt",
+              "type": "Date",
+              "isHiddenField": "0",
+              "label": "createdAt",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            },
+            {
+              "id": "24",
+              "name": "active",
+              "type": "Boolean",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "0",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            }
+          ],
+          "fromAssociationList": [
+            {
+              "id": "1023",
+              "type": "1..n",
+              "from": "21",
+              "to": "22"
+            },
+            {
+              "id": "1024",
+              "type": "1..n",
+              "from": "21",
+              "to": "23"
+            }
+          ],
+          "toAssociationList": [
+            {
+              "id": "1026",
+              "type": "1..1",
+              "from": "22",
+              "to": "21"
+            }
+          ]
+        },
+        {
+          "id": "22",
+          "name": "Document",
+          "isAbstractt": "0",
+          "label": "Document",
+          "parentClass": "",
+          "databaseTable": "",
+          "primaryKey": "",
+          "sequence": "",
+          "databaseSchema": "",
+          "hasHistory": "1",
+          "hasForm": "1",
+          "hasList": "1",
+          "attributeList": [
+            {
+              "id": "26",
+              "name": "text",
+              "type": "String",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            },
+            {
+              "id": "28",
+              "name": "createdAt",
+              "type": "Date",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            },
+            {
+              "id": "27",
+              "name": "title",
+              "type": "String",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            }
+          ],
+          "fromAssociationList": [
+            {
+              "id": "1025",
+              "type": "1..n",
+              "from": "22",
+              "to": "23"
+            },
+            {
+              "id": "1026",
+              "type": "1..1",
+              "from": "22",
+              "to": "21"
+            }
+          ],
+          "toAssociationList": [
+            {
+              "id": "1023",
+              "type": "1..n",
+              "from": "21",
+              "to": "22"
+            },
+            {
+              "id": "1022",
+              "type": "n..n",
+              "from": "24",
+              "to": "22"
+            }
+          ]
+        },
+        {
+          "id": "23",
+          "name": "Score",
+          "isAbstractt": "0",
+          "label": "Score",
+          "parentClass": "",
+          "databaseTable": "",
+          "primaryKey": "",
+          "sequence": "",
+          "databaseSchema": "",
+          "hasHistory": "1",
+          "hasForm": "1",
+          "hasList": "1",
+          "attributeList": [
+            {
+              "id": "25",
+              "name": "score",
+              "type": "Long",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "0",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            }
+          ],
+          "toAssociationList": [
+            {
+              "id": "1025",
+              "type": "1..n",
+              "from": "22",
+              "to": "23"
+            },
+            {
+              "id": "1024",
+              "type": "1..n",
+              "from": "21",
+              "to": "23"
+            }
+          ]
+        },
+        {
+          "id": "24",
+          "name": "Customer",
+          "isAbstractt": "0",
+          "label": "",
+          "parentClass": "",
+          "databaseTable": "",
+          "primaryKey": "",
+          "sequence": "",
+          "databaseSchema": "",
+          "hasHistory": "1",
+          "hasForm": "1",
+          "hasList": "1",
+          "attributeList": [
+            {
+              "id": "29",
+              "name": "name",
+              "type": "String",
+              "isHiddenField": "0",
+              "label": "",
+              "formElement": "",
+              "min": "",
+              "max": "",
+              "validationRegex": "",
+              "isUnique": "0",
+              "isRequired": "1",
+              "isEntityIdentifier": "0",
+              "isStateMachineAttribute": "0",
+              "databaseColumn": ""
+            }
+          ],
+          "fromAssociationList": [
+            {
+              "id": "1022",
+              "type": "n..n",
+              "from": "24",
+              "to": "22"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
