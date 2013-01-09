@@ -68,22 +68,41 @@ public class SqlTabelaSchemaFactory {
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
 			int primaryKeyCount = 0;
 			for(ColumnDefinition colunaDefinition :  columnDefinitions){
+
+				// nome da coluna
 				String nomeColuna = colunaDefinition.getColumnName().toLowerCase();
+
+				//tipo
 				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(
 						colunaDefinition.getColDataType().getDataType()
 				);
+
+				//constraints da coluna
 				@SuppressWarnings("unchecked")
 				List<String> constraints = extractColumnConstraints(
 						colunaDefinition, ct.getIndexes()
 				);
-				if( constraints.contains(TabelaSchema.PRIMARY_KEY_CONSTRAINT) ) {
-					primaryKeyCount++;
-				}
 				String arrConstraints [] = new String[constraints.size()];
 				constraints.toArray(arrConstraints);
+
 				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna, arrConstraints);
-				tabela = tabelaBuilder.get();
+
+				//contagem e validacao de chaves primarias
+				if( constraints.contains(TabelaSchema.PRIMARY_KEY_CONSTRAINT) ) {
+					if (primaryKeyCount >= 1) {
+						throw new RuntimeException(
+								tabela.getNome() +
+								" sem tem mais de uma primary key");
+					}
+					if (tipoColuna != Long.class){
+						throw new RuntimeException(
+								tabela.getNome() +
+								" sem tem primarykey NON-INTEGER");
+					}
+					primaryKeyCount++;
+				}
 			}
+			tabela = tabelaBuilder.get();
 			if(primaryKeyCount==0){
 				throw new RuntimeException(tabela.getNome()+" sem primary key");
 			}
@@ -117,7 +136,7 @@ public class SqlTabelaSchemaFactory {
 		
 	}
 
-	private List<String> extractColumnConstraints(
+	private static List<String> extractColumnConstraints(
 			ColumnDefinition colunaDefinition,
 			List<Index> indexes
 	) {
@@ -127,6 +146,7 @@ public class SqlTabelaSchemaFactory {
 				findConstraint(specStrings, TabelaSchema.PRIMARY_KEY_CONSTRAINT);
 		// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
 		boolean isPrimaryKey = (indexOfPrimaryKeyConstraint >= 0);
+		// refatorar
 		for(int i = 0; indexes!=null && i < indexes.size(); i++){
 			Index index = (Index)indexes.get(i);
 			isPrimaryKey = isPrimaryKey || (
@@ -146,7 +166,7 @@ public class SqlTabelaSchemaFactory {
 		return constraints;
 	}
 
-	private int findConstraint (List<String> specStrings, String constrt) {
+	private static int findConstraint (List<String> specStrings, String constrt) {
 		if (specStrings == null || constrt == null)
 			return -1;
 		String[] keyStrings = constrt.split("\\s+");
@@ -203,7 +223,7 @@ public class SqlTabelaSchemaFactory {
 		// fim da declaracao da coluna
 		// note que esta regex nao inclui a virgula ou fechamento de parenteses
 
-private String tratarSchema(String schema) {
+private static String tratarSchema(String schema) {
 	for(String regex : REMOVER){
 		Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
 		Matcher mobj = pat.matcher(schema);
