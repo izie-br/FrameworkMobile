@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
+import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 
 public class ArgsFactory {
 
@@ -129,7 +130,7 @@ public class ArgsFactory {
 
 	public static String getPrimaryKeyArgs(
 			Collection<Property> pks, Map<Property, Object> associations,
-			GetterFactory getter)
+			GetterHelper getter)
 	{
 		StringBuilder sb = new StringBuilder();
 		sb.append("new String[]{");

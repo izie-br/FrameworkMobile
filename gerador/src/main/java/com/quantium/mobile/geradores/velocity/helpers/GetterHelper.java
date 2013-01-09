@@ -1,8 +1,8 @@
-package com.quantium.mobile.geradores.velocity;
+package com.quantium.mobile.geradores.velocity.helpers;
 
 import com.quantium.mobile.geradores.javabean.Property;
 
-public class GetterFactory {
+public class GetterHelper {
 
 	public String get(Property prop){
 		if (prop.getKlass().equals(Boolean.class.getSimpleName()))

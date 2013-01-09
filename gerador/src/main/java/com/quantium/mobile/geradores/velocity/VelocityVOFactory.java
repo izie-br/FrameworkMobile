@@ -22,6 +22,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
 
@@ -42,7 +43,7 @@ public class VelocityVOFactory {
 		this.parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		this.parentCtx.put("package", genPackage);
 		this.parentCtx.put("basePackage", basePackage);
-		this.parentCtx.put("getter", new GetterFactory());
+		this.parentCtx.put("getter", new GetterHelper());
 		this.aliases = serializationAliases;
 	}
 

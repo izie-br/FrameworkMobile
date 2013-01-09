@@ -19,6 +19,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
 
@@ -122,8 +123,8 @@ public class VelocityDaoFactory {
 		ctx.put("constructorArgs", ArgsFactory.getConstructorArguments(
 				schema, fields, associationsFromFK, toMany));
 
-		GetterFactory getterFactory = new GetterFactory();
-		ctx.put("getter", getterFactory);
+		GetterHelper getterHelper = new GetterHelper();
+		ctx.put("getter", getterHelper);
 		ctx.put("queryByPrimaryKey", ArgsFactory.getPrimaryKeyQuery(
 				pks, associationsFromFK));
 		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(
@@ -131,7 +132,7 @@ public class VelocityDaoFactory {
 				((Long)Constants.DEFAULT_ID).toString() + "L"));
 		//TODO deve executar apenas para gerar daos SQLite
 		ctx.put("primaryKeysArgs", ArgsFactory.getPrimaryKeyArgs(
-				pks, associationsFromFK, getterFactory));
+				pks, associationsFromFK, getterHelper));
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
