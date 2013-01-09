@@ -117,8 +117,7 @@ public class Generator {
 		if (propertyVersion == (int)dbVersion)
 			return;
 
-		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(
-				null, projectInformation, defaultProperties);
+		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(projectInformation, defaultProperties);
 
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =

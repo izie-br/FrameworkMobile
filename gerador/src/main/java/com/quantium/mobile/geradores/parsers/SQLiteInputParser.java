@@ -50,8 +50,7 @@ public class SQLiteInputParser implements InputParser {
 	 * @throws IOException
 	 */
 	@Override
-	public Collection<JavaBeanSchema> getSchemas(File inputFile,
-			GeneratorConfig information,
+	public Collection<JavaBeanSchema> getSchemas(GeneratorConfig information,
 			Map<String, Object> defaultProperties) throws GeradorException {
 		Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
 
