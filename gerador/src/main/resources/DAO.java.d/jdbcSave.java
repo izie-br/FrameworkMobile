@@ -5,18 +5,9 @@
 
     @Override
     public boolean save($Target target, int flags) throws IOException {
-#if ($compoundPk)
-        if (${nullPkCondition}) {
-            return false;
-        }
-#end
-        boolean insert;
-#if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
-        insert = target.${getter[$primaryKey]}() == ${defaultId};
-        if (insertIfNotExists)
-#end
-        {
+        boolean insert = target.${getter[$primaryKey]}() == ${defaultId};
+        if (insertIfNotExists){
             try {
                 PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
 #foreach ($field in $primaryKeys)
@@ -52,7 +43,7 @@
             long value;
             try{
                 PreparedStatement stm;
-                #if (!$compoundPk)if (insertIfNotExists) #end{
+                if (insertIfNotExists) {
                     stm = getStatement(
                             "INSERT INTO ${table} (" +
 #foreach ($field in $fields)
@@ -67,24 +58,22 @@
 #end
                             ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $fields.size()),#else)#end#end");
                 }
-#if (!$compoundPk)
-#**#                else
-#**#                {
-#**#                    stm = getStatement(
-#**#                            "INSERT INTO ${table} (" +
-#**##set ($argCount = $fields.size() - $primaryKeys.size())
-#**##set ($argIndex = 0)
-#**##foreach ($field in $fields)
-#******##if (!$primaryKeys.contains($field))
-#**********##set ($argIndex = $argIndex + 1)
-#**********#                                "${field.LowerAndUnderscores}" +#if ($argIndex < $argCount ) "," +#end
-#**********#
-#******##end
+                else
+                {
+                    stm = getStatement(
+                            "INSERT INTO ${table} (" +
+#set ($argCount = $fields.size() - $primaryKeys.size())
+#set ($argIndex = 0)
+#foreach ($field in $fields)
+#**##if (!$primaryKeys.contains($field))
+#******##set ($argIndex = $argIndex + 1)
+#******#                                "${field.LowerAndUnderscores}" +#if ($argIndex < $argCount ) "," +#end
+#******#
 #**##end
-#**#                            ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $argCount),#else)#break#end#end");
-#**#                }
 #end
-##
+                            ") VALUES (#foreach ($field in $fields)?#if ($foreach.count < $argCount),#else)#break#end#end");
+                }
+
 #set ($argIndex = 0)
 #foreach ($field in $fields)
 #**##if (!$primaryKeys.contains($field))
@@ -96,7 +85,7 @@
 #**********#                        (target.get${association.Klass}() == null) ?
 #**********#                            0 :
 #**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#******##elseif ($compoundPk || !$primaryKey.equals($field))##if (!$associationForField[$field])
+#******##elseif (!$primaryKey.equals($field))
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(
 #**********#                        ${argIndex},
@@ -110,10 +99,7 @@
 #**##end
 #end
 ##
-#if (!$compoundPk)
-                if (insertIfNotExists)
-#end
-                {
+                if (insertIfNotExists) {
 #foreach ($field in $primaryKeys)
 #**##set ($argIndex = $argIndex + 1)
 #**##if ($associationForField[$field])
@@ -142,7 +128,6 @@
                     return false;
                 }
                 value = qty;
-#if (!$compoundPk)
                 if (!insertIfNotExists) {
                     ResultSet rs = stm.getGeneratedKeys();
                     value = (rs.next() ) ? rs.getLong(1) : -1;
@@ -151,66 +136,35 @@
                         return false;
                     }
                 }
-#end
             } catch (java.sql.SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
-#if ($compoundPk)
-#**#            if (value > 0) {
-#**#                if (target instanceof ${EditableInterface}) {
-#**##if ($toManyAssociations.size() > 0)
-#**#                    $EditableInterface editable = (${EditableInterface})target;
+            if (value > 0){
+                if (target instanceof ${EditableInterface}) {
+                    $EditableInterface editable = (${EditableInterface})target;
+                    editable.set${primaryKey.UpperCamel}(value);
+#foreach ($association in $toManyAssociations)
+#**##if ($association.ReferenceKey)
+#******##set ($referenceKey = $association.ReferenceKey)
+#**##elseif ($association.IsThisTableA)
+#******##set ($referenceKey = $association.ReferenceA)
+#**##else
+#******##set ($referenceKey = $association.ReferenceB)
 #**##end
-#**###
-#**##foreach ($association in $toManyAssociations)
-#******##if ($association.ReferenceKey)
-#**********##set ($referenceKey = $association.ReferenceKey)
-#******##elseif ($association.IsThisTableA)
-#**********##set ($referenceKey = $association.ReferenceA)
-#******##else
-#**********##set ($referenceKey = $association.ReferenceB)
-#******##end
-#******#                    if (editable.get${association.Pluralized}() == null) {
-#******#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
-#******#                    }
-#**##end
-#**#                    factory.pushToCache(${Target}.class, pks, target);
-#**#                } else {
-#**#                    factory.removeFromCache(${Target}.class, pks);
-#**#                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
-#**#                }
-#**#                return true;
-#**#            } else {
-#**#                return false;
-#**#            }
-#else
-#**#            if (value > 0){
-#**#                if (target instanceof ${EditableInterface}) {
-#**#                    $EditableInterface editable = (${EditableInterface})target;
-#**#                    editable.set${primaryKey.UpperCamel}(value);
-#**##foreach ($association in $toManyAssociations)
-#******##if ($association.ReferenceKey)
-#**********##set ($referenceKey = $association.ReferenceKey)
-#******##elseif ($association.IsThisTableA)
-#**********##set ($referenceKey = $association.ReferenceA)
-#******##else
-#**********##set ($referenceKey = $association.ReferenceB)
-#******##end
-#******#                    if (editable.get${association.Pluralized}() == null) {
-#******#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
-#******#                    }
-#**##end
-#**#                    pks = new Serializable[]{ value };
-#**#                    factory.pushToCache(${Target}.class, pks, target);
-#**#                } else {
-#**#                    factory.removeFromCache(${Target}.class, pks);
-#**#                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
-#**#                }
-#**#                return true;
-#**#            } else {
-#**#                return false;
-#**#            }
+#**#                    if (editable.get${association.Pluralized}() == null) {
+#**#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
+#**#                    }
 #end
+                    pks = new Serializable[]{ value };
+                    factory.pushToCache(${Target}.class, pks, target);
+                } else {
+                    factory.removeFromCache(${Target}.class, pks);
+                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
+                }
+                return true;
+            } else {
+                return false;
+            }
         } else {
             try {
                 PreparedStatement stm = getStatement(
@@ -238,7 +192,7 @@
 #**********#                        (target.get${association.Klass}() == null) ?
 #**********#                            0 :
 #**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#******##elseif ($compoundPk || !$primaryKey.equals($field))
+#******##elseif (!$primaryKey.equals($field))
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(
 #**********#                        ${argIndex},

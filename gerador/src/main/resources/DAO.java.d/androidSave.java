@@ -5,18 +5,13 @@
 
     @Override
     public boolean save($Target target, int flags) throws IOException {
-#if ($compoundPk)
-        if (${nullPkCondition}) {
-            return false;
-        }
-#end
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#        contentValues.put("${field.LowerAndUnderscores}",
 #******#                          (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
-#**##elseif ($compoundPk || !$primaryKey.equals($field))
+#**##elseif (!$primaryKey.equals($field))
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",
 #******#                          DateUtil.timestampToString(target.${getter[$field]}()));
@@ -31,11 +26,9 @@
         boolean insert;
         String queryByPrimaryKey = "${queryByPrimaryKey}";
         String primaryKeysArgs [] = ${primaryKeysArgs};
-#if (!$compoundPk)
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists)
-#end
         {
             Cursor cursor = this.factory.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE " + queryByPrimaryKey,
@@ -54,72 +47,41 @@
 #end
         };
         if (insert) {
-#if (!$compoundPk)
             if (insertIfNotExists) {
                 contentValues.put("${primaryKey.LowerAndUnderscores}", target.${getter[$primaryKey]}());
             }
-#end
             long value;
             try{
                 value = db.insertOrThrow("${table}", null, contentValues);
             } catch (SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
-#if ($compoundPk)
-#**#            if (value > 0) {
-#**#                if (target instanceof ${EditableInterface}) {
-#**##if ($toManyAssociations.size() > 0)
-#**#                    $EditableInterface editable = (${EditableInterface})target;
+            if (value > 0){
+                if (target instanceof ${EditableInterface}) {
+                    $EditableInterface editable = (${EditableInterface})target;
+                    editable.set${primaryKey.UpperCamel}(value);
+#foreach ($association in $toManyAssociations)
+#**##if ($association.ReferenceKey)
+#******##set ($referenceKey = $association.ReferenceKey)
+#**##elseif ($association.IsThisTableA)
+#******##set ($referenceKey = $association.ReferenceA)
+#**##else
+#******##set ($referenceKey = $association.ReferenceB)
 #**##end
-#**##foreach ($association in $toManyAssociations)
-#******##if ($association.ReferenceKey)
-#**********##set ($referenceKey = $association.ReferenceKey)
-#******##elseif ($association.IsThisTableA)
-#**********##set ($referenceKey = $association.ReferenceA)
-#******##else
-#**********##set ($referenceKey = $association.ReferenceB)
-#******##end
-#******#                    if (editable.get${association.Pluralized}() == null) {
-#******#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
-#******#                    }
-#**##end
-#**#                    factory.pushToCache(${Target}.class, pks, target);
-#**#                } else {
-#**#                    factory.removeFromCache(${Target}.class, pks);
-#**#                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
-#**#                }
-#**#                return true;
-#**#            } else {
-#**#                return false;
-#**#            }
-#else
-#**#            if (value > 0){
-#**#                if (target instanceof ${EditableInterface}) {
-#**#                    $EditableInterface editable = (${EditableInterface})target;
-#**#                    editable.set${primaryKey.UpperCamel}(value);
-#**##foreach ($association in $toManyAssociations)
-#******##if ($association.ReferenceKey)
-#**********##set ($referenceKey = $association.ReferenceKey)
-#******##elseif ($association.IsThisTableA)
-#**********##set ($referenceKey = $association.ReferenceA)
-#******##else
-#**********##set ($referenceKey = $association.ReferenceB)
-#******##end
-#******#                    if (editable.get${association.Pluralized}() == null) {
-#******#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
-#******#                    }
-#**##end
-#**#                    pks = new Serializable[]{ value };
-#**#                    factory.pushToCache(${Target}.class, pks, target);
-#**#                } else {
-#**#                    factory.removeFromCache(${Target}.class, pks);
-#**#                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
-#**#                }
-#**#                return true;
-#**#            } else {
-#**#                return false;
-#**#            }
+#**#                    if (editable.get${association.Pluralized}() == null) {
+#**#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
+#**#                    }
 #end
+                    pks = new Serializable[]{ value };
+                    factory.pushToCache(${Target}.class, pks, target);
+                } else {
+                    factory.removeFromCache(${Target}.class, pks);
+                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
+                }
+                return true;
+            } else {
+                return false;
+            }
         } else {
             int value = db.update(
                 "${table}", contentValues, queryByPrimaryKey, primaryKeysArgs);
