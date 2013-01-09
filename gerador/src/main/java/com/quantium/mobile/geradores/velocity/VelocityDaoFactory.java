@@ -25,31 +25,41 @@ import static com.quantium.mobile.geradores.velocity.Utils.*;
 
 public class VelocityDaoFactory {
 
-	//private VelocityEngine ve;
+	public enum Type {
+		ANDROID, JDBC;
+
+		public String getTemplateName(){
+			switch (this) {
+			case ANDROID:
+				return "DAO.java";
+			case JDBC:
+				return "JdbcDao.java";
+			default:
+				throw new RuntimeException();
+			}
+		}
+
+	}
+
+	private Type type;
 	private File targetDirectory;
 	private Template template;
 	private VelocityContext parentCtx;
 	private Map<String,String> aliases;
 
 	public VelocityDaoFactory(
-			String templateName,
 			VelocityEngine ve, File targetDirectory,
+			Type type,
 			String genPackage, Map<String,String> serializationAliases){
 		//this.ve = ve;
+		this.type = type;
 		this.targetDirectory = targetDirectory;
-		template = ve.getTemplate(templateName);
+		template = ve.getTemplate(type.getTemplateName());
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		parentCtx.put("package", genPackage);
 		this.aliases = serializationAliases;
 		//parentCtx.put("basePackage", basePackage);
-	}
-
-	public void generateDAOAbstractClasses(
-			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas)
-			throws IOException
-	{
-		generate(schema, "DAO", "GenericDAO", false, allSchemas);
 	}
 
 	public void generateDAOImplementationClasses(
@@ -130,9 +140,10 @@ public class VelocityDaoFactory {
 		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(
 				pks, associationsFromFK,
 				((Long)Constants.DEFAULT_ID).toString() + "L"));
-		//TODO deve executar apenas para gerar daos SQLite
-		ctx.put("primaryKeysArgs", ArgsFactory.getPrimaryKeyArgs(
-				pks, associationsFromFK, getterHelper));
+		if (this.type == Type.ANDROID){
+			ctx.put("primaryKeysArgs", ArgsFactory.getPrimaryKeyArgs(
+					pks, associationsFromFK, getterHelper));
+		}
 
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),

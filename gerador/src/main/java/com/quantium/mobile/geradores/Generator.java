@@ -139,15 +139,15 @@ public class Generator {
 		VelocityDaoFactory vJdbcDaoFactory = null;
 		if (projectInformation.getAndroidDirectory() != null) {
 			vdaof = new VelocityDaoFactory(
-				"DAO.java",
 				ve, androidTempDir,
+				VelocityDaoFactory.Type.ANDROID,
 				projectInformation.getGeneratedCodePackage(),
 				serializationAliases);
 		}
 		if (projectInformation.getJdbcDirectory() != null) {
 			vJdbcDaoFactory = new VelocityDaoFactory(
-					"JdbcDao.java",
 					ve, jdbcTempDir,
+					VelocityDaoFactory.Type.JDBC,
 					projectInformation.getGeneratedCodePackage(),
 					serializationAliases);
 		}
