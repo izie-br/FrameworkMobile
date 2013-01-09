@@ -30,7 +30,7 @@ public class DB {
 			execMultipleSQL(connection, statments);
 			return connection;
 		} catch (SQLException e) {
-			throw new RuntimeException();
+			throw new RuntimeException(e);
 		}
 	}
 
