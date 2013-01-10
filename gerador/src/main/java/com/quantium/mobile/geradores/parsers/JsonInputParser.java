@@ -81,7 +81,7 @@ public class JsonInputParser implements InputParser {
 				String databaseTable = jsonClass.getString("name");
 				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar("tb_" + databaseTable.toLowerCase());
 				tabelaBuilder.setClassName(databaseTable.toLowerCase());
-				tabelaBuilder.adicionarColuna("_id", convertJsonTypeToJavaType("Long"),
+				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"),
 						TabelaSchema.PRIMARY_KEY_CONSTRAINT);
 				for (JSONObject jsonAttribute : attributes) {
 					String attributeName = jsonAttribute.getString("name");
@@ -108,7 +108,7 @@ public class JsonInputParser implements InputParser {
 				for (JSONObject jsonAssociation : fromAssociations) {
 					TabelaSchema from = hashtable.get(jsonAssociation.optString("from")).get();
 					TabelaSchema to = hashtable.get(jsonAssociation.optString("to")).get();
-					String colunaId = "_id";
+					String colunaId = "id";
 					// TabelaSchema.Builder associativa =
 					// gerarAssociativa(tableName.toLowerCase(), colunaFrom,
 					// colunaTo);
@@ -127,7 +127,7 @@ public class JsonInputParser implements InputParser {
 				for (JSONObject jsonAssociation : toAssociations) {
 					TabelaSchema from = hashtable.get(jsonAssociation.optString("from")).get();
 					TabelaSchema to = hashtable.get(jsonAssociation.optString("to")).get();
-					String colunaId = "_id";
+					String colunaId = "id";
 					// TabelaSchema.Builder associativa =
 					// gerarAssociativa(tableName.toLowerCase(), colunaFrom,
 					// colunaTo);
