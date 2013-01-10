@@ -22,6 +22,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
@@ -109,9 +110,12 @@ public class VelocityVOFactory {
 
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);
+
+		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
+				schema, fields, associationsFromFK, toMany);
+
 		ctx.put("associationForField", associationsFromFK);
-		ctx.put("constructorArgsDecl", ArgsFactory.getConstructorArgsDecl(
-				schema, fields, associationsFromFK, toMany));
+		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
 		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(

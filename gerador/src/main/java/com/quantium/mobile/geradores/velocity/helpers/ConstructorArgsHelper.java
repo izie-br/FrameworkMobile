@@ -1,4 +1,4 @@
-package com.quantium.mobile.geradores.velocity;
+package com.quantium.mobile.geradores.velocity.helpers;
 
 import java.util.Collection;
 import java.util.List;
@@ -7,39 +7,36 @@ import java.util.Map;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 
-public class ArgsFactory {
+public class ConstructorArgsHelper {
 
-//	public String get(Object obj) {
-//		if (obj instanceof Property)
-//			return "_" + ((Property)obj).getLowerCamel();
-//		@SuppressWarnings("unchecked")
-//		Map<String, Object> assoc = (Map<String, Object>) obj;
-//		if (assoc.get("Pluralized") == null) {
-//			return "_" + assoc.get("Klass");
-//		}
-//	}
+	JavaBeanSchema javaBeanSchema;
+	List<Property> orderedFields;
+	Map<Property, Object> associationForPropertyMap;
+	Collection<Object> toManyAssociations;
 
-	public static String getConstructorArguments(
-			JavaBeanSchema javaBeanSchema,
+	public ConstructorArgsHelper(JavaBeanSchema javaBeanSchema,
 			List<Property> orderedFields,
 			Map<Property, Object> associationForPropertyMap,
-			Collection<Object> toManyAssociations){
+			Collection<Object> toManyAssociations) {
+		this.javaBeanSchema = javaBeanSchema;
+		this.orderedFields = orderedFields;
+		this.associationForPropertyMap = associationForPropertyMap;
+		this.toManyAssociations = toManyAssociations;
+	}
+
+	public String getConstructorArguments(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
 				toManyAssociations, false);
 	}
 
-	public static String getConstructorArgsDecl(
-			JavaBeanSchema javaBeanSchema,
-			List<Property> orderedFields,
-			Map<Property, Object> associationForPropertyMap,
-			Collection<Object> toManyAssociations){
+	public String getConstructorArgsDecl(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
 				toManyAssociations, true);
 	}
 
-	public static String getConstructorArgumentsAndDecl(
+	private static String getConstructorArgumentsAndDecl(
 			JavaBeanSchema javaBeanSchema,
 			List<Property> orderedFields,
 			Map<Property, Object> associationForPropertyMap,
