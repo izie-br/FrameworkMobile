@@ -109,7 +109,10 @@ public class JsonInputParser implements InputParser {
 						String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
 						tabelaBuilder.adicionarColuna(fkId, Long.class, constraints);
 						tabelaBuilder.adicionarAssociacaoOneToMany(
-								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), isRequired,
+								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), !isRequired,
+								"id");
+						hashtable.get(jsonAttribute.optString("type")).adicionarAssociacaoOneToMany(
+								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), !isRequired,
 								"id");
 					} else {
 						tabelaBuilder.adicionarColuna(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), type,
