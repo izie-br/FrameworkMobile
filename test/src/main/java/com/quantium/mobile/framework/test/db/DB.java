@@ -48,7 +48,7 @@ public class DB extends SQLiteOpenHelper{
 
 	@Override
 	protected void finalize() throws Throwable {
-		instancia.close();
+		this.close();
 		super.finalize();
 	}
 
