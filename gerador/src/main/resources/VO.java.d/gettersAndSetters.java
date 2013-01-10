@@ -1,14 +1,28 @@
 #foreach ($field in $fields)
-#**##if ( ($interface || $implementation) && $field.Get)
+#**###
+#**### O metodo getter nao deve existir se houver uma associacao one-to-many
+#**### em que ele eh a FK, ou se "Set" for marcado como false
+#**###
+#**##if ( ($interface || $implementation) &&
+          $field.Get && !$associationForField[$field]
+        )
 #******#    public ${field.Type} ${getter[$field]} () #if($implementation){
 #******#        return ${field.LowerCamel};
 #******#    }#else;#end
 #******#
 #******#
 #**##end
-#**##if ( (!$associationForField[$field] && $implementation) ||
-          (!$editableInterface && $field.Set && !$field.PrimaryKey) ||
-          ($field.PrimaryKey && $editableInterface && !$associationForField[$field])
+#**###
+#**### O metodo setter nao deve ser gerado se houver uma associacao one-to-many
+#**### em que ele eh a FK
+#**### Se for marcado como chave primaria, ou "Set" como false, deve existir na
+#**### implementacao e na interface editavel.
+#**###
+#**##if ( !$associationForField[$field] && (
+            $implementation ||
+            ($interface && $field.Set && !$field.PrimaryKey) ||
+            ($field.PrimaryKey && $editableInterface)
+          )
         )
 #******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
 #******#        this.${field.LowerCamel} = ${field.LowerCamel};
