@@ -62,16 +62,18 @@ public class TabelaSchema {
 			TabelaSchema.this.setNonEntityTable(nonEntityTable);
 			return this;
 		}
-		
-		public Builder setClassName(String className){
+
+		public Builder setClassName(String className) {
 			TabelaSchema.this.setClassName(className);
 			return this;
 		}
 
 		private TabelaSchema gerarAssociativa(String databaseTable, String colunaFrom, String colunaTo) {
 			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(databaseTable);
-			tabelaBuilder.adicionarColuna(colunaFrom, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT);
-			tabelaBuilder.adicionarColuna(colunaTo, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT);
+			tabelaBuilder.adicionarColuna(colunaFrom, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT,
+					TabelaSchema.NOT_NULL_CONSTRAINT);
+			tabelaBuilder.adicionarColuna(colunaTo, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT,
+					TabelaSchema.NOT_NULL_CONSTRAINT);
 			return tabelaBuilder.get();
 		}
 
@@ -81,7 +83,7 @@ public class TabelaSchema {
 				String referenciaB) {
 			String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id_" + tabelaA.getClassName());
 			String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id_" + tabelaB.getClassName());
-			String tableName = "tb_"+tabelaA.getClassName() + "_join_" + tabelaB.getClassName();
+			String tableName = "tb_" + tabelaA.getClassName() + "_join_" + tabelaB.getClassName();
 			TabelaSchema.this.associacoes.add(new AssociacaoManyToMany(tabelaA, tabelaB, colunaFrom, colunaTo,
 					referenciaA, referenciaB, gerarAssociativa(tableName, colunaFrom, colunaTo), tableName));
 			return this;

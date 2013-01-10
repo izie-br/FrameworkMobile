@@ -22,7 +22,6 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
-import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Builder;
@@ -52,7 +51,7 @@ public class JsonInputParser implements InputParser {
 			JSONObject json = new JSONObject(fileContent);
 			List<TabelaSchema> tabelasJson = generateTableSchema(json);
 			Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
-			int dbVersion = information.retrieveDatabaseVersion();
+			// int dbVersion = information.retrieveDatabaseVersion();
 			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 			factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
 			// gerando os JavaBeanSchemas
@@ -74,74 +73,63 @@ public class JsonInputParser implements InputParser {
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
-			String packageName = jsonPackage.getString("name");
 			for (JSONObject jsonClass : classes) {
 				System.out.println("jsonClass:" + jsonClass);
-				List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
 				String databaseTable = jsonClass.getString("name");
 				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar("tb_" + databaseTable.toLowerCase());
 				tabelaBuilder.setClassName(databaseTable.toLowerCase());
 				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"),
 						TabelaSchema.PRIMARY_KEY_CONSTRAINT);
-				for (JSONObject jsonAttribute : attributes) {
-					String attributeName = jsonAttribute.getString("name");
-					tabelaBuilder.adicionarColuna(CamelCaseUtils.camelToLowerAndUnderscores(attributeName),
-							convertJsonTypeToJavaType(jsonAttribute.getString("type")));
-				}
 				hashtable.put(jsonClass.getString("id"), tabelaBuilder);
 			}
 		}
-		// Set<Entry<String, TabelaSchema.Builder>> keys = hashtable.entrySet();
-		// while (keys.iterator().hasNext()) {
-		// Entry<String, TabelaSchema.Builder> entry = keys.iterator().next();
-		//
-		// }
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
-			String packageName = jsonPackage.getString("name");
 			for (JSONObject jsonClass : classes) {
 				List<JSONObject> fromAssociations = jsonArrayToList(jsonClass.optJSONArray(FROM_ASSOCIATIONS_LIST));
 				List<JSONObject> toAssociations = jsonArrayToList(jsonClass.optJSONArray(TO_ASSOCIATIONS_LIST));
-				TabelaSchema.Builder builder = hashtable.get(jsonClass.getString("id"));
-				// List<JSONObject> toAssociations =
-				// jsonArrayToList(json.getJSONArray(TO_ASSOCIATIONS_LIST));
+				TabelaSchema.Builder tabelaBuilder = hashtable.get(jsonClass.getString("id"));
+				List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
+				for (JSONObject jsonAttribute : attributes) {
+					String attributeName = jsonAttribute.getString("name");
+					Class<?> type = convertJsonTypeToJavaType(jsonAttribute.getString("type"));
+					boolean isRequired = jsonAttribute.optBoolean("isRequired");
+					boolean isUnique = jsonAttribute.optBoolean("isUnique");
+					String[] constraints = null;
+					if (isUnique && isRequired) {
+						constraints = new String[] { TabelaSchema.NOT_NULL_CONSTRAINT, TabelaSchema.UNIQUE_CONSTRAINT };
+					} else {
+						if (isUnique) {
+							constraints = new String[] { TabelaSchema.UNIQUE_CONSTRAINT };
+						} else if (isRequired) {
+							constraints = new String[] { TabelaSchema.NOT_NULL_CONSTRAINT };
+						}
+					}
+					if (type == null) {
+						String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
+						tabelaBuilder.adicionarColuna(fkId, Long.class, constraints);
+						tabelaBuilder.adicionarAssociacaoOneToMany(
+								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), isRequired,
+								"id");
+					} else {
+						tabelaBuilder.adicionarColuna(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), type,
+								constraints);
+					}
+				}
 				for (JSONObject jsonAssociation : fromAssociations) {
 					TabelaSchema from = hashtable.get(jsonAssociation.optString("from")).get();
 					TabelaSchema to = hashtable.get(jsonAssociation.optString("to")).get();
 					String colunaId = "id";
-					// TabelaSchema.Builder associativa =
-					// gerarAssociativa(tableName.toLowerCase(), colunaFrom,
-					// colunaTo);
-					// associativa.setNonEntityTable(true);
-					// hashtable.put(jsonAssociation.optString("id"),
-					// associativa);
 					if ("n..n".equals(jsonAssociation.optString("type"))) {
-						builder.adicionarAssociacaoManyToMany(from, to, colunaId, colunaId);
-					}
-					if ("1..n".equals(jsonAssociation.optString("type"))) {
-						builder.adicionarAssociacaoOneToMany(from, to, false, colunaId);
-						hashtable.get(jsonAssociation.optString("to")).adicionarColuna(
-								CamelCaseUtils.camelToLowerAndUnderscores("id_" + from.getClassName()), Long.class);
+						tabelaBuilder.adicionarAssociacaoManyToMany(from, to, colunaId, colunaId);
 					}
 				}
 				for (JSONObject jsonAssociation : toAssociations) {
 					TabelaSchema from = hashtable.get(jsonAssociation.optString("from")).get();
 					TabelaSchema to = hashtable.get(jsonAssociation.optString("to")).get();
 					String colunaId = "id";
-					// TabelaSchema.Builder associativa =
-					// gerarAssociativa(tableName.toLowerCase(), colunaFrom,
-					// colunaTo);
-					// associativa.setNonEntityTable(true);
-					// hashtable.put(jsonAssociation.optString("id"),
-					// associativa);
 					if ("n..n".equals(jsonAssociation.optString("type"))) {
-						builder.adicionarAssociacaoManyToMany(from, to, colunaId, colunaId);
-					}
-					if ("1..n".equals(jsonAssociation.optString("type"))) {
-						builder.adicionarAssociacaoOneToMany(from, to, false, colunaId);
-						// hashtable.get(jsonAssociation.optString("from")).adicionarColuna(
-						// CamelCaseUtils.camelToLowerAndUnderscores("id_" +
-						// to.getNome()), Long.class);
+						tabelaBuilder.adicionarAssociacaoManyToMany(from, to, colunaId, colunaId);
 					}
 				}
 			}
@@ -175,7 +163,7 @@ public class JsonInputParser implements InputParser {
 		if (type.equals("Boolean")) {
 			return java.lang.Boolean.class;
 		}
-		return java.lang.String.class;
+		return null;
 	}
 
 	private List<JSONObject> jsonArrayToList(JSONArray array) throws JSONException {
