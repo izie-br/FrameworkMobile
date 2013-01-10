@@ -39,7 +39,7 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 public class ${Klass} implements JdbcDao<${Target}> {
 
     private static final String COUNT_BY_PRIMARY_KEYS =
-        "SELECT COUNT(*) FROM ${table} WHERE ${queryByPrimaryKey}";
+        "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?";
 
     private JdbcDAOFactory factory;
 

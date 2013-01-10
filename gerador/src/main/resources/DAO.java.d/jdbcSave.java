@@ -144,7 +144,7 @@
 #******#
 #**##end
 #end
-                        " WHERE ${queryByPrimaryKey}");
+                        " WHERE ${primaryKey.LowerAndUnderscores}=?");
 ##
 #set ($argIndex = 0)
 #foreach ($field in $fields)

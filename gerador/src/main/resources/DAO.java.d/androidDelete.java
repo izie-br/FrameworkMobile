@@ -1,6 +1,6 @@
     @Override
     public boolean delete(${Target} target) throws IOException {
-        if (${nullPkCondition}) {
+        if (target.${getter[$primaryKey]}() == ${defaultId}) {
             return false;
         }
         SQLiteDatabase db = this.factory.getDb();
@@ -38,8 +38,8 @@
             try {
                 affected = db.delete(
                     "${table}",
-                    "${queryByPrimaryKey}",
-                    ${primaryKeysArgs});
+                    "${primaryKey.LowerAndUnderscores}=?",
+                    new String[]{ ((Long)target.${getter[$primaryKey]}()).toString() });
             } catch (SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));
             }

@@ -1,6 +1,6 @@
     @Override
     public boolean delete(${Target} target) throws IOException {
-        if (${nullPkCondition}) {
+        if (target.${getter[$primaryKey]}() == ${defaultId}) {
             return false;
         }
         try {
@@ -37,7 +37,7 @@
                 throw new IOException(StringUtil.getStackTrace(e));
             }
 #end
-            stm = getStatement("DELETE FROM ${table} WHERE ${queryByPrimaryKey}");
+            stm = getStatement("DELETE FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?");
             int affected;
             try {
                 stm.setLong(1, target.${getter[$primaryKey]}());

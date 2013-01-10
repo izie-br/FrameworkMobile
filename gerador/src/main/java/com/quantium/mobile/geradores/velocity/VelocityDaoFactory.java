@@ -141,19 +141,6 @@ public class VelocityDaoFactory {
 		GetterHelper getterHelper = new GetterHelper();
 		ctx.put("getter", getterHelper);
 
-		// remover tudo isso ou enviar para helper
-		ArrayList<Property> pks = new ArrayList<Property>();
-		pks.add(primaryKey);
-		ctx.put("queryByPrimaryKey", ArgsFactory.getPrimaryKeyQuery(
-				pks, associationsFromFK));
-		ctx.put("nullPkCondition", ArgsFactory.getNullPkcondition(
-				pks, associationsFromFK,
-				((Long)Constants.DEFAULT_ID).toString() + "L"));
-		if (this.type == Type.ANDROID){
-			ctx.put("primaryKeysArgs", ArgsFactory.getPrimaryKeyArgs(
-					pks, associationsFromFK, getterHelper));
-		}
-
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
 				"UTF-8");

@@ -6,7 +6,6 @@ import java.util.Map;
 
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
-import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 
 public class ArgsFactory {
 
@@ -124,88 +123,6 @@ public class ArgsFactory {
 				}
 			}
 			i++;
-		}
-		return sb.toString();
-	}
-
-	public static String getPrimaryKeyArgs(
-			Collection<Property> pks, Map<Property, Object> associations,
-			GetterHelper getter)
-	{
-		StringBuilder sb = new StringBuilder();
-		sb.append("new String[]{");
-
-		int i = 0;
-		for (Property field : pks){
-			@SuppressWarnings("unchecked")
-			Map<String,Object> assoc = (Map<String, Object>) associations.get(field);
-			if (assoc != null) {
-				sb.append("((");
-						sb.append(field.getKlass());
-					sb.append(")target.get");
-					sb.append(assoc.get("Klass"));
-					sb.append("().");
-					Property referenceKey = (Property) assoc.get("ReferenceKey");
-					sb.append(getter.get(referenceKey));
-				sb.append("()).toString()");
-			} else {
-				sb.append("((");
-						sb.append(field.getKlass());
-					sb.append(")target.");
-					sb.append(getter.get(field));
-				sb.append("()).toString()");
-			}
-			i++;
-			if (i != pks.size()) sb.append(',');
-		}
-		sb.append('}');
-		return sb.toString();
-	}
-
-	public static String getNullPkcondition(
-			Collection<Property> pks, Map<Property, Object> associations,
-			String defaultId)
-	{
-		StringBuilder sb = new StringBuilder();
-
-		int i = 0;
-		for (Property field : pks){
-			@SuppressWarnings("unchecked")
-			Map<String,Object> assoc = (Map<String, Object>) associations.get(field);
-			if (assoc != null) {
-				sb.append("target.get");
-				sb.append(assoc.get("Klass"));
-				sb.append("() == null ||");
-				sb.append("target.get");
-				sb.append(assoc.get("Klass"));
-				sb.append("().get");
-				Property referenceKey = (Property) assoc.get("ReferenceKey");
-				sb.append(referenceKey.getUpperCamel());
-				sb.append("() == ");
-				sb.append(defaultId);
-			} else {
-				sb.append("target.get");
-				sb.append(field.getUpperCamel());
-				sb.append("() == ");
-				sb.append(defaultId);
-			}
-			i++;
-			if (i != pks.size()) sb.append(" || ");
-		}
-		return sb.toString();
-	}
-
-	public static String getPrimaryKeyQuery(
-			Collection<Property> pks, Map<Property, Object> associations)
-	{
-		StringBuilder sb = new StringBuilder();
-
-		int i = 0;
-		for (Property field : pks){
-			sb.append(field.getLowerAndUnderscores());
-			sb.append(" = ?");
-			i++;
-			if (i != pks.size()) sb.append(" AND ");
 		}
 		return sb.toString();
 	}

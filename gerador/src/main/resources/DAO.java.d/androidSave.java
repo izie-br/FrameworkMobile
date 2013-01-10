@@ -24,14 +24,15 @@
 #end
         SQLiteDatabase db = this.factory.getDb();
         boolean insert;
-        String queryByPrimaryKey = "${queryByPrimaryKey}";
-        String primaryKeysArgs [] = ${primaryKeysArgs};
+        String primaryKeysArgs [] = new String[]{
+            ((Long)target.${getter[$primaryKey]}()).toString()
+        };
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists)
         {
             Cursor cursor = this.factory.getDb().rawQuery(
-                "SELECT COUNT(*) FROM ${table} WHERE " + queryByPrimaryKey,
+                "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?",
                 primaryKeysArgs);
             insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
             cursor.close();
@@ -77,7 +78,10 @@
             }
         } else {
             int value = db.update(
-                "${table}", contentValues, queryByPrimaryKey, primaryKeysArgs);
+                "${table}", contentValues,
+                "${primaryKey.LowerAndUnderscores}=?",
+                primaryKeysArgs
+            );
             if (value > 0) {
                 factory.pushToCache(${Target}.class, pks, target);
                 return true;
