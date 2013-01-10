@@ -44,8 +44,6 @@ public class JsonInputParser implements InputParser {
 		InputStream inputStream;
 		try {
 			File sqlResource = information.getInputFile();
-			System.out.println("sqlResource:" + sqlResource);
-			System.out.println("sqlResource2:" + sqlResource.exists());
 			inputStream = new FileInputStream(sqlResource);
 			String fileContent = IOUtils.toString(inputStream);
 			JSONObject json = new JSONObject(fileContent);
@@ -74,7 +72,6 @@ public class JsonInputParser implements InputParser {
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
 			for (JSONObject jsonClass : classes) {
-				System.out.println("jsonClass:" + jsonClass);
 				String databaseTable = jsonClass.getString("name");
 				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar("tb_" + databaseTable.toLowerCase());
 				tabelaBuilder.setClassName(databaseTable.toLowerCase());
@@ -138,13 +135,8 @@ public class JsonInputParser implements InputParser {
 			}
 		}
 		Set<Entry<String, Builder>> entryes = hashtable.entrySet();
-		System.out.println("total:" + hashtable.size());
 		Iterator<Entry<String, Builder>> it = entryes.iterator();
-		int i = 0;
 		while (it.hasNext()) {
-			i++;
-			System.out.println("i:" + i);
-			// Entry<String, Builder> next = ;
 			list.add(it.next().getValue().get());
 		}
 		return list;
