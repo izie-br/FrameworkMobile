@@ -73,10 +73,9 @@
 
                 <!-- pasta para enviar os fontes gerados para o "core" -->
                 <coreSrcDir>src/main/java/</coreSrcDir>
-
+				<sqlResource>res/raw/model.json</sqlResource>
                 <!-- pasta para enviar os fontes gerados para o "aplicativo" -->
                 <androidSrcDir>src/main/java/</androidSrcDir>
-
                 <!-- Lista de tabelas para serem ignoradas pelo gerador -->
                 <ignore>
                   <ignore>sqlite_sequence</ignore>

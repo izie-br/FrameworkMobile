@@ -55,7 +55,6 @@ public class JsonInputParser implements InputParser {
 			int dbVersion = information.retrieveDatabaseVersion();
 			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 			factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
-			factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory("{COLUMN=id}_{TABLE}"));
 			// gerando os JavaBeanSchemas
 			for (TabelaSchema tabela : tabelasJson) {
 				javaBeanSchemas.add(factory.javaBeanSchemaParaTabela(tabela));
@@ -80,7 +79,8 @@ public class JsonInputParser implements InputParser {
 				System.out.println("jsonClass:" + jsonClass);
 				List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
 				String databaseTable = jsonClass.getString("name");
-				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(databaseTable.toLowerCase());
+				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar("tb_" + databaseTable.toLowerCase());
+				tabelaBuilder.setClassName(databaseTable.toLowerCase());
 				tabelaBuilder.adicionarColuna("_id", convertJsonTypeToJavaType("Long"),
 						TabelaSchema.PRIMARY_KEY_CONSTRAINT);
 				for (JSONObject jsonAttribute : attributes) {
@@ -121,7 +121,7 @@ public class JsonInputParser implements InputParser {
 					if ("1..n".equals(jsonAssociation.optString("type"))) {
 						builder.adicionarAssociacaoOneToMany(from, to, false, colunaId);
 						hashtable.get(jsonAssociation.optString("to")).adicionarColuna(
-								CamelCaseUtils.camelToLowerAndUnderscores("id_" + from.getNome()), Long.class);
+								CamelCaseUtils.camelToLowerAndUnderscores("id_" + from.getClassName()), Long.class);
 					}
 				}
 				for (JSONObject jsonAssociation : toAssociations) {
@@ -139,8 +139,9 @@ public class JsonInputParser implements InputParser {
 					}
 					if ("1..n".equals(jsonAssociation.optString("type"))) {
 						builder.adicionarAssociacaoOneToMany(from, to, false, colunaId);
-//						hashtable.get(jsonAssociation.optString("from")).adicionarColuna(
-//								CamelCaseUtils.camelToLowerAndUnderscores("id_" + to.getNome()), Long.class);
+						// hashtable.get(jsonAssociation.optString("from")).adicionarColuna(
+						// CamelCaseUtils.camelToLowerAndUnderscores("id_" +
+						// to.getNome()), Long.class);
 					}
 				}
 			}
