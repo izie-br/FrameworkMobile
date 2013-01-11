@@ -81,9 +81,10 @@ public class TabelaSchema {
 		// na fonte: id;
 		public Builder adicionarAssociacaoManyToMany(TabelaSchema tabelaA, TabelaSchema tabelaB, String referenciaA,
 				String referenciaB) {
-			String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id_" + tabelaA.getClassName());
-			String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id_" + tabelaB.getClassName());
-			String tableName = "tb_" + tabelaA.getClassName() + "_join_" + tabelaB.getClassName();
+			String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id" + tabelaA.getClassName());
+			String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id" + tabelaB.getClassName());
+			String tableName = CamelCaseUtils.camelToLowerAndUnderscores("tb" + tabelaA.getClassName() + "Join"
+					+ tabelaB.getClassName());
 			TabelaSchema.this.associacoes.add(new AssociacaoManyToMany(tabelaA, tabelaB, colunaFrom, colunaTo,
 					referenciaA, referenciaB, gerarAssociativa(tableName, colunaFrom, colunaTo), tableName));
 			return this;
@@ -91,8 +92,11 @@ public class TabelaSchema {
 
 		public Builder adicionarAssociacaoOneToMany(TabelaSchema tabelaA, TabelaSchema tabelaB, boolean nullable,
 				String referenciaA) {
+			System.out.println(String.format("tabelaA: %s - tabelaB: %s - Coluna: %s - Origem: %s", tabelaA.getNome(),
+					tabelaB.getNome(), referenciaA,
+					CamelCaseUtils.camelToLowerAndUnderscores("id" + tabelaA.getClassName())));
 			TabelaSchema.this.associacoes.add(new AssociacaoOneToMany(tabelaA, tabelaB, CamelCaseUtils
-					.camelToLowerAndUnderscores("id_" + tabelaA.getClassName()), nullable, referenciaA));
+					.camelToLowerAndUnderscores("id" + tabelaA.getClassName()), nullable, referenciaA));
 			return this;
 		}
 

@@ -71,10 +71,23 @@ public class JsonInputParser implements InputParser {
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
+			if ("Lib".equalsIgnoreCase(jsonPackage.optString("name"))) {
+				continue;
+			}
+			if ("Auth".equalsIgnoreCase(jsonPackage.optString("name"))) {
+				continue;
+			}
+			if ("Menu".equalsIgnoreCase(jsonPackage.optString("name"))) {
+				continue;
+			}
+			if ("Oauth".equalsIgnoreCase(jsonPackage.optString("name"))) {
+				continue;
+			}
 			for (JSONObject jsonClass : classes) {
 				String databaseTable = jsonClass.getString("name");
-				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar("tb_" + databaseTable.toLowerCase());
-				tabelaBuilder.setClassName(databaseTable.toLowerCase());
+				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(CamelCaseUtils.camelToLowerAndUnderscores("Tb"
+						+ databaseTable));
+				tabelaBuilder.setClassName(databaseTable);
 				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"),
 						TabelaSchema.PRIMARY_KEY_CONSTRAINT);
 				hashtable.put(jsonClass.getString("id"), tabelaBuilder);
@@ -86,6 +99,9 @@ public class JsonInputParser implements InputParser {
 				List<JSONObject> fromAssociations = jsonArrayToList(jsonClass.optJSONArray(FROM_ASSOCIATIONS_LIST));
 				List<JSONObject> toAssociations = jsonArrayToList(jsonClass.optJSONArray(TO_ASSOCIATIONS_LIST));
 				TabelaSchema.Builder tabelaBuilder = hashtable.get(jsonClass.getString("id"));
+				if (tabelaBuilder == null) {
+					continue;
+				}
 				List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
 				for (JSONObject jsonAttribute : attributes) {
 					String attributeName = jsonAttribute.getString("name");
@@ -103,14 +119,17 @@ public class JsonInputParser implements InputParser {
 						}
 					}
 					if (type == null) {
+						if (hashtable.get(jsonAttribute.optString("type")) == null) {
+							throw new IllegalArgumentException(String.format("Tipo complexo nao encontrado: %s",
+									jsonAttribute.optString("type")));
+						}
 						String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
 						tabelaBuilder.adicionarColuna(fkId, Long.class, constraints);
-						tabelaBuilder.adicionarAssociacaoOneToMany(
-								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), !isRequired,
-								"id");
-						hashtable.get(jsonAttribute.optString("type")).adicionarAssociacaoOneToMany(
-								hashtable.get(jsonAttribute.optString("type")).get(), tabelaBuilder.get(), !isRequired,
-								"id");
+						TabelaSchema tabelaA = hashtable.get(jsonAttribute.optString("type")).get();
+						TabelaSchema tabelaB = tabelaBuilder.get();
+						tabelaBuilder.adicionarAssociacaoOneToMany(tabelaA, tabelaB, !isRequired, "id");
+						hashtable.get(jsonAttribute.optString("type")).adicionarAssociacaoOneToMany(tabelaA, tabelaB,
+								!isRequired, "id");
 					} else {
 						tabelaBuilder.adicionarColuna(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), type,
 								constraints);
@@ -155,8 +174,20 @@ public class JsonInputParser implements InputParser {
 		if (type.equals("Long")) {
 			return java.lang.Long.class;
 		}
+		if (type.equals("Integer")) {
+			return java.lang.Long.class;
+		}
 		if (type.equals("Boolean")) {
 			return java.lang.Boolean.class;
+		}
+		if (type.equals("Float")) {
+			return java.lang.Double.class;
+		}
+		if (type.equals("_EWZWilp8EeKiP5ww_mNJrA")) {
+			return java.util.Date.class;
+		}
+		if (type.equals("_EWZWj1p8EeKiP5ww_mNJrA")) {
+			return java.lang.String.class;
 		}
 		return null;
 	}
