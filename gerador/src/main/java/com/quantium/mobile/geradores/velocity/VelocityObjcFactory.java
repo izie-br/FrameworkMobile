@@ -264,7 +264,7 @@ public class VelocityObjcFactory {
 
 		public PropId(Property prop) {
 			super(prop.getNome(), prop.getPropertyClass(), prop.isGet(),
-			      prop.isSet(), prop.isPrimaryKey());
+			      prop.isSet(), prop.getConstraints());
 			wrapped = prop;
 		}
 

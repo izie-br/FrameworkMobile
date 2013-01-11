@@ -124,7 +124,12 @@ public class JavaBeanSchema {
 					}
 				}
 				if (it.getNome().equals(coluna)) {
-					return new Property(it.getNome(), it.getType(), true, isNotPrimaryKey, !isNotPrimaryKey);
+					//TODO refazer isso, apenas repassar a property do modelfacade
+					return new Property(it.getNome(), it.getType(), true,
+						isNotPrimaryKey,
+						(isNotPrimaryKey)?
+							new Constraint[]{} :
+							new Constraint[]{new Constraint(Constraint.Type.PRIMARY_KEY)});
 				}
 			}
 			throw new IllegalArgumentException(String.format("Coluna '%s' nao encontrada na tabela '%s'", coluna,

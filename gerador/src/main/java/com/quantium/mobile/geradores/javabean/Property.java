@@ -9,22 +9,22 @@ public class Property {
 	private String alias;
 	private boolean get;
 	private boolean set;
-	private boolean primaryKey;
+	private Constraint constraints [];
 
 	public Property(String name, Class<?> klass,
-	                   boolean get, boolean set, boolean primaryKey)
+	                   boolean get, boolean set, Constraint...constraints)
 	{
 		this.name = name;
 		this.klass = klass;
 		this.get = get;
 		this.set = set;
-		this.primaryKey = primaryKey;
+		this.constraints = constraints;
 	}
 
 	public Property(String name, Class<?> klass, boolean get,
-	                boolean set, String alias, boolean primaryKey)
+	                boolean set, String alias, Constraint...constraints)
 	{
-		this(name, klass, get, set, primaryKey);
+		this(name, klass, get, set, constraints);
 		this.alias = alias;
 	}
 
@@ -95,8 +95,15 @@ public class Property {
 		this.set = set;
 	}
 
+	public Constraint [] getConstraints() {
+		return constraints;
+	}
+
 	public boolean isPrimaryKey(){
-		return primaryKey;
+		for (Constraint constraint :constraints)
+			if (constraint.getType().equals(Constraint.Type.PRIMARY_KEY))
+				return true;
+		return false;
 	}
 
 	@Override
