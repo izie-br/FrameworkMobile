@@ -30,10 +30,7 @@ public class SqlTabelaSchemaFactory {
 
 	private static final String PRIMARY_KEY_CONSTRAINT = "PRIMARY KEY";
 	private static final String UNIQUE_CONSTRAINT = "UNIQUE";
-	private static final String FOREIGN_KEY_CONSTRAINT = "FOREIGN KEY";
 	private static final String NOT_NULL_CONSTRAINT = "NOT NULL";
-	private static final String DEFAULT_CONSTRAINT = "DEFAULT";
-	private static final String CHECK_CONSTRAINT = "CHECK";
 
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string

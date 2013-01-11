@@ -93,20 +93,10 @@ public class VelocityDaoFactory {
 		ctx.put("Target", targetclass);
 		ctx.put("table", schema.getTabela().getNome());
 		List<Property> fields = new ArrayList<Property>();
-		Property primaryKey = null;
+		Property primaryKey = schema.getPrimaryKey();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property f = schema.getPropriedade(col);
 			f.setAlias(VelocityVOFactory.getAlias(aliases, targetclass, col));
-			for (String pk : schema.getPrimaryKeyColumns()){
-				if (col.equals(pk)){
-					if (primaryKey != null){
-						throw new RuntimeException(
-								schema.getNome() +
-								" tem mais de uma primaryKey");
-					}
-					primaryKey = f;
-				}
-			}
 			fields.add(f);
 		}
 		ctx.put("fields", fields);

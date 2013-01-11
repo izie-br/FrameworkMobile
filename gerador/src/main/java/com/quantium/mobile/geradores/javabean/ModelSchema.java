@@ -28,8 +28,8 @@ public final class ModelSchema {
 			ModelSchema.this.nonEntityTable = false;
 		}
 
-		public Builder addColumn(String nome, Class<?> type,
-		                         Constraint... constraints)
+		public Builder addProperty(String nome, Class<?> type,
+		                           Constraint... constraints)
 		{
 			boolean isPrimaryKey = false;
 			if (constraints != null) for (Constraint constraint :constraints) {
@@ -40,6 +40,17 @@ public final class ModelSchema {
 			}
 			ModelSchema.this.colunas.add(
 					new Property(nome, type, true, !isPrimaryKey, constraints));
+			return this;
+		}
+
+		public Builder addProperty(String nome, Class<?> type,
+		                           Constraint.Type... constraints)
+		{
+			Constraint constraintImpl [] = new Constraint[constraints.length];
+			for (int i=0; i< constraints.length; i++){
+				constraintImpl[i] = new Constraint(constraints[i]);
+			}
+			addProperty(nome, type, constraintImpl);
 			return this;
 		}
 

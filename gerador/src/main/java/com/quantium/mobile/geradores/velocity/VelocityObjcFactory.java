@@ -106,22 +106,15 @@ public class VelocityObjcFactory {
 		toMany.addAll(manyToMany);
 		ctx.put("toManyAssociations", toMany);
 		List<Property> fields = new ArrayList<Property>();
-		List<Property> pks = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property prop = schema.getPropriedade(col);
 			if (prop.getLowerCamel().equals("id"))
 				prop = new PropId(prop);
 			prop.setAlias(getAlias(aliases, classname, col));
-			for (String pk : schema.getPrimaryKeyColumns()){
-				if (col.equals(pk))
-					pks.add(prop);
-			}
 			fields.add(prop);
 		}
 		ctx.put("fields", fields);
-		if (pks.size()==1)
-			ctx.put("primaryKey", pks.get(0));
-		ctx.put("primaryKeys", pks);
+		ctx.put("primaryKey", schema.getPrimaryKey());
 		
 		Map<Property, Object> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);

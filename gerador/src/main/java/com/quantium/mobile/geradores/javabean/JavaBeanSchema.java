@@ -67,14 +67,6 @@ public class JavaBeanSchema {
 		return getPropriedade(colunas.iterator().next().getNome());
 	}
 
-	public Collection<String> getPrimaryKeyColumns() {
-		Collection<String> props = new ArrayList<String>();
-		Collection<TabelaSchema.Coluna> colunas = tabela.getPrimaryKeys();
-		for (TabelaSchema.Coluna coluna : colunas)
-			props.add(coluna.getNome());
-		return props;
-	}
-
 	public String getConstante(String coluna) {
 		return filterChain.getConstante(coluna);
 	}
