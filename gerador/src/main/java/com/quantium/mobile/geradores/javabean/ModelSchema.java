@@ -9,7 +9,7 @@ import com.quantium.mobile.geradores.filters.associacao.Associacao;
 public final class ModelSchema {
 
 	private String name;
-	private Collection<ModelSchema.Column> colunas = new HashSet<ModelSchema.Column>();
+	private Collection<Property> colunas = new HashSet<Property>();
 	private Collection<Constraint> constraints = new ArrayList<Constraint>();
 	private Collection<Associacao> associacoes = new HashSet<Associacao>();
 	private boolean nonEntityTable = false;
@@ -28,8 +28,18 @@ public final class ModelSchema {
 			ModelSchema.this.nonEntityTable = false;
 		}
 
-		public Builder addColumn(String nome, Class<?> type, Constraint... constraints) {
-			ModelSchema.this.colunas.add(new Column(nome, type, constraints));
+		public Builder addColumn(String nome, Class<?> type,
+		                         Constraint... constraints)
+		{
+			boolean isPrimaryKey = false;
+			if (constraints != null) for (Constraint constraint :constraints) {
+				if (constraint.getType() == Constraint.Type.PRIMARY_KEY){
+					isPrimaryKey = true;
+					break;
+				}
+			}
+			ModelSchema.this.colunas.add(
+					new Property(nome, type, true, !isPrimaryKey, constraints));
 			return this;
 		}
 
@@ -71,12 +81,12 @@ public final class ModelSchema {
 	 * 
 	 * @return Map com pares ( nome_da_coluna , classe_java )
 	 */
-	public Collection<ModelSchema.Column> getColunas() {
-		return new ArrayList<ModelSchema.Column>(colunas);
+	public Collection<Property> getProperties() {
+		return new ArrayList<Property>(colunas);
 	}
 
-	public ModelSchema.Column getPrimaryKey() {
-		for (ModelSchema.Column coluna : colunas) {
+	public Property getPrimaryKey() {
+		for (Property coluna : colunas) {
 			for (Constraint constraint : coluna.getConstraints()) {
 				if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
 					return coluna;
@@ -85,35 +95,4 @@ public final class ModelSchema {
 		}
 		throw new RuntimeException("Chave primaria nao encontrada");
 	}
-
-	public final class Column {
-
-		private String name;
-		private Class<?> type;
-		private Constraint constraints[];
-
-		public Column(String name, Class<?> type, Constraint... constraints) {
-			this.name = name;
-			this.type = type;
-			this.constraints = constraints;
-		}
-
-		public Constraint[] getConstraints() {
-			if (constraints == null || constraints.length == 0)
-				return new Constraint[0];
-			Constraint copy[] = new Constraint[constraints.length];
-			System.arraycopy(constraints, 0, copy, 0, copy.length);
-			return copy;
-		}
-
-		public String getName() {
-			return name;
-		}
-
-		public Class<?> getType() {
-			return type;
-		}
-
-	}
-
 }
