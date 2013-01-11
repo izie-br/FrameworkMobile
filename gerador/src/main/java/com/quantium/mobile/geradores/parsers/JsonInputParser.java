@@ -22,6 +22,7 @@ import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
+import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Builder;
@@ -89,7 +90,7 @@ public class JsonInputParser implements InputParser {
 						+ databaseTable));
 				tabelaBuilder.setClassName(databaseTable);
 				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"),
-						TabelaSchema.PRIMARY_KEY_CONSTRAINT);
+						Constraint.Type.PRIMARY_KEY);
 				hashtable.put(jsonClass.getString("id"), tabelaBuilder);
 			}
 		}
@@ -108,14 +109,17 @@ public class JsonInputParser implements InputParser {
 					Class<?> type = convertJsonTypeToJavaType(jsonAttribute.getString("type"));
 					boolean isRequired = jsonAttribute.optBoolean("isRequired");
 					boolean isUnique = jsonAttribute.optBoolean("isUnique");
-					String[] constraints = null;
+					Constraint.Type[] constraints = null;
 					if (isUnique && isRequired) {
-						constraints = new String[] { TabelaSchema.NOT_NULL_CONSTRAINT, TabelaSchema.UNIQUE_CONSTRAINT };
+						constraints = new Constraint.Type[] {
+								Constraint.Type.NOT_NULL,
+								Constraint.Type.UNIQUE
+						};
 					} else {
 						if (isUnique) {
-							constraints = new String[] { TabelaSchema.UNIQUE_CONSTRAINT };
+							constraints = new Constraint.Type[] { Constraint.Type.UNIQUE };
 						} else if (isRequired) {
-							constraints = new String[] { TabelaSchema.NOT_NULL_CONSTRAINT };
+							constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL };
 						}
 					}
 					if (type == null) {

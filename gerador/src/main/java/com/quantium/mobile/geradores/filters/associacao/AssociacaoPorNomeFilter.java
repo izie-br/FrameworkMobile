@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
+import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
@@ -155,8 +156,14 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 									filtroTabelaB.getPropriedadeNome(coluna.getNome())
 										.equals(colunaToA)
 							){
-								boolean nullable = ! Arrays.asList(coluna.getConstraints())
-									.contains(TabelaSchema.NOT_NULL_CONSTRAINT);
+								Constraint constraints [] = coluna.getConstraints();
+								boolean nullable = true;
+								for (Constraint constraint : constraints) {
+									if (constraint.getType() == Constraint.Type.NOT_NULL) {
+										nullable = false;
+										break;
+									}
+								}
 								try{
 								Associacao associacao = new AssociacaoOneToMany(
 										filtroTabelaA.getTabela(),

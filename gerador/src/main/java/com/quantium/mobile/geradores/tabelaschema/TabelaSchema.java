@@ -10,15 +10,9 @@ import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToOne;
+import com.quantium.mobile.geradores.javabean.Constraint;
 
 public class TabelaSchema {
-
-	public static final String PRIMARY_KEY_CONSTRAINT = "PRIMARY KEY";
-	public static final String UNIQUE_CONSTRAINT = "UNIQUE";
-	public static final String FOREIGN_KEY_CONSTRAINT = "FOREIGN KEY";
-	public static final String NOT_NULL_CONSTRAINT = "NOT NULL";
-	public static final String DEFAULT_CONSTRAINT = "DEFAULT";
-	public static final String CHECK_CONSTRAINT = "CHECK";
 
 	private String nome;
 	private String className;
@@ -49,8 +43,31 @@ public class TabelaSchema {
 			TabelaSchema.this.setNonEntityTable(false);
 		}
 
-		public Builder adicionarColuna(String nome, Class<?> type, String... constraints) {
+		public Builder adicionarColuna(String nome, Class<?> type,
+				Constraint... constraints) {
+			if (constraints == null) {
+				constraints = new Constraint[0];
+			} else {
+				for (int i=0; i < constraints.length; i++){
+					if (constraints[i] == null){
+						throw new RuntimeException();
+					}
+				}
+			}
 			TabelaSchema.this.colunas.add(new Coluna(nome, type, constraints));
+			return this;
+		}
+
+		public Builder adicionarColuna(String nome, Class<?> type,
+				Constraint.Type... constraints) {
+			Constraint constraintInstances [] = null;
+			if (constraints != null) {
+				constraintInstances = new Constraint[constraints.length];
+				for (int i=0; i < constraints.length; i++) {
+					constraintInstances[i] = new Constraint(constraints[i]);
+				}
+			}
+			TabelaSchema.this.colunas.add(new Coluna(nome, type, constraintInstances));
 			return this;
 		}
 
@@ -70,10 +87,10 @@ public class TabelaSchema {
 
 		private TabelaSchema gerarAssociativa(String databaseTable, String colunaFrom, String colunaTo) {
 			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(databaseTable);
-			tabelaBuilder.adicionarColuna(colunaFrom, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT,
-					TabelaSchema.NOT_NULL_CONSTRAINT);
-			tabelaBuilder.adicionarColuna(colunaTo, Long.class, TabelaSchema.PRIMARY_KEY_CONSTRAINT,
-					TabelaSchema.NOT_NULL_CONSTRAINT);
+			tabelaBuilder.adicionarColuna(colunaFrom, Long.class,
+					Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
+			tabelaBuilder.adicionarColuna(colunaTo, Long.class,
+					Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
 			return tabelaBuilder.get();
 		}
 
@@ -133,8 +150,8 @@ public class TabelaSchema {
 	public List<TabelaSchema.Coluna> getPrimaryKeys() {
 		ArrayList<TabelaSchema.Coluna> keys = new ArrayList<TabelaSchema.Coluna>();
 		for (TabelaSchema.Coluna coluna : colunas) {
-			label_iterar_colunas: for (String constraint : coluna.getConstraints()) {
-				if (constraint.equalsIgnoreCase(PRIMARY_KEY_CONSTRAINT)) {
+			label_iterar_colunas: for (Constraint constraint : coluna.getConstraints()) {
+				if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
 					keys.add(coluna);
 					break label_iterar_colunas;
 				}
@@ -147,18 +164,18 @@ public class TabelaSchema {
 
 		private String nome;
 		private Class<?> type;
-		private String constraints[];
+		private Constraint constraints[];
 
-		public Coluna(String nome, Class<?> type, String... constraints) {
+		public Coluna(String nome, Class<?> type, Constraint... constraints) {
 			this.nome = nome;
 			this.type = type;
 			this.constraints = constraints;
 		}
 
-		public String[] getConstraints() {
+		public Constraint [] getConstraints() {
 			if (constraints == null || constraints.length == 0)
-				return new String[0];
-			String copy[] = new String[constraints.length];
+				return new Constraint[0];
+			Constraint copy[] = new Constraint[constraints.length];
 			System.arraycopy(constraints, 0, copy, 0, copy.length);
 			return copy;
 		}

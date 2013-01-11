@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
@@ -26,6 +27,13 @@ import net.sf.jsqlparser.statement.truncate.Truncate;
 import net.sf.jsqlparser.statement.update.Update;
 
 public class SqlTabelaSchemaFactory {
+
+	private static final String PRIMARY_KEY_CONSTRAINT = "PRIMARY KEY";
+	private static final String UNIQUE_CONSTRAINT = "UNIQUE";
+	private static final String FOREIGN_KEY_CONSTRAINT = "FOREIGN KEY";
+	private static final String NOT_NULL_CONSTRAINT = "NOT NULL";
+	private static final String DEFAULT_CONSTRAINT = "DEFAULT";
+	private static final String CHECK_CONSTRAINT = "CHECK";
 
 	/**
 	 * @param schema Statement CREATE TABLE de uma tabela em string
@@ -79,16 +87,25 @@ public class SqlTabelaSchemaFactory {
 
 				//constraints da coluna
 				@SuppressWarnings("unchecked")
-				List<String> constraints = extractColumnConstraints(
+				List<Constraint> constraints = extractColumnConstraints(
 						colunaDefinition, ct.getIndexes()
 				);
-				String arrConstraints [] = new String[constraints.size()];
+				Constraint arrConstraints [] = new Constraint[constraints.size()];
 				constraints.toArray(arrConstraints);
 
 				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna, arrConstraints);
 
-				//contagem e validacao de chaves primarias
-				if( constraints.contains(TabelaSchema.PRIMARY_KEY_CONSTRAINT) ) {
+				/*
+				 * contagem e validacao de primaryKeys
+				 */
+				boolean isPrimaryKey = false;
+				for (Constraint constraint : arrConstraints) {
+					if (constraint.getType() == Constraint.Type.PRIMARY_KEY){
+						isPrimaryKey = true;
+						break;
+					}
+				}
+				if(isPrimaryKey) {
 					if (primaryKeyCount >= 1) {
 						throw new RuntimeException(
 								tabela.getNome() +
@@ -136,14 +153,14 @@ public class SqlTabelaSchemaFactory {
 		
 	}
 
-	private static List<String> extractColumnConstraints(
+	private static List<Constraint> extractColumnConstraints(
 			ColumnDefinition colunaDefinition,
 			List<Index> indexes
 	) {
 		@SuppressWarnings("unchecked")
 		List<String> specStrings = colunaDefinition.getColumnSpecStrings();
 		int indexOfPrimaryKeyConstraint =
-				findConstraint(specStrings, TabelaSchema.PRIMARY_KEY_CONSTRAINT);
+				findConstraint(specStrings, PRIMARY_KEY_CONSTRAINT);
 		// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
 		boolean isPrimaryKey = (indexOfPrimaryKeyConstraint >= 0);
 		// refatorar
@@ -153,16 +170,16 @@ public class SqlTabelaSchemaFactory {
 					index.getColumnsNames()
 						.contains(colunaDefinition.getColumnName()) &&
 					index.getType()
-						.equalsIgnoreCase(TabelaSchema.PRIMARY_KEY_CONSTRAINT)
+						.equalsIgnoreCase(PRIMARY_KEY_CONSTRAINT)
 			);
 		}
-		List<String> constraints = new ArrayList<String>();
+		List<Constraint> constraints = new ArrayList<Constraint>();
 		if(isPrimaryKey)
-				constraints.add(TabelaSchema.PRIMARY_KEY_CONSTRAINT);
-		if (findConstraint(specStrings, TabelaSchema.UNIQUE_CONSTRAINT) >= 0)
-				constraints.add(TabelaSchema.UNIQUE_CONSTRAINT);
-		if (findConstraint(specStrings, TabelaSchema.NOT_NULL_CONSTRAINT) >= 0)
-				constraints.add(TabelaSchema.NOT_NULL_CONSTRAINT);
+				constraints.add(new Constraint(Constraint.Type.PRIMARY_KEY));
+		if (findConstraint(specStrings, UNIQUE_CONSTRAINT) >= 0)
+				constraints.add(new Constraint(Constraint.Type.UNIQUE));
+		if (findConstraint(specStrings, NOT_NULL_CONSTRAINT) >= 0)
+				constraints.add(new Constraint(Constraint.Type.NOT_NULL));
 		return constraints;
 	}
 
