@@ -182,6 +182,25 @@ public class SQLiteGeradorUtils {
 		));
 	}
 
+	public static String getSqlTypeFromClass(Class<?> klass) {
+		if (klass.equals(Long.class))
+			return "INTEGER";
+		if (klass.equals(Date.class))
+			return "TIMESTAMP";
+		if (klass.equals(String.class))
+			return "TEXT";
+		if (klass.equals(Double.class))
+			return "DOUBLE";
+		if (klass.equals(Boolean.class))
+			return "BOOLEAN";
+		throw new RuntimeException(String.format(
+				"Classe %s nao mapeada em %s.%s",
+				klass.getName(),
+				SQLiteGeradorUtils.class.getName(),
+				new Object(){}.getClass().getEnclosingMethod().getName()
+		));
+	}
+
 	public static String metodoGetDoCursorParaClasse(Class<?> klass){
 		if(klass.equals(Long.class))
 			return "getLong";
