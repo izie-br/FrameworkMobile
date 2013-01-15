@@ -33,9 +33,10 @@ public class SqlTabelaSchemaFactory {
 	private static final String NOT_NULL_CONSTRAINT = "NOT NULL";
 
 	/**
-	 * @param schema Statement CREATE TABLE de uma tabela em string
+	 * @param schema
+	 *            Statement CREATE TABLE de uma tabela em string
 	 */
-	public TabelaSchema gerarTabelaSchema(String schema){
+	public TabelaSchema gerarTabelaSchema(String schema) {
 		// iniciando o parser
 		CCJSqlParserManager manager = new CCJSqlParserManager();
 		// iniciando o statement
@@ -70,24 +71,22 @@ public class SqlTabelaSchemaFactory {
 			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(ct.getTable().getName().toLowerCase());
 			// colunas
 			@SuppressWarnings("unchecked")
-			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>)ct.getColumnDefinitions();
+			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>) ct.getColumnDefinitions();
 			int primaryKeyCount = 0;
-			for(ColumnDefinition colunaDefinition :  columnDefinitions){
+			tabela = tabelaBuilder.get();
+			for (ColumnDefinition colunaDefinition : columnDefinitions) {
 
 				// nome da coluna
 				String nomeColuna = colunaDefinition.getColumnName().toLowerCase();
 
-				//tipo
-				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(
-						colunaDefinition.getColDataType().getDataType()
-				);
+				// tipo
+				Class<?> tipoColuna = SQLiteGeradorUtils.classeJavaEquivalenteAoTipoSql(colunaDefinition
+						.getColDataType().getDataType());
 
-				//constraints da coluna
+				// constraints da coluna
 				@SuppressWarnings("unchecked")
-				List<Constraint> constraints = extractColumnConstraints(
-						colunaDefinition, ct.getIndexes()
-				);
-				Constraint arrConstraints [] = new Constraint[constraints.size()];
+				List<Constraint> constraints = extractColumnConstraints(colunaDefinition, ct.getIndexes());
+				Constraint arrConstraints[] = new Constraint[constraints.size()];
 				constraints.toArray(arrConstraints);
 
 				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna, arrConstraints);
@@ -97,44 +96,67 @@ public class SqlTabelaSchemaFactory {
 				 */
 				boolean isPrimaryKey = false;
 				for (Constraint constraint : arrConstraints) {
-					if (constraint.getType() == Constraint.Type.PRIMARY_KEY){
+					if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
 						isPrimaryKey = true;
 						break;
 					}
 				}
-				if(isPrimaryKey) {
+				System.out.println("isPrimaryKey:" + isPrimaryKey);
+				if (isPrimaryKey) {
 					if (primaryKeyCount >= 1) {
-						throw new RuntimeException(
-								tabela.getNome() +
-								" sem tem mais de uma primary key");
+						throw new RuntimeException(tabela.getNome() + " sem tem mais de uma primary key");
 					}
-					if (tipoColuna != Long.class){
-						throw new RuntimeException(
-								tabela.getNome() +
-								" sem tem primarykey NON-INTEGER");
+					if (tipoColuna != Long.class) {
+						throw new RuntimeException(tabela.getNome() + " sem tem primarykey NON-INTEGER");
 					}
 					primaryKeyCount++;
 				}
 			}
-			tabela = tabelaBuilder.get();
-			if(primaryKeyCount==0){
-				throw new RuntimeException(tabela.getNome()+" sem primary key");
+			if (primaryKeyCount == 0) {
+				throw new RuntimeException(tabela.getNome() + " sem primary key");
 			}
 		}
 
-		private static final String MSG_ERRO = "Este metodo nao deveria ter sido chamado."+
-				"Confira o schema da tabela se ha linhas que nao sao CREATE TABLE";
-		@Override public void visit(Truncate arg0) { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Drop arg0)     { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Replace arg0)  { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Insert arg0)   { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Update arg0)   { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Delete arg0)   { throw new RuntimeException(MSG_ERRO); }
-		@Override public void visit(Select arg0)   { throw new RuntimeException(MSG_ERRO); }
+		private static final String MSG_ERRO = "Este metodo nao deveria ter sido chamado."
+				+ "Confira o schema da tabela se ha linhas que nao sao CREATE TABLE";
+
+		@Override
+		public void visit(Truncate arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Drop arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Replace arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Insert arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Update arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Delete arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
+
+		@Override
+		public void visit(Select arg0) {
+			throw new RuntimeException(MSG_ERRO);
+		}
 	}
 
-
-	private static class MatchRemover{
+	private static class MatchRemover {
 
 		private String regex;
 		private int colunasGroup;
@@ -147,40 +169,32 @@ public class SqlTabelaSchemaFactory {
 			this.adicionarGroup = adicionarGroup;
 		}
 
-		
 	}
 
-	private static List<Constraint> extractColumnConstraints(
-			ColumnDefinition colunaDefinition,
-			List<Index> indexes
-	) {
+	private static List<Constraint> extractColumnConstraints(ColumnDefinition colunaDefinition, List<Index> indexes) {
 		@SuppressWarnings("unchecked")
 		List<String> specStrings = colunaDefinition.getColumnSpecStrings();
-		int indexOfPrimaryKeyConstraint =
-				findConstraint(specStrings, PRIMARY_KEY_CONSTRAINT);
+		int indexOfPrimaryKeyConstraint = findConstraint(specStrings, PRIMARY_KEY_CONSTRAINT);
 		// tipos de index "PRIMARY KEY", "UNIQUE", "INDEX"
 		boolean isPrimaryKey = (indexOfPrimaryKeyConstraint >= 0);
 		// refatorar
-		for(int i = 0; indexes!=null && i < indexes.size(); i++){
-			Index index = (Index)indexes.get(i);
-			isPrimaryKey = isPrimaryKey || (
-					index.getColumnsNames()
-						.contains(colunaDefinition.getColumnName()) &&
-					index.getType()
-						.equalsIgnoreCase(PRIMARY_KEY_CONSTRAINT)
-			);
+		for (int i = 0; indexes != null && i < indexes.size(); i++) {
+			Index index = (Index) indexes.get(i);
+			isPrimaryKey = isPrimaryKey
+					|| (index.getColumnsNames().contains(colunaDefinition.getColumnName()) && index.getType()
+							.equalsIgnoreCase(PRIMARY_KEY_CONSTRAINT));
 		}
 		List<Constraint> constraints = new ArrayList<Constraint>();
-		if(isPrimaryKey)
-				constraints.add(new Constraint(Constraint.Type.PRIMARY_KEY));
+		if (isPrimaryKey)
+			constraints.add(new Constraint(Constraint.Type.PRIMARY_KEY));
 		if (findConstraint(specStrings, UNIQUE_CONSTRAINT) >= 0)
-				constraints.add(new Constraint(Constraint.Type.UNIQUE));
+			constraints.add(new Constraint(Constraint.Type.UNIQUE));
 		if (findConstraint(specStrings, NOT_NULL_CONSTRAINT) >= 0)
-				constraints.add(new Constraint(Constraint.Type.NOT_NULL));
+			constraints.add(new Constraint(Constraint.Type.NOT_NULL));
 		return constraints;
 	}
 
-	private static int findConstraint (List<String> specStrings, String constrt) {
+	private static int findConstraint(List<String> specStrings, String constrt) {
 		if (specStrings == null || constrt == null)
 			return -1;
 		String[] keyStrings = constrt.split("\\s+");
@@ -193,90 +207,79 @@ public class SqlTabelaSchemaFactory {
 		}
 		if (indexOfPrimary < 0)
 			return -1;
-		for (int i = 1; i < keyStrings.length ; i++) {
-			if ( !(
-					specStrings.get(indexOfPrimary+i)
-						.equalsIgnoreCase(keyStrings[i])
-			) ) {
+		for (int i = 1; i < keyStrings.length; i++) {
+			if (!(specStrings.get(indexOfPrimary + i).equalsIgnoreCase(keyStrings[i]))) {
 				return -1;
 			}
 		}
 		return indexOfPrimary;
 	}
 
-	private static final String REMOVER[] = {
-		"on\\s+conflict\\s+\\w+",
-		"constraint\\s+\\w+",
-//		sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
-//		sed -E 's/CREATE[[:space:]]+VIEW.*//' |
+	private static final String REMOVER[] = { "on\\s+conflict\\s+\\w+", "constraint\\s+\\w+",
+	// sed -E 's/,[[:space:]]*CONSTRAINT[[:space:]].*/\);/' |
+	// sed -E 's/CREATE[[:space:]]+VIEW.*//' |
 
 	};
 
 	private static final MatchRemover ADICIONAR_A_COLUNA[] = {
-		new MatchRemover(
-			",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))",
-			1,
-			2
-		),
-		new MatchRemover(
-			",\\s*(unique)\\s*\\((\\s*\\w+\\s*(,\\s*\\w+\\s*)*)\\)",
-			2,
-			1
-		)
-	};
+			new MatchRemover(
+					",\\s*foreign\\s+key\\s*\\(\\s*(\\w+)\\s*\\)\\s+(references\\s+\\w+\\s*\\(\\s*\\w+\\s*\\))", 1, 2),
+			new MatchRemover(",\\s*(unique)\\s*\\((\\s*\\w+\\s*(,\\s*\\w+\\s*)*)\\)", 2, 1) };
 
-	private static String COLUNA = 
-		// inicio
-		"[\\(,]\\s*"+
-		// nome da coluna
-		"(\\w+)"+
-		// tipo e qualificadores sem parenteses
-		"\\s+[^,\\(\\)]*"+
-		// grupos com parentses e mais qualificadores
-		"((\\([^\\)]*\\))\\s*[^,\\)]*)*";
-		// fim da declaracao da coluna
-		// note que esta regex nao inclui a virgula ou fechamento de parenteses
+	private static String COLUNA =
+	// inicio
+	"[\\(,]\\s*" +
+	// nome da coluna
+			"(\\w+)" +
+			// tipo e qualificadores sem parenteses
+			"\\s+[^,\\(\\)]*" +
+			// grupos com parentses e mais qualificadores
+			"((\\([^\\)]*\\))\\s*[^,\\)]*)*";
 
-private static String tratarSchema(String schema) {
-	for(String regex : REMOVER){
-		Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-		Matcher mobj = pat.matcher(schema);
-		if(mobj.find()){
-			schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+	// fim da declaracao da coluna
+	// note que esta regex nao inclui a virgula ou fechamento de parenteses
+
+	private static String tratarSchema(String schema) {
+		for (String regex : REMOVER) {
+			Pattern pat = Pattern.compile(regex, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+			Matcher mobj = pat.matcher(schema);
+			if (mobj.find()) {
+				schema = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+			}
 		}
-	}
-	for(MatchRemover regex : ADICIONAR_A_COLUNA){
-		Pattern pat = Pattern.compile(regex.regex, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-		Matcher mobj = pat.matcher(schema);
-		if(mobj.find()){
-			// DEBUG
-			//String match = mobj.group(2);
-			String result =  schema.substring(0, mobj.start()) + schema.substring(mobj.end());
-			String colunas[] = mobj.group(regex.colunasGroup).split(",");
-			
-			String paraAdicionar = " " + mobj.group(regex.adicionarGroup);
-			for(String coluna : colunas ){
-				Pattern colPat = Pattern.compile(COLUNA, Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-				Matcher colMatch = colPat.matcher(result);
-				boolean colunaEncontrada = false;
-				while(!colunaEncontrada){
-					if(!colMatch.find())
-						throw new RuntimeException(coluna+" nao encontrada em:\\n"+schema);
-					// DEBUG
-					//String colmatch = colMatch.group();
-					String debuggroups[] = new String[colMatch.groupCount()];
-					for(int i=0;i<debuggroups.length;i++)
-						debuggroups[i] = colMatch.group(i);
-					if(colMatch.group(1).trim().equalsIgnoreCase(coluna.trim())){
-						result = result.substring(0, colMatch.end()) + paraAdicionar+result.substring(colMatch.end());
-						colunaEncontrada = true;
+		for (MatchRemover regex : ADICIONAR_A_COLUNA) {
+			Pattern pat = Pattern.compile(regex.regex, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+			Matcher mobj = pat.matcher(schema);
+			if (mobj.find()) {
+				// DEBUG
+				// String match = mobj.group(2);
+				String result = schema.substring(0, mobj.start()) + schema.substring(mobj.end());
+				String colunas[] = mobj.group(regex.colunasGroup).split(",");
+
+				String paraAdicionar = " " + mobj.group(regex.adicionarGroup);
+				for (String coluna : colunas) {
+					Pattern colPat = Pattern.compile(COLUNA, Pattern.CASE_INSENSITIVE | Pattern.MULTILINE);
+					Matcher colMatch = colPat.matcher(result);
+					boolean colunaEncontrada = false;
+					while (!colunaEncontrada) {
+						if (!colMatch.find())
+							throw new RuntimeException(coluna + " nao encontrada em:\\n" + schema);
+						// DEBUG
+						// String colmatch = colMatch.group();
+						String debuggroups[] = new String[colMatch.groupCount()];
+						for (int i = 0; i < debuggroups.length; i++)
+							debuggroups[i] = colMatch.group(i);
+						if (colMatch.group(1).trim().equalsIgnoreCase(coluna.trim())) {
+							result = result.substring(0, colMatch.end()) + paraAdicionar
+									+ result.substring(colMatch.end());
+							colunaEncontrada = true;
+						}
 					}
 				}
+				schema = result;
 			}
-			schema = result;
 		}
+		return schema;
 	}
-	return schema;
-}
 
 }
