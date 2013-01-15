@@ -94,10 +94,10 @@ public class SQLiteInputParser implements InputParser {
 	 * @param version     versao
 	 * @return
 	 */
-	private String getSqlTill(File sqlResource, Integer version) {
+	protected String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder out = new StringBuilder();
 		List<String> nodes = XMLUtil.xpath(sqlResource, "//string["
-				+ "contains(@name,\"db_versao_\") and "
+				+ "contains(@name,\""+Constants.DB_VERSION_PREFIX+"\") and "
 				+ "number(substring(@name,11)) < " + (++version) + "]//text()");
 		for (String node : nodes)
 			out.append(node);

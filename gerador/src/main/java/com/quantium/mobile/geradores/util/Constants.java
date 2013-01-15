@@ -6,6 +6,8 @@ public interface Constants {
 	public static final String PROPERTIY_IGNORED = "ignore";
 	public static final String PROPERTIY_SERIALIZATION_ALIAS = "alias";
 
+	public static final String DB_VERSION_PREFIX = "db_versao_";
+
 	public static final String DB_CLASS = "DB";
 	public static final String DB_RESOURCE_FILE = "/DB.java";
 	public static final String DB_PACKAGE = "db";

@@ -20,6 +20,9 @@ public class InputParserRepository {
 		InputParserRepository.registerInputParser(
 				JsonInputParser.INPUT_PARSER_IDENTIFIER,
 				new JsonInputParser());
+		InputParserRepository.registerInputParser (
+				MigrationsInputParser.INPUT_PARSER_IDENTIFIER,
+				new MigrationsInputParser ());
 	}
 
 	public static InputParser getInputParser(String parserInputType) throws GeradorException {
