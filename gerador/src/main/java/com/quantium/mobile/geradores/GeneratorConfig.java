@@ -22,6 +22,9 @@ public class GeneratorConfig {
 	private String propertiesFilePath;
 	private String androidManifestFilePath;
 
+	private File migrationsOutput;
+	private File sqlXmlOutput;
+
 	private String coreTemporaryDirectoryPath = "__tempgen_core";
 	private String androidTemporaryDirectoryPath = "__tempgen_android";
 	private String jdbcTemporaryDirectoryPath = "__tempgen_jdbc";
@@ -50,6 +53,14 @@ public class GeneratorConfig {
 
 	public String getBasePackage() {
 		return basePackage;
+	}
+
+	public File getMigrationsOutputDir() {
+		return migrationsOutput;
+	}
+
+	public File getSqlXmlOutput() {
+		return sqlXmlOutput;
 	}
 
 	public String getInputFilePath() {
@@ -212,6 +223,9 @@ public class GeneratorConfig {
 		String baseDirectoryPath;
 		File baseDirectory;
 
+		String migrationsOutputPath;
+		String sqlXmlOutputPath;
+
 		String inputFilePath;
 		File inputFile;
 
@@ -245,6 +259,15 @@ public class GeneratorConfig {
 //			generatorConfig.baseDirectory = getBaseDirectory();
 			generatorConfig.inputFile = getInputFile();
 			generatorConfig.inputFilePath = getInputFilePath();
+
+			if (this.migrationsOutputPath != null) {
+				generatorConfig.migrationsOutput =
+					new File (getBaseDirectory (), this.migrationsOutputPath);
+			}
+			if (this.sqlXmlOutputPath != null) {
+				generatorConfig.sqlXmlOutput =
+					new File (getBaseDirectory (), this.sqlXmlOutputPath);
+			}
 
 			generatorConfig.propertiesFilePath = getPropertiesFilePath();
 			generatorConfig.propertiesFile = getPropertiesFile();
@@ -299,6 +322,17 @@ public class GeneratorConfig {
 			this.basePackage = basePackage;
 			return this;
 		}
+
+		public Builder setMigrationsOutput(String path) {
+			this.migrationsOutputPath = path;
+			return this;
+		}
+
+		public Builder setSqlXmlOutput(String path) {
+			this.sqlXmlOutputPath = path;
+			return this;
+		}
+
 		public Builder setPropertiesFile(String propertiesFile) {
 			this.propertiesFilePath = propertiesFile;
 			return this;

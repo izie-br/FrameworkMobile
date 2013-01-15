@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -14,10 +15,13 @@ import java.util.Properties;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
+import com.quantium.mobile.geradores.filters.associacao.Associacao;
+import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.parsers.FileParserMapper;
 import com.quantium.mobile.geradores.parsers.InputParser;
 import com.quantium.mobile.geradores.parsers.InputParserRepository;
+import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
@@ -119,6 +123,9 @@ public class Generator {
 
 		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(projectInformation, defaultProperties);
 
+		//gerando migracoes
+		generateMigrations (inputParser, projectInformation, javaBeanSchemas);
+
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =
 			(Map<String,String>)defaultProperties.get(Constants.PROPERTIY_SERIALIZATION_ALIAS);
@@ -155,6 +162,7 @@ public class Generator {
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
 				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 
+		
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
@@ -373,6 +381,26 @@ public class Generator {
 	            destination.close();
 	        }
 	    }
+	}
+
+	private static void generateMigrations(
+			InputParser parser,
+			GeneratorConfig config,
+			Collection<JavaBeanSchema> schemas) throws GeradorException
+	{
+		Map<String,TabelaSchema> tables = new HashMap<String, TabelaSchema> ();
+		for (JavaBeanSchema jbschema : schemas) {
+			TabelaSchema table = jbschema.getTabela ();
+			tables.put (table.getNome (), table);
+			for (Associacao assoc : jbschema.getAssociacoes ()) {
+				if (assoc instanceof AssociacaoManyToMany) {
+					AssociacaoManyToMany m2m = (AssociacaoManyToMany) assoc;
+					TabelaSchema jointable = m2m.getTabelaJuncao ();
+					tables.put (jointable.getNome (), jointable);
+				}
+			}
+		}
+		parser.generateSqlResources (config, tables.values ());
 	}
 
 }

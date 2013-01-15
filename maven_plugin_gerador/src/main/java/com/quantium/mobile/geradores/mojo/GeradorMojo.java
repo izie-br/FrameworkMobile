@@ -51,6 +51,11 @@ public class GeradorMojo extends AbstractMojo{
     /**
      * @parameter
      */
+    private String migrationsDir;
+
+    /**
+     * @parameter
+     */
     private String config;
 
     /**
@@ -145,6 +150,7 @@ public class GeradorMojo extends AbstractMojo{
                 .setJdbcDirectory(jdbcSrcDir)
                 .setPropertiesFile(config)
                 .setAndroidManifest(androidManifestPath)
+                .setMigrationsOutput (this.migrationsDir)
                 .create();
 
             new Generator(generatorConfig)

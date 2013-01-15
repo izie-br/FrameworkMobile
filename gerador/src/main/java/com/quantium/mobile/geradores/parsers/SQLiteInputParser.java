@@ -173,4 +173,14 @@ public class SQLiteInputParser implements InputParser {
 		}
 		return false;
 	}
+
+	@Override
+	public void generateSqlResources(
+			GeneratorConfig config,
+			Collection<TabelaSchema> tables)
+			throws GeradorException
+	{
+		/* no-op */
+	}
+
 }

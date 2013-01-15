@@ -1,9 +1,12 @@
 package com.quantium.mobile.geradores.parsers;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -21,11 +24,13 @@ import org.json.JSONObject;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
+import com.quantium.mobile.geradores.dbschema.SQLiteSchemaGenerator;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Builder;
+import com.quantium.mobile.geradores.util.Constants;
 
 public class JsonInputParser implements InputParser {
 
@@ -195,6 +200,74 @@ public class JsonInputParser implements InputParser {
 			}
 		}
 		return list;
+	}
+
+	@Override
+	public void generateSqlResources(
+			GeneratorConfig config,
+			Collection<TabelaSchema> tables)
+			throws GeradorException
+	{
+		File outputDir = config.getMigrationsOutputDir ();
+		if (outputDir == null)
+			return;
+		if (outputDir.exists () && !outputDir.isDirectory ()) {
+			throw new GeradorException (
+					"Diretorio de saida de migracoes nao eh diretorio." +
+					" Arquivo encontrado em "+outputDir.getAbsolutePath ());
+		}
+
+		if (!outputDir.exists ()) {
+			outputDir.mkdirs ();
+		} else {
+			if (findExistingSchema (outputDir))
+				return;
+		}
+		writeSchemasToOutput (tables, outputDir);
+	}
+
+	private static boolean findExistingSchema(File dir)
+			throws GeradorException
+	{
+		try {
+			String files [] = dir.list ();
+			if (files == null)
+				return false;
+
+			final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
+			for (String f : files) {
+				if (expectedName.equals ( (String)f ))
+					return true;
+			}
+		} catch (Exception e) {
+			throw new GeradorException (e);
+		}
+		return false;
+	}
+
+	private static void writeSchemasToOutput(
+			Collection<TabelaSchema> tables, File outputDir)
+			throws GeradorException
+	{
+		final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
+		File outFile = new File (outputDir, expectedName);
+
+		try {
+			BufferedWriter writer = new BufferedWriter (
+				new OutputStreamWriter (
+					new FileOutputStream (outFile),
+					"UTF-8"
+				)
+			);
+			SQLiteSchemaGenerator generator = new SQLiteSchemaGenerator ();
+			for (TabelaSchema table : tables) {
+				writer.append (generator.getSchemaFor (table));
+			}
+			writer.close ();
+		} catch (Exception e) {
+			throw new GeradorException (e);
+		}
+
 	}
 
 }
