@@ -2,7 +2,6 @@ package com.quantium.mobile.geradores.dbschema;
 
 import static org.junit.Assert.*;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 

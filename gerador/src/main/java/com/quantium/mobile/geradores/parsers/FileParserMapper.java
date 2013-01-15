@@ -28,7 +28,7 @@ public class FileParserMapper {
 					arr[arr.length-2] :
 					arr[arr.length-1];
 
-			type = fileParserMap.get(arr[arr.length-1]);
+			type = fileParserMap.get(last);
 		}
 		if (type == null) type = fileParserMap.get(name.split("\\.")[1]);
 		if (type == null) throw new GeradorException("Nenhum formato de " +
