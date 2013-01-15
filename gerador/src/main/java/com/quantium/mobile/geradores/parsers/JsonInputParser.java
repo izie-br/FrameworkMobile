@@ -72,16 +72,7 @@ public class JsonInputParser implements InputParser {
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
-			if ("Lib".equalsIgnoreCase(jsonPackage.optString("name"))) {
-				continue;
-			}
-			if ("Auth".equalsIgnoreCase(jsonPackage.optString("name"))) {
-				continue;
-			}
-			if ("Menu".equalsIgnoreCase(jsonPackage.optString("name"))) {
-				continue;
-			}
-			if ("Oauth".equalsIgnoreCase(jsonPackage.optString("name"))) {
+			if (jsonPackage.optBoolean("isLibrary")) {
 				continue;
 			}
 			for (JSONObject jsonClass : classes) {
