@@ -1,17 +1,17 @@
 package com.quantium.mobile.framework.libjdbctest.db;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Properties;
 import java.util.regex.Pattern;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.shared.util.XMLUtil;
 
 public class DB {
 
@@ -35,14 +35,26 @@ public class DB {
 	}
 
 	private static String getSqlScriptPorVersao(int version ){
-		InputStream is = DB.class.getClassLoader()
-		                 .getResourceAsStream("sql.xml");
-		List<String> nodes = XMLUtil.xpath(is, "//string["
-				+ "contains(@name,\"db_versao_\") and "
-				+ "number(substring(@name,11)) < " + (++version) + "]//text()");
 		StringBuilder sb = new StringBuilder();
-		for (String node : nodes)
-			sb.append(node);
+
+		// Cuidado, o operador de parada deve ser menor igual em "i <= version"
+		for (int i=0; i <= version; i++) {
+			InputStream is = DB.class.getClassLoader ()
+					.getResourceAsStream ("migrations/db_versao_" + i +".sql");
+			if (is == null) continue;
+			try {
+				BufferedReader reader = new BufferedReader (new InputStreamReader (is, "UTF-8"));
+
+				String line = reader.readLine ();
+				while (line != null) {
+					sb.append (line);
+					line = reader.readLine ();
+				}
+				sb.append ('\n');
+			} catch (Exception e) {
+				throw new RuntimeException (e);
+			}
+		}
 		return sb.toString();
 	}
 
@@ -63,7 +75,7 @@ public class DB {
 		String sqlArray [] = sql.toString().split(";");
 		ArrayList<String> list = new ArrayList<String>();
 		Pattern triggerPat = Pattern.compile("create\\s+trigger",Pattern.CASE_INSENSITIVE|Pattern.MULTILINE);
-		Pattern triggerEnd = Pattern.compile("\\send\\s*$",Pattern.CASE_INSENSITIVE);
+		Pattern triggerEnd = Pattern.compile("end\\s*$",Pattern.CASE_INSENSITIVE);
 		for (int i=0; i<sqlArray.length;i++){
 			int last = i;
 			if (triggerPat.matcher(sqlArray[i]).find()){

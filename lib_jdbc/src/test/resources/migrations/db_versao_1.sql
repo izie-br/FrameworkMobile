@@ -1,7 +1,3 @@
-<?xml version="1.0" encoding="utf-8"?>
-<resources>
-
-    <string name="db_versao_1">
 CREATE TABLE tb_document (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     title varchar(79) NOT NULL,
@@ -33,28 +29,4 @@ CREATE TABLE tb_customer_join_document (
     id_customer INTEGER NOT NULL,
     id_document INTEGER NOT NULL
 );
-    </string>
-    <string name="db_versao_2">
-DROP TABLE tb_author;
-CREATE TABLE tb_author (
-    id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
-    name varchar(79) NOT NULL,
-    created_at TIMESTAMP NOT NULL,
-    active BOOLEAN NOT NULL,
-    UNIQUE (name)
-);
-    </string>
-    <string name="db_versao_3">
-ALTER TABLE tb_score RENAME TO tb_score_tmp;
-CREATE TABLE tb_score (
-    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-    id_author integer NOT NULL,
-    id_document integer NOT NULL,
-    score integer DEFAULT 0
-);
-INSERT INTO tb_score (id_author, id_document, score)
-    SELECT id_author, id_document, score FROM tb_score_tmp
-    WHERE id_document != NULL;
-DROP TABLE tb_score_tmp;
-    </string>
-</resources>
+

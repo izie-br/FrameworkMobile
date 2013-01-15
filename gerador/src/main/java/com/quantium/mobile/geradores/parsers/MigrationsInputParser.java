@@ -25,11 +25,13 @@ public class MigrationsInputParser extends SQLiteInputParser {
 
 		// Filtrar quais arquivos tem nome correto e coloca-los em ordem
 		ArrayList<File> migrationFiles = new ArrayList<File> ();
-		for (int i=0; i < version; i++){
+
+		// Cuidado, o operador de parada deve ser menor igual em "i <= version"
+		for (int i=0; i <= version; i++){
 			for (File f : files) {
 				Matcher mobj = pat.matcher (f.getName ());
 				if (mobj.find () &&
-				    Integer.parseInt (mobj.group (1)) == 1)
+				    Integer.parseInt (mobj.group (1)) == i)
 				{
 					migrationFiles.add (f);
 					break;
@@ -50,10 +52,22 @@ public class MigrationsInputParser extends SQLiteInputParser {
 					"UTF-8"
 				)
 			);
-			sb.append (reader.readLine ());
+
+			String line = removeH2Dbkeywords (reader.readLine ());
+			while (line != null) {
+				sb.append (line);
+				line = removeH2Dbkeywords (reader.readLine ());
+			}
 		} catch (Exception e) {
 			throw new RuntimeException (e);
 		}
+	}
+
+	//TODO reposicionar isto, nem sempre sera H2Db
+	private static final String removeH2Dbkeywords(String input) {
+		if (input == null)
+			return null;
+		return input.replaceAll ("AUTO_INCREMENT", "AUTOINCREMENT");
 	}
 
 }
