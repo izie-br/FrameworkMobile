@@ -17,11 +17,24 @@ public class MigrationsInputParser extends SQLiteInputParser {
 	@Override
 	protected String getSqlTill(File sqlResource, Integer version) {
 		StringBuilder sb = new StringBuilder();
+
+		ArrayList<File> migrationFiles = getOrderedFiles (
+				sqlResource, version);
+
+		for (File f : migrationFiles) writeFileToSb (f, sb);
+
+		return sb.toString();
+	}
+
+	public static ArrayList<File> getOrderedFiles(
+			File sqlResource, Integer version)
+	{
 		File files [] = sqlResource.listFiles();
 
-		Pattern pat = Pattern.compile (
+		final Pattern pat = Pattern.compile (
 				"^" + Pattern.quote (Constants.DB_VERSION_PREFIX) +
 				"(\\d+).sql$");
+
 
 		// Filtrar quais arquivos tem nome correto e coloca-los em ordem
 		ArrayList<File> migrationFiles = new ArrayList<File> ();
@@ -38,10 +51,7 @@ public class MigrationsInputParser extends SQLiteInputParser {
 				}
 			}
 		}
-
-		for (File f : migrationFiles) writeFileToSb (f, sb);
-
-		return sb.toString();
+		return migrationFiles;
 	}
 
 	private static void writeFileToSb(File f, StringBuilder sb) {

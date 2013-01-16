@@ -5,8 +5,9 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -21,12 +22,14 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.parsers.FileParserMapper;
 import com.quantium.mobile.geradores.parsers.InputParser;
 import com.quantium.mobile.geradores.parsers.InputParserRepository;
+import com.quantium.mobile.geradores.parsers.MigrationsInputParser;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
+import com.quantium.mobile.geradores.velocity.VelocitySqlXmlFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
 public class Generator {
@@ -140,6 +143,19 @@ public class Generator {
 
 		//inicializa e configura a VelocityEngine
 		VelocityEngine ve = initVelocityEngine();
+
+		{
+			File sqlXmlFile = projectInformation.getSqlXmlOutput ();
+			Map<String, InputStream> migrationsMap = getMigrationsMap (projectInformation, dbVersion);
+			if (sqlXmlFile != null && migrationsMap != null) {
+				if (sqlXmlFile.exists ())
+					sqlXmlFile.delete ();
+				sqlXmlFile.createNewFile ();
+				OutputStream out = new FileOutputStream (sqlXmlFile);
+				VelocitySqlXmlFactory vsqlf = new VelocitySqlXmlFactory (ve, out);
+				vsqlf.generateSqlXml (migrationsMap);
+			}
+		}
 
 		VelocityDaoFactory vdaof = null;
 		VelocityDaoFactory vJdbcDaoFactory = null;
@@ -401,6 +417,24 @@ public class Generator {
 			}
 		}
 		parser.generateSqlResources (config, tables.values ());
+	}
+
+	private static Map<String, InputStream> getMigrationsMap (
+			GeneratorConfig config, int version)
+	{
+		Map<String, InputStream> scripts = new HashMap<String, InputStream> ();
+		File migrationsDir = config.getMigrationsOutputDir ();
+		if (migrationsDir == null || !migrationsDir.exists ())
+			return null;
+		Collection<File> orderedFiles = MigrationsInputParser.getOrderedFiles (migrationsDir, version);
+		for (File f: orderedFiles) {
+			try {
+				scripts.put (f.getName ().replace (".sql", ""), new FileInputStream (f));
+			} catch (Exception e) {
+				throw new RuntimeException (e);
+			}
+		}
+		return scripts;
 	}
 
 }

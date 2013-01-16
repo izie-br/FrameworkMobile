@@ -50,6 +50,8 @@
 
           <!-- resource sql, substituir por json depois-->
           <sqlResource>src/test/resources/migrations</sqlResource>
+          <migrationsDir>src/test/resources/migrations</migrationsDir>
+          <sqlXml>sql.xml</sqlXml>
 
           <!-- pasta para enviar os fontes gerados para o "core" -->
           <coreSrcDir>src/test/java/</coreSrcDir>

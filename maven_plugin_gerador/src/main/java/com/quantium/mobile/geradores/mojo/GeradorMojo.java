@@ -56,6 +56,11 @@ public class GeradorMojo extends AbstractMojo{
     /**
      * @parameter
      */
+    private String sqlXml;
+
+    /**
+     * @parameter
+     */
     private String config;
 
     /**
@@ -151,6 +156,7 @@ public class GeradorMojo extends AbstractMojo{
                 .setPropertiesFile(config)
                 .setAndroidManifest(androidManifestPath)
                 .setMigrationsOutput (this.migrationsDir)
+                .setSqlXmlOutput (this.sqlXml)
                 .create();
 
             new Generator(generatorConfig)
