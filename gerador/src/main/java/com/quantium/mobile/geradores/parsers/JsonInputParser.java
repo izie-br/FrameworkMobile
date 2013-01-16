@@ -219,43 +219,28 @@ public class JsonInputParser implements InputParser {
 
 		if (!outputDir.exists ()) {
 			outputDir.mkdirs ();
-		} else {
-			if (findExistingSchema (outputDir))
-				return;
 		}
-		writeSchemasToOutput (tables, outputDir);
-	}
+		final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
+		File firstVersion = new File (outputDir, expectedName);
+		if (!firstVersion.exists ())
+			writeSchemasToOutput (tables, firstVersion);
 
-	private static boolean findExistingSchema(File dir)
-			throws GeradorException
-	{
-		try {
-			String files [] = dir.list ();
-			if (files == null)
-				return false;
-
-			final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
-			for (String f : files) {
-				if (expectedName.equals ( (String)f ))
-					return true;
-			}
-		} catch (Exception e) {
-			throw new GeradorException (e);
+		int version = config.retrieveDatabaseVersion ();
+		if (version > 1) {
+			String currentSchemaName = "schema_" + version + ".sql";
+			File currentSchema = new File (outputDir, currentSchemaName);
+			writeSchemasToOutput (tables, currentSchema);
 		}
-		return false;
 	}
 
 	private static void writeSchemasToOutput(
-			Collection<TabelaSchema> tables, File outputDir)
+			Collection<TabelaSchema> tables, File output)
 			throws GeradorException
 	{
-		final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
-		File outFile = new File (outputDir, expectedName);
-
 		try {
 			BufferedWriter writer = new BufferedWriter (
 				new OutputStreamWriter (
-					new FileOutputStream (outFile),
+					new FileOutputStream (output),
 					"UTF-8"
 				)
 			);
