@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 #foreach($version in $versions)
-	<string name="${version.Name}">
-${version.Script}
+	<string name="${esc.xml($version.Name)}">
+${esc.xml($version.Script)}
 	</string>
 #end
 </resources>

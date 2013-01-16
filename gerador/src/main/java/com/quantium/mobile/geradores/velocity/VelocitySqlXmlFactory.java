@@ -13,14 +13,18 @@ import java.util.Map;
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
+import org.apache.velocity.tools.generic.EscapeTool;
 
 public class VelocitySqlXmlFactory {
 
 	private OutputStream out;
 	private Template template;
+	private VelocityContext parentCtx;
 
 	public VelocitySqlXmlFactory(VelocityEngine ve, OutputStream out) {
 		this.out = out;
+		this.parentCtx = new VelocityContext ();
+		parentCtx.put ("esc", new EscapeTool ());
 		this.template = ve.getTemplate ("sql.xml");
 	}
 
@@ -51,7 +55,7 @@ public class VelocitySqlXmlFactory {
 			version.script = sb.toString ();
 			versions.add (version);
 		}
-		VelocityContext ctx= new VelocityContext ();
+		VelocityContext ctx= new VelocityContext (this.parentCtx);
 		ctx.put ("versions", versions);
 		try {
 			BufferedWriter writer = new BufferedWriter (
