@@ -12,6 +12,7 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import java.util.TreeMap;
 
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
@@ -422,7 +423,7 @@ public class Generator {
 	private static Map<String, InputStream> getMigrationsMap (
 			GeneratorConfig config, int version)
 	{
-		Map<String, InputStream> scripts = new HashMap<String, InputStream> ();
+		Map<String, InputStream> scripts = new TreeMap <String, InputStream> ();
 		File migrationsDir = config.getMigrationsOutputDir ();
 		if (migrationsDir == null || !migrationsDir.exists ())
 			return null;

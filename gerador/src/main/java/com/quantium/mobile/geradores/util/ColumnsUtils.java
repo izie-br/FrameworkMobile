@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
+import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
-import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;
 
@@ -29,27 +29,42 @@ public class ColumnsUtils {
 			JavaBeanSchema javaBeanSchema
 	) {
 
+		TabelaSchema table = javaBeanSchema.getTabela();
+		List<String> colunasEmOrdem = orderedColumnsFromTableSchema (table);
+
+		return colunasEmOrdem;
+
+	}
+
+	public static List<String> orderedColumnsFromTableSchema(
+			TabelaSchema table)
+	{
 		Set<TabelaSchema.Coluna> setOrdenado = 
 			new TreeSet<TabelaSchema.Coluna>(
 				new TypeAndNameComparator()
 			);
-		setOrdenado.addAll(javaBeanSchema.getTabela().getColunas());
+		setOrdenado.addAll(table.getColunas());
 
 		List<String> primaryKeys = new ArrayList<String>();
 		List<String> notPrimaryKeys = new ArrayList<String>();
 
 		// Separando as chaves primarias do resto
 		for(TabelaSchema.Coluna column : setOrdenado){
-			Property prop = javaBeanSchema.getPropriedade(column.getNome());
-			((prop.isPrimaryKey()) ? primaryKeys : notPrimaryKeys)
+			Constraint constraints [] = column.getConstraints ();
+			boolean isPrimaryKey = false;
+			for (Constraint constraint : constraints) {
+				if (constraint.getType () == Constraint.Type.PRIMARY_KEY){
+					isPrimaryKey = true;
+					break;
+				}
+			}
+			((isPrimaryKey) ? primaryKeys : notPrimaryKeys)
 				.add(column.getNome());
 		}
 
 		List<String> colunasEmOrdem = new ArrayList<String>();
 		colunasEmOrdem.addAll(primaryKeys);
 		colunasEmOrdem.addAll(notPrimaryKeys);
-
 		return colunasEmOrdem;
-
 	}
 }

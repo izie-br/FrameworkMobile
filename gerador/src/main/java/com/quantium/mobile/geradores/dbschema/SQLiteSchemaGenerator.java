@@ -6,6 +6,7 @@ import com.quantium.mobile.framework.utils.DateUtil;
 import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 
 public class SQLiteSchemaGenerator {
@@ -21,7 +22,14 @@ public class SQLiteSchemaGenerator {
 		schemaSb.append(" INTEGER PRIMARY KEY AUTOINCREMENT");
 
 		//Outras colunas, exceto a chave primaria
-		for (Coluna column : table.getColunas()) {
+		
+		for (String columnName : ColumnsUtils.orderedColumnsFromTableSchema (table)) {
+
+			Coluna column = null;
+			for (Coluna col : table.getColunas ()) {
+				if (col.getNome ().equals (columnName))
+					column = col;
+			}
 
 			//pulando a chave primaria
 			if (column == pk || column.getNome().equals(pk.getNome()))
