@@ -31,11 +31,11 @@
 #**###
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******##set ($submap = "submapFor${association.Klass}")
+#******##set ($submap = "submapFor${association.KeyToA}")
 #******#        Object ${submap} = mapAnyCamelCase.get("${association.Klass}");
-#******#        ${association.Klass} _${association.Klass};
+#******#        ${association.Klass} _${association.KeyToA};
 #******#        if (${submap} != null && ${submap} instanceof Map){
-#******#            _${association.Klass} = factory.getDaoFor(${association.Klass}.class)
+#******#            _${association.KeyToA} = factory.getDaoFor(${association.Klass}.class)
 #******#                .mapToObject((Map<String,Object>)${submap});
 #******#        } else {
 #******#            temp = mapAnyCamelCase.get("${alias}");
@@ -43,7 +43,7 @@
 #******#                temp = Long.parseLong((String)temp);
 #******#            long ${field.LowerCamel} = ((temp!= null)?((Number) temp).longValue(): ${defaultId});
 #******#            DAO<${association.Klass}> dao = this.factory.getDaoFor(${association.Klass}.class);
-#******#            _${association.Klass} = (${field.LowerCamel} != ${defaultId})?
+#******#            _${association.KeyToA} = (${field.LowerCamel} != ${defaultId})?
 #******#                dao.query(${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq((Long)${field.LowerCamel})).first():
 #******#                null;
 #******#        }

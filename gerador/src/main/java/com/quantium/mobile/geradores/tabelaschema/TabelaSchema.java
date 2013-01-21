@@ -43,13 +43,12 @@ public class TabelaSchema {
 			TabelaSchema.this.setNonEntityTable(false);
 		}
 
-		public Builder adicionarColuna(String nome, Class<?> type,
-				Constraint... constraints) {
+		public Builder adicionarColuna(String nome, Class<?> type, Constraint... constraints) {
 			if (constraints == null) {
 				constraints = new Constraint[0];
 			} else {
-				for (int i=0; i < constraints.length; i++){
-					if (constraints[i] == null){
+				for (int i = 0; i < constraints.length; i++) {
+					if (constraints[i] == null) {
 						throw new RuntimeException();
 					}
 				}
@@ -58,12 +57,11 @@ public class TabelaSchema {
 			return this;
 		}
 
-		public Builder adicionarColuna(String nome, Class<?> type,
-				Constraint.Type... constraints) {
-			Constraint constraintInstances [] = null;
+		public Builder adicionarColuna(String nome, Class<?> type, Constraint.Type... constraints) {
+			Constraint constraintInstances[] = null;
 			if (constraints != null) {
 				constraintInstances = new Constraint[constraints.length];
-				for (int i=0; i < constraints.length; i++) {
+				for (int i = 0; i < constraints.length; i++) {
 					constraintInstances[i] = new Constraint(constraints[i]);
 				}
 			}
@@ -87,10 +85,9 @@ public class TabelaSchema {
 
 		private TabelaSchema gerarAssociativa(String databaseTable, String colunaFrom, String colunaTo) {
 			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(databaseTable);
-			tabelaBuilder.adicionarColuna(colunaFrom, Long.class,
-					Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
-			tabelaBuilder.adicionarColuna(colunaTo, Long.class,
-					Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
+			tabelaBuilder
+					.adicionarColuna(colunaFrom, Long.class, Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
+			tabelaBuilder.adicionarColuna(colunaTo, Long.class, Constraint.Type.PRIMARY_KEY, Constraint.Type.NOT_NULL);
 			return tabelaBuilder.get();
 		}
 
@@ -108,12 +105,10 @@ public class TabelaSchema {
 		}
 
 		public Builder adicionarAssociacaoOneToMany(TabelaSchema tabelaA, TabelaSchema tabelaB, boolean nullable,
-				String referenciaA) {
+				String referenciaA, String fkId) {
 			System.out.println(String.format("tabelaA: %s - tabelaB: %s - Coluna: %s - Origem: %s", tabelaA.getNome(),
-					tabelaB.getNome(), referenciaA,
-					CamelCaseUtils.camelToLowerAndUnderscores("id" + tabelaA.getClassName())));
-			TabelaSchema.this.associacoes.add(new AssociacaoOneToMany(tabelaA, tabelaB, CamelCaseUtils
-					.camelToLowerAndUnderscores("id" + tabelaA.getClassName()), nullable, referenciaA));
+					tabelaB.getNome(), referenciaA, fkId));
+			TabelaSchema.this.associacoes.add(new AssociacaoOneToMany(tabelaA, tabelaB, fkId, nullable, referenciaA));
 			return this;
 		}
 
@@ -172,7 +167,7 @@ public class TabelaSchema {
 			this.constraints = constraints;
 		}
 
-		public Constraint [] getConstraints() {
+		public Constraint[] getConstraints() {
 			if (constraints == null || constraints.length == 0)
 				return new Constraint[0];
 			Constraint copy[] = new Constraint[constraints.length];

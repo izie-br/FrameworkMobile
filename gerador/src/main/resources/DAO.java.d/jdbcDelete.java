@@ -89,8 +89,8 @@
 #**#                ${association.Klass} obj = (${association.Klass})reference.get();
 #**#                if (obj == null)
 #**#                    continue;
-#**#                if (target.equals(obj.get${Target}()) )
-#**#                    obj.set${Target}(null);
+#**#                if (target.equals(obj.get${association.KeyToA}()) )
+#**#                    obj.set${association.KeyToA}(null);
 #**#            }
 #**#        }
 #**#    }

@@ -35,13 +35,13 @@
 ##
 #foreach ($association in $manyToOneAssociations)
 #**##if ($interface || $implementation)
-#******#    public ${association.Klass} get${association.Klass}() #if ($implementation){
-#******#        return _${association.Klass};
+#******#    public ${association.Klass} get${association.KeyToA}() #if ($implementation){
+#******#        return _${association.KeyToA};
 #******#    }#else;#end
 #******#
 #******#
-#******#    public void set${association.Klass}(${association.Klass} obj) #if ($implementation) {
-#******#        _${association.Klass} = obj;
+#******#    public void set${association.KeyToA}(${association.Klass} obj) #if ($implementation) {
+#******#        _${association.KeyToA} = obj;
 #******#    }#else;#end
 #******#
 #******#

@@ -10,7 +10,7 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#        contentValues.put("${field.LowerAndUnderscores}",
-#******#                          (target.get${association.Klass}() == null) ? 0 : target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+#******#                          (target.get${association.KeyToA}() == null) ? 0 : target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #**##elseif (!$field.PrimaryKey)
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",

@@ -57,15 +57,19 @@ public class ConstructorArgsHelper {
 
 			if (associationForPropertyMap.get(field) != null){
 				String klass =
-					(String)(
-						(Map<?,?>)associationForPropertyMap.get(field)
-					).get("Klass");
+						(String)(
+							(Map<?,?>)associationForPropertyMap.get(field)
+						).get("Klass");
+				String attibuteName =
+						(String)(
+							(Map<?,?>)associationForPropertyMap.get(field)
+						).get("KeyToA");
 				if (declare) {
 					sb.append(klass);
 					sb.append(' ');
 				}
 				sb.append('_');
-				sb.append(klass);
+				sb.append(attibuteName);
 			} else {
 				if (declare) {
 					sb.append(field.getType());

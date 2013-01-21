@@ -10,7 +10,7 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#        Long _${field.LowerCamel} = cursor.getLong(${columnIndex});
-#******#        ${association.Klass} _${association.Klass} = null;
+#******#        ${association.Klass} _${association.KeyToA} = null;
 #******#        if (!_${field.LowerCamel}.equals((long)${defaultId})) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
@@ -22,12 +22,12 @@
 #******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
 #******#                        _${field.LowerCamel},
 #******#                        "${getter[$field]}");
-#******#                _${association.Klass} = (${association.Klass})Proxy.newProxyInstance(
+#******#                _${association.KeyToA} = (${association.Klass})Proxy.newProxyInstance(
 #******#                    this.getClass().getClassLoader(),
 #******#                    new Class[]{ ${association.Klass}Editable.class },
 #******#                    handler);
 #******#            } else if (cacheItem instanceof ${association.Klass}) {
-#******#                _${association.Klass} = (${association.Klass})cacheItem;
+#******#                _${association.KeyToA} = (${association.Klass})cacheItem;
 #******#            }
 #******#        }
 #******#

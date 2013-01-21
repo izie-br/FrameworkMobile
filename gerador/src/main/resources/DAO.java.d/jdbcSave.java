@@ -66,9 +66,9 @@
 #**********##set ($association = $associationForField[$field])
 #**********#                stm.set${field.Klass}(
 #**********#                        ${argIndex},
-#**********#                        (target.get${association.Klass}() == null) ?
+#**********#                        (target.get${association.KeyToA}() == null) ?
 #**********#                            0 :
-#**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+#**********#                            target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(
@@ -154,9 +154,9 @@
 #**********##set ($association = $associationForField[$field])
 #**********#                stm.set${field.Klass}(
 #**********#                        ${argIndex},
-#**********#                        (target.get${association.Klass}() == null) ?
+#**********#                        (target.get${association.KeyToA}() == null) ?
 #**********#                            0 :
-#**********#                            target.get${association.Klass}().get${association.ReferenceKey.UpperCamel}());
+#**********#                            target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
 #**********#                stm.setTimestamp(

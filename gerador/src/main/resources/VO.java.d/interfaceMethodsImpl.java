@@ -10,7 +10,7 @@
 #**##set ($association = false)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        $field.Type $field.LowerCamel = (_${association.Klass} == null)? 0 : _${association.Klass}.get${association.ReferenceKey.UpperCamel}();
+#******#        $field.Type $field.LowerCamel = (_${association.KeyToA} == null)? 0 : _${association.KeyToA}.get${association.ReferenceKey.UpperCamel}();
 #**##end
 #**##if ($field.PrimaryKey || $association)
 #******#        if (${field.LowerCamel} != ${defaultId}) {
@@ -51,15 +51,15 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******##set ($otherAssoc = "other${association.Klass}")
-#******#        ${association.Klass} ${otherAssoc} = other.get${association.Klass}();
-#******#        if (_${association.Klass} == null){
+#******##set ($otherAssoc = "other${association.KeyToA}")
+#******#        ${association.Klass} ${otherAssoc} = other.get${association.KeyToA}();
+#******#        if (_${association.KeyToA} == null){
 #******#            if (${otherAssoc} != null)
 #******#                return false;
 #******#        } else {
 #******#            if (${otherAssoc} == null)
 #******#                return false;
-#******#            if (_${association.Klass}.get${association.ReferenceKey.UpperCamel}() != ${otherAssoc}.get${association.ReferenceKey.UpperCamel}())
+#******#            if (_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() != ${otherAssoc}.get${association.ReferenceKey.UpperCamel}())
 #******#                return false;
 #******#        }
 #**##else

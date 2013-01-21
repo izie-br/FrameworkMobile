@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.List;
@@ -71,28 +72,42 @@ public class JsonInputParser implements InputParser {
 	}
 
 	Hashtable<String, TabelaSchema.Builder> hashtable = new Hashtable<String, TabelaSchema.Builder>();
+	String dateId;
+	String fileId;
 
 	private List<TabelaSchema> generateTableSchema(JSONObject json) throws JSONException {
 		List<TabelaSchema> list = new ArrayList<TabelaSchema>();
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
-			if (jsonPackage.optBoolean("isLibrary")) {
-				continue;
-			}
 			for (JSONObject jsonClass : classes) {
 				String databaseTable = jsonClass.getString("name");
+				if (jsonPackage.optBoolean("isLibrary")) {
+					if (databaseTable.equals("Date")) {
+						dateId = jsonClass.optString("id");
+						continue;
+					}
+					if (databaseTable.equals("File")) {
+						fileId = jsonClass.optString("id");
+						continue;
+					}
+				}
+				if (databaseTable.toUpperCase().contains("HISTORY")) {
+					continue;
+				}
 				TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(CamelCaseUtils.camelToLowerAndUnderscores("Tb"
 						+ databaseTable));
 				tabelaBuilder.setClassName(databaseTable);
-				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"),
-						Constraint.Type.PRIMARY_KEY);
+				tabelaBuilder.adicionarColuna("id", convertJsonTypeToJavaType("Long"), Constraint.Type.PRIMARY_KEY);
 				hashtable.put(jsonClass.getString("id"), tabelaBuilder);
 			}
 		}
 		for (JSONObject jsonPackage : packages) {
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
 			for (JSONObject jsonClass : classes) {
+				if (jsonClass.getString("name").toUpperCase().contains("HISTORY")) {
+					continue;
+				}
 				List<JSONObject> fromAssociations = jsonArrayToList(jsonClass.optJSONArray(FROM_ASSOCIATIONS_LIST));
 				List<JSONObject> toAssociations = jsonArrayToList(jsonClass.optJSONArray(TO_ASSOCIATIONS_LIST));
 				TabelaSchema.Builder tabelaBuilder = hashtable.get(jsonClass.getString("id"));
@@ -107,10 +122,7 @@ public class JsonInputParser implements InputParser {
 					boolean isUnique = jsonAttribute.optBoolean("isUnique");
 					Constraint.Type[] constraints = null;
 					if (isUnique && isRequired) {
-						constraints = new Constraint.Type[] {
-								Constraint.Type.NOT_NULL,
-								Constraint.Type.UNIQUE
-						};
+						constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL, Constraint.Type.UNIQUE };
 					} else {
 						if (isUnique) {
 							constraints = new Constraint.Type[] { Constraint.Type.UNIQUE };
@@ -118,19 +130,26 @@ public class JsonInputParser implements InputParser {
 							constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL };
 						}
 					}
-					if (type == null) {
-						if (hashtable.get(jsonAttribute.optString("type")) == null) {
+					if (type == null && hashtable.get(jsonAttribute.optString("type")) == null) {
+						if (jsonAttribute.optString("type").equals(fileId)) {
+							type = String.class;
+						} else if (jsonAttribute.optString("type").equals(dateId)) {
+							type = Date.class;
+						} else {
 							throw new IllegalArgumentException(String.format("Tipo complexo nao encontrado: %s",
 									jsonAttribute.optString("type")));
 						}
+					} else if (type == null && hashtable.get(jsonAttribute.optString("type")) != null) {
 						String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
 						tabelaBuilder.adicionarColuna(fkId, Long.class, constraints);
 						TabelaSchema tabelaA = hashtable.get(jsonAttribute.optString("type")).get();
 						TabelaSchema tabelaB = tabelaBuilder.get();
-						tabelaBuilder.adicionarAssociacaoOneToMany(tabelaA, tabelaB, !isRequired, "id");
+						tabelaBuilder.adicionarAssociacaoOneToMany(tabelaA, tabelaB, !isRequired, "id", fkId);
 						hashtable.get(jsonAttribute.optString("type")).adicionarAssociacaoOneToMany(tabelaA, tabelaB,
-								!isRequired, "id");
-					} else {
+								!isRequired, "id", fkId);
+						continue;
+					}
+					if (type != null) {
 						tabelaBuilder.adicionarColuna(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), type,
 								constraints);
 					}
@@ -148,7 +167,8 @@ public class JsonInputParser implements InputParser {
 					TabelaSchema to = hashtable.get(jsonAssociation.optString("to")).get();
 					String colunaId = "id";
 					if ("n..n".equals(jsonAssociation.optString("type"))) {
-						tabelaBuilder.adicionarAssociacaoManyToMany(from, to, colunaId, colunaId);
+						// tabelaBuilder.adicionarAssociacaoManyToMany(from, to,
+						// colunaId, colunaId);
 					}
 				}
 			}
@@ -183,11 +203,8 @@ public class JsonInputParser implements InputParser {
 		if (type.equals("Float")) {
 			return java.lang.Double.class;
 		}
-		if (type.equals("_EWZWilp8EeKiP5ww_mNJrA")) {
-			return java.util.Date.class;
-		}
-		if (type.equals("_EWZWj1p8EeKiP5ww_mNJrA")) {
-			return java.lang.String.class;
+		if (type.equals("Double")) {
+			return java.lang.Double.class;
 		}
 		return null;
 	}
@@ -203,54 +220,41 @@ public class JsonInputParser implements InputParser {
 	}
 
 	@Override
-	public void generateSqlResources(
-			GeneratorConfig config,
-			Collection<TabelaSchema> tables)
-			throws GeradorException
-	{
-		File outputDir = config.getMigrationsOutputDir ();
+	public void generateSqlResources(GeneratorConfig config, Collection<TabelaSchema> tables) throws GeradorException {
+		File outputDir = config.getMigrationsOutputDir();
 		if (outputDir == null)
 			return;
-		if (outputDir.exists () && !outputDir.isDirectory ()) {
-			throw new GeradorException (
-					"Diretorio de saida de migracoes nao eh diretorio." +
-					" Arquivo encontrado em "+outputDir.getAbsolutePath ());
+		if (outputDir.exists() && !outputDir.isDirectory()) {
+			throw new GeradorException("Diretorio de saida de migracoes nao eh diretorio." + " Arquivo encontrado em "
+					+ outputDir.getAbsolutePath());
 		}
 
-		if (!outputDir.exists ()) {
-			outputDir.mkdirs ();
+		if (!outputDir.exists()) {
+			outputDir.mkdirs();
 		}
 		final String expectedName = Constants.DB_VERSION_PREFIX + "1.sql";
-		File firstVersion = new File (outputDir, expectedName);
-		if (!firstVersion.exists ())
-			writeSchemasToOutput (tables, firstVersion);
+		File firstVersion = new File(outputDir, expectedName);
+		if (!firstVersion.exists())
+			writeSchemasToOutput(tables, firstVersion);
 
-		int version = config.retrieveDatabaseVersion ();
+		int version = config.retrieveDatabaseVersion();
 		if (version > 1) {
 			String currentSchemaName = "schema_" + version + ".sql";
-			File currentSchema = new File (outputDir, currentSchemaName);
-			writeSchemasToOutput (tables, currentSchema);
+			File currentSchema = new File(outputDir, currentSchemaName);
+			writeSchemasToOutput(tables, currentSchema);
 		}
 	}
 
-	private static void writeSchemasToOutput(
-			Collection<TabelaSchema> tables, File output)
-			throws GeradorException
-	{
+	private static void writeSchemasToOutput(Collection<TabelaSchema> tables, File output) throws GeradorException {
 		try {
-			BufferedWriter writer = new BufferedWriter (
-				new OutputStreamWriter (
-					new FileOutputStream (output),
-					"UTF-8"
-				)
-			);
-			SQLiteSchemaGenerator generator = new SQLiteSchemaGenerator ();
+			BufferedWriter writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(output), "UTF-8"));
+			SQLiteSchemaGenerator generator = new SQLiteSchemaGenerator();
 			for (TabelaSchema table : tables) {
-				writer.append (generator.getSchemaFor (table));
+				writer.append(generator.getSchemaFor(table));
 			}
-			writer.close ();
+			writer.close();
 		} catch (Exception e) {
-			throw new GeradorException (e);
+			throw new GeradorException(e);
 		}
 
 	}

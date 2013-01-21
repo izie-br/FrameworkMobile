@@ -3,7 +3,7 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#    ${association.Klass} _${association.Klass};
+#******#    ${association.Klass} _${association.KeyToA};
 #**##else
 #******#    ${field.Type} ${field.LowerCamel}#if ($field.PrimaryKey) = ${defaultId}#end;
 #**##end
@@ -20,7 +20,7 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        this._${association.Klass} = _${association.Klass};
+#******#        this._${association.KeyToA} = _${association.KeyToA};
 #**##else
 #******#        this.${field.LowerCamel} = _${field.LowerCamel};
 #**##end
