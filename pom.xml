@@ -26,7 +26,7 @@
 	</properties>
 	
 	<scm>
-		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags</developerConnection>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/trunk</developerConnection>
 	</scm>
 	
 	<build>
