@@ -166,6 +166,9 @@ public class Utils {
 		Property fkProp = schemaB.getPropriedade(o2m.getKeyToA());
 		map.put("ForeignKey", fkProp);
 		map.put("KeyToA", CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA().substring(2)));
+		map.put("KeyToAPluralized",
+				CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA().substring(2))
+						+ PluralizacaoUtils.pluralizar((String) map.get("Klass")));
 		Property refProp = schemaA.getPropriedade(o2m.getReferenciaA());
 		map.put("ReferenceKey", refProp);
 		map.put("Nullable", o2m.isNullable());

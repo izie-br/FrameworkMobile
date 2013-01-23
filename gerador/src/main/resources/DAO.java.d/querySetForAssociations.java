@@ -2,7 +2,7 @@
 ## one-to-many
 ##
 #foreach ($association in $oneToManyAssociations)
-    public QuerySet<${association.Klass}> querySetFor${association.Pluralized}(
+    public QuerySet<${association.Klass}> querySetFor${association.KeyToAPluralized}(
         ${association.ReferenceKey.Type} ${association.ReferenceKey.LowerCamel}
     ) {
         return factory.getDaoFor(${association.Klass}.class).query(

@@ -105,7 +105,7 @@ public class VelocityVOFactory {
 				getAssociationsForFK(fields, manyToOne);
 
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
-				schema, fields, associationsFromFK, toMany);
+				schema, fields, associationsFromFK, oneToMany, manyToMany);
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());

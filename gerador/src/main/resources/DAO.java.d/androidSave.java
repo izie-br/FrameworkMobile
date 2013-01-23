@@ -54,7 +54,19 @@
                 if (target instanceof ${EditableInterface}) {
                     $EditableInterface editable = (${EditableInterface})target;
                     editable.set${primaryKey.UpperCamel}(value);
-#foreach ($association in $toManyAssociations)
+#foreach ($association in $oneToManyAssociations)
+#**##if ($association.ReferenceKey)
+#******##set ($referenceKey = $association.ReferenceKey)
+#**##elseif ($association.IsThisTableA)
+#******##set ($referenceKey = $association.ReferenceA)
+#**##else
+#******##set ($referenceKey = $association.ReferenceB)
+#**##end
+#**#                    if (editable.get${association.KeyToAPluralized}() == null) {
+#**#                        editable.set${association.KeyToAPluralized}(querySetFor${association.KeyToAPluralized}(editable.${getter[$referenceKey]}()));
+#**#                    }
+#end
+#foreach ($association in $manyToManyAssociations)
 #**##if ($association.ReferenceKey)
 #******##set ($referenceKey = $association.ReferenceKey)
 #**##elseif ($association.IsThisTableA)

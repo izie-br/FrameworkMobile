@@ -9,7 +9,10 @@
 #**##end
 #end
 ##
-#foreach ($association in $toManyAssociations)
+#foreach ($association in $oneToManyAssociations)
+#**#    QuerySet<${association.Klass}> _${association.KeyToAPluralized};
+#end
+#foreach ($association in $manyToManyAssociations)
 #**#    QuerySet<${association.Klass}> _${association.Pluralized};
 #end
 
@@ -25,7 +28,10 @@
 #******#        this.${field.LowerCamel} = _${field.LowerCamel};
 #**##end
 #end
-#foreach ($association in $toManyAssociations)
+#foreach ($association in $oneToManyAssociations)
+#**#        this._${association.KeyToAPluralized} = _${association.KeyToAPluralized};
+#end
+#foreach ($association in $manyToManyAssociations)
 #**#        this._${association.Pluralized} = _${association.Pluralized};
 #end
     }

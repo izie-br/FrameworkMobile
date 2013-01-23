@@ -17,12 +17,12 @@
 #**#            } catch (java.sql.SQLException e) {
 #**#                throw new RuntimeException(StringUtil.getStackTrace(e));
 #**#            }
-#**#            Runnable _${association.Klass}NullFkThread =
-#**#                    new ${association.Klass}NullFkThread(target);
+#**#            Runnable _${association.KeyToAPluralized}NullFkThread =
+#**#                    new ${association.KeyToAPluralized}NullFkThread(target);
 #**#            //_${association.Klass}NullFkThread.start();
 #**##else
 #**#            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>)factory.getDaoFor(${association.Klass}.class);
-#**#            for (${association.Klass} obj: target.get${association.Pluralized}().all()) {
+#**#            for (${association.Klass} obj: target.get${association.KeyToAPluralized}().all()) {
 #**#                daoFor${association.Klass}.delete(obj);
 #**#            }
 #**##end
@@ -50,10 +50,10 @@
             }
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (_${relation.Klass}NullFkThread != null) {
+#**#            if (_${relation.KeyToAPluralized}NullFkThread != null) {
 #**#                try {
 #**#                    // _${relation.Klass}NullFkThread.join();
-#**#                    _${relation.Klass}NullFkThread.run();
+#**#                    _${relation.KeyToAPluralized}NullFkThread.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }
@@ -73,11 +73,11 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($association.Nullable)
 #**#
-#**#    private class ${association.Klass}NullFkThread implements Runnable {
+#**#    private class ${association.KeyToAPluralized}NullFkThread implements Runnable {
 #**#
 #**#        ${Target} target;
 #**#
-#**#        private ${association.Klass}NullFkThread(${Target} target) {
+#**#        private ${association.KeyToAPluralized}NullFkThread(${Target} target) {
 #**#            this.target = target;
 #**#        }
 #**#

@@ -18,13 +18,13 @@
 #**#                "${relation.Table}", contentValues,
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
-#**#           Runnable _${relation.Klass}NullFkThread =
-#**#               new ${relation.Klass}NullFkThread(target);
+#**#           Runnable _${relation.KeyToAPluralized}NullFkThread =
+#**#               new ${relation.KeyToAPluralized}NullFkThread(target);
 #**#           //_${relation.Klass}NullFkThread.start();
 #**#
 #**##else
 #**#            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
-#**#            for (${relation.Klass} obj: target.get${relation.Pluralized}().all()) {
+#**#            for (${relation.Klass} obj: target.get${relation.KeyToAPluralized}().all()) {
 #**#                daoFor${relation.Klass}.delete(obj);
 #**#            }
 #**##end
@@ -49,10 +49,10 @@
             db.setTransactionSuccessful();
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (_${relation.Klass}NullFkThread != null) {
+#**#            if (_${relation.KeyToAPluralized}NullFkThread != null) {
 #**#                try {
 #**#                    // _${relation.Klass}NullFkThread.join();
-#**#                    _${relation.Klass}NullFkThread.run();
+#**#                    _${relation.KeyToAPluralized}NullFkThread.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }
@@ -71,11 +71,11 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($association.Nullable)
 #**#
-#**#    private class ${association.Klass}NullFkThread implements Runnable {
+#**#    private class ${association.KeyToAPluralized}NullFkThread implements Runnable {
 #**#
 #**#        ${Target} target;
 #**#
-#**#        private ${association.Klass}NullFkThread(${Target} target) {
+#**#        private ${association.KeyToAPluralized}NullFkThread(${Target} target) {
 #**#            this.target = target;
 #**#        }
 #**#

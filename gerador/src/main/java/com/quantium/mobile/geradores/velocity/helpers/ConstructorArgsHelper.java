@@ -12,38 +12,42 @@ public class ConstructorArgsHelper {
 	JavaBeanSchema javaBeanSchema;
 	List<Property> orderedFields;
 	Map<Property, Object> associationForPropertyMap;
-	Collection<Object> toManyAssociations;
+	Collection<Object> oneToManyAssociations;
+	Collection<Object> manyToManyAssociations;
 
 	public ConstructorArgsHelper(JavaBeanSchema javaBeanSchema,
 			List<Property> orderedFields,
 			Map<Property, Object> associationForPropertyMap,
-			Collection<Object> toManyAssociations) {
+			Collection<Object> oneToManyAssociations,
+			Collection<Object> manyToManyAssociations) {
 		this.javaBeanSchema = javaBeanSchema;
 		this.orderedFields = orderedFields;
 		this.associationForPropertyMap = associationForPropertyMap;
-		this.toManyAssociations = toManyAssociations;
+		this.oneToManyAssociations = oneToManyAssociations;
+		this.manyToManyAssociations = manyToManyAssociations;
 	}
 
 	public String getConstructorArguments(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
-				toManyAssociations, false);
+				oneToManyAssociations,manyToManyAssociations, false);
 	}
 
 	public String getConstructorArgsDecl(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
-				toManyAssociations, true);
+				oneToManyAssociations,manyToManyAssociations, true);
 	}
 
 	private static String getConstructorArgumentsAndDecl(
 			JavaBeanSchema javaBeanSchema,
 			List<Property> orderedFields,
 			Map<Property, Object> associationForPropertyMap,
-			Collection<Object> toManyAssociations,
+			Collection<Object> oneToManyAssociations,
+			Collection<Object> manyToManyAssociations,
 			boolean declare)
 	{
-		int argCount = orderedFields.size() + toManyAssociations.size();
+		int argCount = orderedFields.size() + oneToManyAssociations.size() + manyToManyAssociations.size();
 		StringBuilder sb = new StringBuilder();
 		String indent = "            ";
 		sb.append('\n');
@@ -88,7 +92,44 @@ public class ConstructorArgsHelper {
 				}
 			}
 		}
-		for (Object obj : toManyAssociations){
+		for (Object obj : oneToManyAssociations){
+			@SuppressWarnings("unchecked")
+			Map<String, Object> assoc = (Map<String, Object>) obj;
+			boolean last = (i == (argCount-1) );
+
+			if (declare){
+				sb.append("QuerySet<");
+				sb.append(assoc.get("Klass"));
+				sb.append("> ");
+				sb.append('_');
+				sb.append(assoc.get("KeyToAPluralized").toString());
+			} else {
+				sb.append("querySetFor");
+				sb.append(assoc.get("KeyToAPluralized").toString());
+				sb.append("(_");
+				Property property =
+					(assoc.get("ReferenceKey") != null)?
+						(Property)assoc.get("ReferenceKey") :
+					((Boolean)assoc.get("IsThisTableA"))?
+						(Property)assoc.get("ReferenceA") :
+					// default
+						(Property)assoc.get("ReferenceB");
+				sb.append(property.getLowerCamel());
+				sb.append(')');
+			}
+
+			if (!last){
+				sb.append(',');
+				if ( i%3 == 2){
+					sb.append('\n');
+					sb.append(indent);
+				} else {
+					sb.append(' ');
+				}
+			}
+			i++;
+		}
+		for (Object obj : manyToManyAssociations){
 			@SuppressWarnings("unchecked")
 			Map<String, Object> assoc = (Map<String, Object>) obj;
 			boolean last = (i == (argCount-1) );

@@ -48,7 +48,23 @@
 #**##end
 #end
 ##
-#foreach ($association in $toManyAssociations)
+#foreach ($association in $oneToManyAssociations)
+#**##if ($interface || $implementation)
+#******#    public QuerySet<${association.Klass}> get${association.KeyToAPluralized}() #if ($implementation) {
+#******#        return _${association.KeyToAPluralized};
+#******#    }#else;#end
+#******#
+#******#
+#**##end
+#**##if ($implementation || $editableInterface)
+#******#    public void set${association.KeyToAPluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
+#******#        this._${association.KeyToAPluralized} = querySet;
+#******#    }#else;#end
+#******#
+#******#
+#**##end
+#end
+#foreach ($association in $manyToManyAssociations)
 #**##if ($interface || $implementation)
 #******#    public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
 #******#        return _${association.Pluralized};
