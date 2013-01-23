@@ -1,12 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
   <artifactId>lib_android</artifactId>
   <packaging>jar</packaging>
   <parent>
     <groupId>com.quantium.mobile.framework</groupId>
     <artifactId>frameworkMobile</artifactId>
-    <version>0.18-SNAPSHOT</version>
+    <version>0.18</version>
   </parent>
   <name>lib_android</name>
 
@@ -69,7 +68,7 @@
           <useTestScope>true</useTestScope>
 
           <!-- Para logar a URL das requisicoes -->
-          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog"></requestLog>
+          <requestLog implementation="org.eclipse.jetty.server.NCSARequestLog" />
 
           <!-- Webapp acessivel em "127.0.0.1:9091/" -->
           <!-- Note tambem o contextPath apontando para ROOT (/) -->
