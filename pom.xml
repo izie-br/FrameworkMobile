@@ -26,9 +26,7 @@
 	</properties>
 	
 	<scm>
-	    <connection>scm:svn:https://svn.grupo954.com/frameworkMobile/trunk</connection>
-		<developerConnection>scm:svn:https://svn.grupo954.com/frameworkMobile/trunk</developerConnection>
-		<url>https://svn.grupo954.com/frameworkMobile/trunk</url>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/snapshot</developerConnection>
 	</scm>
 	
 	<build>
