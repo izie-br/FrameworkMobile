@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 	
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quantium.mobile.framework</groupId>
 	<artifactId>frameworkMobile</artifactId>
-	<version>0.18-SNAPSHOT</version>
+	<version>0.18</version>
 	<packaging>pom</packaging>
 	
 	<modules>
@@ -26,7 +25,7 @@
 	</properties>
 	
 	<scm>
-		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/</developerConnection>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/frameworkMobile-0.18</developerConnection>
 	</scm>
 	
 	<build>
