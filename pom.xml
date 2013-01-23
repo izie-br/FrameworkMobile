@@ -54,7 +54,7 @@
 		<repository>
 			<id>nexus</id>
 			<name>Releases</name>
-			<url>${url.url.releases}</url>
+			<url>${url.releases}</url>
 		</repository>
 		<snapshotRepository>
 			<id>nexus</id>
