@@ -26,7 +26,7 @@
 	</properties>
 	
 	<scm>
-		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/snapshot</developerConnection>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags</developerConnection>
 	</scm>
 	
 	<build>
@@ -44,7 +44,7 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<tagBase>http://svn.grupo954.com/frameworkMobile/tags/snapshot</tagBase>
+					<tagBase>http://svn.grupo954.com/frameworkMobile/tags</tagBase>
 				</configuration>
 			</plugin>
 		</plugins>
