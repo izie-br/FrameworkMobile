@@ -8,7 +8,7 @@
 	<parent>
 		<groupId>com.quantium.mobile.framework</groupId>
 		<artifactId>frameworkMobile</artifactId>
-		<version>0.19-SNAPSHOT</version>
+		<version>0.18-SNAPSHOT</version>
 	</parent>
 	
 	<dependencies>
@@ -98,7 +98,7 @@
 		<repository>
 			<id>nexus</id>
 			<name>Releases</name>
-			<url>${url.url.releases}</url>
+			<url>${url.releases}</url>
 		</repository>
 		<snapshotRepository>
 			<id>nexus</id>
