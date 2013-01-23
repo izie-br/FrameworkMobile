@@ -1,16 +1,32 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-  xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-  <modelVersion>4.0.0</modelVersion>
-  <artifactId>shared</artifactId>
-  <packaging>jar</packaging>
-  <parent>
-    <groupId>com.quantium.mobile.framework</groupId>
-    <artifactId>frameworkMobile</artifactId>
-    <version>0.18-alpha</version>
-  </parent>
-  <name>shared</name>
-
-  <dependencies>
-  </dependencies>
-
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+	
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>shared</artifactId>
+	<packaging>jar</packaging>
+	
+	<parent>
+		<groupId>com.quantium.mobile.framework</groupId>
+		<artifactId>frameworkMobile</artifactId>
+		<version>0.18-SNAPSHOT</version>
+	</parent>
+	
+	<name>shared</name>
+	
+	<dependencies>
+	</dependencies>
+	
+	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>Releases</name>
+			<url>${url.url.releases}</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>Snapshots</name>
+			<url>${url.snapshots}</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 </project>

@@ -1,144 +1,151 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-    <modelVersion>4.0.0</modelVersion>
-    <artifactId>test</artifactId>
-    <packaging>apk</packaging>
-    <name>test</name>
-    <parent>
-        <groupId>com.quantium.mobile.framework</groupId>
-        <artifactId>frameworkMobile</artifactId>
-        <version>0.18-alpha</version>
-    </parent>
-
-    <dependencies>
-        <dependency>
-            <groupId>commons-lang</groupId>
-            <artifactId>commons-lang</artifactId>
-            <version>2.3</version>
-        </dependency>
-        <dependency>
-            <groupId>com.google.android</groupId>
-            <artifactId>android-test</artifactId>
-            <version>${platform.version}</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>junit</groupId>
-            <artifactId>junit</artifactId>
-            <version>4.10</version>
-            <scope>provided</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.quantium.mobile.framework</groupId>
-            <artifactId>lib_android</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.json</groupId>
-            <artifactId>json</artifactId>
-            <version>20090211</version>
-            <!-- Esta eh uma dependencia do "lib_android" e para evitar -->
-            <!--   que seja enviado ao dispositivo, onde as classes jah -->
-            <!--   existem, deve ser marcado como provided -->
-            <scope>provided</scope>
-        </dependency>
-    </dependencies>
-
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>com.jayway.maven.plugins.android.generation2</groupId>
-                <artifactId>android-maven-plugin</artifactId>
-                <version>3.1.1</version>
-                <configuration>
-                    <androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
-                    <assetsDirectory>${project.basedir}/assets</assetsDirectory>
-                    <resourceDirectory>${project.basedir}/res</resourceDirectory>
-                    <nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
-                    <sdk>
-                        <platform>7</platform>
-                    </sdk>
-                    <undeployBeforeDeploy>true</undeployBeforeDeploy>
-                </configuration>
-                <extensions>true</extensions>
-            </plugin>
-            <plugin>
-              <groupId>com.quantium.mobile.framework</groupId>
-              <artifactId>maven-plugin-gerador</artifactId>
-              <version>${project.version}</version>
-              <configuration>
-
-                <!-- pasta para enviar os fontes gerados para o "core" -->
-                <coreSrcDir>src/main/java/</coreSrcDir>
-                <sqlResource>res/raw/model.json</sqlResource>
-
-                <!-- diretorio de escrita de schemas de migracao de banco -->
-                <migrationsDir>migrations/</migrationsDir>
-                <!-- arquivo sql.xml, que e regerado a partir dos migrations -->
-                <sqlXml>res/values/sql.xml</sqlXml>
-
-                <!-- pasta para enviar os fontes gerados para o "aplicativo" -->
-                <androidSrcDir>src/main/java/</androidSrcDir>
-                <!-- Lista de tabelas para serem ignoradas pelo gerador -->
-                <ignore>
-                  <ignore>sqlite_sequence</ignore>
-                </ignore>
-
-                <!-- Alias de serializacao em usadas em "Entity.toMap" e -->
-                <!--   em "DAO.mapToObject" -->
-                <serializationAlias>
-                  <!-- Propriedade "id" da classe "Document" e escrita em -->
-                  <!--   um Map como "id_document" -->
-                  <document.id>id_document</document.id>
-                </serializationAlias>
-
-              </configuration>
-              <executions>
-                <execution>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>gerar</goal>
-                  </goals>
-                </execution>
-              </executions>
-            </plugin>
-        </plugins>
-
-        <pluginManagement>
-          <!-- O Eclipse percisa de um conector para executar um plugin -->
-          <!--   do Maven. Como nao eh necessario a geracao continua de -->
-          <!--   classes pelo plugin, optei por fazer o eclipse o ignorar -->
-          <plugins>
-            <plugin>
-              <groupId>org.eclipse.m2e</groupId>
-              <artifactId>lifecycle-mapping</artifactId>
-              <version>1.0.0</version>
-              <configuration>
-                <lifecycleMappingMetadata>
-                  <pluginExecutions>
-                    <pluginExecution>
-                      <pluginExecutionFilter>
-                        <groupId>com.quantium.mobile.framework</groupId>
-                        <artifactId>maven-plugin-gerador</artifactId>
-                        <versionRange>[0.1-alpha,)</versionRange>
-                        <goals>
-                          <goal>gerar</goal>
-                        </goals>
-                      </pluginExecutionFilter>
-                      <action>
-                        <ignore />
-                      </action>
-                    </pluginExecution>
-                  </pluginExecutions>
-                </lifecycleMappingMetadata>
-              </configuration>
-            </plugin>
-          </plugins>
-        </pluginManagement>
-
-    </build>
-
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd"
+>
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>test</artifactId>
+	<packaging>apk</packaging>
+	<name>test</name>
+	
+	<parent>
+		<groupId>com.quantium.mobile.framework</groupId>
+		<artifactId>frameworkMobile</artifactId>
+		<version>0.18-SNAPSHOT</version>
+	</parent>
+	
+	<dependencies>
+		<dependency>
+			<groupId>commons-lang</groupId>
+			<artifactId>commons-lang</artifactId>
+			<version>2.3</version>
+		</dependency>
+		<dependency>
+			<groupId>com.google.android</groupId>
+			<artifactId>android-test</artifactId>
+			<version>${platform.version}</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.10</version>
+			<scope>provided</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.quantium.mobile.framework</groupId>
+			<artifactId>lib_android</artifactId>
+			<version>${project.version}</version>
+			<scope>compile</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.json</groupId>
+			<artifactId>json</artifactId>
+			<version>20090211</version>
+			<!-- Esta eh uma dependencia do "lib_android" e para evitar -->
+			<!-- que seja enviado ao dispositivo, onde as classes jah -->
+			<!-- existem, deve ser marcado como provided -->
+			<scope>provided</scope>
+		</dependency>
+	</dependencies>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+				<artifactId>android-maven-plugin</artifactId>
+				<version>3.1.1</version>
+				<configuration>
+					<androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+					<assetsDirectory>${project.basedir}/assets</assetsDirectory>
+					<resourceDirectory>${project.basedir}/res</resourceDirectory>
+					<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
+					<sdk>
+						<platform>7</platform>
+					</sdk>
+					<undeployBeforeDeploy>true</undeployBeforeDeploy>
+				</configuration>
+				<extensions>true</extensions>
+			</plugin>
+			<plugin>
+				<groupId>com.quantium.mobile.framework</groupId>
+				<artifactId>maven-plugin-gerador</artifactId>
+				<version>${project.version}</version>
+				<configuration>
+					<!-- pasta para enviar os fontes gerados para o "core" -->
+					<coreSrcDir>src/main/java/</coreSrcDir>
+					<sqlResource>res/raw/model.json</sqlResource>
+					<!-- diretorio de escrita de schemas de migracao de banco -->
+					<migrationsDir>migrations/</migrationsDir>
+					<!-- arquivo sql.xml, que e regerado a partir dos migrations -->
+					<sqlXml>res/values/sql.xml</sqlXml>
+					<!-- pasta para enviar os fontes gerados para o "aplicativo" -->
+					<androidSrcDir>src/main/java/</androidSrcDir>
+					<!-- Lista de tabelas para serem ignoradas pelo gerador -->
+					<ignore>
+						<ignore>sqlite_sequence</ignore>
+					</ignore>
+					<!-- Alias de serializacao em usadas em "Entity.toMap" e -->
+					<!-- em "DAO.mapToObject" -->
+					<serializationAlias>
+						<!-- Propriedade "id" da classe "Document" e escrita em -->
+						<!-- um Map como "id_document" -->
+						<document.id>id_document</document.id>
+					</serializationAlias>
+				</configuration>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>gerar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+		<pluginManagement>
+			<!-- O Eclipse percisa de um conector para executar um plugin -->
+			<!-- do Maven. Como nao eh necessario a geracao continua de -->
+			<!-- classes pelo plugin, optei por fazer o eclipse o ignorar -->
+			<plugins>
+				<plugin>
+					<groupId>org.eclipse.m2e</groupId>
+					<artifactId>lifecycle-mapping</artifactId>
+					<version>1.0.0</version>
+					<configuration>
+						<lifecycleMappingMetadata>
+							<pluginExecutions>
+								<pluginExecution>
+									<pluginExecutionFilter>
+										<groupId>com.quantium.mobile.framework</groupId>
+										<artifactId>maven-plugin-gerador</artifactId>
+										<versionRange>[0.1-alpha,)</versionRange>
+										<goals>
+											<goal>gerar</goal>
+										</goals>
+									</pluginExecutionFilter>
+									<action>
+										<ignore />
+									</action>
+								</pluginExecution>
+							</pluginExecutions>
+						</lifecycleMappingMetadata>
+					</configuration>
+				</plugin>
+			</plugins>
+		</pluginManagement>
+	</build>
+	
+	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>Releases</name>
+			<url>${url.url.releases}</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>Snapshots</name>
+			<url>${url.snapshots}</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 </project>

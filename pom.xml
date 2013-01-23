@@ -2,39 +2,67 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-
-  <modelVersion>4.0.0</modelVersion>
-  <groupId>com.quantium.mobile.framework</groupId>
-  <artifactId>frameworkMobile</artifactId>
-  <version>0.18-alpha</version>
-  <packaging>pom</packaging>
-
-  <modules>
-    <module>gerador</module>
-    <module>maven_plugin_gerador</module>
-    <module>lib</module>
-    <module>shared</module>
-    <module>lib_jdbc</module>
-    <module>lib_android</module>
-    <module>test</module>
-  </modules>
-
-  <properties>
-    <platform.version> 2.1.2 </platform.version>
-    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding> 
-  </properties>
-
-  <build>
-    <plugins>
-      <plugin>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-          <source>1.6</source>
-          <target>1.6</target>
-        </configuration>
-      </plugin>
-    </plugins>
-  </build>
-
+	
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>com.quantium.mobile.framework</groupId>
+	<artifactId>frameworkMobile</artifactId>
+	<version>0.18-SNAPSHOT</version>
+	<packaging>pom</packaging>
+	
+	<modules>
+		<module>gerador</module>
+		<module>maven_plugin_gerador</module>
+		<module>lib</module>
+		<module>shared</module>
+		<module>lib_jdbc</module>
+		<module>lib_android</module>
+		<module>test</module>
+	</modules>
+	
+	<properties>
+		<platform.version> 2.1.2 </platform.version>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<url.releases>http://mercurio:8081/nexus/content/repositories/954nexus</url.releases>
+		<url.snapshots>http://mercurio:8081/nexus/content/repositories/snapshots</url.snapshots>
+	</properties>
+	
+	<scm>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/</developerConnection>
+	</scm>
+	
+	<build>
+		<plugins>
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>2.3.2</version>
+				<configuration>
+					<source>1.6</source>
+					<target>1.6</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.4</version>
+				<configuration>
+					<tagBase>http://svn.grupo954.com/frameworkMobile/tags</tagBase>
+					<releaseProfiles>release</releaseProfiles>
+				</configuration>
+			</plugin>
+		</plugins>
+	</build>
+	
+	<distributionManagement>
+		<repository>
+			<id>nexus</id>
+			<name>Releases</name>
+			<url>${url.url.releases}</url>
+		</repository>
+		<snapshotRepository>
+			<id>nexus</id>
+			<name>Snapshots</name>
+			<url>${url.snapshots}</url>
+		</snapshotRepository>
+	</distributionManagement>
+	
 </project>
