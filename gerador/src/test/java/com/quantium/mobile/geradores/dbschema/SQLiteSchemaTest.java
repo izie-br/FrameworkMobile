@@ -7,7 +7,7 @@ import java.util.regex.Pattern;
 
 import org.junit.Test;
 
-import com.quantium.mobile.geradores.javabean.Constraint;
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 

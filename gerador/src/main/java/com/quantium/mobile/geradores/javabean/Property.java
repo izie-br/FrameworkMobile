@@ -1,6 +1,7 @@
 package com.quantium.mobile.geradores.javabean;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.validation.Constraint;
 
 public class Property {
 

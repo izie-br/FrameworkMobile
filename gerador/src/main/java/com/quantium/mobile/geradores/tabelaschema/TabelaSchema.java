@@ -6,11 +6,11 @@ import java.util.HashSet;
 import java.util.List;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToOne;
-import com.quantium.mobile.geradores.javabean.Constraint;
 
 public class TabelaSchema {
 

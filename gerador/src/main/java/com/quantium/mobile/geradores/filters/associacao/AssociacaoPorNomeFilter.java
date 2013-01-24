@@ -7,9 +7,9 @@ import java.util.HashSet;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
-import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;

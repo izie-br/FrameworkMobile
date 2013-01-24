@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 
-import com.quantium.mobile.geradores.javabean.Constraint;
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;

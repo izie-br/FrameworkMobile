@@ -3,7 +3,7 @@ package com.quantium.mobile.geradores.dbschema;
 import java.sql.Date;
 
 import com.quantium.mobile.framework.utils.DateUtil;
-import com.quantium.mobile.geradores.javabean.Constraint;
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Coluna;
 import com.quantium.mobile.geradores.util.ColumnsUtils;

@@ -23,11 +23,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.dbschema.SQLiteSchemaGenerator;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
-import com.quantium.mobile.geradores.javabean.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.tabelaschema.TabelaSchema.Builder;
