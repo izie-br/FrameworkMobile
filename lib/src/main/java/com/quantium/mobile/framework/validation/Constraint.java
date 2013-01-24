@@ -19,7 +19,7 @@ public class Constraint {
 	public Constraint(Type type, Object...args){
 		if (type == null) {
 			throw new IllegalArgumentException (
-					"Constraint.Type can't be null");
+					"Constraint Type can't be null");
 		}
 		this.type = type;
 		this.args = args;

@@ -1,6 +1,9 @@
 package com.quantium.mobile.framework.libjdbctest;
 
+import java.util.Collection;
 import java.util.Map;
+
+import com.quantium.mobile.framework.validation.ValidationError;
 
 public interface GenericVO {
 
@@ -13,5 +16,7 @@ public interface GenericVO {
 	public abstract int hashCodeImpl();
 
 	public abstract boolean equalsImpl(Object obj);
+
+	public abstract Collection<ValidationError> validate ();
 
 }

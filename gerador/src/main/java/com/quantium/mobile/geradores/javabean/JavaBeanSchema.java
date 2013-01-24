@@ -107,22 +107,20 @@ public class JavaBeanSchema {
 		@Override
 		public Property getPropriedade(String coluna) {
 			for (TabelaSchema.Coluna it : tabela.getColunas()) {
-				boolean isNotPrimaryKey = true;
-				Constraint constraints[] = it.getConstraints();
-				if (constraints != null) {
-					for (Constraint constraint : constraints) {
-						if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
-							isNotPrimaryKey = false;
+				if (it.getNome().equals(coluna)) {
+					boolean isNotPrimaryKey = true;
+					Constraint constraints[] = it.getConstraints();
+					if (constraints != null) {
+						for (Constraint constraint : constraints) {
+							if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
+								isNotPrimaryKey = false;
+							}
 						}
 					}
-				}
-				if (it.getNome().equals(coluna)) {
 					//TODO refazer isso, apenas repassar a property do modelfacade
-					return new Property(it.getNome(), it.getType(), true,
-						isNotPrimaryKey,
-						(isNotPrimaryKey)?
-							new Constraint[]{} :
-							new Constraint[]{new Constraint(Constraint.Type.PRIMARY_KEY)});
+					return new Property(
+							it.getNome(), it.getType(), true,
+							isNotPrimaryKey, it.getConstraints ());
 				}
 			}
 			throw new IllegalArgumentException(String.format("Coluna '%s' nao encontrada na tabela '%s'", coluna,

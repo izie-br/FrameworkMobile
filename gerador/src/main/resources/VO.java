@@ -7,8 +7,14 @@ package $package;
 #**#import com.quantium.mobile.framework.query.QuerySet;
 #end
 #if ($implementation)
+#**##if ($NotNull.size() > 0)
+#******#import com.quantium.mobile.framework.validation.Constraint;
+#**##end
 #**#import ${basePackage}.GenericBean;
+#**#import java.util.ArrayList;
+#**#import java.util.Collection;
 #**#import java.util.Map;
+#**#import com.quantium.mobile.framework.validation.ValidationError;
 #elseif ($interface)
 #**#import com.quantium.mobile.framework.MapSerializable;
 #**#import com.quantium.mobile.framework.query.Table;
@@ -32,6 +38,8 @@ package $package;
 ##
 #if ($implementation)
 #**##parse("VO.java.d/fieldsAndConstructor.java")
+#**#
+#**##parse("VO.java.d/validate.java")
 #**#
 #**##parse("VO.java.d/interfaceMethodsImpl.java")
 #end

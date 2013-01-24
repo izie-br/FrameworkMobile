@@ -108,14 +108,13 @@ public class VelocityVOFactory {
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
 				schema, fields, associationsFromFK, oneToMany, manyToMany);
 
-		{
-			ValidateHelper vhelper = new ValidateHelper (schema, fields);
-			ctx.put ("NotNull", vhelper.getNotNull ());
-			ctx.put ("Uniques", vhelper.getUniques ());
-		}
-
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
+
+		if (type == VelocityVOFactory.Type.IMPLEMENTATION) {
+			ValidateHelper vhelper = new ValidateHelper (schema, fields);
+			ctx.put ("NotNull", vhelper.getNotNull ());
+		}
 
 		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(
