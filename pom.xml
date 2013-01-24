@@ -20,8 +20,8 @@
 	<properties>
 		<platform.version> 2.1.2 </platform.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<url.releases>http://mercurio:8081/nexus/content/repositories/releases</url.releases>
-		<url.snapshots>http://mercurio:8081/nexus/content/repositories/snapshots</url.snapshots>
+		<url.releases>http://nexus:8081/nexus/content/repositories/releases</url.releases>
+		<url.snapshots>http://nexus:8081/nexus/content/repositories/snapshots</url.snapshots>
 	</properties>
 	
 	<scm>
