@@ -20,6 +20,7 @@ test/src/main/java/br/com/cds/mobile/framework/test/db/DB.java
 test/src/main/java/br/com/cds/mobile/framework/test/GenericBean.java
 test/.gerador.xml
 test/res/values/sql.xml
+test/migrations/schema*
 *.pyc
 *.swp
 maven_plugin_gerador/target
