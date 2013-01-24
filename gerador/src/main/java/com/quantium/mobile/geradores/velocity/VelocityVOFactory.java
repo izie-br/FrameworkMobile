@@ -24,6 +24,7 @@ import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
 
@@ -106,6 +107,12 @@ public class VelocityVOFactory {
 
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
 				schema, fields, associationsFromFK, oneToMany, manyToMany);
+
+		{
+			ValidateHelper vhelper = new ValidateHelper (schema, fields);
+			ctx.put ("NotNull", vhelper.getNotNull ());
+			ctx.put ("Uniques", vhelper.getUniques ());
+		}
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
