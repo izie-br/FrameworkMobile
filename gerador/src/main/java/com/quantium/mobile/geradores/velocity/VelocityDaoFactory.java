@@ -21,6 +21,7 @@ import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
 
@@ -131,6 +132,9 @@ public class VelocityDaoFactory {
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgs", argsHelper.getConstructorArguments());
+
+		ValidateHelper vhelper = new ValidateHelper (schema, fields);
+		ctx.put ("Uniques", vhelper.getUniques ());
 
 		GetterHelper getterHelper = new GetterHelper();
 		ctx.put("getter", getterHelper);

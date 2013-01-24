@@ -1,6 +1,8 @@
 package com.quantium.mobile.framework.libandroidtest;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 
 import com.quantium.mobile.framework.DAO;
@@ -10,6 +12,7 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.validation.ValidationError;
 
 public class UserMapDAO implements DAO<User> {
 
@@ -62,7 +65,10 @@ public class UserMapDAO implements DAO<User> {
         return target;
     }
 
-
+    @Override
+    public Collection<ValidationError> validate (User user){
+        return new ArrayList<ValidationError> ();
+    }
 
     public ToManyDAO with(User obj){
         throw new UnsupportedOperationException();

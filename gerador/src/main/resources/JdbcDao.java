@@ -2,6 +2,8 @@ package $package;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Map;
 import java.util.WeakHashMap;
 
@@ -17,9 +19,10 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.validation.Constraint;
+import com.quantium.mobile.framework.validation.ValidationError;
 
 #if ($hasNullableAssociation)
-#**#import java.util.Collection;
 #**#import java.lang.ref.Reference;
 #end
 ##
@@ -101,6 +104,8 @@ public class ${Klass} implements JdbcDao<${Target}> {
 #parse("DAO.java.d/jdbcCursorToObject.java")
 
 #parse("DAO.java.d/mapToObject.java")
+
+#parse("DAO.java.d/jdbcValidate.java")
 
 #parse("DAO.java.d/jdbcManyToManyHandlers.java")
 
