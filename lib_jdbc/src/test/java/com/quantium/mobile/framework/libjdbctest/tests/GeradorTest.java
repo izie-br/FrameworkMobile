@@ -23,6 +23,8 @@ import com.quantium.mobile.framework.libjdbctest.gen.DocumentImpl;
 import com.quantium.mobile.framework.libjdbctest.gen.Score;
 import com.quantium.mobile.framework.libjdbctest.gen.ScoreImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
+import com.quantium.mobile.framework.validation.Constraint;
+import com.quantium.mobile.framework.validation.ValidationError;
 
 public class GeradorTest {
 
@@ -245,6 +247,49 @@ public class GeradorTest {
 		} catch (IOException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
+	}
+
+	@Test
+	public void testValidate () {
+		Author author = new AuthorImpl ();
+		author.setActive (true);
+		author.setName (null);
+		author.setCreatedAt (null);
+
+		Collection<ValidationError> validationErrors = author.validate ();
+
+		boolean nameNull = false;
+		boolean createdAtNull = false;
+
+		for (ValidationError error : validationErrors) {
+			if (error.getColumn ().equals (Author.NAME) &&
+			    error.getConstraint ().isTypeOf (Constraint.NOT_NULL))
+			{
+				nameNull = true;
+			} else if (error.getColumn ().equals (Author.CREATED_AT) &&
+			           error.getConstraint ().isTypeOf (Constraint.NOT_NULL))
+			{
+				createdAtNull = true;
+			} else {
+				fail (
+					"O usuario deve ter nome null ou createdAt null, mas " +
+					"foi encontrado " +
+					error.getColumn ().getName () + 
+					" com constraint invalida: " +
+					error.getConstraint ().getType ()
+				);
+			}
+		}
+		if (!nameNull)
+			fail ("Usuario com nome NULL deve ser invalido");
+		if (!createdAtNull)
+			fail ("Usuario com createdAt NULL deve ser invalido");
+
+		author.setName ("Nome Qualquer");
+		author.setCreatedAt (new Date ());
+
+		// a lista de erros deve ser uma lista vazia (nao pode ser null)
+		assertEquals (0, author.validate ().size ());
 	}
 
 	@SuppressWarnings("deprecation")
