@@ -5,9 +5,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReadWriteLock;
-import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 import com.quantium.mobile.framework.validation.Constraint;
 
@@ -19,8 +16,6 @@ public final class Table {
     private static final ArrayList<WeakReference<Table>> POOL =
             new ArrayList<WeakReference<Table>> ();
 
-    private ReadWriteLock lock = new ReentrantReadWriteLock ();
-
     private final String name;
     private final ArrayList<Table.Column<?>> columns =
         new ArrayList<Table.Column<?>> ();
@@ -29,6 +24,22 @@ public final class Table {
 
     private Table (String name){
         this.name  = name;
+    }
+
+    private void addColumn (
+            Class<?> klass, String name,
+            Constraint...constraints)
+    {
+        if (constraints == null)
+            constraints = new Constraint[0];
+        @SuppressWarnings({ "unchecked", "rawtypes" })
+        Table.Column col =
+            new Table.Column(name, klass, constraints);
+        Table.this.columns.add (col);
+    }
+
+    private void addConstraint (Constraint constraint) {
+        Table.this.constraints.add (constraint);
     }
 
     public static Builder create(String name) {
@@ -100,7 +111,6 @@ public final class Table {
                     this.constraints.add (constraint);
                 }
             }
-            
         }
 
         /**
@@ -195,31 +205,17 @@ public final class Table {
 
     }
 
-    public class Builder {
+    public final class Builder {
 
         public <T> Builder addColumn (Class<T> klass, String name,
                 Constraint...constraints)
         {
-            Lock l1 = Table.this.lock.writeLock ();
-            l1.lock ();
-            {
-                if (constraints == null)
-                    constraints = new Constraint[0];
-                Table.Column<T> col =
-                    new Table.Column<T>(name, klass, constraints);
-                Table.this.columns.add (col);
-            }
-            l1.unlock ();
+            Table.this.addColumn (klass, name, constraints);
             return this;
         }
 
         public Builder addConstraint (Constraint constraint) {
-            Lock l1 = Table.this.lock.writeLock ();
-            l1.lock ();
-            {
-                Table.this.constraints.add (constraint);
-            }
-            l1.unlock ();
+            Table.this.addConstraint (constraint);
             return this;
         }
 
@@ -236,32 +232,44 @@ public final class Table {
                         return poolTable;
                 }
                 // se nao ha esta tabela na POOL
-                POOL.add (new WeakReference<Table> (Table.this));
-                return Table.this;
+                Table returnedTable = copyFromThis ();
+                POOL.add (new WeakReference<Table> (returnedTable));
+                return returnedTable;
             }
         }
 
-        private boolean tableEquals (Table t2) {
-            Lock l1 = Table.this.lock.readLock ();
-            l1.lock ();
-            Lock l2 = t2.lock.readLock ();
-            l2.lock ();
-            try {
-                if (Table.this == t2)
-                    return true;
-                if (Table.this.name.equals (t2.name))
-                    return false;
-                if (Table.this.columns.size () != t2.columns.size())
-                    return false;
-                for (Table.Column<?> col : t2.columns) {
-                    if (!tableHaveColumn (col))
-                        return false;
-                }
-                return true;
-            } finally {
-                l1. unlock();
-                l2.unlock ();
+        private Table copyFromThis () {
+            Table returnedTable = new Table (Table.this.name);
+            for (Table.Column<?> col : Table.this.columns) {
+                Constraint array [] =
+                    new Constraint[col.constraints.size ()];
+                col.constraints.toArray (array);
+                returnedTable.addColumn (col.klass, col.name, array);
             }
+            for (Constraint constraint : Table.this.constraints) {
+                returnedTable.addConstraint (constraint);
+            }
+            return returnedTable;
+        }
+
+        private boolean tableEquals (Table t2) {
+            if (Table.this == t2)
+                return true;
+            if (!Table.this.name.equals (t2.name))
+                return false;
+            if (Table.this.columns.size () != t2.columns.size())
+                return false;
+            for (Table.Column<?> col : t2.columns) {
+                if (!tableHaveColumn (col))
+                    return false;
+            }
+            if (!constraintsEquals (
+                 Table.this.constraints,
+                 t2.constraints))
+            {
+                return false;
+            }
+            return true;
         }
 
         // TODO tratar constraints
@@ -269,24 +277,26 @@ public final class Table {
             for (Table.Column<?> col : Table.this.columns) {
                 if (col.name.equals (column.name) &&
                     col.klass.equals (column.klass) &&
-                    constraintsEquals (col, column) )
+                    constraintsEquals (col.constraints, column.constraints) )
                 {
                     return true;
                 }
             }
             return false;
         }
+    }
 
-        private boolean constraintsEquals (
-        		Table.Column<?> c1, Table.Column<?> c2)
+    private static boolean constraintsEquals (
+            Collection<Constraint> constraints1,
+            Collection<Constraint> constraints2)
         {
-            if ( !(c1.constraints.size () == c2.constraints.size ()) )
+            if ( !(constraints1.size () == constraints2.size ()) )
                 return false;
 
             // Note esta label do loop
             constraint1_loop:
-            for (Constraint constraint1 : c1.constraints) {
-                for (Constraint constraint2 : c2.constraints) {
+            for (Constraint constraint1 : constraints1) {
+                for (Constraint constraint2 : constraints2) {
                     if ( constraint1.equals (constraint2) ) {
                         // pula para proxima constraint1, usando a 'label'
                         continue constraint1_loop;
@@ -298,5 +308,4 @@ public final class Table {
             return true;
         }
 
-    }
 }
