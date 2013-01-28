@@ -1,27 +1,20 @@
 package $package;
 
-#if ( $haveDateField && (!$editableInterface || $hasDatePK) )
-#**#import java.util.Date;
-#end
-#if ($oneToManyAssociations.size() > 0 || $manyToManyAssociations.size() > 0)
-#**#import com.quantium.mobile.framework.query.QuerySet;
-#end
-#if ($implementation)
-#**##if ($NotNull.size() > 0)
-#******#import com.quantium.mobile.framework.validation.Constraint;
-#**##end
-#**#import ${basePackage}.GenericBean;
-#**#import java.util.ArrayList;
-#**#import java.util.Collection;
-#**#import java.util.Map;
-#**#import com.quantium.mobile.framework.validation.ValidationError;
-#elseif ($interface)
-#**#import com.quantium.mobile.framework.MapSerializable;
-#**#import com.quantium.mobile.framework.query.Table;
-#**#import ${basePackage}.GenericVO;
-#end
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Date;
+import java.util.Map;
+
+import com.quantium.mobile.framework.MapSerializable;
+import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.Table;
+import com.quantium.mobile.framework.validation.ValidationError;
+import com.quantium.mobile.framework.validation.Constraint;
+import ${basePackage}.GenericBean;
+import ${basePackage}.GenericVO;
 
 
+@SuppressWarnings("unused")
 #if ($implementation)
 #**#public class ${Filename} extends GenericBean implements ${EditableInterface}
 #elseif ($interface)

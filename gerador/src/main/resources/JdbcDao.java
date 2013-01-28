@@ -2,13 +2,18 @@ package $package;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.lang.ref.Reference;
+import java.lang.reflect.Proxy;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Map;
 import java.util.WeakHashMap;
 
 import java.sql.*;
 
+import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.LazyInvocationHandler;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
 import com.quantium.mobile.framework.query.Table;
@@ -19,26 +24,11 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.framework.utils.DateUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
-#if ($hasNullableAssociation)
-#**#import java.lang.ref.Reference;
-#end
-##
-#if ($manyToOneAssociations.size() > 0)
-#**#import java.lang.reflect.Proxy;
-#**#import com.quantium.mobile.framework.DAO;
-#**#import com.quantium.mobile.framework.LazyInvocationHandler;
-#elseif ($hasNotNullableAssociation)
-#**#import com.quantium.mobile.framework.DAO;
-#end
-##
-#if ( $hasDateField)
-#**#import java.util.Date;
-#**#import com.quantium.mobile.framework.utils.DateUtil;
-#end
-
+@SuppressWarnings("unused")
 public class ${Klass} implements JdbcDao<${Target}> {
 
     private static final String COUNT_BY_PRIMARY_KEYS =

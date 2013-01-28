@@ -10,7 +10,7 @@ import com.quantium.mobile.geradores.javabean.Property;
 
 public class ValidateHelper {
 
-	private JavaBeanSchema javaBeanSchema;
+//	private JavaBeanSchema javaBeanSchema;
 	private List<Property> orderedFields;
 
 	private List<Collection<Property>> uniques = null;
@@ -21,7 +21,7 @@ public class ValidateHelper {
 			JavaBeanSchema javaBeanSchema,
 			List<Property> orderedFields)
 	{
-		this.javaBeanSchema = javaBeanSchema;
+//		this.javaBeanSchema = javaBeanSchema;
 		this.orderedFields = orderedFields;
 	}
 
@@ -66,7 +66,6 @@ public class ValidateHelper {
 				}
 			}
 		}
-
 	}
 
 }

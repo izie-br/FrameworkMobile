@@ -22,6 +22,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.velocity.helpers.ConstraintsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
@@ -115,6 +116,8 @@ public class VelocityVOFactory {
 			ValidateHelper vhelper = new ValidateHelper (schema, fields);
 			ctx.put ("NotNull", vhelper.getNotNull ());
 		}
+
+		ctx.put ("constraints", new ConstraintsHelper ());
 
 		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(
