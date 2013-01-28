@@ -17,7 +17,7 @@ public class ConstraintsHelper {
 			col.toArray (constraints);
 		}
 
-		final String indent = "\n        ";
+		final String indent = "\n                ";
 		StringBuilder sb = new StringBuilder ();
 		sb.append ("new Constraint[] {");
 		for (Constraint constraint : constraints) {

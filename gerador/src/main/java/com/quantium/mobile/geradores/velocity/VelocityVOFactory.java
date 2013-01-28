@@ -117,7 +117,7 @@ public class VelocityVOFactory {
 			ctx.put ("NotNull", vhelper.getNotNull ());
 		}
 
-		ctx.put ("constraints", new ConstraintsHelper ());
+		ctx.put ("Constraints", new ConstraintsHelper ());
 
 		File file = new File(targetDirectory, filename + ".java");
 		Writer w = new OutputStreamWriter(
