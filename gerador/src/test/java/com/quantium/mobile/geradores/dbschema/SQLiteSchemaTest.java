@@ -8,8 +8,9 @@ import java.util.regex.Pattern;
 import org.junit.Test;
 
 import com.quantium.mobile.framework.validation.Constraint;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
+import com.quantium.mobile.geradores.util.TableUtil;
 
 public class SQLiteSchemaTest {
 
@@ -41,18 +42,19 @@ public class SQLiteSchemaTest {
 
 	@Test
 	public void testSQLiteGeneratedFromTableSchema() {
-		TabelaSchema table = TabelaSchema.criar(TABLE_NAME)
-				.adicionarColuna(PK_COLUMN_NAME, PK_COLUMN_TYPE,
-				                 PK_COLUMN_CONSTRAINTS)
-				.adicionarColuna(NAME_COLUMN_NAME, NAME_COLUMN_TYPE,
-				                 NAME_COLUMN_CONSTRAINTS)
-				.adicionarColuna(VALUE_COLUMN_NAME, VALUE_COLUMN_TYPE,
-				                 VALUE_COLUMN_CONSTRAINTS)
-				.adicionarColuna(OPTS_COLUMN_NAME, OPTS_COLUMN_TYPE,
-				                 OPTS_COLUMN_CONSTRAINTS)
+		ModelSchema table = ModelSchema.create("default", TABLE_NAME)
+				.addProperty(PK_COLUMN_NAME, PK_COLUMN_TYPE,
+				             PK_COLUMN_CONSTRAINTS)
+				.addProperty(NAME_COLUMN_NAME, NAME_COLUMN_TYPE,
+				             NAME_COLUMN_CONSTRAINTS)
+				.addProperty(VALUE_COLUMN_NAME, VALUE_COLUMN_TYPE,
+				             VALUE_COLUMN_CONSTRAINTS)
+				.addProperty(OPTS_COLUMN_NAME, OPTS_COLUMN_TYPE,
+				             OPTS_COLUMN_CONSTRAINTS)
 				.get();
 		SQLiteSchemaGenerator schemaGeneator = new SQLiteSchemaGenerator();
-		String schema = schemaGeneator.getSchemaFor(table);
+		String schema = schemaGeneator.getSchemaFor(
+				TableUtil.tableForModelSchema (table));
 
 		//removendo newlines
 		schema = schema.replaceAll("[\\r\\n]+", " ");

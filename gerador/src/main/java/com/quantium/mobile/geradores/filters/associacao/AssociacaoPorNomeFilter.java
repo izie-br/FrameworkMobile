@@ -11,7 +11,8 @@ import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
+import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 
 /**
@@ -75,8 +76,8 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 			if(
 				a instanceof AssociacaoManyToMany &&
 				((AssociacaoManyToMany)a).getTabelaJuncao()
-					.getNome().equals(
-						super.getTabela().getNome()
+					.getName().equals(
+						super.getTable().getName()
 					)
 			) {
 				return true;
@@ -97,8 +98,9 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 
 	@Override
 	public Collection<Associacao> getAssociacoes() {
-		Collection<Associacao> associacoesTemUm = super.getAssociacoes();
-		associacoesTemUm.addAll(resolver.getAssociacoes(getTabela()));
+		Collection<Associacao> associacoesTemUm = new HashSet<Associacao> ();
+		associacoesTemUm.addAll (super.getAssociacoes());
+		associacoesTemUm.addAll(resolver.getAssociacoes(getModelSchema ().getName ()));
 		return associacoesTemUm;
 	}
 
@@ -117,14 +119,15 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 			return associacoes;
 		}
 
-		private Collection<Associacao> getAssociacoes(TabelaSchema tabela){
+		private Collection<Associacao> getAssociacoes(String tabela){
 			Collection<Associacao> associacoesTemUm = new ArrayList<Associacao>();
-			for(Associacao associacao : getAssociacoes())
-				if(
-						associacao.getTabelaA().equals(tabela) ||
-						associacao.getTabelaB().equals(tabela)
-				)
+			for(Associacao associacao : getAssociacoes()) {
+				if(associacao.getTabelaA().getName ().equals(tabela) ||
+				   associacao.getTabelaB().getName ().equals(tabela)   )
+				{
 					associacoesTemUm.add(associacao);
+				}
+			}
 			return associacoesTemUm;
 		}
 
@@ -132,7 +135,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 			if(associacoes==null||mapeadas==null)
 				mapear();
 			for(AssociacaoPorNomeFilter filtro :filtros)
-				if(!mapeadas.contains(filtro.getTabela().getNome()))
+				if(!mapeadas.contains(filtro.getName ()))
 					mapear();
 		}
 
@@ -141,41 +144,41 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 			mapeadas = new ArrayList<String>();
 			for(AssociacaoPorNomeFilter filtroTabelaA :filtros){
 				for(AssociacaoPorNomeFilter filtroTabelaB : filtros){
-					if (onlyTables!=null && !onlyTables.contains(filtroTabelaB.getNome()))
+					if (onlyTables!=null && !onlyTables.contains(filtroTabelaB.getName ()))
 						continue;
-					for(TabelaSchema.Coluna colunaA : filtroTabelaA.getTabela().getColunas()){
-						if (onlyColumns !=null && !onlyColumns.contains(colunaA.getNome()))
+					for(Property propModelA : filtroTabelaA.getModelSchema ().getProperties ()){
+						String colunaA = propModelA.getNome ();
+						if (onlyColumns !=null && !onlyColumns.contains(colunaA))
 							continue;
 						Object args[] = new String[2];
-						args[TABLE_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getNome();
-						args[COLUMN_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getPropriedadeNome(colunaA.getNome());
+						args[TABLE_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getName ();
+						args[COLUMN_INDEX_IN_FORMAT_STRING-1] = filtroTabelaA.getPropriedadeNome (colunaA);
 						// exemplo: colunaToA = "id_outratbela"
 						String colunaToA = String.format(pattern,args);
-						for(TabelaSchema.Coluna coluna : filtroTabelaB.getTabela().getColunas()){
-							if(
-									filtroTabelaB.getPropriedadeNome(coluna.getNome())
-										.equals(colunaToA)
-							){
-								Constraint constraints [] = coluna.getConstraints();
+						for(Property propModelB : filtroTabelaB.getModelSchema ().getProperties ()){
+							String coluna = propModelB.getNome ();
+							if(filtroTabelaB.getPropriedadeNome(coluna).equals(colunaToA)){
+								Property prop = filtroTabelaA.getPropriedade (colunaA);
+								Constraint constraints [] = prop.getConstraints();
 								boolean nullable = true;
 								for (Constraint constraint : constraints) {
-									if (constraint.getType() == Constraint.Type.NOT_NULL) {
+									if (constraint.isTypeOf (Constraint.NOT_NULL)) {
 										nullable = false;
 										break;
 									}
 								}
 								try{
 								Associacao associacao = new AssociacaoOneToMany(
-										filtroTabelaA.getTabela(),
-										filtroTabelaB.getTabela(),
+										filtroTabelaA.getModelSchema (),
+										filtroTabelaB.getModelSchema (),
 										colunaToA,
 										nullable,
-										colunaA.getNome()
+										colunaA
 								);
 								associacoes.add(associacao);
 								}catch (RuntimeException e){
-									LoggerUtil.getLog().error("Erro na tabela "+filtroTabelaA.getNome());
-									LoggerUtil.getLog().error("Relacao com "+filtroTabelaB.getNome()+" "+colunaToA);
+									LoggerUtil.getLog().error("Erro na tabela "+filtroTabelaA.getName ());
+									LoggerUtil.getLog().error("Relacao com "+filtroTabelaB.getName ()+" "+colunaToA);
 									LoggerUtil.getLog().error(colunaToA);
 									throw e;
 								}
@@ -184,7 +187,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 						} // endfor(TabelaSchema.Coluna coluna : filtroTabelaB.getTabela().getColunas())
 					} // endfor(TabelaSchema.Coluna colunaA : filtroTabelaA.getTabela().getColunas())
 				} // endfor(AssociacaoPorNomeFilter filtroTabelaB : filtros)
-				mapeadas.add(filtroTabelaA.getTabela().getNome());
+				mapeadas.add(filtroTabelaA.getName());
 			} // endfor(AssociacaoPorNomeFilter filtroTabelaA :filtros)
 			mapManyToManyRelationships();
 		}
@@ -192,16 +195,16 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 		private void mapManyToManyRelationships(){
 			ArrayList<Associacao> associationsCopy = new ArrayList<Associacao>(associacoes);
 			for(Associacao associationA : associationsCopy){
-				TabelaSchema table = associationA.getTabelaB();
+				ModelSchema table = associationA.getTabelaB();
 				if(
 					!(associationA instanceof AssociacaoOneToMany) ||
-					table.getColunas().size()>3
+					table.getProperties ().size()>3
 				){
 					continue;
 				}
 				AssociacaoPorNomeFilter filter = null;
 				for(AssociacaoPorNomeFilter f : filtros){
-					if(f.getTabela().equals(table)){
+					if(f.getModelSchema ().equals(table)){
 						filter = f;
 						break;
 					}
@@ -214,7 +217,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 						continue;
 					}
 					boolean isManyToMany = true;
-					for(TabelaSchema.Coluna coluna : table.getColunas()){
+					for(Property coluna : table.getProperties ()){
 						if(!(
 							filter.getPropriedadeNome(coluna.getNome()).equals(
 								((AssociacaoOneToMany)associationA).getKeyToA()
@@ -222,8 +225,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 							filter.getPropriedadeNome(coluna.getNome()).equals(
 								((AssociacaoOneToMany)associationB).getKeyToA()
 							) || (
-								table.getPrimaryKeys().size()==1 &&
-								table.getPrimaryKeys().get(0).equals(coluna)
+								table.getPrimaryKey().equals(coluna)
 							)
 						)){
 							isManyToMany = false;

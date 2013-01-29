@@ -1,6 +1,6 @@
 package com.quantium.mobile.geradores.filters.associacao;
 
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 
 public class AssociacaoOneToMany extends Associacao{
 
@@ -9,7 +9,7 @@ public class AssociacaoOneToMany extends Associacao{
 	private String referenciaA;
 
 	public AssociacaoOneToMany(
-			TabelaSchema tabelaA, TabelaSchema tabelaB,
+			ModelSchema tabelaA, ModelSchema tabelaB,
 			String keyToA, boolean nullable,
 			String referenciaA
 	) {

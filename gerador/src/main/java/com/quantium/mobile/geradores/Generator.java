@@ -17,16 +17,18 @@ import java.util.TreeMap;
 import org.apache.velocity.app.VelocityEngine;
 import org.apache.velocity.runtime.RuntimeConstants;
 
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.parsers.FileParserMapper;
 import com.quantium.mobile.geradores.parsers.InputParser;
 import com.quantium.mobile.geradores.parsers.InputParserRepository;
 import com.quantium.mobile.geradores.parsers.MigrationsInputParser;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
+import com.quantium.mobile.geradores.util.TableUtil;
 import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
@@ -405,15 +407,17 @@ public class Generator {
 			GeneratorConfig config,
 			Collection<JavaBeanSchema> schemas) throws GeradorException
 	{
-		Map<String,TabelaSchema> tables = new HashMap<String, TabelaSchema> ();
+		Map<String,Table> tables = new HashMap<String, Table> ();
 		for (JavaBeanSchema jbschema : schemas) {
-			TabelaSchema table = jbschema.getTabela ();
-			tables.put (table.getNome (), table);
+			Table table = jbschema.getTabela ();
+			tables.put (table.getName (), table);
 			for (Associacao assoc : jbschema.getAssociacoes ()) {
 				if (assoc instanceof AssociacaoManyToMany) {
 					AssociacaoManyToMany m2m = (AssociacaoManyToMany) assoc;
-					TabelaSchema jointable = m2m.getTabelaJuncao ();
-					tables.put (jointable.getNome (), jointable);
+					ModelSchema jointable = m2m.getTabelaJuncao ();
+					tables.put (
+							jointable.getName (),
+							TableUtil.tableForModelSchema (jointable));
 				}
 			}
 		}

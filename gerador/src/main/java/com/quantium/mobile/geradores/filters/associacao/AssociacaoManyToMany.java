@@ -1,6 +1,6 @@
 package com.quantium.mobile.geradores.filters.associacao;
 
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 
 public class AssociacaoManyToMany extends Associacao {
 
@@ -8,10 +8,10 @@ public class AssociacaoManyToMany extends Associacao {
 	private String nome;
 
 	public AssociacaoManyToMany(
-			TabelaSchema tabelaA, TabelaSchema tabelaB,
+			ModelSchema tabelaA, ModelSchema tabelaB,
 			String keyToA, String keyToB,
 			String referenciaA, String referenciaB,
-			TabelaSchema tabelaJuncao,
+			ModelSchema tabelaJuncao,
 			String nome
 	) {
 		super(tabelaA,tabelaB);
@@ -32,7 +32,7 @@ public class AssociacaoManyToMany extends Associacao {
 		return nome;
 	}
 
-	public TabelaSchema getTabelaJuncao() {
+	public ModelSchema getTabelaJuncao() {
 		return children[0].getTabelaB();
 	}
 

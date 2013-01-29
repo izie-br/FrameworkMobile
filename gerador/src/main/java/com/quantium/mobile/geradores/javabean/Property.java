@@ -5,27 +5,29 @@ import com.quantium.mobile.framework.validation.Constraint;
 
 public class Property {
 
-	private String name;
-	private Class<?> klass;
-	private String alias;
-	private boolean get;
-	private boolean set;
-	private Constraint constraints [];
+	private final String name;
+	private final Class<?> klass;
+	private final String alias;
+	private final boolean get;
+	private final boolean set;
+	private final Constraint constraints [];
 
 	public Property(String name, Class<?> klass,
 	                   boolean get, boolean set, Constraint...constraints)
 	{
-		this.name = name;
-		this.klass = klass;
-		this.get = get;
-		this.set = set;
-		this.constraints = constraints;
+		this (name, klass, get, set, null, constraints);
 	}
 
 	public Property(String name, Class<?> klass, boolean get,
 	                boolean set, String alias, Constraint...constraints)
 	{
-		this(name, klass, get, set, constraints);
+		if (constraints == null)
+			constraints = new Constraint[0];
+		this.name = name;
+		this.klass = klass;
+		this.get = get;
+		this.set = set;
+		this.constraints = constraints;
 		this.alias = alias;
 	}
 
@@ -58,10 +60,6 @@ public class Property {
 		return alias;
 	}
 
-	public void setAlias(String alias){
-		this.alias = alias;
-	}
-
 	public Class<?> getPropertyClass() {
 		return klass;
 	}
@@ -86,14 +84,6 @@ public class Property {
 
 	public boolean isSet() {
 		return set;
-	}
-
-	public void setGet(boolean get) {
-		this.get = get;
-	}
-
-	public void setSet(boolean set) {
-		this.set = set;
 	}
 
 	public Constraint [] getConstraints() {

@@ -74,7 +74,7 @@ public class VelocityVOFactory {
 		}
 		ctx.put("Filename", filename);
 		ctx.put("EditableInterface", editableInterfaceName);
-		ctx.put("table", schema.getTabela().getNome());
+		ctx.put("table", schema.getTabela().getName ());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
 		List<Object> manyToOne = new ArrayList<Object>();
@@ -93,7 +93,11 @@ public class VelocityVOFactory {
 		List<Property> fields = new ArrayList<Property>();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property prop = schema.getPropriedade(col);
-			prop.setAlias(getAlias(aliases, classname, col));
+			prop = new Property (
+					prop.getNome (), prop.getPropertyClass (),
+					prop.isGet (), prop.isSet (),
+					getAlias(aliases, classname, col),
+					prop.getConstraints());
 			fields.add(prop);
 		}
 		ctx.put("fields", fields);
@@ -152,10 +156,10 @@ public class VelocityVOFactory {
 			         prop.getPropertyClass().getName().hashCode();
 		}
 		for (Associacao assoc : schema.getAssociacoes()){
-			String other = assoc.getTabelaA().getNome();
+			String other = assoc.getTabelaA().getName ();
 			boolean hasmany = assoc instanceof AssociacaoManyToMany;
-			if (other.equals(schema.getTabela().getNome())){
-				other = assoc.getTabelaB().getNome();
+			if (other.equals(schema.getTabela().getName ())){
+				other = assoc.getTabelaB().getName ();
 				if (assoc instanceof AssociacaoOneToMany)
 					hasmany = true;
 			}

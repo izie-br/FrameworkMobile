@@ -8,7 +8,7 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($association.Nullable)
 #**#            stm = getStatement(
-#**#                    "UPDATE ${association.Table} SET " +
+#**#                    "UPDATE ${association.Table.Name} SET " +
 #**#                    "${association.ForeignKey.LowerAndUnderscores}=NULL " +
 #**#                    "WHERE ${association.ForeignKey.LowerAndUnderscores}=?");
 #**#            try {

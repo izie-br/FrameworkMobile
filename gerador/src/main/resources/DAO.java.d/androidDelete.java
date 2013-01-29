@@ -15,7 +15,7 @@
 #**#            contentValues = new ContentValues();
 #**#            contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
 #**#            db.update(
-#**#                "${relation.Table}", contentValues,
+#**#                "${relation.Table.Name}", contentValues,
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
 #**#           Runnable _${relation.KeyToAPluralized}NullFkThread =

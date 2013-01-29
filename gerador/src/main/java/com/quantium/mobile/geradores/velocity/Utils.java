@@ -12,6 +12,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.PluralizacaoUtils;
 
 public class Utils {
@@ -30,7 +31,7 @@ public class Utils {
 					continue;
 
 				AssociacaoOneToMany o2m = (AssociacaoOneToMany) obj;
-				if (!(o2m.getTabelaA().equals(schema.getTabela())))
+				if (!(o2m.getTabelaA().equals(schema.getModelSchema ())))
 					continue;
 
 				if (o2m.isNullable())
@@ -59,7 +60,7 @@ public class Utils {
 	// - ReferenceKey com a Column da tabela atual
 	public static void findAssociations(JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
 			Collection<Object> manyToOne, Collection<Object> oneToMany, Collection<Object> manyToMany) {
-		String tablename = schema.getTabela().getNome();
+		String tablename = schema.getModelSchema ().getName ();
 		Collection<Associacao> assocs = schema.getAssociacoes();
 		if (assocs == null)
 			return;
@@ -72,7 +73,7 @@ public class Utils {
 				manyToMany.add(obj);
 			} else if (assoc instanceof AssociacaoOneToMany) {
 				AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
-				if (tablename.equals(assoc.getTabelaB().getNome())) {
+				if (tablename.equals(assoc.getTabelaB().getName ())) {
 					if (manyToOne == null)
 						continue;
 					Object obj = extractOneToManyObject(o2m, schema, allSchemas);
@@ -91,7 +92,7 @@ public class Utils {
 	protected static JavaBeanSchema findSchema(Collection<JavaBeanSchema> allSchemas, String assocTableName) {
 		JavaBeanSchema assocSchema = null;
 		for (JavaBeanSchema sch : allSchemas) {
-			if (sch.getTabela().getNome().equals(assocTableName)) {
+			if (sch.getModelSchema ().getName().equals(assocTableName)) {
 				assocSchema = sch;
 				break;
 			}
@@ -101,29 +102,32 @@ public class Utils {
 
 	private static Object extractManyToManyObject(AssociacaoManyToMany m2m, JavaBeanSchema schema,
 			Collection<JavaBeanSchema> allSchemas) {
-		String tablename = schema.getTabela().getNome();
+		String tablename = schema.getModelSchema ().getName();
 		HashMap<String, Object> map = new HashMap<String, Object>();
 		JavaBeanSchema schemaA, schemaB;
 		String klassname;
-		if (tablename.equals(m2m.getTabelaB().getNome())) {
-			String assocTableName = m2m.getTabelaA().getNome();
+		if (tablename.equals(m2m.getTabelaB().getName())) {
+			String assocTableName = m2m.getTabelaA().getName();
 			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
 			schemaA = assocSchema;
 			schemaB = schema;
 			map.put("IsThisTableA", false);
 			klassname = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 		} else {
-			String assocTableName = m2m.getTabelaB().getNome();
+			String assocTableName = m2m.getTabelaB().getName();
 			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
 			schemaA = schema;
 			schemaB = assocSchema;
 			map.put("IsThisTableA", true);
 			klassname = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 		}
-		String joinTableUpper = CamelCaseUtils.camelToUpper(CamelCaseUtils.toLowerCamelCase(m2m.getTabelaJuncao()
-				.getNome()));
+		String joinTableUpper = CamelCaseUtils.camelToUpper(
+				CamelCaseUtils.toLowerCamelCase(
+						m2m.getTabelaJuncao().getName()
+				)
+		);
 		map.put("JoinTableUpper", joinTableUpper);
-		map.put("JoinTable", m2m.getTabelaJuncao().getNome());
+		map.put("JoinTable", m2m.getTabelaJuncao().getName ());
 		Property refPropA = schemaA.getPropriedade(m2m.getReferenciaA());
 		Property keyPropA = new Property(m2m.getKeyToA(), refPropA.getPropertyClass(), false, false);
 		map.put("KeyToA", keyPropA);
@@ -140,11 +144,12 @@ public class Utils {
 	private static Object extractOneToManyObject(AssociacaoOneToMany o2m, JavaBeanSchema schema,
 			Collection<JavaBeanSchema> allSchemas) {
 		HashMap<String, Object> map = new HashMap<String, Object>();
-		String tablename = schema.getTabela().getNome();
+		String tablename = schema.getModelSchema ().getName();
 		JavaBeanSchema schemaA, schemaB;
-		if (tablename.equals(o2m.getTabelaA().getNome())) {
-			String assocTableName = o2m.getTabelaB().getNome();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
+		JavaBeanSchema assocSchema;
+		if (tablename.equals(o2m.getTabelaA().getName())) {
+			String assocTableName = o2m.getTabelaB().getName();
+			assocSchema = findSchema(allSchemas, assocTableName);
 			schemaA = schema;
 			schemaB = assocSchema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
@@ -152,8 +157,8 @@ public class Utils {
 			map.put("Klass", nome);
 			map.put("Pluralized", pluralized);
 		} else {
-			String assocTableName = o2m.getTabelaA().getNome();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
+			String assocTableName = o2m.getTabelaA().getName();
+			assocSchema = findSchema(allSchemas, assocTableName);
 			schemaA = assocSchema;
 			schemaB = schema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
@@ -162,7 +167,7 @@ public class Utils {
 		if (o2m.getKeyToA().equals("id_owners")) {
 			System.out.println("Pare");
 		}
-		map.put("Table", o2m.getTabelaB().getNome());
+		map.put("Table", assocSchema.getTabela ());
 		Property fkProp = schemaB.getPropriedade(o2m.getKeyToA());
 		map.put("ForeignKey", fkProp);
 		map.put("KeyToA", CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA().substring(2)));
@@ -171,7 +176,7 @@ public class Utils {
 						+ PluralizacaoUtils.pluralizar((String) map.get("Klass")));
 		Property refProp = schemaA.getPropriedade(o2m.getReferenciaA());
 		map.put("ReferenceKey", refProp);
-		map.put("Nullable", o2m.isNullable());
+		map.put("Nullable", o2m.isNullable() || ColumnsUtils.isNullable (fkProp));
 		return map;
 	}
 

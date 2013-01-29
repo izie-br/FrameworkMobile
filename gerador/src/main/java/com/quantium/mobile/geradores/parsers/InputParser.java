@@ -3,10 +3,10 @@ package com.quantium.mobile.geradores.parsers;
 import java.util.Collection;
 import java.util.Map;
 
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 
 public interface InputParser {
 
@@ -17,6 +17,6 @@ public interface InputParser {
 
 	void generateSqlResources(
 			GeneratorConfig config,
-			Collection<TabelaSchema> tables)
+			Collection<Table> tables)
 			throws GeradorException;
 }

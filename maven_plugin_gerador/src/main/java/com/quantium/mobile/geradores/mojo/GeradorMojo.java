@@ -162,11 +162,11 @@ public class GeradorMojo extends AbstractMojo{
             new Generator(generatorConfig)
                 .generate(defaultProperties);
         } catch (FileNotFoundException e) {
-            throw new MojoExecutionException(e.getLocalizedMessage());
+            throw new MojoExecutionException("FileNotFoundException", e);
         } catch (IOException e) {
-            throw new MojoExecutionException(e.getLocalizedMessage());
+            throw new MojoExecutionException("IOException", e);
         } catch (GeradorException e) {
-            throw new MojoExecutionException(e.getLocalizedMessage());
+            throw new MojoExecutionException("GeradorException", e);
         }
         log.info("finalizando gerador");
         MavenLogAppender.endPluginLog(this);

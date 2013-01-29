@@ -7,7 +7,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import com.quantium.mobile.framework.validation.Constraint;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 
@@ -36,7 +36,7 @@ public class SqlTabelaSchemaFactory {
 	 * @param schema
 	 *            Statement CREATE TABLE de uma tabela em string
 	 */
-	public TabelaSchema gerarTabelaSchema(String schema) {
+	public ModelSchema gerarTabelaSchema(String schema) {
 		// iniciando o parser
 		CCJSqlParserManager manager = new CCJSqlParserManager();
 		// iniciando o statement
@@ -57,9 +57,9 @@ public class SqlTabelaSchemaFactory {
 
 	public final class CreateTableVisitor implements StatementVisitor {
 
-		private TabelaSchema tabela;
+		private ModelSchema tabela;
 
-		public TabelaSchema getTabela() {
+		public ModelSchema getTabela() {
 			return tabela;
 		}
 
@@ -68,7 +68,9 @@ public class SqlTabelaSchemaFactory {
 			/*
 			 * inserindo o nome da tabela aqui
 			 */
-			TabelaSchema.Builder tabelaBuilder = TabelaSchema.criar(ct.getTable().getName().toLowerCase());
+			ModelSchema.Builder tabelaBuilder = ModelSchema.create(
+					"default",
+					ct.getTable().getName().toLowerCase());
 			// colunas
 			@SuppressWarnings("unchecked")
 			List<ColumnDefinition> columnDefinitions = (List<ColumnDefinition>) ct.getColumnDefinitions();
@@ -89,14 +91,14 @@ public class SqlTabelaSchemaFactory {
 				Constraint arrConstraints[] = new Constraint[constraints.size()];
 				constraints.toArray(arrConstraints);
 
-				tabelaBuilder.adicionarColuna(nomeColuna, tipoColuna, arrConstraints);
+				tabelaBuilder.addProperty (nomeColuna, tipoColuna, arrConstraints);
 
 				/*
 				 * contagem e validacao de primaryKeys
 				 */
 				boolean isPrimaryKey = false;
 				for (Constraint constraint : arrConstraints) {
-					if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
+					if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
 						isPrimaryKey = true;
 						break;
 					}
@@ -104,20 +106,21 @@ public class SqlTabelaSchemaFactory {
 				System.out.println("isPrimaryKey:" + isPrimaryKey);
 				if (isPrimaryKey) {
 					if (primaryKeyCount >= 1) {
-						throw new RuntimeException(tabela.getNome() + " sem tem mais de uma primary key");
+						throw new RuntimeException(tabela.getName () + " tem mais de uma primary key");
 					}
 					if (tipoColuna != Long.class) {
-						throw new RuntimeException(tabela.getNome() + " sem tem primarykey NON-INTEGER");
+						throw new RuntimeException(tabela.getName () + " tem primarykey NON-INTEGER");
 					}
 					primaryKeyCount++;
 				}
 			}
 			if (primaryKeyCount == 0) {
-				throw new RuntimeException(tabela.getNome() + " sem primary key");
+				throw new RuntimeException(tabela.getName () + " sem primary key");
 			}
 		}
 
-		private static final String MSG_ERRO = "Este metodo nao deveria ter sido chamado."
+		private static final String MSG_ERRO =
+				"Este metodo nao deveria ter sido chamado."
 				+ "Confira o schema da tabela se ha linhas que nao sao CREATE TABLE";
 
 		@Override

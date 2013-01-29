@@ -92,12 +92,17 @@ public class VelocityDaoFactory {
 		ctx.put("EditableInterface", targetclass + "Editable");
 		ctx.put("KlassImpl", targetclass + "Impl");
 		ctx.put("Target", targetclass);
-		ctx.put("table", schema.getTabela().getNome());
+		ctx.put("table", schema.getTabela().getName());
 		List<Property> fields = new ArrayList<Property>();
 		Property primaryKey = schema.getPrimaryKey();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
 			Property f = schema.getPropriedade(col);
-			f.setAlias(VelocityVOFactory.getAlias(aliases, targetclass, col));
+			f = new Property (
+					f.getNome (), f.getPropertyClass (),
+					f.isGet (), f.isSet (),
+					VelocityVOFactory.getAlias(aliases, targetclass, col),
+					f.getConstraints ());
+
 			fields.add(f);
 		}
 		ctx.put("fields", fields);

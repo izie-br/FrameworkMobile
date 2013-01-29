@@ -1,13 +1,13 @@
 package com.quantium.mobile.geradores.filters.associacao;
 
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 
 public class AssociacaoOneToOne extends Associacao{
 
 	private String keyToA;
 	private String keyToB;
 
-	public AssociacaoOneToOne(TabelaSchema tabelaA, TabelaSchema tabelaB, String keyToA,
+	public AssociacaoOneToOne(ModelSchema tabelaA, ModelSchema tabelaB, String keyToA,
 			String keyToB) {
 		super(tabelaA,tabelaB);
 		if( keyToA==null || keyToB==null)

@@ -1,6 +1,6 @@
 package com.quantium.mobile.geradores.filters.associacao;
 
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 
 public abstract class Associacao{
 
@@ -8,10 +8,10 @@ public abstract class Associacao{
 		Associacao.class.getSimpleName() +
 		":: Nenhum dos argumentos do contrutor pode ser null";
 
-	private TabelaSchema tabelaA;
-	private TabelaSchema tabelaB;
+	private ModelSchema tabelaA;
+	private ModelSchema tabelaB;
 
-	public Associacao(TabelaSchema tabelaA, TabelaSchema tabelaB) {
+	public Associacao(ModelSchema tabelaA, ModelSchema tabelaB) {
 		if(tabelaA==null||tabelaB==null)
 			throw new RuntimeException(ERRO_ARGUMENTOS_NULL_MSG);
 		this.tabelaA = tabelaA;
@@ -20,16 +20,16 @@ public abstract class Associacao{
 
 	@Override
 	public String toString() {
-		return	tabelaA.getNome() + " " +
+		return	tabelaA.getName() + " " +
 			getClass().getSimpleName() + " " +
-			tabelaB.getNome();
+			tabelaB.getName();
 	}
 
-	public TabelaSchema getTabelaA() {
+	public ModelSchema getTabelaA() {
 		return tabelaA;
 	}
 
-	public TabelaSchema getTabelaB() {
+	public ModelSchema getTabelaB() {
 		return tabelaB;
 	}
 

@@ -2,9 +2,10 @@ package com.quantium.mobile.geradores.filters;
 
 import java.util.Collection;
 
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.javabean.Property;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 
 
 public abstract class TabelaSchemaFilter {
@@ -15,16 +16,24 @@ public abstract class TabelaSchemaFilter {
 	 * retorna o nome da tabela
 	 * @return
 	 */
-	public String getNome(){
-		return proximo.getNome();
+	public String getName(){
+		return proximo.getName();
 	}
 
 	public boolean isNonEntityTable(){
 		return proximo.isNonEntityTable();
 	}
 
+	protected ModelSchema getModelSchema () {
+		return proximo.getModelSchema ();
+	}
+
 	public Property getPropriedade(String coluna){
 		return proximo.getPropriedade(coluna);
+	}
+
+	public Property getPrimaryKey () {
+		return proximo.getPrimaryKey ();
 	}
 
 	public String getConstante(String coluna){
@@ -35,13 +44,12 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getAssociacoes();
 	}
 
-	protected TabelaSchema getTabela(){
-		return proximo.getTabela();
+	public Table getTable (){
+		return proximo.getTable ();
 	}
 
 	public final void proximoFiltro(TabelaSchemaFilter filtro){
 			proximo = filtro;
 	}
-
 
 }

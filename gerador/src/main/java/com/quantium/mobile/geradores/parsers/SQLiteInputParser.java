@@ -13,13 +13,14 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.sqlparser.SqlTabelaSchemaFactory;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
@@ -57,7 +58,7 @@ public class SQLiteInputParser implements InputParser {
 		File sqlResource = information.getInputFile();
 		int dbVersion = information.retrieveDatabaseVersion();
 		String val = getSqlTill(sqlResource, dbVersion);
-		Collection<TabelaSchema> tabelasBanco;
+		Collection<ModelSchema> tabelasBanco;
 		try {
 			if (val != null) {
 				val = sqliteSchema(val);
@@ -82,7 +83,7 @@ public class SQLiteInputParser implements InputParser {
 				"{COLUMN=id}_{TABLE}"));
 
 		// gerando os JavaBeanSchemas
-		for (TabelaSchema tabela : tabelasBanco)
+		for (ModelSchema tabela : tabelasBanco)
 			javaBeanSchemas.add(factory.javaBeanSchemaParaTabela(tabela));
 		return javaBeanSchemas;
 	}
@@ -121,10 +122,12 @@ public class SQLiteInputParser implements InputParser {
 	 * @return
 	 * @throws IOException
 	 */
-	public Collection<TabelaSchema> getTabelasDoSchema(Reader input,
-			String ignored) throws IOException {
+	public Collection<ModelSchema> getTabelasDoSchema(
+			Reader input, String ignored)
+			throws IOException
+	{
 		BufferedReader reader = new BufferedReader(input);
-		Collection<TabelaSchema> tabelas = new ArrayList<TabelaSchema>();
+		Collection<ModelSchema> tabelas = new ArrayList<ModelSchema>();
 		SqlTabelaSchemaFactory factory = new SqlTabelaSchemaFactory();
 		Pattern createTablePattern = Pattern
 				.compile(
@@ -152,10 +155,10 @@ public class SQLiteInputParser implements InputParser {
 				LoggerUtil.getLog().info("IGNORED::" + sb.toString());
 				continue;
 			}
-			TabelaSchema tabela = factory
+			ModelSchema tabela = factory
 					.gerarTabelaSchema(createTableStatement);
 			tabelas.add(tabela);
-			LoggerUtil.getLog().info("tabela: " + tabela.getNome());
+			LoggerUtil.getLog().info("tabela: " + tabela.getName ());
 		}
 		return tabelas;
 	}
@@ -177,7 +180,7 @@ public class SQLiteInputParser implements InputParser {
 	@Override
 	public void generateSqlResources(
 			GeneratorConfig config,
-			Collection<TabelaSchema> tables)
+			Collection<Table> tables)
 			throws GeradorException
 	{
 		/* no-op */

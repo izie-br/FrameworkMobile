@@ -4,11 +4,14 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilter;
 import com.quantium.mobile.geradores.filters.TabelaSchemaFilterFactory;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
-import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
+import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
+import com.quantium.mobile.geradores.util.ColumnsUtils;
+import com.quantium.mobile.geradores.util.TableUtil;
 
 /**
  * Classe base dos esquemas usados pelo gerador. Usa uma Tabela schema como
@@ -34,16 +37,19 @@ import com.quantium.mobile.geradores.tabelaschema.TabelaSchema;
  */
 public class JavaBeanSchema {
 
-	private String constanteDaTabela = "TABELA";
-	private TabelaSchema tabela;
+	private ModelSchema tabela;
 	private TabelaSchemaFilter filterChain;
 
-	public TabelaSchema getTabela() {
-		return this.tabela;
+	public ModelSchema getModelSchema () {
+		return tabela;
+	}
+
+	public Table getTabela() {
+		return filterChain.getTable ();
 	}
 
 	public String getNome() {
-		return filterChain.getNome();
+		return filterChain.getName();
 	}
 
 	public boolean isNonEntityTable() {
@@ -56,24 +62,17 @@ public class JavaBeanSchema {
 
 	public Collection<String> getColunas() {
 		Collection<String> colunas = new HashSet<String>();
-		for (TabelaSchema.Coluna coluna : tabela.getColunas())
+		for (Property coluna : tabela.getProperties ())
 			colunas.add(coluna.getNome());
 		return colunas;
 	}
 
 	public Property getPrimaryKey() {
-		Collection<TabelaSchema.Coluna> colunas = tabela.getPrimaryKeys();
-		if (colunas.size() != 1)
-			return null;
-		return getPropriedade(colunas.iterator().next().getNome());
+		return filterChain.getPrimaryKey ();
 	}
 
 	public String getConstante(String coluna) {
 		return filterChain.getConstante(coluna);
-	}
-
-	public String getConstanteDaTabela() {
-		return constanteDaTabela;
 	}
 
 	public Collection<Associacao> getAssociacoes() {
@@ -95,18 +94,53 @@ public class JavaBeanSchema {
 	private class FiltroRaiz extends TabelaSchemaFilter {
 
 		@Override
-		public String getNome() {
-			return tabela.getNome();
+		public String getName() {
+			return tabela.getName ();
+		}
+
+		@Override
+		public Property getPrimaryKey() {
+			for (Property prop : tabela.getProperties ()) {
+				if (ColumnsUtils.checkIfIsPK (prop))
+					return prop;
+			}
+			throw new RuntimeException ();
 		}
 
 		@Override
 		public boolean isNonEntityTable() {
-			return tabela.isNonEntityTable();
+			Collection<Property> props = tabela.getProperties ();
+			Property pk = tabela.getPrimaryKey ();
+			Collection<Associacao> associations = tabela.getAssociacoes ();
+
+			property_loop:
+			for (Property property : props){
+				// confere se eh PK
+				if (property.equals (pk)){
+					continue property_loop;
+				}
+				// confere se eh FK
+				for (Associacao assoc : associations) {
+					if (assoc instanceof AssociacaoOneToMany) {
+						AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
+						if (o2m.getKeyToA ().equals (property.getNome ()))
+							continue property_loop;
+					}
+				}
+				// chega aqui se a propriedade nao for PK nem FK
+				return false;
+			}
+			return true;
+		}
+
+		@Override
+		public ModelSchema getModelSchema () {
+			return JavaBeanSchema.this.tabela;
 		}
 
 		@Override
 		public Property getPropriedade(String coluna) {
-			for (TabelaSchema.Coluna it : tabela.getColunas()) {
+			for (Property it : tabela.getProperties ()) {
 				if (it.getNome().equals(coluna)) {
 					boolean isNotPrimaryKey = true;
 					Constraint constraints[] = it.getConstraints();
@@ -119,12 +153,13 @@ public class JavaBeanSchema {
 					}
 					//TODO refazer isso, apenas repassar a property do modelfacade
 					return new Property(
-							it.getNome(), it.getType(), true,
-							isNotPrimaryKey, it.getConstraints ());
+							it.getNome(), it.getPropertyClass (),
+							true, isNotPrimaryKey, it.getConstraints ());
 				}
 			}
-			throw new IllegalArgumentException(String.format("Coluna '%s' nao encontrada na tabela '%s'", coluna,
-					tabela.getNome()));
+			throw new IllegalArgumentException(String.format(
+					"Coluna '%s' nao encontrada na tabela '%s'",
+					coluna, tabela.getName()));
 		}
 
 		@Override
@@ -133,8 +168,8 @@ public class JavaBeanSchema {
 		}
 
 		@Override
-		protected TabelaSchema getTabela() {
-			return JavaBeanSchema.this.getTabela();
+		public Table getTable () {
+			return TableUtil.tableForModelSchema (tabela);
 		}
 
 		@Override
@@ -146,24 +181,17 @@ public class JavaBeanSchema {
 
 	public static class Factory {
 
-		private String constanteDaTabela;
 		private Collection<TabelaSchemaFilterFactory> filtros = new ArrayList<TabelaSchemaFilterFactory>();
 
 		public void addFiltroFactory(TabelaSchemaFilterFactory filtroFactory) {
 			filtros.add(filtroFactory);
 		}
 
-		public void setConstanteComNomeDaTabela(String constante) {
-			constanteDaTabela = constante;
-		}
-
-		public JavaBeanSchema javaBeanSchemaParaTabela(TabelaSchema tabela) {
+		public JavaBeanSchema javaBeanSchemaParaTabela(ModelSchema tabela) {
 			JavaBeanSchema javaBeanSchema = new JavaBeanSchema();
 			javaBeanSchema.tabela = tabela;
 			for (TabelaSchemaFilterFactory filtro : filtros)
 				javaBeanSchema.adicionarFiltro(filtro.getFilterInstance());
-			if (constanteDaTabela != null)
-				javaBeanSchema.constanteDaTabela = constanteDaTabela;
 			return javaBeanSchema;
 		}
 	}
