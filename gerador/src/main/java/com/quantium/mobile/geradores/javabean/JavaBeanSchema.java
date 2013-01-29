@@ -52,6 +52,10 @@ public class JavaBeanSchema {
 		return filterChain.getName();
 	}
 
+	public String getModule () {
+		return filterChain.getModule ();
+	}
+
 	public boolean isNonEntityTable() {
 		return filterChain.isNonEntityTable();
 	}
@@ -96,6 +100,11 @@ public class JavaBeanSchema {
 		@Override
 		public String getName() {
 			return tabela.getName ();
+		}
+
+		@Override
+		public String getModule() {
+			return tabela.getModule ();
 		}
 
 		@Override

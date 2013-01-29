@@ -16,6 +16,7 @@ import java.util.regex.Pattern;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
+import com.quantium.mobile.geradores.filters.ModuleNameOnTablePrefixFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoPorNomeFilter;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
@@ -78,6 +79,7 @@ public class SQLiteInputParser implements InputParser {
 		}
 
 		JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
+		factory.addFiltroFactory(new ModuleNameOnTablePrefixFilter.Factory());
 		factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
 		factory.addFiltroFactory(new AssociacaoPorNomeFilter.Factory(
 				"{COLUMN=id}_{TABLE}"));

@@ -20,6 +20,10 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getName();
 	}
 
+	public String getModule () {
+		return proximo.getModule ();
+	}
+
 	public boolean isNonEntityTable(){
 		return proximo.isNonEntityTable();
 	}

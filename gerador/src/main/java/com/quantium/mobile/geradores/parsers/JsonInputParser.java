@@ -28,6 +28,7 @@ import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.GeneratorConfig;
 import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.dbschema.SQLiteSchemaGenerator;
+import com.quantium.mobile.geradores.filters.ModuleNameOnTablePrefixFilter;
 import com.quantium.mobile.geradores.filters.PrefixoTabelaFilter;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
@@ -44,7 +45,6 @@ public class JsonInputParser implements InputParser {
 	private static final String CLASS_LIST = "classList";
 	private static final String ATTRIBUTE_LIST = "attributeList";
 	private static final String FROM_ASSOCIATIONS_LIST = "fromAssociationList";
-	private static final String TO_ASSOCIATIONS_LIST = "toAssociationList";
 
 	// private static final String TO_ASSOCIATIONS_LIST = "toAssociationList";
 
@@ -61,6 +61,7 @@ public class JsonInputParser implements InputParser {
 			Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
 			// int dbVersion = information.retrieveDatabaseVersion();
 			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
+			factory.addFiltroFactory (new ModuleNameOnTablePrefixFilter.Factory());
 			factory.addFiltroFactory(new PrefixoTabelaFilter.Factory("tb_"));
 			// gerando os JavaBeanSchemas
 			for (ModelSchema tabela : tabelasJson) {
@@ -103,7 +104,7 @@ public class JsonInputParser implements InputParser {
 				}
 				ModelSchema.Builder tabelaBuilder =
 						ModelSchema.create (
-								"default",
+								Constants.DEFAULT_MODULE_NAME,
 								CamelCaseUtils.camelToLowerAndUnderscores(
 										databaseTable
 								)
@@ -222,7 +223,10 @@ public class JsonInputParser implements InputParser {
 	}
 
 	private static ModelSchema gerarAssociativa(String databaseTable, String colunaFrom, String colunaTo) {
-		ModelSchema.Builder tabelaBuilder = ModelSchema.create("default", databaseTable)
+		ModelSchema.Builder tabelaBuilder =
+				ModelSchema.create(
+					Constants.DEFAULT_MODULE_NAME,
+					databaseTable)
 				.addProperty ("id", Long.class, Constraint.PRIMARY_KEY)
 				.addProperty (colunaFrom, Long.class, Constraint.Type.NOT_NULL)
 				.addProperty(colunaTo, Long.class, Constraint.Type.NOT_NULL);
