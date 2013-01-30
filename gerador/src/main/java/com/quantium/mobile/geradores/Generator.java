@@ -8,8 +8,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.nio.channels.FileChannel;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.TreeMap;
@@ -183,8 +185,10 @@ public class Generator {
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
 				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 
-		
-		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
+		List<JavaBeanSchema> javabeanschemalist =
+				new ArrayList<JavaBeanSchema> (javaBeanSchemas);
+		for(int i=0; i < javabeanschemalist.size (); i++){
+			JavaBeanSchema javaBeanSchema = javabeanschemalist.get (i);
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
 
