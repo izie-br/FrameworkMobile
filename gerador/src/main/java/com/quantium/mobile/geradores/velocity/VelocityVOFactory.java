@@ -25,6 +25,7 @@ import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.ConstraintsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ImportHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ManyToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.OneToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
@@ -35,6 +36,8 @@ import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*
 public class VelocityVOFactory {
 
 	private Template template;
+	private String basePackage;
+	private String genPackage;
 	private File targetDirectory;
 	private VelocityContext parentCtx;
 	private Map<String,String> aliases;
@@ -44,10 +47,11 @@ public class VelocityVOFactory {
 	                         Map<String,String> serializationAliases)
 	{
 		this.template = ve.getTemplate("VO.java");
+		this.basePackage = basePackage;
+		this.genPackage = genPackage;
 		this.targetDirectory = targetDirectory;
 		this.parentCtx = new VelocityContext();
 		this.parentCtx.put("defaultId", Constants.DEFAULT_ID);
-		this.parentCtx.put("package", genPackage);
 		this.parentCtx.put("basePackage", basePackage);
 		this.parentCtx.put("getter", new GetterHelper());
 		this.aliases = serializationAliases;
@@ -62,6 +66,8 @@ public class VelocityVOFactory {
 		String editableInterfaceName = classname + "Editable";
 		String filename = null;
 		VelocityContext ctx = new VelocityContext(parentCtx);
+		ctx.put("package",
+				Utils.getPackageName (basePackage, genPackage, schema.getModule ()));
 		switch (type){
 		case INTERFACE:
 			ctx.put("interface", true);
@@ -119,6 +125,11 @@ public class VelocityVOFactory {
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
 				schema, fields, associationsFromFK, oneToMany, manyToMany);
 
+		ImportHelper importHelper =
+				new ImportHelper (basePackage, genPackage, null);
+		ctx.put("Imports", importHelper.getImports (
+				schema, oneToMany, manyToOne, manyToMany));
+
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
@@ -129,7 +140,9 @@ public class VelocityVOFactory {
 
 		ctx.put ("Constraints", new ConstraintsHelper ());
 
-		File file = new File(targetDirectory, filename + ".java");
+		File file = new File(
+				Utils.getPackageDir (targetDirectory, genPackage, schema.getModule ()),
+				filename + ".java");
 		Writer w = new OutputStreamWriter(
 				new FileOutputStream(file),
 				"UTF-8");

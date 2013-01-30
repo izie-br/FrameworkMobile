@@ -13,6 +13,7 @@ import com.quantium.mobile.framework.validation.Constraint;
 import ${basePackage}.GenericBean;
 import ${basePackage}.GenericVO;
 
+${Imports}
 
 @SuppressWarnings("unused")
 #if ($implementation)

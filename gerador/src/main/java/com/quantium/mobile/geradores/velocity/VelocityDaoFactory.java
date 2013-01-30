@@ -21,6 +21,7 @@ import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ImportHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ManyToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.OneToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
@@ -56,9 +57,22 @@ public class VelocityDaoFactory {
 			}
 		}
 
+		public String getDaoFactory () {
+			switch (this) {
+			case ANDROID:
+				return "SQLiteDAOFactory";
+			case JDBC:
+				return "JdbcDAOFactory";
+			default:
+				throw new RuntimeException();
+			}
+		}
+
 	}
 
 	private Type type;
+	private String genPackage;
+	private String basePackage;
 	private File targetDirectory;
 	private Template template;
 	private VelocityContext parentCtx;
@@ -67,14 +81,17 @@ public class VelocityDaoFactory {
 	public VelocityDaoFactory(
 			VelocityEngine ve, File targetDirectory,
 			Type type,
-			String genPackage, Map<String,String> serializationAliases){
+			String basePackage, String genPackage,
+			Map<String,String> serializationAliases)
+	{
 		//this.ve = ve;
 		this.type = type;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate(type.getTemplateName());
+		this.basePackage = basePackage;
+		this.genPackage = genPackage;
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
-		parentCtx.put("package", genPackage);
 		this.aliases = serializationAliases;
 		//parentCtx.put("basePackage", basePackage);
 	}
@@ -86,16 +103,25 @@ public class VelocityDaoFactory {
 	{
 		if (schema.isNonEntityTable())
 			return;
+		parentCtx.put(
+				"package",
+				Utils.getPackageName (basePackage, genPackage, schema.getModule ()));
 		String targetclass = CamelCaseUtils.toUpperCamelCase(schema.getNome());
 		String classname = targetclass + this.type.getSuffix();
 		String filename = classname + ".java";
-		File file = new File(targetDirectory, filename);
+		File file = new File(
+				getPackageDir (targetDirectory, genPackage, schema.getModule ()),
+				filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Klass", classname);
-		ctx.put("EditableInterface", targetclass + "Editable");
+		ctx.put("EditableInterface", editableInterface (targetclass));
 		ctx.put("KlassImpl", targetclass + "Impl");
 		ctx.put("Target", targetclass);
 		ctx.put("table", schema.getTabela().getName());
+
+		String daoFactory = type.getDaoFactory ();
+		ctx.put ("DaoFactory", daoFactory);
+
 		List<Property> fields = new ArrayList<Property>();
 		Property primaryKey = schema.getPrimaryKey();
 		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
@@ -140,6 +166,10 @@ public class VelocityDaoFactory {
 
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
 				schema, fields, associationsFromFK,  oneToMany, manyToMany);
+
+		ImportHelper importHelper = new ImportHelper (basePackage, genPackage, daoFactory);
+		ctx.put("Imports", importHelper.getImports (
+				schema, oneToMany, manyToOne, manyToMany));
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgs", argsHelper.getConstructorArguments());

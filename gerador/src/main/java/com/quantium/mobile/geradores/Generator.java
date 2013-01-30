@@ -166,6 +166,7 @@ public class Generator {
 			vdaof = new VelocityDaoFactory(
 				ve, androidTempDir,
 				VelocityDaoFactory.Type.ANDROID,
+				projectInformation.getBasePackage (),
 				projectInformation.getGeneratedCodePackage(),
 				serializationAliases);
 		}
@@ -173,6 +174,7 @@ public class Generator {
 			vJdbcDaoFactory = new VelocityDaoFactory(
 					ve, jdbcTempDir,
 					VelocityDaoFactory.Type.JDBC,
+					projectInformation.getBasePackage (),
 					projectInformation.getGeneratedCodePackage(),
 					serializationAliases);
 		}
@@ -214,36 +216,59 @@ public class Generator {
 
 		if (projectInformation.getAndroidDirectory() != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
-					"SQLiteDAOFactory.java",ve, javaBeanSchemas,
-					projectInformation.getGeneratedCodePackage(), androidTempDir);
+					"SQLiteDAOFactory.java",
+					VelocityDaoFactory.Type.ANDROID.getSuffix (),
+					ve, javaBeanSchemas,
+					projectInformation.getBasePackage (),
+					projectInformation.getGeneratedCodePackage(),
+					androidTempDir);
 		}
 		if (projectInformation.getJdbcDirectory() != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
-					"JdbcDAOFactory.java",ve, javaBeanSchemas,
-					projectInformation.getGeneratedCodePackage(), jdbcTempDir);
+					"JdbcDAOFactory.java",
+					VelocityDaoFactory.Type.ANDROID.getSuffix (),
+					ve, javaBeanSchemas,
+					projectInformation.getBasePackage (),
+					projectInformation.getGeneratedCodePackage(),
+					jdbcTempDir);
 		}
 
 
-		String pastaGen = projectInformation.getGeneratedPackageDirectoryPath();
-
-		// Substitui os pacotes gen por pastas vazias, para remover os
-		//   arquivos antigos
-		File coreGenFolder = resetDir(new File(projectInformation.getCoreDirectory(), pastaGen));
-		File androidGenDir = resetDir(new File(projectInformation.getAndroidDirectory(), pastaGen));
-		File jdbcGenDir    = resetDir(new File(projectInformation.getJdbcDirectory(), pastaGen));
+//		String pastaGen = projectInformation.getGeneratedPackageDirectoryPath();
+//
+//		// Substitui os pacotes gen por pastas vazias, para remover os
+//		//   arquivos antigos
+//		File coreGenFolder = resetDir(new File(projectInformation.getCoreDirectory(), pastaGen));
+//		File androidGenDir = resetDir(new File(projectInformation.getAndroidDirectory(), pastaGen));
+//		File jdbcGenDir    = resetDir(new File(projectInformation.getJdbcDirectory(), pastaGen));
 
 		// Copia os novos arquivos para os pacotes gen vazios
 		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
 		//       no caso do "replaceGenFolder"
-		for (File f : coreTempDir.listFiles())
-			copyFile(f, new File(coreGenFolder, f.getName()));
+
+		String baseDirectory = projectInformation.getBasePackageDirectoryPath ();
+
+		File coreBaseDir = new File(projectInformation.getCoreDirectory (), baseDirectory);
+		resetAllGenFolders (coreTempDir, coreBaseDir);
+		File androidBaseDir = null;
 		if (projectInformation.getAndroidDirectory() != null) {
-			for (File f : androidTempDir.listFiles())
-				copyFile(f, new File(androidGenDir, f.getName()));
+			androidBaseDir = new File(
+					projectInformation.getAndroidDirectory (), baseDirectory);
+			resetAllGenFolders (androidTempDir, androidBaseDir);
 		}
+		File jdbcBaseDir = null;
 		if (projectInformation.getJdbcDirectory() != null) {
-			for (File f : jdbcTempDir.listFiles())
-				copyFile(f, new File(jdbcGenDir, f.getName()));
+			jdbcBaseDir = new File(
+					projectInformation.getJdbcDirectory (), baseDirectory);
+			resetAllGenFolders (jdbcTempDir, jdbcBaseDir);
+		}
+
+		copyDirContentsR (coreTempDir, coreBaseDir);
+		if (androidBaseDir != null) {
+			copyDirContentsR (androidTempDir, androidBaseDir);
+		}
+		if (jdbcBaseDir != null) {
+			copyDirContentsR (jdbcTempDir,jdbcBaseDir);
 		}
 
 //		props.save();
@@ -365,11 +390,50 @@ public class Generator {
 	 * @return
 	 * @throws IOException
 	 */
-	private File resetDir(File dir) throws IOException {
+	private static File resetDir(File dir) throws IOException {
 		if (dir.exists())
 			deleteFolderR(dir);
 		dir.mkdirs();
 		return dir;
+	}
+
+	public static void copyDirContentsR (File sourceDir, File destDir)
+			throws IOException
+	{
+		if (!destDir.exists ())
+			destDir.mkdir ();
+
+		for (File f : sourceDir.listFiles ()) {
+			// File.getName () retorna apenas a ultima componente do caminho
+			// sendo usado como caminho relativo
+			File dest = new File (destDir, f.getName ());
+			if (f.isDirectory ()){
+				copyDirContentsR (f, dest);
+			}
+			else
+				copyFile (f, dest);
+		}
+	}
+
+	// TODO documentar
+	// CUIDADO:: funcao perigosa, pode deletar tudo
+	public static void resetAllGenFolders (File tempDir, File destDir)
+		throws IOException
+	{
+		if (!destDir.exists ())
+			destDir.mkdir ();
+
+		for (File f : tempDir.listFiles ()) {
+			// File.getName () retorna apenas a ultima componente do caminho
+			// sendo usado como caminho relativo
+			File dest = new File (destDir, f.getName ());
+			if (f.isDirectory ()){
+				resetAllGenFolders (f, dest);
+			} else {
+				resetDir (destDir);
+				break;
+			}
+		}
 	}
 
 	/**

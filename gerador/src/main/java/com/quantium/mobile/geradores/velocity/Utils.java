@@ -1,12 +1,15 @@
 package com.quantium.mobile.geradores.velocity;
 
+import java.io.File;
 import java.util.Collection;
 import java.util.Date;
 
+import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
+import com.quantium.mobile.geradores.util.Constants;
 
 public class Utils {
 
@@ -46,6 +49,44 @@ public class Utils {
 		}
 		return returnValue;
 	}
+
+	public static String getPackageName (
+			String basePackage, String genpackage,
+			String module)
+	{
+		StringBuilder sb = new StringBuilder ();
+		if (!StringUtil.isNull (basePackage)){
+			sb.append (basePackage);
+			sb.append ('.');
+		}
+		if (!Constants.DEFAULT_MODULE_NAME.equals (module)){
+			sb.append (module);
+			sb.append ('.');
+		}
+		sb.append (genpackage);
+		return sb.toString ();
+	}
+
+	public static File getPackageDir (
+			File baseDir, String genpackage,
+			String module)
+	{
+		File f = baseDir;
+		if (!Constants.DEFAULT_MODULE_NAME.equals (module)){
+			f = new File (f, module);
+		}
+		if (genpackage == null)
+			throw new RuntimeException ();
+		f = new File (f, genpackage);
+		if (!f.exists ())
+			f.mkdirs ();
+		return f;
+	}
+
+	public static String editableInterface(String targetclass) {
+		return targetclass + "Editable";
+	}
+
 
 
 }

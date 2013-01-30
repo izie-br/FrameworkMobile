@@ -30,12 +30,14 @@ import com.quantium.mobile.framework.utils.DateUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
+${Imports}
+
 @SuppressWarnings("unused")
 public class ${Klass} implements DAOSQLite<${Target}> {
 
-    private SQLiteDAOFactory factory;
+    private ${DaoFactory} factory;
 
-    public ${Klass}(SQLiteDAOFactory factory){
+    public ${Klass}(${DaoFactory} factory){
         this.factory = factory;
     }
 

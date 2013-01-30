@@ -143,6 +143,7 @@ public class AssociationHelper {
 			schemaB = assocSchema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 			String pluralized = PluralizacaoUtils.pluralizar(nome);
+			map.setModule (assocSchema.getModule ());
 			map.setKlass(nome);
 			map.setPluralized(pluralized);
 		} else {
@@ -151,6 +152,7 @@ public class AssociationHelper {
 			schemaA = assocSchema;
 			schemaB = schema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
+			map.setModule (assocSchema.getModule ());
 			map.setKlass(nome);
 		}
 //		if (o2m.getKeyToA().equals("id_owners")) {

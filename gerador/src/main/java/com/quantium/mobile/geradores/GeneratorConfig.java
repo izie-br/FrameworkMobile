@@ -112,13 +112,13 @@ public class GeneratorConfig {
 	}
 
 	public String getDBClassSourceCodeFilePath() {
-		return getBasePackageDirectoryPath() + File.separator
-				+ Constants.DB_PACKAGE + File.separator + Constants.DB_CLASS
+		return getBasePackageDirectoryPath() + System.getProperty ("file.separator")
+				+ Constants.DB_PACKAGE + System.getProperty ("file.separator") + Constants.DB_CLASS
 				+ ".java";
 	}
 
 	public String getBasePackageDirectoryPath() {
-		return basePackage.replaceAll("\\.", File.separator);
+		return basePackage.replaceAll("\\.", System.getProperty ("file.separator"));
 	}
 
 	public String getGeneratedCodePackageName() {
@@ -127,10 +127,6 @@ public class GeneratorConfig {
 
 	public String getGeneratedCodePackage() {
 		return generatedCodePackage;
-	}
-
-	public String getGeneratedPackageDirectoryPath() {
-		return (getGeneratedCodePackage()).replaceAll("\\.", File.separator);
 	}
 
 //	public String retrieveAndroidManifestBasePackage() throws GeradorException {
@@ -296,9 +292,10 @@ public class GeneratorConfig {
 						"basePackage e androidManifest indefinidos");
 			}
 			generatorConfig.generatedCodePackage =
-					(
+					/* (
 						(this.basePackage==null)? "": (this.basePackage + ".")
-					) + generatorConfig.generatedCodePackageName;
+					) + */
+					generatorConfig.generatedCodePackageName;
 
 
 			generatorConfig.coreTemporaryDirectory = new File(

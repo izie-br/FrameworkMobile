@@ -4,6 +4,8 @@ import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.db.AbstractSQLiteDAOFactory;
 
+${Imports}
+
 public abstract class SQLiteDAOFactory extends AbstractSQLiteDAOFactory {
 
     public abstract SQLiteDatabase getDb();

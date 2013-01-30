@@ -28,15 +28,17 @@ import com.quantium.mobile.framework.utils.DateUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
+${Imports}
+
 @SuppressWarnings("unused")
 public class ${Klass} implements JdbcDao<${Target}> {
 
     private static final String COUNT_BY_PRIMARY_KEYS =
         "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?";
 
-    private JdbcDAOFactory factory;
+    private ${DaoFactory} factory;
 
-    public ${Klass}(JdbcDAOFactory factory){
+    public ${Klass}(${DaoFactory} factory){
         this.factory = factory;
     }
 
