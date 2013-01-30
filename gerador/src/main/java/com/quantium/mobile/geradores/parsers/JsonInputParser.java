@@ -86,6 +86,9 @@ public class JsonInputParser implements InputParser {
 		List<ModelSchema> list = new ArrayList<ModelSchema>();
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
 		for (JSONObject jsonPackage : packages) {
+			String moduleName = CamelCaseUtils.camelToLowerAndUnderscores (
+					jsonPackage.getString ("name"));
+
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
 			for (JSONObject jsonClass : classes) {
 				String databaseTable = jsonClass.getString("name");
@@ -104,7 +107,7 @@ public class JsonInputParser implements InputParser {
 				}
 				ModelSchema.Builder tabelaBuilder =
 						ModelSchema.create (
-								Constants.DEFAULT_MODULE_NAME,
+								moduleName,
 								CamelCaseUtils.camelToLowerAndUnderscores(
 										databaseTable
 								)
@@ -184,11 +187,13 @@ public class JsonInputParser implements InputParser {
 						String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id_" + fromName);
 						String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id_" + toName);
 						String tableName = "tb_" + fromName + "_join_" + toName;
+						// a tabela join ficara no modulo da "from" da associacao
+						String module = from.getModule ();
 						Associacao assoc = new AssociacaoManyToMany (
 								from, to,
 								colunaTo, colunaFrom,
 								colunaId, colunaId,
-								gerarAssociativa (tableName, colunaFrom, colunaTo),
+								gerarAssociativa (module, tableName, colunaFrom, colunaTo),
 								tableName);
 						hashtable.get(jsonAssociation.optString("from")).addAssociation(assoc);
 						hashtable.get(jsonAssociation.optString("to")).addAssociation(assoc);
@@ -222,11 +227,11 @@ public class JsonInputParser implements InputParser {
 		return list;
 	}
 
-	private static ModelSchema gerarAssociativa(String databaseTable, String colunaFrom, String colunaTo) {
+	private static ModelSchema gerarAssociativa(
+			String module, String databaseTable,
+			String colunaFrom, String colunaTo) {
 		ModelSchema.Builder tabelaBuilder =
-				ModelSchema.create(
-					Constants.DEFAULT_MODULE_NAME,
-					databaseTable)
+				ModelSchema.create(module, databaseTable)
 				.addProperty ("id", Long.class, Constraint.PRIMARY_KEY)
 				.addProperty (colunaFrom, Long.class, Constraint.Type.NOT_NULL)
 				.addProperty(colunaTo, Long.class, Constraint.Type.NOT_NULL);
