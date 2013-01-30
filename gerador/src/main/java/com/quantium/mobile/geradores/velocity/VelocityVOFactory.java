@@ -25,9 +25,12 @@ import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.ConstraintsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ManyToManyAssociationHelper;
+import com.quantium.mobile.geradores.velocity.helpers.OneToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ValidateHelper;
 
 import static com.quantium.mobile.geradores.velocity.Utils.*;
+import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*;
 
 public class VelocityVOFactory {
 
@@ -77,9 +80,12 @@ public class VelocityVOFactory {
 		ctx.put("table", schema.getTabela().getName ());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
-		List<Object> manyToOne = new ArrayList<Object>();
-		List<Object> oneToMany = new ArrayList<Object>();
-		List<Object> manyToMany = new ArrayList<Object>();
+		List<OneToManyAssociationHelper> manyToOne =
+				new ArrayList<OneToManyAssociationHelper>();
+		List<OneToManyAssociationHelper> oneToMany =
+				new ArrayList<OneToManyAssociationHelper>();
+		List<ManyToManyAssociationHelper> manyToMany =
+				new ArrayList<ManyToManyAssociationHelper>();
 		findAssociations(
 				schema, allSchemas, manyToOne,
 				oneToMany, manyToMany);
@@ -107,7 +113,7 @@ public class VelocityVOFactory {
 		ctx.put("haveDateField", (options&HAS_DATE_FIELD)!=0);
 		ctx.put("hasDatePK", (options&HAS_DATE_PK)!=0);
 
-		Map<Property, Object> associationsFromFK =
+		Map<Property, OneToManyAssociationHelper> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);
 
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(

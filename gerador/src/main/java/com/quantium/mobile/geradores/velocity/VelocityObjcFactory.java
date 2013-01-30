@@ -24,8 +24,10 @@ import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
+import com.quantium.mobile.geradores.velocity.helpers.ManyToManyAssociationHelper;
+import com.quantium.mobile.geradores.velocity.helpers.OneToManyAssociationHelper;
 
-import static com.quantium.mobile.geradores.velocity.Utils.*;
+import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*;
 
 public class VelocityObjcFactory {
 
@@ -92,9 +94,12 @@ public class VelocityObjcFactory {
 		ctx.put("table", schema.getTabela().getName ());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
-		List<Object> manyToOne = new ArrayList<Object>();
-		List<Object> oneToMany = new ArrayList<Object>();
-		List<Object> manyToMany = new ArrayList<Object>();
+		List<OneToManyAssociationHelper> manyToOne =
+				new ArrayList<OneToManyAssociationHelper>();
+		List<OneToManyAssociationHelper> oneToMany =
+				new ArrayList<OneToManyAssociationHelper>();
+		List<ManyToManyAssociationHelper> manyToMany =
+				new ArrayList<ManyToManyAssociationHelper>();
 		findAssociations(
 				schema, allSchemas, manyToOne,
 				oneToMany, manyToMany);
@@ -121,7 +126,7 @@ public class VelocityObjcFactory {
 		ctx.put("fields", fields);
 		ctx.put("primaryKey", schema.getPrimaryKey());
 		
-		Map<Property, Object> associationsFromFK =
+		Map<Property, OneToManyAssociationHelper> associationsFromFK =
 				getAssociationsForFK(fields, manyToOne);
 		ctx.put("associationForField", associationsFromFK);
 
