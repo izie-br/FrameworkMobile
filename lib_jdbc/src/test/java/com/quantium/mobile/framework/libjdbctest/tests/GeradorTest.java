@@ -250,7 +250,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testValidate () {
+	public void testValidateVO () {
 		Author author = new AuthorImpl ();
 		author.setActive (true);
 		author.setName (null);
@@ -290,6 +290,34 @@ public class GeradorTest {
 
 		// a lista de erros deve ser uma lista vazia (nao pode ser null)
 		assertEquals (0, author.validate ().size ());
+	}
+
+	@Test
+	public void testValidateThroughDAO () {
+		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+		Author author1= randomAuthor ();
+		try {
+			assertTrue (dao.save (author1));
+		} catch (IOException e) {
+			fail ();
+		}
+		String author1Name = author1.getName ();
+
+		Author author2;
+		do {
+			author2 = randomAuthor ();
+		} while (author2.getName ().equals (author1Name));
+
+		Collection<ValidationError> errors = dao.validate (author2);
+		assertEquals (0, errors.size ());
+
+		author2.setName (author1Name);
+		errors = dao.validate (author2);
+		assertEquals (1, errors.size ());
+
+		ValidationError error = errors.iterator ().next ();
+		assertTrue (error.getConstraint ().isTypeOf (Constraint.UNIQUE));
+		assertEquals (Author.NAME, error.getColumn ());
 	}
 
 	@SuppressWarnings("deprecation")

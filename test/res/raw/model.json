@@ -31,7 +31,7 @@
               "min": "5",
               "max": "79",
               "validationRegex": "",
-              "isUnique": "0",
+              "isUnique": "true",
               "isRequired": "true",
               "isEntityIdentifier": "0",
               "isStateMachineAttribute": "0",
