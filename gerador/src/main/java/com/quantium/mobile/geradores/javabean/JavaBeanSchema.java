@@ -3,7 +3,6 @@ package com.quantium.mobile.geradores.javabean;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.List;
 
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.Constraint;
@@ -119,14 +118,11 @@ public class JavaBeanSchema {
 
 		@Override
 		public boolean isNonEntityTable() {
-			List<Property> props = new ArrayList<Property>(
-					tabela.getProperties ());
 			Property pk = tabela.getPrimaryKey ();
 			Collection<Associacao> associations = tabela.getAssociacoes ();
 
 			property_loop:
-			for (int i=0; i< props.size ();i++){
-				Property property = props.get (i);
+			for (Property property : tabela.getProperties ()){
 				// confere se eh PK
 				if (property.equals (pk)){
 					continue property_loop;

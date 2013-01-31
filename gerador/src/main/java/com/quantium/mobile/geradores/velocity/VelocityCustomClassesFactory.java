@@ -35,10 +35,7 @@ public class VelocityCustomClassesFactory {
 				classname);
 		List<String> klasses = new ArrayList<String>();
 
-		List<JavaBeanSchema> schemaList =
-				new ArrayList<JavaBeanSchema> (schemas);
-		for (int i=0; i< schemaList.size (); i++){
-			JavaBeanSchema schema = schemaList.get (i);
+		for (JavaBeanSchema schema : schemas){
 			if (schema.isNonEntityTable())
 				continue;
 			klasses.add(CamelCaseUtils.toUpperCamelCase(schema.getNome()));
