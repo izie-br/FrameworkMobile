@@ -5,6 +5,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.quantium.mobile.framework.validation.Constraint;
 
@@ -15,6 +18,7 @@ public final class Table {
      */
     private static final ArrayList<WeakReference<Table>> POOL =
             new ArrayList<WeakReference<Table>> ();
+    private static final Lock POOL_LOCK = new ReentrantLock ();
 
     private final String name;
     private final ArrayList<Table.Column<?>> columns =
@@ -220,12 +224,14 @@ public final class Table {
         }
 
         public Table get () {
-            synchronized (POOL) {
+            POOL_LOCK.lock ();
+            try {
                 // busca uma tabela igual na POOL
-                for (WeakReference<Table> poolReference : POOL) {
-                    Table poolTable = poolReference.get ();
+                Iterator<WeakReference<Table>> it = POOL.iterator ();
+                while (it.hasNext ()) {
+                    Table poolTable = it.next ().get ();
                     if (poolTable == null) {
-                        POOL.remove (poolReference);
+                        it.remove ();
                         continue;
                     }
                     if (tableEquals (poolTable))
@@ -235,6 +241,8 @@ public final class Table {
                 Table returnedTable = copyFromThis ();
                 POOL.add (new WeakReference<Table> (returnedTable));
                 return returnedTable;
+            } finally {
+                POOL_LOCK.unlock ();
             }
         }
 
@@ -272,7 +280,6 @@ public final class Table {
             return true;
         }
 
-        // TODO tratar constraints
         private boolean tableHaveColumn (Table.Column<?> column) {
             for (Table.Column<?> col : Table.this.columns) {
                 if (col.name.equals (column.name) &&
