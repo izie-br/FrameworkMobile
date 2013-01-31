@@ -41,6 +41,9 @@ public class CamelCaseUtils {
 		StringBuilder out = new StringBuilder();
 		// indice do "iterador"
 		int i = 0;
+                if(input == null || input.trim().isEmpty()){
+                	return input;
+                }
 		// remover underscores e espacos iniciais
 		while(i<input.length()){
 			if(isWhiteSpace(input.charAt(i)))
@@ -88,6 +91,9 @@ public class CamelCaseUtils {
 	 * @return string em UowerCamelCase
 	 */
 	public static String toUpperCamelCase(String input){
+		if(input == null || input.trim().isEmpty()){
+			return input;
+		}
 		String lcc = toLowerCamelCase(input);
 		return ""+Character.toUpperCase(lcc.charAt(0))+lcc.substring(1);
 	}
