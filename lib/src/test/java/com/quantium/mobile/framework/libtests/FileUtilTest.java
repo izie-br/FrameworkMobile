@@ -42,7 +42,10 @@ public class FileUtilTest {
 				new File(getDataDir()),
 				org.apache.commons.lang.RandomStringUtils.randomAlphabetic(12)
 		);
-		String content = org.apache.commons.lang.RandomStringUtils.random(120);
+		String content = org.apache.commons.lang
+				.RandomStringUtils
+				.random(120)
+				.replace ('\r', ' ');
 		PrintWriter pw;
 		try {
 			pw = FileUtil.openFileToAppend(file.getPath());
