@@ -36,8 +36,8 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 		String module = super.getModule ();
 		if (module.equals (Constants.DEFAULT_GENERATOR_CONFIG))
 			return nome;
-		if(nome.startsWith(module))
-			nome =  nome.substring(module.length());
+//		if(nome.startsWith(module))
+//			nome =  nome.substring(module.length());
 		if (nome.startsWith (SEPARATOR))
 			nome = nome.substring (SEPARATOR.length ());
 		return nome;
