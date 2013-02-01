@@ -189,7 +189,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		// adicionar os documentos oa customer
 		//    e a busca pelo queryset deve achar este
 		assertTrue(customerDao.with(customer).add(document));
-		Collection<Document> documents = customer.getDocuments().all();
+		Collection<Document> documents = customer.getDocumentDocuments().all();
 		assertEquals(document, documents.iterator().next());
 
 		// A author, ao ser "deletado" deve desaparecer do banco
@@ -210,7 +210,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		// Document tem uma chave para author, mas pode ser null
 		//    o document nao deve ser removido com o author,
 		//    mas deve ter sua chave de author anulada
-		documents = customer.getDocuments().all();
+		documents = customer.getDocumentDocuments().all();
 		assertEquals(1, documents.size());
 		document = documents.iterator().next();
 		assertEquals(null,document.getAuthor());
@@ -229,7 +229,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 //		//assertNull(scoreDb);
 
 		docDao.delete(document);
-		documents = customer.getDocuments().all();
+		documents = customer.getDocumentDocuments().all();
 		assertEquals(0, documents.size());
 
 		customerDao.delete(customer);
