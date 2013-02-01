@@ -12,9 +12,11 @@ import org.apache.commons.lang.RandomStringUtils;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.gen.AuthorEditable;
 import com.quantium.mobile.framework.test.gen.AuthorImpl;
 import com.quantium.mobile.framework.test.gen.Customer;
 import com.quantium.mobile.framework.test.gen.CustomerImpl;
@@ -163,6 +165,29 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 */
+
+	public void testSaveInsertIfNotExists () {
+		DAO<Author> dao = facade.getDAOFactory ().getDaoFor (Author.class);
+
+		Author author = randomAuthor ();
+		final long id = 5L;
+		((AuthorEditable)author).setId (id);
+
+		try{
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (author, Save.INSERT_IF_NOT_EXISTS));
+		} catch (IOException e) {
+			fail ();
+		}
+
+		assertEquals (id, author.getId ());
+
+		Author authorFromDb = dao.get (id);
+		assertEquals (author, authorFromDb);
+	}
+
 	public void testDeleteCascade () {
 		try {
 		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);

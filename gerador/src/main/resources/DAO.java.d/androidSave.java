@@ -53,7 +53,9 @@
             if (value > 0){
                 if (target instanceof ${EditableInterface}) {
                     $EditableInterface editable = (${EditableInterface})target;
-                    editable.set${primaryKey.UpperCamel}(value);
+                    if (!insertIfNotExists) {
+                        editable.set${primaryKey.UpperCamel}(value);
+                    }
 #foreach ($association in $oneToManyAssociations)
 #**##if ($association.ReferenceKey)
 #******##set ($referenceKey = $association.ReferenceKey)

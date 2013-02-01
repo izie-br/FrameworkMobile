@@ -13,8 +13,10 @@ import org.junit.Test;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.gen.Author;
+import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
 import com.quantium.mobile.framework.libjdbctest.gen.AuthorImpl;
 import com.quantium.mobile.framework.libjdbctest.gen.Customer;
 import com.quantium.mobile.framework.libjdbctest.gen.CustomerImpl;
@@ -129,7 +131,29 @@ public class GeradorTest {
 		long id2 = author2.getId ();
 		Author author2FromDb = dao.get (id2);
 		assertEquals (author2, author2FromDb);
+	}
 
+	@Test
+	public void testSaveInsertIfNotExists () {
+		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+
+		Author author = randomAuthor ();
+		final long id = 5L;
+		((AuthorEditable)author).setId (id);
+
+		try{
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (author, Save.INSERT_IF_NOT_EXISTS));
+		} catch (IOException e) {
+			fail ();
+		}
+
+		assertEquals (id, author.getId ());
+
+		Author authorFromDb = dao.get (id);
+		assertEquals (author, authorFromDb);
 	}
 
 	@Test
