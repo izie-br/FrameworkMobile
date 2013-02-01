@@ -25,7 +25,7 @@
 	</properties>
 	
 	<scm>
-		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/frameworkMobile-0.23</developerConnection>
+		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/tags/frameworkMobile-0.23</developerConnection>
 	</scm>
 	
 	<build>
@@ -43,7 +43,7 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<tagBase>http://svn.grupo954.com/frameworkMobile/tags</tagBase>
+					<tagBase>http://svn.rcc.local/frameworkMobile/tags</tagBase>
 				</configuration>
 			</plugin>
 		</plugins>
