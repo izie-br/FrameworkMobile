@@ -20,17 +20,24 @@ public abstract class AbstractQSQLProvider {
 
     private Q q;
 
-    public String select(Table.Column<?> columns [], List<Object> args){
+    public String select(List<?> selection, List<Object> args){
         Table table = q.getTable();
         Collection<Q.InnerJoin> joins = q.getInnerJoins();
 
         String out = "SELECT ";
-        for(int i=0 ; ; i++){
-            out += getColumn(
-                columns[i].getTable().getName(),
-                columns[i]
-            );
-            if( i < columns.length -1 )
+        Iterator<?> it = selection.iterator ();
+        while (it.hasNext ()){
+            Object obj = it.next ();
+            if (obj instanceof Table.Column) {
+                Table.Column<?> column = (Table.Column<?>)obj;
+                out += getColumn(
+                    column.getTable().getName(),
+                    column
+                );
+            } else if (obj instanceof String) {
+                out += (String)obj;
+            }
+            if( it.hasNext () )
                 out += ',';
             else
                 break;

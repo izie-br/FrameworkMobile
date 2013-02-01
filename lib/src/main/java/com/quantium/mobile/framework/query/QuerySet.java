@@ -17,4 +17,5 @@ public interface QuerySet<T>{
 	List<T> all();
 	T first();
 
+	long count ();
 }

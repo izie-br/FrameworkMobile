@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.query;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.quantium.mobile.framework.utils.StringUtil;
@@ -69,7 +70,7 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
-		Cursor cursor = getCursor();
+		Cursor cursor = getCursor(Arrays.asList (getColunas ()));
 		try{
 			while(cursor.moveToNext())
 				all.add(cursorToObject(cursor));
@@ -80,9 +81,7 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 	}
 
 	public T first(){
-		if(limit<0)
-			limit = 1;
-		Cursor cursor = getCursor();
+		Cursor cursor = getCursor(Arrays.asList (getColunas ()));
 		try{
 			if(cursor.moveToNext())
 				return cursorToObject(cursor);
@@ -93,11 +92,24 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 		return null;
 	}
 
+	@Override
+	public long count() {
+		Cursor cursor = getCursor(Arrays.asList ("count(*)"));
+		try{
+			if(cursor.moveToNext())
+				return cursor.getLong (0);
+		}
+		finally{
+			cursor.close();
+		}
+		return -1;
+	}
+
 	/**
 	 * Retorna o cursor, para uso em cursor adapter, etc.
 	 * @return cursor
 	 */
-	public Cursor getCursor() {
+	public Cursor getCursor(List<?> selection) {
 		String limitStr =
 				(limit>0 && offset>0) ?
 						String.format("LIMIT %d,%d", offset,limit):
@@ -113,7 +125,7 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 		}
 		String args [] = null;
 		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QSQLProvider(q).select(getColunas(),listArg);
+		String qstr = new QSQLProvider(q).select(selection,listArg);
 		if (listArg.size() > 0) {
 			args = new String[listArg.size()];
 			for (int i=0; i < args.length; i++)

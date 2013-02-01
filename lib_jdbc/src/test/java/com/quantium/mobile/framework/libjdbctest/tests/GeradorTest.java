@@ -320,6 +320,32 @@ public class GeradorTest {
 		assertEquals (Author.NAME, error.getColumn ());
 	}
 
+	@Test
+	public void testQuerySetCount () {
+		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+
+		Author author1 = randomAuthor ();
+		Author author2 = randomAuthor ();
+		Author author3 = randomAuthor ();
+
+		// Dois dos autores estao com active false
+		author1.setActive (false);
+		author2.setActive (false);
+		author3.setActive (true);
+
+		try {
+			assertTrue (dao.save (author1));
+			assertTrue (dao.save (author2));
+			assertTrue (dao.save (author3));
+		} catch (IOException e) {
+			fail ();
+		}
+
+		// Dois dos autores devem estar com active false
+		long qty = dao.query (Author.ACTIVE.eq (false)).count ();
+		assertEquals (2, qty);
+	}
+
 	@SuppressWarnings("deprecation")
 	private Author randomAuthor() {
 		Author author = new AuthorImpl();

@@ -6,13 +6,13 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.query.Table.Column;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
@@ -81,7 +81,7 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 		List<T> all = new ArrayList<T>();
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor();
+			cursor = getCursor(Arrays.asList (getColunas ()));
 			while(cursor.next())
 				all.add(cursorToObject(cursor));
 		} catch (java.sql.SQLException e) {
@@ -98,11 +98,9 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 	}
 
 	public T first(){
-		if(limit<0)
-			limit = 1;
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor();
+			cursor = getCursor(Arrays.asList (getColunas ()));
 			if(cursor.next())
 				return cursorToObject(cursor);
 		} catch (java.sql.SQLException e) {
@@ -120,11 +118,33 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 		return null;
 	}
 
+	@Override
+	public long count() {
+		ResultSet cursor = null;
+		try{
+			cursor = getCursor(Arrays.asList ("count(*)"));
+			if(cursor.next())
+				return cursor.getLong (1);
+		} catch (java.sql.SQLException e) {
+			LogPadrao.e(e);
+			return -1;
+		} 
+		finally{
+			try {
+				if (cursor != null)
+					cursor.close();
+			} catch (SQLException e) {
+				LogPadrao.e(e);
+			}
+		}
+		return -1;
+	}
+
 	/**
 	 * Retorna o cursor, para uso em cursor adapter, etc.
 	 * @return cursor
 	 */
-	public ResultSet getCursor() throws java.sql.SQLException {
+	public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
 		String limitStr =
 				(limit>0 && offset>0) ?
 						String.format("LIMIT %d OFFSET %d", offset,limit):
@@ -140,8 +160,7 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 		}
 
 		ArrayList<Object> listArg = new ArrayList<Object>();
-		Column<?>[] colunas = getColunas();
-		String qstr = new QH2DialectProvider(q).select(colunas, listArg);
+		String qstr = new QH2DialectProvider(q).select(selection, listArg);
 
 		String orderByLocal = orderBy == null  ? "" : (" ORDER BY " + orderBy + " ");
 		Connection conn = getConnection();
@@ -154,10 +173,8 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 			Object arg = listArg.get(i);
 			int index = i+1;
 
-			if (arg == null) {
-				stm.setNull(index, typeFor(colunas[i].getKlass()));
-			} else if (arg instanceof Long || arg instanceof Integer ||
-			           arg instanceof Short)
+			if (arg instanceof Long || arg instanceof Integer ||
+			    arg instanceof Short)
 			{
 				stm.setLong(index, ((Number)arg).longValue());
 			} else if (arg instanceof String ){
@@ -177,24 +194,6 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 		}
 		ResultSet rs = stm.executeQuery();
 		return rs;
-	}
-
-	private static int typeFor(Class<?> klass){
-		if (klass == Long.class || klass == Integer.class ||
-		    klass ==   Short.class) {
-			return java.sql.Types.INTEGER;
-		} else if (klass == String.class){
-			return java.sql.Types.VARCHAR;
-		} else if (klass == Date.class) {
-			return java.sql.Types.TIMESTAMP;
-		} else if (klass == Boolean.class) {
-			return java.sql.Types.BOOLEAN;
-		} else if (klass == Double.class || klass == Float.class ){
-			return java.sql.Types.DOUBLE;
-		} else {
-			throw new RuntimeException(
-					"classe " +klass.getSimpleName() + " nao mapeada");
-		}
 	}
 
 	@Override
