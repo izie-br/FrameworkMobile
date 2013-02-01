@@ -85,8 +85,7 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 			while(cursor.next())
 				all.add(cursorToObject(cursor));
 		} catch (java.sql.SQLException e) {
-			LogPadrao.e(e);
-			return null;
+			throw new RuntimeException(e);
 		} finally {
 			try {
 				if (cursor != null)
