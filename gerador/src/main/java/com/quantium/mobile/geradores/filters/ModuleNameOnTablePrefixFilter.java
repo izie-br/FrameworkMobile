@@ -8,7 +8,6 @@ import com.quantium.mobile.geradores.util.Constants;
 
 public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 
-	private static final String SEPARATOR = "_";
 
 	@Override
 	public Table getTable() {
@@ -30,19 +29,26 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 		return builder.get ();
 	}
 
-	@Override
-	public String getName() {
-		String nome = super.getName();
-		String module = super.getModule ();
-		if (module.equals (Constants.DEFAULT_GENERATOR_CONFIG))
-			return nome;
-//		if(nome.startsWith(module))
-//			nome =  nome.substring(module.length());
-		if (nome.startsWith (SEPARATOR))
-			nome = nome.substring (SEPARATOR.length ());
-		return nome;
-	}
-
+/*
+ * Se precisar de modulos com input de SQL:
+ *  - retrabalhar o metodo abaixo, pois do jeito que esta,
+ *    ele buga se o nome do modulo for igual ao, ou apenas contido no inicio,
+ *    nome de uma classe, que fica "" apos passar este filtro;
+ *
+ *	private static final String SEPARATOR = "_";
+ *	@Override
+ *	public String getName() {
+ *		String nome = super.getName();
+ *		String module = super.getModule ();
+ *		if (module.equals (Constants.DEFAULT_GENERATOR_CONFIG))
+ *			return nome;
+ *		if(nome.startsWith(module))
+ *			nome =  nome.substring(module.length());
+ *		if (nome.startsWith (SEPARATOR))
+ *			nome = nome.substring (SEPARATOR.length ());
+ *		return nome;
+ *	}
+ */
 	public static class Factory implements TabelaSchemaFilterFactory {
 
 		@Override
