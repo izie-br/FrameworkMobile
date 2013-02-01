@@ -8,9 +8,12 @@ public class Constraint {
 	public static final Type FOREIGN_KEY = Type.FOREIGN_KEY;
 	public static final Type NOT_NULL    = Type.NOT_NULL;
 	public static final Type DEFAULT     = Type.DEFAULT;
+	public static final Type MIN         = Type.MIN;
+	public static final Type MAX         = Type.MAX;
+	public static final Type REGEX       = Type.REGEX;
 
 	public static enum Type {
-		PRIMARY_KEY, UNIQUE, FOREIGN_KEY, NOT_NULL, DEFAULT
+		PRIMARY_KEY, UNIQUE, FOREIGN_KEY, NOT_NULL, DEFAULT, MIN, MAX, REGEX
 	}
 
 	private Type type;
