@@ -7,9 +7,7 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -18,7 +16,6 @@ import org.apache.velocity.app.VelocityEngine;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.util.Constants;
-import com.quantium.mobile.geradores.velocity.helpers.ImportHelper;
 
 public class VelocityCustomClassesFactory {
 

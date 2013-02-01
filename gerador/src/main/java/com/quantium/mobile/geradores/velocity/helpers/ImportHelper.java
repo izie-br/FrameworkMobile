@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 
-import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.Utils;
@@ -67,35 +66,6 @@ public class ImportHelper {
 			sb.append (packageName);
 			sb.append ('.');
 			sb.append (daoFactory);
-			sb.append (";\n");
-		}
-		return sb.toString ();
-	}
-
-	public String getFactoryImports (String daoSuffix, Collection<JavaBeanSchema> schemas) {
-		StringBuilder sb = new StringBuilder ();
-		for (JavaBeanSchema schema : schemas) {
-
-			String module = schema.getModule ();
-			if (module.equals (Constants.DEFAULT_MODULE_NAME))
-				continue;
-
-			String packageName = Utils.getPackageName (
-					basePackage, genPackage, module);
-
-			String nome = CamelCaseUtils.toUpperCamelCase (schema.getNome ());
-
-			sb.append ("import ");
-			sb.append (packageName);
-			sb.append ('.');
-			sb.append (nome);
-			sb.append (";\n");
-
-			sb.append ("import ");
-			sb.append (packageName);
-			sb.append ('.');
-			sb.append (nome);
-			sb.append (daoSuffix);
 			sb.append (";\n");
 		}
 		return sb.toString ();
