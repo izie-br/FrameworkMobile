@@ -76,10 +76,10 @@ public class AssociationHelper {
 		}
 	}
 
-	protected static JavaBeanSchema findSchema(Collection<JavaBeanSchema> allSchemas, String assocTableName) {
+	protected static JavaBeanSchema findSchema(Collection<JavaBeanSchema> allSchemas, String assocTableName, String module) {
 		JavaBeanSchema assocSchema = null;
 		for (JavaBeanSchema sch : allSchemas) {
-			if (sch.getModelSchema ().getName().equals(assocTableName)) {
+			if (sch.getModelSchema ().getName().equals(assocTableName) && sch.getModule().equals(module)) {
 				assocSchema = sch;
 				break;
 			}
@@ -98,7 +98,7 @@ public class AssociationHelper {
 		String klassname;
 		if (tablename.equals(m2m.getTabelaB().getName())) {
 			String assocTableName = m2m.getTabelaA().getName();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
+			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName, m2m.getTabelaA().getModule());
 			schemaA = assocSchema;
 			schemaB = schema;
 			obj.setThisTableA(false);
@@ -106,7 +106,7 @@ public class AssociationHelper {
 			klassname = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 		} else {
 			String assocTableName = m2m.getTabelaB().getName();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName);
+			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName, m2m.getTabelaB().getModule());
 			schemaA = schema;
 			schemaB = assocSchema;
 			obj.setThisTableA(true);
@@ -123,7 +123,8 @@ public class AssociationHelper {
 		obj.setKeyToB(keyPropB);
 		obj.setReferenceB(refPropB);
 		obj.setKlass(klassname);
-		obj.setPluralized(PluralizacaoUtils.pluralizar(klassname));
+		obj.setPluralized(CamelCaseUtils.toUpperCamelCase(m2m.getKeyToA().substring(2))
+				+ PluralizacaoUtils.pluralizar((String) klassname));
 		return obj;
 	}
 
@@ -138,7 +139,7 @@ public class AssociationHelper {
 		JavaBeanSchema assocSchema;
 		if (tablename.equals(o2m.getTabelaA().getName())) {
 			String assocTableName = o2m.getTabelaB().getName();
-			assocSchema = findSchema(allSchemas, assocTableName);
+			assocSchema = findSchema(allSchemas, assocTableName, o2m.getTabelaB().getModule());
 			schemaA = schema;
 			schemaB = assocSchema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
@@ -148,16 +149,13 @@ public class AssociationHelper {
 			map.setPluralized(pluralized);
 		} else {
 			String assocTableName = o2m.getTabelaA().getName();
-			assocSchema = findSchema(allSchemas, assocTableName);
+			assocSchema = findSchema(allSchemas, assocTableName, o2m.getTabelaA().getModule());
 			schemaA = assocSchema;
 			schemaB = schema;
 			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 			map.setModule (assocSchema.getModule ());
 			map.setKlass(nome);
 		}
-//		if (o2m.getKeyToA().equals("id_owners")) {
-//			System.out.println("Pare");
-//		}
 		map.setTable(assocSchema.getTabela ());
 		Property fkProp = schemaB.getPropriedade(o2m.getKeyToA());
 		map.setForeignKey(fkProp);

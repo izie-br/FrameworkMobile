@@ -7,7 +7,9 @@ import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -34,20 +36,24 @@ public class VelocityCustomClassesFactory {
 				Utils.getPackageDir (destDir, genPackage, Constants.DEFAULT_MODULE_NAME),
 				classname);
 		List<String> klasses = new ArrayList<String>();
-
 		for (JavaBeanSchema schema : schemas){
 			if (schema.isNonEntityTable())
 				continue;
-			klasses.add(CamelCaseUtils.toUpperCamelCase(schema.getNome()));
+			StringBuilder sb = new StringBuilder();
+			String packageName = Utils.getPackageName (
+					basePackage, genPackage, schema.getModule());
+			sb.append (packageName);
+			sb.append ('.');
+			sb.append (CamelCaseUtils.toUpperCamelCase(schema.getNome()));
+			klasses.add(sb.toString());
 		}
 		VelocityContext ctx = new VelocityContext();
 		ctx.put("package",
 		        Utils.getPackageName (basePackage, genPackage, Constants.DEFAULT_MODULE_NAME));
 		ctx.put("Klasses", klasses);
 		ctx.put ("DaoPrefix", daoSuffix);
-
-		ImportHelper importHelper = new ImportHelper (basePackage, genPackage, null);
-		ctx.put ("Imports", importHelper.getFactoryImports (daoSuffix, schemas));
+//		ImportHelper importHelper = new ImportHelper (basePackage, genPackage, null);
+//		ctx.put ("Imports", importHelper.getFactoryImports (daoSuffix, schemas));
 
 		Writer writer = new OutputStreamWriter(
 				new FileOutputStream(file),

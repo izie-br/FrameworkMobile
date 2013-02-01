@@ -35,6 +35,7 @@ import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.ModelSchema;
+import com.quantium.mobile.geradores.javabean.ModelSchema.Builder;
 import com.quantium.mobile.geradores.util.Constants;
 
 public class JsonInputParser implements InputParser {
@@ -45,8 +46,14 @@ public class JsonInputParser implements InputParser {
 	private static final String CLASS_LIST = "classList";
 	private static final String ATTRIBUTE_LIST = "attributeList";
 	private static final String FROM_ASSOCIATIONS_LIST = "fromAssociationList";
-
-	// private static final String TO_ASSOCIATIONS_LIST = "toAssociationList";
+	private static final String TO_ASSOCIATIONS_LIST = "toAssociationList";
+	private JSONObject json;
+	private Collection<JavaBeanSchema> javaBeanSchemas;
+	private List<ModelSchema> tabelasJson;
+	private Map<String, ModelSchema.Builder> modelSchemaBuilderMap;
+	private Map<String, JSONObject> associationsJsonMap;
+	private String dateId;
+	private String fileId;
 
 	@Override
 	public Collection<JavaBeanSchema> getSchemas(GeneratorConfig information, Map<String, Object> defaultProperties)
@@ -57,8 +64,9 @@ public class JsonInputParser implements InputParser {
 			inputStream = new FileInputStream(sqlResource);
 			String fileContent = IOUtils.toString(inputStream);
 			JSONObject json = new JSONObject(fileContent);
-			List<ModelSchema> tabelasJson = generateTableSchema(json);
-			Collection<JavaBeanSchema> javaBeanSchemas = new ArrayList<JavaBeanSchema>();
+			this.json = json;
+			generateTableSchema();
+			javaBeanSchemas = new ArrayList<JavaBeanSchema>();
 			// int dbVersion = information.retrieveDatabaseVersion();
 			JavaBeanSchema.Factory factory = new JavaBeanSchema.Factory();
 			factory.addFiltroFactory(new ModuleNameOnTablePrefixFilter.Factory());
@@ -75,153 +83,156 @@ public class JsonInputParser implements InputParser {
 		}
 	}
 
-	Hashtable<String, ModelSchema.Builder> hashtable = new Hashtable<String, ModelSchema.Builder>();
-	String dateId;
-	String fileId;
+	private void generateTableSchema() throws JSONException {
+		mapEntities();
+		extractModelSchema();
+	}
 
-	private List<ModelSchema> generateTableSchema(JSONObject json) throws JSONException {
-		List<ModelSchema> list = new ArrayList<ModelSchema>();
+	private void extractModelSchema() throws JSONException {
+		for (JSONObject jsonClass : allClasses) {
+			String classId = jsonClass.getString("id");
+			ModelSchema.Builder builder = modelSchemaBuilderMap.get(classId);
+			List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
+			for (JSONObject jsonAttribute : attributes) {
+				String attributeName = jsonAttribute.getString("name");
+				String type = jsonAttribute.getString("type");
+				boolean isRequired = jsonAttribute.optBoolean("isRequired");
+				boolean isUnique = jsonAttribute.optBoolean("isUnique");
+				if (attributeName == null || attributeName.trim().equals("")) {
+					throw new IllegalArgumentException("Attribute name cannot be null or empty.");
+				}
+				Class<?> classType = convertJsonTypeToJavaType(type);
+				Constraint.Type[] constraints = null;
+				if (isUnique && isRequired) {
+					constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL, Constraint.Type.UNIQUE };
+				} else {
+					if (isUnique) {
+						constraints = new Constraint.Type[] { Constraint.Type.UNIQUE };
+					} else if (isRequired) {
+						constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL };
+					}
+				}
+				if (classType == null && modelSchemaBuilderMap.get(type) == null) {
+					if (type.equals(fileId)) {
+						classType = String.class;
+					} else if (type.equals(dateId)) {
+						classType = Date.class;
+					} else {
+						throw new IllegalArgumentException(String.format("Tipo complexo nao encontrado: %s", type));
+					}
+				} else if (classType == null && modelSchemaBuilderMap.get(type) != null) {
+					String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
+					builder.addProperty(fkId, Long.class, constraints);
+					ModelSchema tabelaA = modelSchemaBuilderMap.get(type).get();
+					ModelSchema tabelaB = builder.get();
+					AssociacaoOneToMany assoc = new AssociacaoOneToMany(tabelaA, tabelaB, fkId, !isRequired, "id");
+					builder.addAssociation(assoc);
+					modelSchemaBuilderMap.get(type).addAssociation(assoc);
+					continue;
+				}
+				if (classType != null) {
+					builder.addProperty(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), classType,
+							constraints);
+				}
+			}
+		}
+		Set<Entry<String, JSONObject>> associationJsonEntrySet = associationsJsonMap.entrySet();
+		for (Entry<String, JSONObject> entry : associationJsonEntrySet) {
+			JSONObject jsonAssociation = entry.getValue();
+			String toClass = jsonAssociation.optString("toClass");
+			if (toClass.contains("History")) {
+				continue;
+			}
+			if (toClass.contains("History")) {
+				continue;
+			}
+			String to = jsonAssociation.optString("to");
+			String from = jsonAssociation.optString("from");
+			String type = jsonAssociation.optString("type");
+			Builder fromBuilder = modelSchemaBuilderMap.get(from);
+			Builder toBuilder = modelSchemaBuilderMap.get(to);
+			if (fromBuilder == null) {
+				throw new IllegalArgumentException("from nulo:" + from);
+			}
+			if (toBuilder == null) {
+				throw new IllegalArgumentException("to nulo:" + to);
+			}
+			String module = fromBuilder.get().getModule();
+			String colunaId = "id";
+			if ("n..n".equals(type)) {
+				String fromName = CamelCaseUtils.camelToLowerAndUnderscores(fromBuilder.get().getName());
+				String toName = CamelCaseUtils.camelToLowerAndUnderscores(toBuilder.get().getName());
+				String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id_" + fromName);
+				String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id_" + toName);
+				String tableName = "tb_" + fromName + "_join_" + toName;
+				// a tabela join ficara no modulo da "from" da
+				// associacao
+				Associacao assoc = new AssociacaoManyToMany(fromBuilder.get(), toBuilder.get(), colunaTo, colunaFrom,
+						colunaId, colunaId, gerarAssociativa(module, tableName, colunaFrom, colunaTo), tableName);
+				modelSchemaBuilderMap.get(from).addAssociation(assoc);
+				modelSchemaBuilderMap.get(to).addAssociation(assoc);
+			}
+		}
+		Set<Entry<String, ModelSchema.Builder>> entryes = modelSchemaBuilderMap.entrySet();
+		Iterator<Entry<String, ModelSchema.Builder>> it = entryes.iterator();
+		tabelasJson = new ArrayList<ModelSchema>();
+		while (it.hasNext()) {
+			tabelasJson.add(it.next().getValue().get());
+		}
+	}
+
+	List<JSONObject> allClasses;
+
+	private void mapEntities() throws JSONException {
 		List<JSONObject> packages = jsonArrayToList(json.optJSONArray(PACKAGE_LIST));
+		allClasses = new ArrayList<JSONObject>();
+		modelSchemaBuilderMap = new Hashtable<String, ModelSchema.Builder>();
+		associationsJsonMap = new Hashtable<String, JSONObject>();
 		for (JSONObject jsonPackage : packages) {
 			String moduleName = CamelCaseUtils.camelToLowerAndUnderscores(jsonPackage.getString("name"));
+			boolean isLibrary = jsonPackage.optBoolean("isLibrary");
 			if (moduleName == null || moduleName.trim().equals("")) {
 				throw new IllegalArgumentException("Package name cannot be null or empty.");
 			}
 			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
+			
 			for (JSONObject jsonClass : classes) {
-				String databaseTable = jsonClass.getString("name");
-				if (databaseTable.toUpperCase().contains("HISTORY")) {
+				String className = jsonClass.getString("name");
+				List<JSONObject> fromAssociations = jsonArrayToList(jsonClass.optJSONArray(FROM_ASSOCIATIONS_LIST));
+				List<JSONObject> toAssociations = jsonArrayToList(jsonClass.optJSONArray(TO_ASSOCIATIONS_LIST));
+
+				if (className.toUpperCase().contains("HISTORY")) {
 					continue;
 				}
-				if (databaseTable == null || databaseTable.trim().equals("")) {
+				if (className == null || className.trim().equals("")) {
 					throw new IllegalArgumentException("Class name cannot be null or empty.");
 				}
-				if (jsonPackage.optBoolean("isLibrary")) {
-					if (databaseTable.equals("Date")) {
+				if (isLibrary) {
+					if (className.equals("Date")) {
 						dateId = jsonClass.optString("id");
 						continue;
 					}
-					if (databaseTable.equals("File")) {
+					if (className.equals("File")) {
 						fileId = jsonClass.optString("id");
 						continue;
 					}
 				}
-				if (databaseTable.toUpperCase().contains("HISTORY")) {
+				if (className.toUpperCase().contains("HISTORY")) {
 					continue;
 				}
+				allClasses.add(jsonClass);
 				ModelSchema.Builder tabelaBuilder = ModelSchema.create(moduleName,
-						CamelCaseUtils.camelToLowerAndUnderscores(databaseTable));
+						CamelCaseUtils.camelToLowerAndUnderscores(className));
 				tabelaBuilder.addProperty("id", convertJsonTypeToJavaType("Long"), Constraint.Type.PRIMARY_KEY);
-				hashtable.put(jsonClass.getString("id"), tabelaBuilder);
-			}
-		}
-		for (JSONObject jsonPackage : packages) {
-			List<JSONObject> classes = jsonArrayToList(jsonPackage.optJSONArray(CLASS_LIST));
-			for (JSONObject jsonClass : classes) {
-				List<JSONObject> fromAssociations = jsonArrayToList(jsonClass.optJSONArray(FROM_ASSOCIATIONS_LIST));
-				// List<JSONObject> toAssociations =
-				// jsonArrayToList(jsonClass.optJSONArray(TO_ASSOCIATIONS_LIST));
-				ModelSchema.Builder tabelaBuilder = hashtable.get(jsonClass.getString("id"));
-				if (tabelaBuilder == null) {
-					continue;
-				}
-				List<JSONObject> attributes = jsonArrayToList(jsonClass.optJSONArray(ATTRIBUTE_LIST));
-				for (JSONObject jsonAttribute : attributes) {
-					String attributeName = jsonAttribute.getString("name");
-					if (attributeName == null || attributeName.trim().equals("")) {
-						throw new IllegalArgumentException("Attribute name cannot be null or empty.");
-					}
-					Class<?> type = convertJsonTypeToJavaType(jsonAttribute.getString("type"));
-					boolean isRequired = jsonAttribute.optBoolean("isRequired");
-					boolean isUnique = jsonAttribute.optBoolean("isUnique");
-					Constraint.Type[] constraints = null;
-					if (isUnique && isRequired) {
-						constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL, Constraint.Type.UNIQUE };
-					} else {
-						if (isUnique) {
-							constraints = new Constraint.Type[] { Constraint.Type.UNIQUE };
-						} else if (isRequired) {
-							constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL };
-						}
-					}
-					if (type == null && hashtable.get(jsonAttribute.optString("type")) == null) {
-						if (jsonAttribute.optString("type").equals(fileId)) {
-							type = String.class;
-						} else if (jsonAttribute.optString("type").equals(dateId)) {
-							type = Date.class;
-						} else {
-							throw new IllegalArgumentException(String.format("Tipo complexo nao encontrado: %s",
-									jsonAttribute.optString("type")));
-						}
-					} else if (type == null && hashtable.get(jsonAttribute.optString("type")) != null) {
-						String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_" + attributeName);
-						System.out.println("fkId:"+fkId);
-						tabelaBuilder.addProperty(fkId, Long.class, constraints);
-						ModelSchema tabelaA = hashtable.get(jsonAttribute.optString("type")).get();
-						ModelSchema tabelaB = tabelaBuilder.get();
-						AssociacaoOneToMany assoc = new AssociacaoOneToMany(tabelaA, tabelaB, fkId, !isRequired, "id");
-						tabelaBuilder.addAssociation(assoc);
-						hashtable.get(jsonAttribute.optString("type")).addAssociation(assoc);
-						continue;
-					}
-					if (type != null) {
-						tabelaBuilder.addProperty(CamelCaseUtils.camelToLowerAndUnderscores(attributeName), type,
-								constraints);
-					}
-				}
+				modelSchemaBuilderMap.put(jsonClass.getString("id"), tabelaBuilder);
 				for (JSONObject jsonAssociation : fromAssociations) {
-					ModelSchema from = hashtable.get(jsonAssociation.optString("from")).get();
-					ModelSchema to = hashtable.get(jsonAssociation.optString("to")).get();
-					String colunaId = "id";
-					if ("n..n".equals(jsonAssociation.optString("type"))) {
-						String fromName = CamelCaseUtils.camelToLowerAndUnderscores(from.getName());
-						String toName = CamelCaseUtils.camelToLowerAndUnderscores(to.getName());
-						String colunaFrom = CamelCaseUtils.camelToLowerAndUnderscores("id_" + fromName);
-						String colunaTo = CamelCaseUtils.camelToLowerAndUnderscores("id_" + toName);
-						String tableName = "tb_" + fromName + "_join_" + toName;
-						// a tabela join ficara no modulo da "from" da
-						// associacao
-						String module = from.getModule();
-						Associacao assoc = new AssociacaoManyToMany(from, to, colunaTo, colunaFrom, colunaId, colunaId,
-								gerarAssociativa(module, tableName, colunaFrom, colunaTo), tableName);
-						hashtable.get(jsonAssociation.optString("from")).addAssociation(assoc);
-						hashtable.get(jsonAssociation.optString("to")).addAssociation(assoc);
-					}
+					associationsJsonMap.put(jsonAssociation.getString("id"), jsonAssociation);
 				}
-				// for (JSONObject jsonAssociation : toAssociations) {
-				// ModelSchema from =
-				// hashtable.get(jsonAssociation.optString("from")).get();
-				// ModelSchema to =
-				// hashtable.get(jsonAssociation.optString("to")).get();
-				// String colunaId = "id";
-				// if ("n..n".equals(jsonAssociation.optString("type"))) {
-				// String colunaFrom =
-				// CamelCaseUtils.camelToLowerAndUnderscores("id" + from.getName
-				// ());
-				// String colunaTo =
-				// CamelCaseUtils.camelToLowerAndUnderscores("id" + to.getName
-				// ());
-				// String tableName =
-				// CamelCaseUtils.camelToLowerAndUnderscores("tb" +
-				// from.getName() + "Join"
-				// + to.getName());
-				// Associacao assoc = new AssociacaoManyToMany (
-				// from, to,
-				// colunaTo, colunaFrom,
-				// colunaId, colunaId,
-				// gerarAssociativa (tableName, colunaFrom, colunaTo),
-				// tableName);
-				// tabelaBuilder.addAssociation(assoc);
-				// }
-				// }
+				for (JSONObject jsonAssociation : toAssociations) {
+					associationsJsonMap.put(jsonAssociation.getString("id"), jsonAssociation);
+				}
 			}
 		}
-		Set<Entry<String, ModelSchema.Builder>> entryes = hashtable.entrySet();
-		Iterator<Entry<String, ModelSchema.Builder>> it = entryes.iterator();
-		while (it.hasNext()) {
-			list.add(it.next().getValue().get());
-		}
-		return list;
 	}
 
 	private static ModelSchema gerarAssociativa(String module, String databaseTable, String colunaFrom, String colunaTo) {

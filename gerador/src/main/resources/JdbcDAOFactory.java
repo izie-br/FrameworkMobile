@@ -14,8 +14,6 @@ import java.util.WeakHashMap;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 
-${Imports}
-
 public abstract class JdbcDAOFactory implements DAOFactory {
 
     private final Map<EntityKey, Object> entityCache =
