@@ -91,6 +91,8 @@ public class ${Klass} implements JdbcDao<${Target}> {
 
 #parse("DAO.java.d/jdbcQuery.java")
 
+#parse("DAO.java.d/getById.java")
+
 #parse("DAO.java.d/querySetForAssociations.java")
 
 #parse("DAO.java.d/jdbcCursorToObject.java")

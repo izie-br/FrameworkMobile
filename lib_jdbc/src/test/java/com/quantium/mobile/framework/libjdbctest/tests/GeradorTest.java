@@ -109,6 +109,30 @@ public class GeradorTest {
 	}
 
 	@Test
+	public void testGetById () {
+		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+
+		Author author1 = randomAuthor ();
+		Author author2 = randomAuthor ();
+
+		try{
+			assertTrue (dao.save (author1));
+			assertTrue (dao.save (author2));
+		} catch (IOException e) {
+			fail ();
+		}
+
+		long id1 = author1.getId ();
+		Author author1FromDb = dao.get (id1);
+		assertEquals (author1, author1FromDb);
+
+		long id2 = author2.getId ();
+		Author author2FromDb = dao.get (id2);
+		assertEquals (author2, author2FromDb);
+
+	}
+
+	@Test
 	public void testMapSerialization(){
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
 		DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);

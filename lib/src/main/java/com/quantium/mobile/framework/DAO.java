@@ -17,4 +17,5 @@ public interface DAO<T> {
 	ToManyDAO with(T obj);
 	T mapToObject(Map<String, Object> map);
 	Collection<ValidationError> validate (T obj);
+	T get(Object id);
 }

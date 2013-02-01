@@ -50,6 +50,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
         };
     }
 
+#parse("DAO.java.d/getById.java")
+
 #parse("DAO.java.d/androidSave.java")
 
 #parse("DAO.java.d/androidDelete.java")

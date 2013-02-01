@@ -8,6 +8,7 @@ import java.util.Map;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.ToManyDAO;
 import java.util.Date;
+
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
@@ -26,7 +27,6 @@ public class UserMapDAO implements DAO<User> {
         throw new UnsupportedOperationException();
     }
 
-
     public QuerySet<User> query() {
         return query(null);
     }
@@ -37,6 +37,11 @@ public class UserMapDAO implements DAO<User> {
 
     public boolean delete(User target) throws IOException {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public User get(Object id) {
+       throw new UnsupportedOperationException ();
     }
 
     @Override
