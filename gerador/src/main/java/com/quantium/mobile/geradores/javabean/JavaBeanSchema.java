@@ -37,11 +37,11 @@ import com.quantium.mobile.geradores.util.TableUtil;
  */
 public class JavaBeanSchema {
 
-	private ModelSchema tabela;
+	private final ModelSchema modelSchema;
 	private TabelaSchemaFilter filterChain;
 
 	public ModelSchema getModelSchema () {
-		return tabela;
+		return modelSchema;
 	}
 
 	public Table getTabela() {
@@ -66,7 +66,7 @@ public class JavaBeanSchema {
 
 	public Collection<String> getColunas() {
 		Collection<String> colunas = new HashSet<String>();
-		for (Property coluna : tabela.getProperties ())
+		for (Property coluna : modelSchema.getProperties ())
 			colunas.add(coluna.getNome());
 		return colunas;
 	}
@@ -91,25 +91,26 @@ public class JavaBeanSchema {
 	/**
 	 * O construtor privado soh eh acessado pela factory
 	 */
-	private JavaBeanSchema() {
+	private JavaBeanSchema(ModelSchema tabela) {
 		filterChain = new FiltroRaiz();
+		this.modelSchema = tabela;
 	}
 
 	private class FiltroRaiz extends TabelaSchemaFilter {
 
 		@Override
 		public String getName() {
-			return tabela.getName ();
+			return modelSchema.getName ();
 		}
 
 		@Override
 		public String getModule() {
-			return tabela.getModule ();
+			return modelSchema.getModule ();
 		}
 
 		@Override
 		public Property getPrimaryKey() {
-			for (Property prop : tabela.getProperties ()) {
+			for (Property prop : modelSchema.getProperties ()) {
 				if (ColumnsUtils.checkIfIsPK (prop))
 					return prop;
 			}
@@ -118,11 +119,12 @@ public class JavaBeanSchema {
 
 		@Override
 		public boolean isNonEntityTable() {
-			Property pk = tabela.getPrimaryKey ();
-			Collection<Associacao> associations = tabela.getAssociacoes ();
+			Property pk = modelSchema.getPrimaryKey ();
+			Collection<Associacao> associations =
+					modelSchema.getAssociacoes ();
 
 			property_loop:
-			for (Property property : tabela.getProperties ()){
+			for (Property property : modelSchema.getProperties ()){
 				// confere se eh PK
 				if (property.equals (pk)){
 					continue property_loop;
@@ -130,9 +132,12 @@ public class JavaBeanSchema {
 				// confere se eh FK
 				for (Associacao assoc : associations) {
 					if (assoc instanceof AssociacaoOneToMany) {
-						AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
-						if (o2m.getKeyToA ().equals (property.getNome ()))
+						AssociacaoOneToMany o2m =
+								(AssociacaoOneToMany) assoc;
+						String name = property.getNome ();
+						if (o2m.getKeyToA ().equals (name)) {
 							continue property_loop;
+						}
 					}
 				}
 				// chega aqui se a propriedade nao for PK nem FK
@@ -143,23 +148,22 @@ public class JavaBeanSchema {
 
 		@Override
 		public ModelSchema getModelSchema () {
-			return JavaBeanSchema.this.tabela;
+			return JavaBeanSchema.this.modelSchema;
 		}
 
 		@Override
 		public Property getPropriedade(String coluna) {
-			for (Property it : tabela.getProperties ()) {
+			for (Property it : modelSchema.getProperties ()) {
 				if (it.getNome().equals(coluna)) {
 					boolean isNotPrimaryKey = true;
 					Constraint constraints[] = it.getConstraints();
 					if (constraints != null) {
 						for (Constraint constraint : constraints) {
-							if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
+							if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
 								isNotPrimaryKey = false;
 							}
 						}
 					}
-					//TODO refazer isso, apenas repassar a property do modelfacade
 					return new Property(
 							it.getNome(), it.getPropertyClass (),
 							true, isNotPrimaryKey, it.getConstraints ());
@@ -167,7 +171,7 @@ public class JavaBeanSchema {
 			}
 			throw new IllegalArgumentException(String.format(
 					"Coluna '%s' nao encontrada na tabela '%s'",
-					coluna, tabela.getName()));
+					coluna, modelSchema.getName()));
 		}
 
 		@Override
@@ -177,27 +181,28 @@ public class JavaBeanSchema {
 
 		@Override
 		public Table getTable () {
-			return TableUtil.tableForModelSchema (tabela);
+			return TableUtil.tableForModelSchema (modelSchema);
 		}
 
 		@Override
 		public Collection<Associacao> getAssociacoes() {
-			return tabela.getAssociacoes();
+			return modelSchema.getAssociacoes();
 		}
 
 	}
 
 	public static class Factory {
 
-		private Collection<TabelaSchemaFilterFactory> filtros = new ArrayList<TabelaSchemaFilterFactory>();
+		private Collection<TabelaSchemaFilterFactory> filtros =
+				new ArrayList<TabelaSchemaFilterFactory>();
 
-		public void addFiltroFactory(TabelaSchemaFilterFactory filtroFactory) {
-			filtros.add(filtroFactory);
+		public void addFiltroFactory (TabelaSchemaFilterFactory factory) {
+			filtros.add(factory);
 		}
 
-		public JavaBeanSchema javaBeanSchemaParaTabela(ModelSchema tabela) {
-			JavaBeanSchema javaBeanSchema = new JavaBeanSchema();
-			javaBeanSchema.tabela = tabela;
+		public JavaBeanSchema javaBeanSchemaParaTabela(ModelSchema modelSchema)
+		{
+			JavaBeanSchema javaBeanSchema = new JavaBeanSchema(modelSchema);
 			for (TabelaSchemaFilterFactory filtro : filtros)
 				javaBeanSchema.adicionarFiltro(filtro.getFilterInstance());
 			return javaBeanSchema;
