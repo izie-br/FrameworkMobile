@@ -42,22 +42,31 @@ public class FileUtilTest {
 				new File(getDataDir()),
 				org.apache.commons.lang.RandomStringUtils.randomAlphabetic(12)
 		);
-		String content = org.apache.commons.lang
-				.RandomStringUtils
-				.random(120)
-				.replace ('\r', ' ');
-		PrintWriter pw;
+		String content =
+				"teste" +"\n" + "de" + "\r"+"quebra" +
+				"\n\r" + "de" + "\r\n" + "linha" +
+				org.apache.commons.lang
+					.RandomStringUtils
+					.random(120);
 		try {
-			pw = FileUtil.openFileToAppend(file.getPath());
+			PrintWriter pw = FileUtil.openFileToAppend(file.getPath());
 			pw.print(content);
 			pw.close();
 			BufferedReader reader = new BufferedReader(
 					FileUtil.openFileToRead(file.getPath())
 			);
-			String read = reader.readLine();
+			StringBuilder sb = new StringBuilder ();
+			char buffer [] = new char[255];
+			int count;
+			while ( (count = reader.read (buffer)) >= 0) {
+				sb.append (String.valueOf (buffer, 0, count));
+			}
+			String read = sb.toString ();
 			assertEquals(content, read);
-			read = reader.readLine();
-			assertNull(read);
+
+			// nao devem haver mais bytes (ou seja, chars) para ler
+			int charsAvalilable = reader.read (new char[255]);
+			assertTrue (charsAvalilable < 0);
 		} catch (IOException e) {
 			fail(e.getMessage());
 		} finally {
