@@ -22,6 +22,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
 
+import com.quantium.mobile.framework.utils.StringUtil;
+
 public class FileUtil {
 
 	public static PrintWriter openFileToAppend(String path) throws IOException{

@@ -1,4 +1,4 @@
-package com.quantium.mobile.framework.libtests;
+package com.quantium.mobile.framework.libandroidtest.utils;
 
 import java.io.BufferedReader;
 import java.io.File;
