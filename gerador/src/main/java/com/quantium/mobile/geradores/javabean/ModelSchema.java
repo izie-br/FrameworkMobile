@@ -12,9 +12,12 @@ public final class ModelSchema {
 
 	private final String name;
 	private final String module;
-	private final Collection<Property> colunas = new HashSet<Property>();
-	private final Collection<Constraint> constraints = new ArrayList<Constraint>();
-	private final Collection<Associacao> associacoes = new HashSet<Associacao>();
+	private final Collection<Property> colunas =
+			new HashSet<Property>();
+	private final Collection<Constraint> constraints =
+			new ArrayList<Constraint>();
+	private final Collection<Associacao> associacoes =
+			new HashSet<Associacao>();
 
 	private ModelSchema(String module, String name) {
 		this.module = module;
@@ -36,7 +39,7 @@ public final class ModelSchema {
 			boolean isPrimaryKey = false;
 			if (constraints != null) {
 				for (Constraint constraint :constraints) {
-					if (constraint.isTypeOf (Constraint.Type.PRIMARY_KEY)) {
+					if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
 						isPrimaryKey = true;
 						break;
 					}
@@ -123,7 +126,7 @@ public final class ModelSchema {
 	public Property getPrimaryKey() {
 		for (Property coluna : colunas) {
 			for (Constraint constraint : coluna.getConstraints()) {
-				if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
+				if (constraint.isTypeOf(Constraint.PRIMARY_KEY)) {
 					return coluna;
 				}
 			}

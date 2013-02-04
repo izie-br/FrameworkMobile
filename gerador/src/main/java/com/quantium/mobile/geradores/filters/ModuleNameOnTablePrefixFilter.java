@@ -16,7 +16,8 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 		if (module.equals (Constants.DEFAULT_MODULE_NAME))
 			return table;
 
-		Table.Builder builder = Table.create (module+ '_' + table.getName ());
+		String tableName = module+ '_' + table.getName ();
+		Table.Builder builder = Table.create (tableName);
 		for (Table.Column<?> col : table.getColumns ()) {
 			Collection<Constraint> constraintList = col.getConstraintList ();
 			Constraint array [] = new Constraint[constraintList.size ()];
@@ -32,8 +33,8 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 /*
  * Se precisar de modulos com input de SQL:
  *  - retrabalhar o metodo abaixo, pois do jeito que esta,
- *    ele buga se o nome do modulo for igual ao, ou apenas contido no inicio,
- *    nome de uma classe, que fica "" apos passar este filtro;
+ *    se o nome do modulo for igual ao (ou contido no inicio)
+ *    nome de uma classe, ela fica "" apos passar por este filtro;
  *
  *	private static final String SEPARATOR = "_";
  *	@Override
