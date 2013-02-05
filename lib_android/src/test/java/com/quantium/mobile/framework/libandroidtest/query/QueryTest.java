@@ -21,12 +21,11 @@ public class QueryTest {
 	@Test
 	public void testQString(){
 		// dados para teste
-		Table t = Table.create("tab")
-		               .addColumn(String.class, "col_str")
-		               .addColumn(Integer.class, "col_int")
-		               .addColumn(String.class, "col_str_two")
-		               .addColumn(Date.class, "col_date")
-		               .get ();
+		Table t = new Table ("tab");
+		t.addColumn(String.class, "col_str");
+		t.addColumn(Integer.class, "col_int");
+		t.addColumn(String.class, "col_str_two");
+		t.addColumn(Date.class, "col_date");
 
 		Table.Column<String> colStr  = t.findColumn(String.class, "col_str");
 		Table.Column<Integer> colInt = t.findColumn(Integer.class, "col_int");
@@ -81,17 +80,12 @@ public class QueryTest {
 	@Test
 	public void testJoinQstring () {
 
-		Table table1 = Table.create ("tab_1")
-		                    .addColumn(Long.class, "id")
-		                    .get();
-		Table.Column<Long> colTab1Id = table1.findColumn(Long.class, "id");
+		Table table1 = new Table ("tab_1");
+		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 
-		Table table2 = Table.create ("though_table")
-		                    .addColumn(Long.class, "id")
-		                    .addColumn(Date.class, "date")
-		                    .get ();
-		Table.Column<Long> colTab2Id = table2.findColumn(Long.class, "id");
-		Table.Column<Date> colTab2Date = table2.findColumn(Date.class, "date");
+		Table table2 = new Table ("though_table");
+		Table.Column<Long> colTab2Id = table2.addColumn(Long.class, "id");
+		Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
 
 		Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
 		String select = new QSQLProvider(q).select(
@@ -147,10 +141,8 @@ public class QueryTest {
 
 	@Test
 	public void testNullArg () {
-		Table t = Table.create ("tab")
-		               .addColumn(Integer.class, "col_int")
-		               .get ();
-		Table.Column<Integer> colInt = t.findColumn(Integer.class, "col_int");
+		Table t = new Table ("tab");
+		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");
 
 		Q q = colInt.eq((Integer)null);
 		String select = new QSQLProvider(q).select(
@@ -188,10 +180,8 @@ public class QueryTest {
 
 	@Test
 	public void testInOperator(){
-		Table table1 = Table.create ("tab_1")
-		                    .addColumn(Long.class, "id")
-		                    .get ();
-		Table.Column<Long> colTab1Id = table1.findColumn(Long.class, "id");
+		Table table1 = new Table ("tab_1");
+		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 
 		Q q = colTab1Id.in(1L,2L,4L);
 		String qstring = new QSQLProvider(q).select(
@@ -216,10 +206,8 @@ public class QueryTest {
 
 	@Test
 	public void testImmutable(){
-		Table table1 = Table.create ("tab_1")
-		                    .addColumn(Long.class, "id")
-		                    .get ();
-		Table.Column<Long> colTab1Id = table1.findColumn(Long.class, "id");
+		Table table1 = new Table ("tab_1");
+		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 
 		final Q q1 = colTab1Id.lt(100L);
 		final String q1Str = new QSQLProvider(q1).select(

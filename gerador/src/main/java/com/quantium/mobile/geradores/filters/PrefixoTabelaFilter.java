@@ -22,17 +22,17 @@ public class PrefixoTabelaFilter extends TabelaSchemaFilter{
 		Table table = super.getTable ();
 		if (table.getName ().startsWith (prefixo))
 			return table;
-		Table.Builder builder = Table.create ("tb_" + table.getName ());
+		Table newtable = new Table ("tb_" + table.getName ());
 		for (Table.Column<?> col : table.getColumns ()) {
 			Collection<Constraint> constraintList = col.getConstraintList ();
 			Constraint array [] = new Constraint[constraintList.size ()];
 			constraintList.toArray (array);
-			builder.addColumn (col.getKlass (), col.getName (), array);
+			newtable.addColumn (col.getKlass (), col.getName (), array);
 		}
 		for (Constraint constraint : table.getConstraints ()) {
-			builder.addConstraint (constraint);
+			newtable.addConstraint (constraint);
 		}
-		return builder.get ();
+		return newtable;
 	}
 
 	public static class Factory implements TabelaSchemaFilterFactory{

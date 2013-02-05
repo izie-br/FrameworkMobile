@@ -16,31 +16,28 @@ public class TableTest {
 		String col2Name = "columntwo";
 		Constraint col2Constraints [] = {new Constraint(Constraint.UNIQUE)};
 
-		Table t1 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.get ();
-		Table t2 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.get ();
+		Table t1 = new Table(name);
+		t1.addColumn (String.class, col1Name);
+		t1.addColumn (String.class, col2Name, col2Constraints);
+
+		Table t2 = new Table(name);
+		t2.addColumn (String.class, col1Name);
+		t2.addColumn (String.class, col2Name, col2Constraints);
 		assertEquals (t1, t2);
 
 		Constraint table3col2Constraints [] =
 			{new Constraint(Constraint.NOT_NULL)};
 
-		Table t3 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, table3col2Constraints)
-				.get ();
+		Table t3 = new Table (name);
+		t3.addColumn (String.class, col1Name);
+		t3.addColumn (String.class, col2Name, table3col2Constraints);
 
 		assertFalse (t1.equals (t3));
 
-		Table t4 = Table.create (name)
+		Table t4 = new Table (name);
 				// Note o tipo alterado para integer
-				.addColumn (Integer.class, col1Name)
-				.addColumn (String.class, col2Name, table3col2Constraints)
-				.get ();
+		t4.addColumn (Integer.class, col1Name);
+		t4.addColumn (String.class, col2Name, table3col2Constraints);
 
 		assertFalse (t1.equals (t4));
 	}
@@ -53,31 +50,28 @@ public class TableTest {
 		String col3Name = "columnthree";
 		Constraint col2Constraints [] = {new Constraint(Constraint.UNIQUE)};
 
-		Table t1 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.addColumn (String.class, col3Name, col2Constraints)
-				.get ();
+		Table t1 = new Table (name);
+		t1.addColumn (String.class, col1Name);
+		t1.addColumn (String.class, col2Name, col2Constraints);
+		t1.addColumn (String.class, col3Name, col2Constraints);
 
 		Constraint table2Constraint =
 				new Constraint(Constraint.UNIQUE, col1Name, col2Name);
 
-		Table t2 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.addColumn (String.class, col3Name, col2Constraints)
-				.addConstraint (table2Constraint)
-				.get ();
+		Table t2 = new Table (name);
+		t2.addColumn (String.class, col1Name);
+		t2.addColumn (String.class, col2Name, col2Constraints);
+		t2.addColumn (String.class, col3Name, col2Constraints);
+		t2.addConstraint (table2Constraint);
 
 		assertFalse (t1.equals (t2));
 
 
-		Table t3 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.addColumn (String.class, col3Name, col2Constraints)
-				.addConstraint (table2Constraint)
-				.get ();
+		Table t3 = new Table (name);
+		t3.addColumn (String.class, col1Name);
+		t3.addColumn (String.class, col2Name, col2Constraints);
+		t3.addColumn (String.class, col3Name, col2Constraints);
+		t3.addConstraint (table2Constraint);
 
 		assertEquals (t2, t3);
 
@@ -85,12 +79,11 @@ public class TableTest {
 		Constraint table4Constraint =
 				new Constraint(Constraint.UNIQUE, col1Name, col3Name);
 
-		Table t4 = Table.create (name)
-				.addColumn (String.class, col1Name)
-				.addColumn (String.class, col2Name, col2Constraints)
-				.addColumn (String.class, col3Name, col2Constraints)
-				.addConstraint (table4Constraint)
-				.get ();
+		Table t4 = new Table (name);
+		t4.addColumn (String.class, col1Name);
+		t4.addColumn (String.class, col2Name, col2Constraints);
+		t4.addColumn (String.class, col3Name, col2Constraints);
+		t4.addConstraint (table4Constraint);
 
 		assertFalse (t2.equals (t4));
 

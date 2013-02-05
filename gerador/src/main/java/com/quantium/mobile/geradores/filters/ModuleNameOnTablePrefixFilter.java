@@ -17,17 +17,17 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 			return table;
 
 		String tableName = module+ '_' + table.getName ();
-		Table.Builder builder = Table.create (tableName);
+		Table newtable = new Table (tableName);
 		for (Table.Column<?> col : table.getColumns ()) {
 			Collection<Constraint> constraintList = col.getConstraintList ();
 			Constraint array [] = new Constraint[constraintList.size ()];
 			constraintList.toArray (array);
-			builder.addColumn (col.getKlass (), col.getName (), array);
+			newtable.addColumn (col.getKlass (), col.getName (), array);
 		}
 		for (Constraint constraint : table.getConstraints ()) {
-			builder.addConstraint (constraint);
+			newtable.addConstraint (constraint);
 		}
-		return builder.get ();
+		return newtable;
 	}
 
 /*
