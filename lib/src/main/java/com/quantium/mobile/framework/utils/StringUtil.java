@@ -1,6 +1,8 @@
 package com.quantium.mobile.framework.utils;
 
+import java.io.IOException;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringWriter;
 import java.io.Writer;
 import java.math.BigInteger;
@@ -165,6 +167,27 @@ public class StringUtil {
 		final PrintWriter printWriter = new PrintWriter(result);
 		aThrowable.printStackTrace(printWriter);
 		return result.toString();
+	}
+	
+	/**
+	 * 
+	 * @param reader Reader com informações a serem lidas
+	 * @return o conteúdo do reader em uma string
+	 * @throws IOException 
+	 */
+	public static String readerToString(Reader reader) throws IOException {
+		if (reader == null) {
+			return null;
+		}
+		reader.mark(0);
+		reader.reset();
+		StringBuilder builder = new StringBuilder();
+		int data = reader.read();
+		while (data != -1) {
+			builder.append((char) data);
+			data = reader.read();
+		}
+		return builder.toString();
 	}
 
 

@@ -137,6 +137,12 @@ public class JsonCommunication extends GenericCommunication
 					case POST:
 						response = post(url, rawparams);
 						break;
+					case PUT:
+						response = put(url, rawparams);
+						break;
+					case DELETE:
+						response = delete(url, rawparams);
+						break;
 					default:
 						LogPadrao.e("metodo http incorreto");
 					}
@@ -147,8 +153,10 @@ public class JsonCommunication extends GenericCommunication
 				if(response!=null)
 					break;
 				if(connectionTries>CONNECTION_RETRY_COUNT){
-					for (int j = 0; j < connectionTries; j++)
+					for (int j = 0; j < connectionTries; j++){
+						System.out.println(exceptions[j]);
 						LogPadrao.e(exceptions[j]);
+					}
 					throw new RuntimeException(NETWORK_COMMUNICATION_ERROR);
 				}
 			}
@@ -246,6 +254,10 @@ public class JsonCommunication extends GenericCommunication
 
 	public String getAcceptHeader() {
 		return ACCEPT_HEADER;
+	}
+
+	public SerializedCommunicationResponse put() throws RuntimeException{
+		return execute(PUT);
 	}
 
 

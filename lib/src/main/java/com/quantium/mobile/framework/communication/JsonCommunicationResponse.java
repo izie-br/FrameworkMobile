@@ -1,5 +1,7 @@
 package com.quantium.mobile.framework.communication;
 
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.util.HashMap;
@@ -15,6 +17,7 @@ import com.quantium.mobile.framework.FrameworkJSONTokener;
 import com.quantium.mobile.framework.MapToObjectIterator;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.JSONUtils;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunicationResponse implements SerializedCommunicationResponse{
 
@@ -44,8 +47,17 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 						tokener.nextJSONArray()  :
 					// default
 						null;
+				if (json == null) {
+					try {
+						throw new IllegalArgumentException("Invalid response:"+StringUtil.readerToString(reader));
+					} catch (IOException e) {
+						LogPadrao.e(e);
+						throw new RuntimeException(e);
+					}
+				}
 			} catch (JSONException e) {
 				LogPadrao.e(e);
+				throw new RuntimeException(e);
 			}
 		}
 	}

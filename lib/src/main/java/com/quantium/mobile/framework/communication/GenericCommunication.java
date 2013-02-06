@@ -13,8 +13,10 @@ import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpPut;
 import org.apache.http.client.methods.HttpRequestBase;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
@@ -35,6 +37,8 @@ public abstract class GenericCommunication implements Communication {
 
 	public static final byte GET = 0;
 	public static final byte POST = 1;
+	public static final byte PUT = 2;
+	public static final byte DELETE = 3;
 //	private static final String UNABLE_TO_CREATE_EXISTING_FILE =
 //			"UNABLE_TO_CREATE_EXISTING_FILE";
 
@@ -130,10 +134,26 @@ public abstract class GenericCommunication implements Communication {
 		return response;
 	}
 
+	protected HttpResponse put(String url, Map<String, Object> parametros)
+	throws IOException
+	{
+		HttpResponse response = execute(PUT, url, parametros);
+		return response;
+	}
+	
+	protected HttpResponse delete(String url, Map<String, Object> parametros)
+	throws IOException
+	{
+		HttpResponse response = execute(DELETE, url, parametros);
+		return response;
+	}	
 	protected HttpResponse execute(byte method, String url,
 			Map<String, Object> parametros)
 			throws IOException
 	{
+		if(url == null){
+			throw new IllegalArgumentException("URL cannot be null");
+		}
 		HttpResponse response = null;
 
 		try {
@@ -143,14 +163,14 @@ public abstract class GenericCommunication implements Communication {
 			HttpClient httpclient = getHttpClient(httpParameters);
 			String contentType = getContentType();
 
-			HttpRequestBase httpPost = requestForMethod(method);
-			httpPost.setURI(URI.create(url));
-			httpPost.setHeader("User-Agent", getUserAgent());
-			httpPost.setHeader("Accept", getAcceptHeader());
+			HttpRequestBase httpRequest = requestForMethod(method);
+			httpRequest.setURI(URI.create(url));
+			httpRequest.setHeader("User-Agent", getUserAgent());
+			httpRequest.setHeader("Accept", getAcceptHeader());
 			ParametersSerializer serializer = getParameterSerializer();
-			setRequestParameters(method, httpPost, parametros, contentType, serializer);
+			setRequestParameters(method, httpRequest, parametros, contentType, serializer);
 
-			response = httpclient.execute(httpPost);
+			response = httpclient.execute(httpRequest);
 		} catch (IOException e) {
 			GenericCommunication.setConnected(false);
 			throw e;
@@ -218,6 +238,10 @@ public abstract class GenericCommunication implements Communication {
 	private static HttpRequestBase requestForMethod(byte method){
 		if (method == GET)
 			return new HttpGet();
+		if (method == PUT)
+			return new HttpPut();
+		if (method == DELETE)
+			return new HttpDelete();
 		return new HttpPost();
 	}
 
