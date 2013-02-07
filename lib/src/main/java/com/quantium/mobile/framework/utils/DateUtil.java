@@ -1,5 +1,7 @@
 package com.quantium.mobile.framework.utils;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.Date;
 
 public class DateUtil {
@@ -112,32 +114,21 @@ public class DateUtil {
 		);
 	}
 
-	@SuppressWarnings("deprecation")
 	public static Date stringToDate(String dateString){
 		if (dateString == null)
 			return null;
-		int ano = Integer.parseInt(dateString.substring(
-				STRING_TO_DATE_ANO[0], STRING_TO_DATE_ANO[1]
-		)) - 1900;
-		int mes = Integer.parseInt(dateString.substring(
-				STRING_TO_DATE_MES[0], STRING_TO_DATE_MES[1]
-		)) -1;
-		int dia = Integer.parseInt(dateString.substring(
-				STRING_TO_DATE_DIA[0], STRING_TO_DATE_DIA[1]
-		));
-		int horas = 0, minutos = 0, segundos = 0;
-		if(dateString.length()>=FORMATO_TIMESTAMP_LENGTH){
-			horas = Integer.parseInt(dateString.substring(
-					STRING_TO_DATE_HORAS[0], STRING_TO_DATE_HORAS[1]
-			));
-			minutos = Integer.parseInt(dateString.substring(
-					STRING_TO_DATE_MINUTOS[0], STRING_TO_DATE_MINUTOS[1]
-			));
-			segundos = Integer.parseInt(dateString.substring(
-					STRING_TO_DATE_SEGUNDOS[0], STRING_TO_DATE_SEGUNDOS[1]
-			));
+		try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+			return dateFormat.parse(dateString);
+		} catch (ParseException e) {
+			e.printStackTrace();
 		}
-		return new Date( ano, mes, dia, horas, minutos, segundos );
+		try {
+			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+			return dateFormat.parse(dateString);
+		} catch (ParseException e) {
+		}
+		throw new IllegalArgumentException("Unknown Date format:"+dateString);
 	}
 
 
