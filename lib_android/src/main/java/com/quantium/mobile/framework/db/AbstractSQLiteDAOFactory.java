@@ -43,9 +43,6 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 				list.add(  new WeakReference<T>( (T)obj )  );
 			}
 		}
-		for (Object obj : entityCache.values()) {
-			list.add(  new WeakReference<T>( (T)obj )  );
-		}
 		return list;
 	}
 
