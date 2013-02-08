@@ -121,7 +121,6 @@ public class DateUtil {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
 			return dateFormat.parse(dateString);
 		} catch (ParseException e) {
-			e.printStackTrace();
 		}
 		try {
 			SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
