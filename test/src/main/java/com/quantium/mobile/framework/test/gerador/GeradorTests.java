@@ -140,14 +140,42 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testSerializationAlias(){
-		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
-		int idDocument = 9;
+		final String idDocumentAlias = "id_document";
+		final long idDocument = 9;
+		final String createdAlias = "created";
+		final Date created = new Date(99, 0, 1, 1, 0, 0);
+		/*
+		 * testando document, com dois alias "id_document" e "created"
+		 */
+		DAO<Document> documentDao =
+				facade.getDAOFactory().getDaoFor(Document.class);
 		Map<String,Object> map = new HashMap<String, Object>();
-		// idDocmuent eh o alias de document.id
+		// "idDocmuent" eh o alias de "document.id"
 		// ver no pom.xml
-		map.put("id_document", idDocument);
+		map.put(idDocumentAlias, idDocument);
+		// "created" eh o alias de "created_at" para todas classes
+		map.put(createdAlias, created);
+		// testando mapToObject
 		Document document = documentDao.mapToObject(map);
 		assertEquals(idDocument, document.getId());
+		assertEquals(created, document.getCreatedAt());
+		// testando toMap
+		Map<String,Object> documentToMap = document.toMap();
+		assertEquals(idDocument, documentToMap.get(idDocumentAlias));
+		assertEquals(created, documentToMap.get(createdAlias));
+		/*
+		 *  testando author com 1 alias "created"
+		 */
+		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+		// "created" eh o alias de "created_at" para todas classes
+		Map<String,Object> authorMap = new HashMap<String, Object>();
+		authorMap.put(createdAlias, created);
+		// testando mapToObject
+		Author author = authorDao.mapToObject(authorMap);
+		assertEquals(created, author.getCreatedAt());
+		// testando toMap
+		Map<String,Object> authorToMap = author.toMap();
+		assertEquals(created, authorToMap.get(createdAlias));
 	}
 
 /*	public void testGenericBean() {

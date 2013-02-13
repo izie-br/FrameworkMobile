@@ -88,6 +88,9 @@
 						<!-- Propriedade "id" da classe "Document" e escrita em -->
 						<!-- um Map como "id_document" -->
 						<document.id>id_document</document.id>
+						<!-- Propriedade "created_at" de qualquer classe -->
+						<!-- um Map como "created" -->
+						<created_at>created</created_at>
 					</serializationAlias>
 				</configuration>
 				<executions>
