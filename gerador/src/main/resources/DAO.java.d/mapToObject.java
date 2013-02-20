@@ -32,7 +32,7 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******##set ($submap = "submapFor${association.KeyToA}")
-#******#        Object ${submap} = mapAnyCamelCase.get("${association.Klass}");
+#******#        Object ${submap} = mapAnyCamelCase.get("${association.KeyToA}");
 #******#        ${association.Klass} _${association.KeyToA};
 #******#        if (${submap} != null && ${submap} instanceof Map){
 #******#            _${association.KeyToA} = factory.getDaoFor(${association.Klass}.class)
