@@ -13,9 +13,8 @@ public abstract class SQLiteDAOFactory extends AbstractSQLiteDAOFactory {
     public <T> DAO<T> getDaoFor(Class<T> klass){
         if (klass == null)
             return null;
-        String name = klass.getName();
 #foreach ($Klass in $Klasses)
-       #if ($foreach.index !=0) else#end if (name.equals(${Klass}.class.getName()))
+       #if ($foreach.index !=0) else#end if (${Klass}.class.isAssignableFrom(klass))
             return ((DAO<T>)new ${Klass}DAOSQLite(this));
 #end
         return null;
