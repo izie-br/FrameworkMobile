@@ -19,6 +19,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.velocity.helpers.AssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ImportHelper;
@@ -57,7 +58,7 @@ public class VelocityDaoFactory {
 			}
 		}
 
-		public String getDaoFactory () {
+		public String getDaoFactory() {
 			switch (this) {
 			case ANDROID:
 				return "SQLiteDAOFactory";
@@ -76,15 +77,11 @@ public class VelocityDaoFactory {
 	private File targetDirectory;
 	private Template template;
 	private VelocityContext parentCtx;
-	private Map<String,String> aliases;
+	private Map<String, String> aliases;
 
-	public VelocityDaoFactory(
-			VelocityEngine ve, File targetDirectory,
-			Type type,
-			String basePackage, String genPackage,
-			Map<String,String> serializationAliases)
-	{
-		//this.ve = ve;
+	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, Type type, String basePackage,
+			String genPackage, Map<String, String> serializationAliases) {
+		// this.ve = ve;
 		this.type = type;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate(type.getTemplateName());
@@ -93,57 +90,42 @@ public class VelocityDaoFactory {
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		this.aliases = serializationAliases;
-		//parentCtx.put("basePackage", basePackage);
+		// parentCtx.put("basePackage", basePackage);
 	}
 
-	public void generate(
-			JavaBeanSchema schema,
-			Collection<JavaBeanSchema> allSchemas)
-			throws IOException
-	{
+	public void generate(JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas) throws IOException {
 		if (schema.isNonEntityTable())
 			return;
-		parentCtx.put(
-				"package",
-				Utils.getPackageName (basePackage, genPackage, schema.getModule ()));
+		parentCtx.put("package", Utils.getPackageName(basePackage, genPackage, schema.getModule()));
 		String targetclass = CamelCaseUtils.toUpperCamelCase(schema.getNome());
 		String classname = targetclass + this.type.getSuffix();
 		String filename = classname + ".java";
-		File file = new File(
-				getPackageDir (targetDirectory, genPackage, schema.getModule ()),
-				filename);
+		File file = new File(getPackageDir(targetDirectory, genPackage, schema.getModule()), filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
 		ctx.put("Klass", classname);
-		ctx.put("EditableInterface", editableInterface (targetclass));
+		ctx.put("EditableInterface", editableInterface(targetclass));
 		ctx.put("KlassImpl", targetclass + "Impl");
 		ctx.put("Target", targetclass);
 		ctx.put("table", schema.getTabela().getName());
 
-		String daoFactory = type.getDaoFactory ();
-		ctx.put ("DaoFactory", daoFactory);
+		String daoFactory = type.getDaoFactory();
+		ctx.put("DaoFactory", daoFactory);
 
 		List<Property> fields = new ArrayList<Property>();
 		Property primaryKey = schema.getPrimaryKey();
-		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
+		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)) {
 			Property f = schema.getPropriedade(col);
-			f = new Property (
-					f.getNome (), f.getPropertyClass (),
-					f.isGet (), f.isSet (),
-					VelocityVOFactory.getAlias(aliases, targetclass, col),
-					f.getConstraints ());
+			f = new Property(f.getNome(), f.getPropertyClass(), f.isGet(), f.isSet(), VelocityVOFactory.getAlias(
+					aliases, targetclass, col), f.getConstraints());
 
 			fields.add(f);
 		}
 		ctx.put("fields", fields);
 		ctx.put("primaryKey", primaryKey);
-
-		ArrayList<OneToManyAssociationHelper> oneToMany =
-				new ArrayList<OneToManyAssociationHelper>();
-		ArrayList<ManyToManyAssociationHelper> manyToMany =
-				new ArrayList<ManyToManyAssociationHelper>();
-		ArrayList<OneToManyAssociationHelper> manyToOne =
-				new ArrayList<OneToManyAssociationHelper>();
-		findAssociations(schema, allSchemas, manyToOne, oneToMany, manyToMany);
+		AssociationHolder holder = findAssociations(schema, allSchemas);
+		ArrayList<OneToManyAssociationHelper> oneToMany = holder.getOneToMany();
+		ArrayList<ManyToManyAssociationHelper> manyToMany = holder.getManyToMany();
+		ArrayList<OneToManyAssociationHelper> manyToOne = holder.getManyToOne();
 		ctx.put("oneToManyAssociations", oneToMany);
 		ctx.put("manyToManyAssociations", manyToMany);
 		ctx.put("manyToOneAssociations", manyToOne);
@@ -151,42 +133,34 @@ public class VelocityDaoFactory {
 		toMany.addAll(oneToMany);
 		toMany.addAll(manyToMany);
 		ctx.put("toManyAssociations", toMany);
-		//ctx.put("ForeignKeys", getForeignKeys(schema));
+		// ctx.put("ForeignKeys", getForeignKeys(schema));
 
 		int options = getOptions(schema);
-		ctx.put("hasNullableAssociation",
-		        (options & HAS_NULLABLE_ASSOCIATION) != 0 );
-		ctx.put("hasNotNullableAssociation",
-		        (options & HAS_NOT_NULLABLE_ASSOCIATION) != 0 );
-		ctx.put("hasDateField", 
-				(options & HAS_DATE_FIELD) != 0 );
+		ctx.put("hasNullableAssociation", (options & HAS_NULLABLE_ASSOCIATION) != 0);
+		ctx.put("hasNotNullableAssociation", (options & HAS_NOT_NULLABLE_ASSOCIATION) != 0);
+		ctx.put("hasDateField", (options & HAS_DATE_FIELD) != 0);
 
-		Map<Property, OneToManyAssociationHelper> associationsFromFK =
-				getAssociationsForFK(fields,manyToOne);
+		Map<Property, OneToManyAssociationHelper> associationsFromFK = getAssociationsForFK(fields, manyToOne);
 
-		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
-				schema, fields, associationsFromFK,  oneToMany, manyToMany);
+		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(schema, fields, associationsFromFK, oneToMany,
+				manyToMany);
 
-		ImportHelper importHelper = new ImportHelper (basePackage, genPackage, daoFactory);
-		ctx.put("Imports", importHelper.getImports (
-				schema, oneToMany, manyToOne, manyToMany));
+		ImportHelper importHelper = new ImportHelper(basePackage, genPackage, daoFactory);
+		ctx.put("Imports", importHelper.getImports(schema, oneToMany, manyToOne, manyToMany));
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgs", argsHelper.getConstructorArguments());
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
-		ValidateHelper vhelper = new ValidateHelper (schema, fields);
-		ctx.put ("Uniques", vhelper.getUniques ());
+		ValidateHelper vhelper = new ValidateHelper(schema, fields);
+		ctx.put("Uniques", vhelper.getUniques());
 
 		GetterHelper getterHelper = new GetterHelper();
 		ctx.put("getter", getterHelper);
 
-		Writer w = new OutputStreamWriter(
-				new FileOutputStream(file),
-				"UTF-8");
+		Writer w = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 		template.merge(ctx, w);
 		w.close();
 	}
-
 
 }

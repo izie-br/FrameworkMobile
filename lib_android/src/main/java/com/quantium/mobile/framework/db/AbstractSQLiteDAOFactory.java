@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 import com.quantium.mobile.framework.DAOFactory;
 
@@ -31,7 +32,8 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 	}
 
 	private void trim () {
-		for (EntityKey key : entityCache.keySet()) {
+		Set<EntityKey> keySet = entityCache.keySet();
+		for (EntityKey key : keySet) {
 			getOrRemoveIfNull(key);
 		}
 	}

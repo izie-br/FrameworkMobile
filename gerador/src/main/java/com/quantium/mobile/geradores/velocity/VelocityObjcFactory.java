@@ -26,6 +26,7 @@ import com.quantium.mobile.geradores.util.Constants;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ManyToManyAssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.OneToManyAssociationHelper;
+import com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.AssociationHolder;
 
 import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*;
 
@@ -94,15 +95,10 @@ public class VelocityObjcFactory {
 		ctx.put("table", schema.getTabela().getName ());
 		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
-		List<OneToManyAssociationHelper> manyToOne =
-				new ArrayList<OneToManyAssociationHelper>();
-		List<OneToManyAssociationHelper> oneToMany =
-				new ArrayList<OneToManyAssociationHelper>();
-		List<ManyToManyAssociationHelper> manyToMany =
-				new ArrayList<ManyToManyAssociationHelper>();
-		findAssociations(
-				schema, allSchemas, manyToOne,
-				oneToMany, manyToMany);
+		AssociationHolder holder = findAssociations(schema, allSchemas);
+		ArrayList<OneToManyAssociationHelper> oneToMany = holder.getOneToMany();
+		ArrayList<ManyToManyAssociationHelper> manyToMany = holder.getManyToMany();
+		ArrayList<OneToManyAssociationHelper> manyToOne = holder.getManyToOne();
 		ctx.put("manyToOneAssociations", manyToOne);
 		ctx.put("oneToManyAssociations", oneToMany);
 		ctx.put("manyToManyAssociations", manyToMany);
