@@ -64,10 +64,11 @@
 #**##end
 #end
 
-        ${KlassImpl} target = new ${KlassImpl}(${constructorArgs});
+        ${Target} target = new${Target}(${constructorArgs});
 
         if (useCache)
             factory.pushToCache(${Target}.class, pks, target);
 
         return target;
     }
+

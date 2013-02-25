@@ -105,5 +105,9 @@ public class ${Klass} implements JdbcDao<${Target}> {
 
 #parse("DAO.java.d/toManyDAO.java")
 
+	protected ${Target} new${Target}(${constructorArgsDecl}){
+		return new ${KlassImpl}(${constructorArgs});
+	}
+
 }
 

@@ -173,6 +173,7 @@ public class VelocityDaoFactory {
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgs", argsHelper.getConstructorArguments());
+		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
 		ValidateHelper vhelper = new ValidateHelper (schema, fields);
 		ctx.put ("Uniques", vhelper.getUniques ());

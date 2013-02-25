@@ -73,5 +73,9 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #parse("DAO.java.d/androidQuery.java")
 
+    protected ${Target} new${Target}(${constructorArgsDecl}){
+        return new ${KlassImpl}(${constructorArgs});
+    }
+
 }
 
