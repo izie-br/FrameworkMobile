@@ -356,8 +356,8 @@ public final class Q {
 
         public String toString () {
             return
-                this == ISNULL   ?  " ISNULL"  :
-                this == NOTNULL  ?  " NOTNULL" :
+                this == ISNULL   ?  " IS NULL"  :
+                this == NOTNULL  ?  " IS NOT NULL" :
                 null;
         }
     }

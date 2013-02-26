@@ -159,10 +159,8 @@ public class QueryTest {
 		select = new QSQLProvider(q).select(
 				Arrays.asList(new Table.Column []{colInt}),
 				new ArrayList<Object>());
-		assertTrue(
-			select.matches(
-				".*"+colInt.getName()+ "\\s+" +
-				insensitiveRegex("not") + "\\s*" + insensitiveRegex("null")
+		assertTrue(select.matches(".*" + colInt.getName() + "\\s+" + insensitiveRegex("is") + "\\s*"
+				+ insensitiveRegex("not") + "\\s*" + insensitiveRegex("null")
 			)
 		);
 
