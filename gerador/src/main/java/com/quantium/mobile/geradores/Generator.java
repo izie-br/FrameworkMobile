@@ -33,6 +33,7 @@ import com.quantium.mobile.geradores.velocity.VelocityCustomClassesFactory;
 import com.quantium.mobile.geradores.velocity.VelocityDaoFactory;
 import com.quantium.mobile.geradores.velocity.VelocityObjcFactory;
 import com.quantium.mobile.geradores.velocity.VelocitySqlXmlFactory;
+import com.quantium.mobile.geradores.velocity.VelocityStubFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
 public class Generator {
@@ -270,7 +271,28 @@ public class Generator {
 			copyDirContentsR (jdbcTempDir,jdbcBaseDir);
 		}
 
+		//Stubs
+		VelocityStubFactory coreStubFactory = new VelocityStubFactory(
+				ve,
+				VelocityStubFactory.StubType.INTERFACE,
+				projectInformation.getBasePackage(),
+				projectInformation.getGeneratedCodePackage(),
+				"vo",
+				coreBaseDir);
+		checkForStubs(coreStubFactory, javaBeanSchemas);
+
 //		props.save();
+	}
+
+	private static void checkForStubs (
+			VelocityStubFactory stubFactory,
+			Collection<JavaBeanSchema> schemas)
+	{
+		for (JavaBeanSchema schema : schemas) {
+			if (schema.isNonEntityTable())
+				continue;
+			stubFactory.isStubFound(schema);
+		}
 	}
 
 	private VelocityEngine initVelocityEngine() {
