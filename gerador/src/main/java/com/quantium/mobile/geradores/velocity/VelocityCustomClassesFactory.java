@@ -5,9 +5,9 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.velocity.Template;
 import org.apache.velocity.VelocityContext;
@@ -23,7 +23,7 @@ public class VelocityCustomClassesFactory {
 			String templatename,
 			String daoSuffix,
 			VelocityEngine ve, Collection<JavaBeanSchema> schemas,
-			String basePackage, String genPackage,
+			String basePackage, String genPackage, String voPackage,
 			File destDir)
 			throws IOException
 	{
@@ -32,23 +32,12 @@ public class VelocityCustomClassesFactory {
 		File file = new File(
 				Utils.getPackageDir (destDir, genPackage, Constants.DEFAULT_MODULE_NAME),
 				classname);
-		List<String> klasses = new ArrayList<String>();
-		for (JavaBeanSchema schema : schemas){
-			if (schema.isNonEntityTable())
-				continue;
-			StringBuilder sb = new StringBuilder();
-			String packageName = Utils.getPackageName (
-					basePackage, genPackage, schema.getModule());
-			sb.append (packageName);
-			sb.append ('.');
-			sb.append (CamelCaseUtils.toUpperCamelCase(schema.getNome()));
-			klasses.add(sb.toString());
-		}
+		Map<String,String> klasses = getKlassesMap(
+				basePackage, genPackage, voPackage, daoSuffix, schemas);
 		VelocityContext ctx = new VelocityContext();
 		ctx.put("package",
 		        Utils.getPackageName (basePackage, genPackage, Constants.DEFAULT_MODULE_NAME));
 		ctx.put("Klasses", klasses);
-		ctx.put ("DaoPrefix", daoSuffix);
 //		ImportHelper importHelper = new ImportHelper (basePackage, genPackage, null);
 //		ctx.put ("Imports", importHelper.getFactoryImports (daoSuffix, schemas));
 
@@ -57,6 +46,38 @@ public class VelocityCustomClassesFactory {
 				"UTF-8");
 		t.merge(ctx, writer);
 		writer.close();
+	}
+
+	public static Map<String,String> getKlassesMap (
+			String basePackage, String genPackage, String voPackage,
+			String daoSuffix,
+			Collection<JavaBeanSchema> schemas) {
+		Map<String,String> klasses = new HashMap<String, String>();
+		for (JavaBeanSchema schema : schemas){
+			if (schema.isNonEntityTable())
+				continue;
+			StringBuilder klassFullName = new StringBuilder();
+			{
+				String packageName = Utils.getPackageName (
+						basePackage, voPackage, schema.getModule());
+				klassFullName.append (packageName);
+				klassFullName.append ('.');
+				klassFullName.append (CamelCaseUtils.toUpperCamelCase(schema.getNome()));
+			}
+
+			StringBuilder daoFullName = new StringBuilder();
+			{
+				String packageName = Utils.getPackageName (
+						basePackage, genPackage, schema.getModule());
+				daoFullName.append (packageName);
+				daoFullName.append ('.');
+				daoFullName.append (CamelCaseUtils.toUpperCamelCase(schema.getNome()));
+				daoFullName.append(daoSuffix);
+			}
+
+			klasses.put(klassFullName.toString(), daoFullName.toString());
+		}
+		return klasses;
 	}
 
 }

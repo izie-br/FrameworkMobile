@@ -169,6 +169,7 @@ public class Generator {
 				VelocityDaoFactory.Type.ANDROID,
 				projectInformation.getBasePackage (),
 				projectInformation.getGeneratedCodePackage(),
+				"vo",
 				serializationAliases);
 		}
 		if (projectInformation.getJdbcDirectory() != null) {
@@ -177,10 +178,11 @@ public class Generator {
 					VelocityDaoFactory.Type.JDBC,
 					projectInformation.getBasePackage (),
 					projectInformation.getGeneratedCodePackage(),
+					"vo",
 					serializationAliases);
 		}
 		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
-				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
+				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), "vo", serializationAliases);
 		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
 				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 
@@ -221,15 +223,17 @@ public class Generator {
 					ve, javaBeanSchemas,
 					projectInformation.getBasePackage (),
 					projectInformation.getGeneratedCodePackage(),
+					"vo",
 					androidTempDir);
 		}
 		if (projectInformation.getJdbcDirectory() != null) {
 			VelocityCustomClassesFactory.generateDAOFactory(
 					"JdbcDAOFactory.java",
-					VelocityDaoFactory.Type.ANDROID.getSuffix (),
+					VelocityDaoFactory.Type.JDBC.getSuffix (),
 					ve, javaBeanSchemas,
 					projectInformation.getBasePackage (),
 					projectInformation.getGeneratedCodePackage(),
+					"vo",
 					jdbcTempDir);
 		}
 
@@ -272,14 +276,24 @@ public class Generator {
 		}
 
 		//Stubs
-		VelocityStubFactory coreStubFactory = new VelocityStubFactory(
+		VelocityStubFactory implStubFactory = new VelocityStubFactory(
+				ve,
+				VelocityStubFactory.StubType.IMPLEMENTATION,
+				projectInformation.getBasePackage(),
+				projectInformation.getGeneratedCodePackage(),
+				"vo",
+				coreBaseDir,
+				javaBeanSchemas);
+		VelocityStubFactory interfaceStubFactory = new VelocityStubFactory(
 				ve,
 				VelocityStubFactory.StubType.INTERFACE,
 				projectInformation.getBasePackage(),
 				projectInformation.getGeneratedCodePackage(),
 				"vo",
-				coreBaseDir);
-		checkForStubs(coreStubFactory, javaBeanSchemas);
+				coreBaseDir,
+				javaBeanSchemas);
+		checkForStubs(interfaceStubFactory, javaBeanSchemas);
+		checkForStubs(implStubFactory, javaBeanSchemas);
 
 //		props.save();
 	}
@@ -291,7 +305,9 @@ public class Generator {
 		for (JavaBeanSchema schema : schemas) {
 			if (schema.isNonEntityTable())
 				continue;
-			stubFactory.isStubFound(schema);
+			if (!stubFactory.isStubFound(schema)) {
+				stubFactory.createStubFor(schema);
+			}
 		}
 	}
 

@@ -15,15 +15,15 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
-import com.quantium.mobile.framework.test.gen.Author;
+import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.gen.AuthorEditable;
-import com.quantium.mobile.framework.test.gen.AuthorImpl;
-import com.quantium.mobile.framework.test.gen.Customer;
-import com.quantium.mobile.framework.test.gen.CustomerImpl;
-import com.quantium.mobile.framework.test.document.gen.Document;
-import com.quantium.mobile.framework.test.document.gen.DocumentImpl;
-import com.quantium.mobile.framework.test.gen.Score;
-import com.quantium.mobile.framework.test.gen.ScoreImpl;
+import com.quantium.mobile.framework.test.vo.AuthorImpl;
+import com.quantium.mobile.framework.test.vo.Customer;
+import com.quantium.mobile.framework.test.vo.CustomerImpl;
+import com.quantium.mobile.framework.test.document.vo.Document;
+import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
+import com.quantium.mobile.framework.test.vo.Score;
+import com.quantium.mobile.framework.test.vo.ScoreImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {

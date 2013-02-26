@@ -73,6 +73,7 @@ public class VelocityDaoFactory {
 
 	private Type type;
 	private String genPackage;
+	private String voPackage;
 	private String basePackage;
 	private File targetDirectory;
 	private Template template;
@@ -80,13 +81,14 @@ public class VelocityDaoFactory {
 	private Map<String, String> aliases;
 
 	public VelocityDaoFactory(VelocityEngine ve, File targetDirectory, Type type, String basePackage,
-			String genPackage, Map<String, String> serializationAliases) {
+			String genPackage, String voPackage, Map<String, String> serializationAliases) {
 		// this.ve = ve;
 		this.type = type;
 		this.targetDirectory = targetDirectory;
 		template = ve.getTemplate(type.getTemplateName());
 		this.basePackage = basePackage;
 		this.genPackage = genPackage;
+		this.voPackage = voPackage;
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
 		this.aliases = serializationAliases;
@@ -145,11 +147,15 @@ public class VelocityDaoFactory {
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(schema, fields, associationsFromFK, oneToMany,
 				manyToMany);
 
-		ImportHelper importHelper = new ImportHelper(basePackage, genPackage, daoFactory);
-		ctx.put("Imports", importHelper.getImports(schema, oneToMany, manyToOne, manyToMany));
+		ImportHelper importHelper = new ImportHelper(basePackage, genPackage, voPackage, daoFactory);
+		String klassPackage = Utils.getPackageName(basePackage, voPackage, schema.getModule());
+		String importsStr = importHelper.getImports(schema, allSchemas, oneToMany, manyToOne, manyToMany);
+		importsStr += String.format("import %s.%s;\n",klassPackage, targetclass);
+		importsStr += String.format("import %s.%sImpl;",klassPackage, targetclass);
+		ctx.put("Imports", importsStr);
 
 		ctx.put("associationForField", associationsFromFK);
-		ctx.put("constructorArgs", argsHelper.getConstructorArguments());
+		ctx.put("constructorArgs", argsHelper.getConstructorArgumentsForDAO());
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
 		ValidateHelper vhelper = new ValidateHelper(schema, fields);

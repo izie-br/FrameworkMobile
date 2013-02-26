@@ -27,16 +27,22 @@ public class ConstructorArgsHelper {
 		this.manyToManyAssociations = manyToManyAssociations;
 	}
 
+	public String getConstructorArgumentsForDAO(){
+		return getConstructorArgumentsAndDecl(
+				javaBeanSchema, orderedFields, associationForPropertyMap,
+				oneToManyAssociations,manyToManyAssociations, false, true);
+	}
+
 	public String getConstructorArguments(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
-				oneToManyAssociations,manyToManyAssociations, false);
+				oneToManyAssociations,manyToManyAssociations, false, false);
 	}
 
 	public String getConstructorArgsDecl(){
 		return getConstructorArgumentsAndDecl(
 				javaBeanSchema, orderedFields, associationForPropertyMap,
-				oneToManyAssociations,manyToManyAssociations, true);
+				oneToManyAssociations,manyToManyAssociations, true, false);
 	}
 
 	private static String getConstructorArgumentsAndDecl(
@@ -45,7 +51,7 @@ public class ConstructorArgsHelper {
 			Map<Property, OneToManyAssociationHelper> associationForPropertyMap,
 			Collection<OneToManyAssociationHelper> oneToManyAssociations,
 			Collection<ManyToManyAssociationHelper> manyToManyAssociations,
-			boolean declare)
+			boolean declare, boolean forDao)
 	{
 		int argCount = orderedFields.size() + oneToManyAssociations.size() + manyToManyAssociations.size();
 		StringBuilder sb = new StringBuilder();
@@ -97,13 +103,16 @@ public class ConstructorArgsHelper {
 				sb.append("> ");
 				sb.append('_');
 				sb.append(assoc.getKeyToAPluralized().toString());
-			} else {
+			} else if (forDao){
 				sb.append("querySetFor");
 				sb.append(assoc.getKeyToAPluralized().toString());
 				sb.append("(_");
 				Property property = assoc.getReferenceKey();
 				sb.append(property.getLowerCamel());
 				sb.append(')');
+			} else {
+				sb.append('_');
+				sb.append(assoc.getKeyToAPluralized().toString());
 			}
 
 			if (!last){
@@ -126,7 +135,7 @@ public class ConstructorArgsHelper {
 				sb.append("> ");
 				sb.append('_');
 				sb.append(assoc.getPluralized().toString());
-			} else {
+			} else if (forDao) {
 				sb.append("querySetFor");
 				sb.append(assoc.getPluralized().toString());
 				sb.append("(_");
@@ -137,6 +146,9 @@ public class ConstructorArgsHelper {
 						assoc.getReferenceB();
 				sb.append(property.getLowerCamel());
 				sb.append(')');
+			} else {
+				sb.append('_');
+				sb.append(assoc.getPluralized().toString());
 			}
 
 			if (!last){

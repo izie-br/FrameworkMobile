@@ -36,20 +36,42 @@ import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*
 
 public class VelocityVOFactory {
 
+	public enum Type {
+		INTERFACE, EDITABLE_INTERFACE , IMPLEMENTATION;
+
+		public String getFilenameFor(JavaBeanSchema schema) {
+			String classname = CamelCaseUtils.toUpperCamelCase(
+					schema.getNome());
+			switch (this) {
+			case INTERFACE:
+				return classname + "Gen";
+			case IMPLEMENTATION:
+				return "Abstract" + classname;
+			case EDITABLE_INTERFACE:
+				return classname + "Editable";
+			default:
+				throw new RuntimeException();
+			}
+		}
+	}
+
 	private Template template;
 	private String basePackage;
 	private String genPackage;
+	private String voPackage;
 	private File targetDirectory;
 	private VelocityContext parentCtx;
 	private Map<String,String> aliases;
 
 	public VelocityVOFactory(VelocityEngine ve, File targetDirectory,
 	                         String basePackage, String genPackage,
+	                         String voPackage,
 	                         Map<String,String> serializationAliases)
 	{
 		this.template = ve.getTemplate("VO.java");
 		this.basePackage = basePackage;
 		this.genPackage = genPackage;
+		this.voPackage = voPackage;
 		this.targetDirectory = targetDirectory;
 		this.parentCtx = new VelocityContext();
 		this.parentCtx.put("defaultId", Constants.DEFAULT_ID);
@@ -64,29 +86,24 @@ public class VelocityVOFactory {
 			throws IOException
 	{
 		String classname = CamelCaseUtils.toUpperCamelCase(schema.getNome());
-		String editableInterfaceName = classname + "Editable";
-		String filename = null;
 		VelocityContext ctx = new VelocityContext(parentCtx);
-		ctx.put("package",
-				Utils.getPackageName (basePackage, genPackage, schema.getModule ()));
-		switch (type){
-		case INTERFACE:
-			ctx.put("interface", true);
-			filename = classname;
-			break;
-		case EDITABLE_INTERFACE:
-			ctx.put("editableInterface", true);
-			filename = editableInterfaceName;
-			break;
-		case IMPLEMENTATION:
-			ctx.put("implementation", true);
-			filename = classname + "Impl";
-		}
+		ctx.put("package", Utils.getPackageName (
+				basePackage, genPackage, schema.getModule ()
+		));
+
+		ctx.put("interface", type == Type.INTERFACE);
+		ctx.put("editableInterface", type == Type.EDITABLE_INTERFACE);
+		ctx.put("implementation", type == Type.IMPLEMENTATION);
+
+		String filename = type.getFilenameFor(schema);
 		ctx.put("Filename", filename);
+		String editableInterfaceName = Type.EDITABLE_INTERFACE.getFilenameFor(schema);
 		ctx.put("EditableInterface", editableInterfaceName);
+		String interfaceName = Type.INTERFACE.getFilenameFor(schema);
 		ctx.put("table", schema.getTabela().getName ());
-		ctx.put("Klass", classname);
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
+		ctx.put("Klass", classname);
+
 		AssociationHolder holder = findAssociations(schema, allSchemas);
 		ArrayList<OneToManyAssociationHelper> oneToMany = holder.getOneToMany();
 		ArrayList<ManyToManyAssociationHelper> manyToMany = holder.getManyToMany();
@@ -122,9 +139,14 @@ public class VelocityVOFactory {
 				schema, fields, associationsFromFK, oneToMany, manyToMany);
 
 		ImportHelper importHelper =
-				new ImportHelper (basePackage, genPackage, null);
-		ctx.put("Imports", importHelper.getImports (
-				schema, oneToMany, manyToOne, manyToMany));
+				new ImportHelper (basePackage, genPackage, voPackage, null);
+		String imports = importHelper.getImports (
+				schema, allSchemas, oneToMany, manyToOne, manyToMany);
+		if (type == Type.EDITABLE_INTERFACE) {
+			String packageName = Utils.getPackageName(basePackage, voPackage, schema.getModule());
+			imports += String.format("import %s.%s;\n", packageName, classname);
+		}
+		ctx.put("Imports", imports);
 
 		ctx.put("associationForField", associationsFromFK);
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
@@ -189,5 +211,4 @@ public class VelocityVOFactory {
 		return result;
 	}
 
-	public enum Type { INTERFACE, EDITABLE_INTERFACE , IMPLEMENTATION };
 }

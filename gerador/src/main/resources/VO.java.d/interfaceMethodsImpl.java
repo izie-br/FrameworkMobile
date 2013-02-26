@@ -44,10 +44,10 @@
         if (obj == null) {
             return false;
         }
-        if ( !(obj instanceof ${Klass}) ) {
+        if ( !(obj instanceof ${Filename}) ) {
             return false;
         }
-        ${Klass} other = ((${Klass}) obj);
+        ${Filename} other = ((${Filename}) obj);
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])

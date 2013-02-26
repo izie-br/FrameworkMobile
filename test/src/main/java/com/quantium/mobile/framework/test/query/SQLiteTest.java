@@ -13,8 +13,8 @@ import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
-import com.quantium.mobile.framework.test.gen.Author;
-import com.quantium.mobile.framework.test.gen.AuthorImpl;
+import com.quantium.mobile.framework.test.vo.Author;
+import com.quantium.mobile.framework.test.vo.AuthorImpl;
 
 public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> {
 

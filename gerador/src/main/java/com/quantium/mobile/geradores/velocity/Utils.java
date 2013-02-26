@@ -87,6 +87,4 @@ public class Utils {
 		return targetclass + "Editable";
 	}
 
-
-
 }

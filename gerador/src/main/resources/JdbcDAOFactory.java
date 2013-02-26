@@ -27,9 +27,9 @@ public abstract class JdbcDAOFactory implements DAOFactory {
     public <T> DAO<T> getDaoFor(Class<T> klass){
         if (klass == null)
             return null;
-#foreach ($Klass in $Klasses)
+#foreach ($Klass in $Klasses.keySet())
        #if ($foreach.index !=0) else#end if (${Klass}.class.isAssignableFrom(klass))
-            return ((DAO<T>)new ${Klass}JdbcDAO(this));
+            return ((DAO<T>)new ${Klasses[$Klass]}(this));
 #end
         return null;
     }
