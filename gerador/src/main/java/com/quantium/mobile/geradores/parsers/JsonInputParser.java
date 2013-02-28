@@ -102,14 +102,16 @@ public class JsonInputParser implements InputParser {
 					throw new IllegalArgumentException("Attribute name cannot be null or empty.");
 				}
 				Class<?> classType = convertJsonTypeToJavaType(type);
-				Constraint.Type[] constraints = null;
+				Constraint[] constraints = null;
 				if (isUnique && isRequired) {
-					constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL, Constraint.Type.UNIQUE };
+					constraints = new Constraint[] {
+							Constraint.notNull(), Constraint.unique()
+					};
 				} else {
 					if (isUnique) {
-						constraints = new Constraint.Type[] { Constraint.Type.UNIQUE };
+						constraints = new Constraint[] { Constraint.unique()};
 					} else if (isRequired) {
-						constraints = new Constraint.Type[] { Constraint.Type.NOT_NULL };
+						constraints = new Constraint[] { Constraint.notNull() };
 					}
 				}
 				if (classType == null && modelSchemaBuilderMap.get(type) == null) {
@@ -223,7 +225,7 @@ public class JsonInputParser implements InputParser {
 				allClasses.add(jsonClass);
 				ModelSchema.Builder tabelaBuilder = ModelSchema.create(moduleName,
 						CamelCaseUtils.camelToLowerAndUnderscores(className));
-				tabelaBuilder.addProperty("id", convertJsonTypeToJavaType("Long"), Constraint.Type.PRIMARY_KEY);
+				tabelaBuilder.addProperty("id", convertJsonTypeToJavaType("Long"), Constraint.primaryKey());
 				modelSchemaBuilderMap.put(jsonClass.getString("id"), tabelaBuilder);
 				for (JSONObject jsonAssociation : fromAssociations) {
 					associationsJsonMap.put(jsonAssociation.getString("id"), jsonAssociation);
@@ -237,9 +239,9 @@ public class JsonInputParser implements InputParser {
 
 	private static ModelSchema gerarAssociativa(String module, String databaseTable, String colunaFrom, String colunaTo) {
 		ModelSchema.Builder tabelaBuilder = ModelSchema.create(module, databaseTable)
-				.addProperty("id", Long.class, Constraint.PRIMARY_KEY)
-				.addProperty(colunaFrom, Long.class, Constraint.Type.NOT_NULL)
-				.addProperty(colunaTo, Long.class, Constraint.Type.NOT_NULL);
+				.addProperty("id", Long.class, Constraint.primaryKey())
+				.addProperty(colunaFrom, Long.class, Constraint.notNull())
+				.addProperty(colunaTo, Long.class, Constraint.notNull());
 		return tabelaBuilder.get();
 	}
 

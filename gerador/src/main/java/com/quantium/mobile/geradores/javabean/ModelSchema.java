@@ -39,7 +39,7 @@ public final class ModelSchema {
 			boolean isPrimaryKey = false;
 			if (constraints != null) {
 				for (Constraint constraint :constraints) {
-					if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
+					if (constraint instanceof Constraint.PrimaryKey ) {
 						isPrimaryKey = true;
 						break;
 					}
@@ -48,20 +48,6 @@ public final class ModelSchema {
 			ModelSchema.this.colunas.add(
 					new Property(name, type, true, !isPrimaryKey,
 					             constraints));
-			return this;
-		}
-
-		public Builder addProperty(String name, Class<?> type,
-		                           Constraint.Type... constraints)
-		{
-			Constraint constraintImpl [] = null;
-			if (constraints != null){
-				constraintImpl= new Constraint[constraints.length];
-				for (int i=0; i< constraints.length; i++){
-					constraintImpl[i] = new Constraint(constraints[i]);
-				}
-			}
-			addProperty(name, type, constraintImpl);
 			return this;
 		}
 
@@ -126,7 +112,7 @@ public final class ModelSchema {
 	public Property getPrimaryKey() {
 		for (Property coluna : colunas) {
 			for (Constraint constraint : coluna.getConstraints()) {
-				if (constraint.isTypeOf(Constraint.PRIMARY_KEY)) {
+				if (constraint instanceof Constraint.PrimaryKey) {
 					return coluna;
 				}
 			}

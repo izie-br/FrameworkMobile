@@ -64,7 +64,7 @@ public class ColumnsUtils {
 			Constraint constraints[] = column.getConstraints();
 			boolean isPrimaryKey = false;
 			for (Constraint constraint : constraints) {
-				if (constraint.getType() == Constraint.Type.PRIMARY_KEY) {
+				if (constraint instanceof Constraint.PrimaryKey) {
 					isPrimaryKey = true;
 					break;
 				}
@@ -81,7 +81,7 @@ public class ColumnsUtils {
 	public static boolean checkIfIsPK(Table.Column<?> col) {
 		boolean isPK = false;
 		for (Constraint constraint : col.getConstraintList()) {
-			if (constraint.isTypeOf(Constraint.Type.PRIMARY_KEY)) {
+			if (constraint instanceof Constraint.PrimaryKey) {
 				isPK = true;
 			}
 		}
@@ -91,7 +91,7 @@ public class ColumnsUtils {
 	public static boolean checkIfIsPK(Property prop) {
 		boolean isPK = false;
 		for (Constraint constraint : prop.getConstraints()) {
-			if (constraint.isTypeOf(Constraint.Type.PRIMARY_KEY)) {
+			if (constraint instanceof Constraint.PrimaryKey) {
 				isPK = true;
 			}
 		}
@@ -101,7 +101,7 @@ public class ColumnsUtils {
 	public static boolean isNullable(Property prop) {
 		boolean isPK = true;
 		for (Constraint constraint : prop.getConstraints()) {
-			if (constraint.isTypeOf(Constraint.Type.NOT_NULL)) {
+			if (constraint instanceof Constraint.NotNull) {
 				isPK = false;
 			}
 		}

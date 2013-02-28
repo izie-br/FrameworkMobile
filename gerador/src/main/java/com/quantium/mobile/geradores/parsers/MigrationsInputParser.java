@@ -3,6 +3,7 @@ package com.quantium.mobile.geradores.parsers;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.ArrayList;
 import java.util.regex.Matcher;
@@ -55,8 +56,9 @@ public class MigrationsInputParser extends SQLiteInputParser {
 	}
 
 	private static void writeFileToSb(File f, StringBuilder sb) {
+		BufferedReader reader = null;
 		try {
-			BufferedReader reader = new BufferedReader (
+			reader = new BufferedReader (
 				new InputStreamReader (
 					new FileInputStream (f),
 					"UTF-8"
@@ -70,6 +72,14 @@ public class MigrationsInputParser extends SQLiteInputParser {
 			}
 		} catch (Exception e) {
 			throw new RuntimeException (e);
+		} finally {
+			if (reader != null) {
+				try {
+					reader.close();
+				} catch (IOException e) {
+					throw new RuntimeException(e);
+				}
+			}
 		}
 	}
 

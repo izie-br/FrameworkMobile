@@ -92,7 +92,7 @@ public class Property {
 
 	public boolean isPrimaryKey(){
 		for (Constraint constraint :constraints)
-			if (constraint.getType().equals(Constraint.Type.PRIMARY_KEY))
+			if (constraint instanceof Constraint.PrimaryKey)
 				return true;
 		return false;
 	}

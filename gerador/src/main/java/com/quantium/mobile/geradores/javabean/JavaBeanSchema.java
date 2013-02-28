@@ -159,7 +159,7 @@ public class JavaBeanSchema {
 					Constraint constraints[] = it.getConstraints();
 					if (constraints != null) {
 						for (Constraint constraint : constraints) {
-							if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
+							if (constraint instanceof Constraint.PrimaryKey) {
 								isNotPrimaryKey = false;
 							}
 						}

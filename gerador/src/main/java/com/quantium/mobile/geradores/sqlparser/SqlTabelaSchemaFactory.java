@@ -98,7 +98,7 @@ public class SqlTabelaSchemaFactory {
 				 */
 				boolean isPrimaryKey = false;
 				for (Constraint constraint : arrConstraints) {
-					if (constraint.isTypeOf (Constraint.PRIMARY_KEY)) {
+					if (constraint instanceof Constraint.PrimaryKey) {
 						isPrimaryKey = true;
 						break;
 					}
@@ -189,11 +189,11 @@ public class SqlTabelaSchemaFactory {
 		}
 		List<Constraint> constraints = new ArrayList<Constraint>();
 		if (isPrimaryKey)
-			constraints.add(new Constraint(Constraint.Type.PRIMARY_KEY));
+			constraints.add(Constraint.primaryKey());
 		if (findConstraint(specStrings, UNIQUE_CONSTRAINT) >= 0)
-			constraints.add(new Constraint(Constraint.Type.UNIQUE));
+			constraints.add(Constraint.unique());
 		if (findConstraint(specStrings, NOT_NULL_CONSTRAINT) >= 0)
-			constraints.add(new Constraint(Constraint.Type.NOT_NULL));
+			constraints.add(Constraint.notNull());
 		return constraints;
 	}
 

@@ -61,31 +61,29 @@ public class SQLiteSchemaGenerator {
 		if (constraints == null)
 			return;
 		for (Constraint constraint : constraints) {
-			switch (constraint.getType()) {
-			case UNIQUE:
+			if (constraint instanceof Constraint.Unique) {
 				out.append(" UNIQUE");
-				break;
-			case NOT_NULL:
+			} else if (constraint instanceof Constraint.NotNull) {
 				out.append(" NOT NULL");
-				break;
-			case DEFAULT:
+			} else if (constraint instanceof Constraint.Default) {
+				Constraint.Default<?> defaultConstraint =
+						(Constraint.Default<?>)constraint;
 				out.append(" DEFAULT ");
 				Class<?> type = column.getKlass ();
 				if (type.equals(Date.class)) {
 					out.append('\'');
 					out.append(DateUtil.timestampToString(
-							(Date)constraint.getArgs()[0]
+							(Date)defaultConstraint.getValue()
 					));
 					out.append('\'');
 				} else if (type.equals(String.class)) {
 					out.append('\'');
-					out.append( (String)constraint.getArgs()[0] );
+					out.append( (String)defaultConstraint.getValue() );
 					out.append('\'');
 				} else {
-					out.append( (constraint.getArgs()[0]).toString() );
+					out.append(defaultConstraint.getValue().toString());
 				}
-				break;
-			default:
+			} else {
 				/* no-op */
 			}
 		}

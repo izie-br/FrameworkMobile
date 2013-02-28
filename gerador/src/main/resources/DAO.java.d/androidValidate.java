@@ -27,7 +27,7 @@
 #******##if ($fields.size() == 1)
 #**********#                errors.add (new ValidationError (
 #**********#                    ${Target}.${fields[0].UpperAndUnderscores},
-#**********#                    new Constraint (Constraint.UNIQUE)
+#**********#                    Constraint.unique()
 #**********#                ));
 #******##else
 #**********#                errors.add (new ValidationError (null, new Constraint (

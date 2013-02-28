@@ -219,14 +219,31 @@ public final class Table {
             return new Q(this, Q.OpUnary.NOTNULL);
         }
 
+        @Override
+        public int hashCode() {
+            return Table.this.getName().hashCode() * this.getName().hashCode();
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (obj == this)
+                return true;
+            if (obj == null)
+                return false;
+            if (obj.getClass() != this.getClass())
+                return false;
+            Table.Column<?> other = (Table.Column<?>) obj;
+            if (!Table.this.getName().equals(other.getTable().getName()))
+                return false;
+            return (this.name.equals (other.name) &&
+                this.klass.equals (other.klass) &&
+                constraintsEquals (this.constraints, other.constraints));
+        }
     }
 
     private boolean tableHaveColumn (Table.Column<?> column) {
         for (Table.Column<?> col : Table.this.columns) {
-            if (col.name.equals (column.name) &&
-                col.klass.equals (column.klass) &&
-                constraintsEquals (col.constraints, column.constraints) )
-            {
+            if (col.equals(column)) {
                 return true;
             }
         }

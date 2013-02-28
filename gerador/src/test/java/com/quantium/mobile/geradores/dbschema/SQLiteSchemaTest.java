@@ -19,20 +19,20 @@ public class SQLiteSchemaTest {
 	private static final String     PK_COLUMN_NAME = "the_pk";
 	private static final Class<?>   PK_COLUMN_TYPE = Long.class;
 	private static final Constraint PK_COLUMN_CONSTRAINTS [] = {
-		new Constraint(Constraint.Type.PRIMARY_KEY)
+		Constraint.primaryKey()
 	};
 
 	private static final String     NAME_COLUMN_NAME = "name";
 	private static final Class<?>   NAME_COLUMN_TYPE = String.class;
 	private static final Constraint NAME_COLUMN_CONSTRAINTS [] = {
-		new Constraint(Constraint.Type.NOT_NULL)
+		Constraint.notNull()
 	};
 
 	private static final String     VALUE_COLUMN_NAME = "value";
 	private static final Class<?>   VALUE_COLUMN_TYPE = Double.class;
 	private static final Constraint VALUE_COLUMN_CONSTRAINTS [] = {
-		new Constraint(Constraint.Type.DEFAULT, 0.0),
-		new Constraint(Constraint.Type.NOT_NULL)
+		Constraint.defaultValue(0.0),
+		Constraint.notNull()
 	};
 
 	private static final String     OPTS_COLUMN_NAME = "opts";

@@ -10,13 +10,13 @@
 #**********#        {
 #**********#            errors.add (new ValidationError (
 #**********#                    ${field.UpperAndUnderscores},
-#**********#                    new Constraint (Constraint.NOT_NULL)));
+#**********#                    Constraint.notNull()));
 #**********#        }
 #******##elseif ($field.Klass.equals("String") || $field.Klass.equals("Date"))
 #**********#        if (this.${field.LowerCamel} == null) {
 #**********#            errors.add (new ValidationError (
 #**********#                    ${field.UpperAndUnderscores},
-#**********#                    new Constraint (Constraint.NOT_NULL)));
+#**********#                    Constraint.notNull()));
 #**********#        }
 #******##end
 #**##end

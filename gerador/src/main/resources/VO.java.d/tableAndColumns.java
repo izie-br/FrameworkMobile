@@ -1,8 +1,8 @@
     public final static Table _TABLE = new Table ("${table}");
 #foreach ($field in $fields)
-#**##set ($constraintsVarargs = ", " + ${Constraints[$field.Constraints]})
-#**##if ($constraintsVarargs.equals(", new Constraint[] {}"))
-#******##set ($constraintsVarargs = "")
+#**##set ($constraintsVarargs = ${Constraints[$field.Constraints]})
+#**##if (!$constraintsVarargs.equals(""))
+#******##set ($constraintsVarargs = ", new Constraint[]{" + $constraintsVarargs + "}")
 #**##end
 #**#    public final static Table.Column<${field.Klass}> ${field.UpperAndUnderscores} = _TABLE.addColumn(${field.Klass}.class, "${field.LowerAndUnderscores}"${constraintsVarargs});
 #end

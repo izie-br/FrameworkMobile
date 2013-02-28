@@ -162,7 +162,7 @@ public class AssociacaoPorNomeFilter extends TabelaSchemaFilter {
 								Constraint constraints [] = prop.getConstraints();
 								boolean nullable = true;
 								for (Constraint constraint : constraints) {
-									if (constraint.isTypeOf (Constraint.NOT_NULL)) {
+									if (constraint instanceof Constraint.NotNull ) {
 										nullable = false;
 										break;
 									}

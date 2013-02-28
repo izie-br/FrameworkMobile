@@ -52,17 +52,12 @@ public class ValidateHelper {
 
 		for (Property property : orderedFields) {
 			for (Constraint constraint : property.getConstraints ()) {
-				switch (constraint.getType ()) {
-				case UNIQUE:
+				if (constraint instanceof Constraint.Unique) {
 					Collection<Property> column = new ArrayList<Property> (1);
 					column.add (property);
 					uniques.add (column);
-					break;
-				case NOT_NULL:
+				} else if (constraint instanceof Constraint.NotNull) {
 					notNull.add (property);
-					break;
-				default:
-					/* no-op */
 				}
 			}
 		}

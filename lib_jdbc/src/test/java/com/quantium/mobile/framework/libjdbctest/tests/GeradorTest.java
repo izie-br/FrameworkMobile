@@ -312,11 +312,11 @@ public class GeradorTest {
 
 		for (ValidationError error : validationErrors) {
 			if (error.getColumn ().equals (Author.NAME) &&
-			    error.getConstraint ().isTypeOf (Constraint.NOT_NULL))
+			    error.getConstraint() instanceof Constraint.NotNull)
 			{
 				nameNull = true;
 			} else if (error.getColumn ().equals (Author.CREATED_AT) &&
-			           error.getConstraint ().isTypeOf (Constraint.NOT_NULL))
+			           error.getConstraint() instanceof Constraint.NotNull)
 			{
 				createdAtNull = true;
 			} else {
@@ -325,7 +325,7 @@ public class GeradorTest {
 					"foi encontrado " +
 					error.getColumn ().getName () + 
 					" com constraint invalida: " +
-					error.getConstraint ().getType ()
+					error.getConstraint ().getClass().getSimpleName()
 				);
 			}
 		}
@@ -365,7 +365,7 @@ public class GeradorTest {
 		assertEquals (1, errors.size ());
 
 		ValidationError error = errors.iterator ().next ();
-		assertTrue (error.getConstraint ().isTypeOf (Constraint.UNIQUE));
+		assertTrue (error.getConstraint () instanceof Constraint.Unique);
 		assertEquals (Author.NAME, error.getColumn ());
 	}
 

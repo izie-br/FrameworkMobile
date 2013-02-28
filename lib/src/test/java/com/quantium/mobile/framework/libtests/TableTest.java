@@ -14,7 +14,7 @@ public class TableTest {
 		String name = "tablename";
 		String col1Name = "columnone";
 		String col2Name = "columntwo";
-		Constraint col2Constraints [] = {new Constraint(Constraint.UNIQUE)};
+		Constraint col2Constraints [] = {Constraint.unique()};
 
 		Table t1 = new Table(name);
 		t1.addColumn (String.class, col1Name);
@@ -26,7 +26,7 @@ public class TableTest {
 		assertEquals (t1, t2);
 
 		Constraint table3col2Constraints [] =
-			{new Constraint(Constraint.NOT_NULL)};
+			{Constraint.notNull()};
 
 		Table t3 = new Table (name);
 		t3.addColumn (String.class, col1Name);
@@ -48,15 +48,15 @@ public class TableTest {
 		String col1Name = "columnone";
 		String col2Name = "columntwo";
 		String col3Name = "columnthree";
-		Constraint col2Constraints [] = {new Constraint(Constraint.UNIQUE)};
+		Constraint col2Constraints [] = {Constraint.unique()};
 
 		Table t1 = new Table (name);
-		t1.addColumn (String.class, col1Name);
-		t1.addColumn (String.class, col2Name, col2Constraints);
+		Table.Column<?> col1 = t1.addColumn (String.class, col1Name);
+		Table.Column<?> col2 = t1.addColumn (String.class, col2Name, col2Constraints);
 		t1.addColumn (String.class, col3Name, col2Constraints);
 
 		Constraint table2Constraint =
-				new Constraint(Constraint.UNIQUE, col1Name, col2Name);
+				Constraint.unique(col1, col2);
 
 		Table t2 = new Table (name);
 		t2.addColumn (String.class, col1Name);
@@ -68,16 +68,16 @@ public class TableTest {
 
 
 		Table t3 = new Table (name);
-		t3.addColumn (String.class, col1Name);
+		col1 = t3.addColumn (String.class, col1Name);
 		t3.addColumn (String.class, col2Name, col2Constraints);
-		t3.addColumn (String.class, col3Name, col2Constraints);
+		Table.Column<?> col3 = t3.addColumn (String.class, col3Name, col2Constraints);
 		t3.addConstraint (table2Constraint);
 
 		assertEquals (t2, t3);
 
 		// alterei o segundo de col2Name para col3Name
 		Constraint table4Constraint =
-				new Constraint(Constraint.UNIQUE, col1Name, col3Name);
+				Constraint.unique(col1, col3);
 
 		Table t4 = new Table (name);
 		t4.addColumn (String.class, col1Name);
