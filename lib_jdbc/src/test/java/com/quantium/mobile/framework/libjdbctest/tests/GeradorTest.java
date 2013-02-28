@@ -339,6 +339,14 @@ public class GeradorTest {
 
 		// a lista de erros deve ser uma lista vazia (nao pode ser null)
 		assertEquals (0, author.validate ().size ());
+
+		// o nome tem tamanho maximo de 79 pois eh um VARCHAR[79]
+		author.setName(RandomStringUtils.randomAlphanumeric(80));
+		validationErrors = author.validate();
+		assertEquals(1, validationErrors.size());
+		ValidationError maxError = validationErrors.iterator().next();
+		assertEquals(Author.NAME, maxError.getColumn());
+		assertTrue(maxError.getConstraint() instanceof Constraint.Max);
 	}
 
 	@Test

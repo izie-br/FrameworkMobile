@@ -2,7 +2,9 @@ package com.quantium.mobile.geradores.velocity.helpers;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
@@ -15,6 +17,9 @@ public class ValidateHelper {
 
 	private List<Collection<Property>> uniques = null;
 	private List<Property> notNull = null;
+	private Map<Property,Constraint> max = null;
+	private Map<Property,Constraint> min = null;
+	private Map<Property,Constraint> length = null;
 
 
 	public ValidateHelper(
@@ -42,6 +47,17 @@ public class ValidateHelper {
 		return notNull;
 	}
 
+	public Map<Property,Constraint> getMax() {
+		return max;
+	}
+
+	public Map<Property,Constraint> getMin() {
+		return min;
+	}
+
+	public Map<Property,Constraint> getLength() {
+		return length;
+	}
 
 	private void findConstraints () {
 		if (uniques != null && notNull != null)
@@ -49,6 +65,9 @@ public class ValidateHelper {
 
 		uniques = new ArrayList<Collection<Property>> ();
 		notNull = new ArrayList<Property> ();
+		max = new HashMap<Property, Constraint>();
+		min = new HashMap<Property, Constraint>();
+		length = new HashMap<Property, Constraint>();
 
 		for (Property property : orderedFields) {
 			for (Constraint constraint : property.getConstraints ()) {
@@ -58,6 +77,12 @@ public class ValidateHelper {
 					uniques.add (column);
 				} else if (constraint instanceof Constraint.NotNull) {
 					notNull.add (property);
+				} else if (constraint instanceof Constraint.Max) {
+					max.put(property, constraint);
+				} else if (constraint instanceof Constraint.Min) {
+					min.put(property, constraint);
+				} else if (constraint instanceof Constraint.Length) {
+					length.put(property, constraint);
 				}
 			}
 		}

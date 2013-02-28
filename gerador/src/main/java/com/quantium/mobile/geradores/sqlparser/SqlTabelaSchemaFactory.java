@@ -198,17 +198,25 @@ public class SqlTabelaSchemaFactory {
 			constraints.add(Constraint.unique());
 		if (findConstraint(specStrings, NOT_NULL_CONSTRAINT) >= 0)
 			constraints.add(Constraint.notNull());
+		Constraint max = getMaxFromColumnType(type, colunaDefinition);
+		if (max != null)
+			constraints.add(max);
+		return constraints;
+	}
+
+	private static Constraint getMaxFromColumnType(Class<?> type,
+			ColumnDefinition colunaDefinition) {
 		@SuppressWarnings("unchecked")
 		List<String> args = colunaDefinition.getColDataType().getArgumentsStringList();
 		if (type.equals(String.class) && args != null && args.size() == 1 ){
 			try {
 				Short maxLength = Short.parseShort(args.get(0));
-				constraints.add(Constraint.max(maxLength));
+				return Constraint.max(maxLength);
 			} catch (RuntimeException e) {
 				LoggerUtil.getLog().error(StringUtil.getStackTrace(e));
 			}
 		}
-		return constraints;
+		return null;
 	}
 
 	private static int findConstraint(List<String> specStrings, String constrt) {

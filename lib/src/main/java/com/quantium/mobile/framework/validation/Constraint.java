@@ -124,6 +124,16 @@ public abstract class Constraint {
 		return new Max<T>(value);
 	}
 
+	public static class Length<T> extends ColumnValuePairConstraint<T> {
+		private Length(T value) {
+			super(value);
+		}
+	}
+
+	public static <T> Length<T> length (T value) {
+		return new Length<T>(value);
+	}
+
 	public static class Unique extends Constraint {
 
 		private Set<Table.Column<?>> columns;

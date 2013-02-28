@@ -153,6 +153,9 @@ public class VelocityVOFactory {
 		if (type == VelocityVOFactory.Type.IMPLEMENTATION) {
 			ValidateHelper vhelper = new ValidateHelper (schema, fields);
 			ctx.put ("NotNull", vhelper.getNotNull ());
+			ctx.put ("MaxConstraints", vhelper.getMax());
+			ctx.put ("MinConstraints", vhelper.getMin());
+			ctx.put ("LenghtConstraints", vhelper.getLength());
 		}
 
 		ctx.put ("Constraints", new ConstraintsHelper ());

@@ -69,6 +69,8 @@ public class ConstraintsHelper {
 			return "min";
 		if (constraint instanceof Constraint.Max)
 			return "max";
+		if (constraint instanceof Constraint.Length)
+			return "length";
 		throw new RuntimeException();
 	}
 
@@ -80,7 +82,8 @@ public class ConstraintsHelper {
 		}
 		if (constraint instanceof Constraint.Default ||
 		    constraint instanceof Constraint.Min ||
-		    constraint instanceof Constraint.Max)
+		    constraint instanceof Constraint.Max ||
+		    constraint instanceof Constraint.Length)
 		{
 			Constraint.ColumnValuePairConstraint<?> colVal =
 					(Constraint.ColumnValuePairConstraint<?>) constraint;
