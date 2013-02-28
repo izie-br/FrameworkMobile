@@ -16,7 +16,7 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 public class DB {
 
 	public static String DB_NOME = "default.db";
-	public static int DB_VERSAO = 3;
+	public static int DB_VERSAO = 4;
 
 	public static Connection getConnection(){
 		Properties props = new Properties();

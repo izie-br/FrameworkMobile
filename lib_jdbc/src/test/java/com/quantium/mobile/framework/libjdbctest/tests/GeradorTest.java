@@ -3,6 +3,7 @@ package com.quantium.mobile.framework.libjdbctest.tests;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -388,10 +389,84 @@ public class GeradorTest {
 		} catch (IOException e) {
 			fail ();
 		}
-
 		// Dois dos autores devem estar com active false
 		long qty = dao.query (Author.ACTIVE.eq (false)).count ();
 		assertEquals (2, qty);
+	}
+
+	@Test
+	public void testNullQuery () {
+		try {
+			DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+	
+			Customer customerNullName = randomCustomer();
+			customerNullName.setName(null);
+			assertTrue(customerDao.save(customerNullName));
+	
+			Customer customerNotNullName = randomCustomer();
+			assertTrue(customerDao.save(customerNotNullName));
+	
+			{
+				List<Customer> customersNullNameFromDb = customerDao
+						.query(Customer.NAME.eq((String)null))
+						.all();
+				assertEquals(1, customersNullNameFromDb.size());
+				assertEquals(customerNullName, customersNullNameFromDb.get(0));
+			}
+			{
+				List<Customer> customersNotNullNameFromDb = customerDao
+						.query(Customer.NAME.isNotNull())
+						.all();
+				assertEquals(1, customersNotNullNameFromDb.size());
+				assertEquals(customerNotNullName, customersNotNullNameFromDb.get(0));
+			}
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+
+	/**
+	 * Quando o tipo eh Long, Double e afins, NULL se torna 0 no banco
+	 */
+	@Test
+	public void testNullToZeroQuery () {
+		try {
+			DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
+			DAO<Document> docDao = this.daoFactory.getDaoFor(Document.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+	
+			Document documentAuthorNotNull = randomDocument();
+			documentAuthorNotNull.setAuthor(author);
+			assertTrue(docDao.save(documentAuthorNotNull));
+
+			Document documentAuthorNull = randomDocument();
+			documentAuthorNull.setAuthor(null);
+			assertTrue(docDao.save(documentAuthorNull));
+
+			List<Document> documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.eq((Long)null))
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNull())
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			List<Document> documentAuthorNotNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNotNull())
+					.all();
+			assertEquals(1, documentAuthorNotNullFromDb.size());
+			assertEquals(documentAuthorNotNull, documentAuthorNotNullFromDb.get(0));
+
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
 	}
 
 	@SuppressWarnings("deprecation")
