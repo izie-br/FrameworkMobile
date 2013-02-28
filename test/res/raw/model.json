@@ -195,7 +195,7 @@
               "max": "",
               "validationRegex": "",
               "isUnique": "0",
-              "isRequired": "true",
+              "isRequired": "false",
               "isEntityIdentifier": "0",
               "isStateMachineAttribute": "0",
               "databaseColumn": ""

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 
@@ -326,6 +327,66 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
+	public void testNullQuery () {
+	try {
+		DAO<Customer> customerDao = facade.getDAOFactory().getDaoFor(Customer.class);
+
+		Customer customerNullName = randomCustomer();
+		customerNullName.setName(null);
+		assertTrue(customerDao.save(customerNullName));
+
+		Customer customerNotNullName = randomCustomer();
+		assertTrue(customerDao.save(customerNotNullName));
+
+		{
+			List<Customer> customersNullNameFromDb = customerDao
+					.query(Customer.NAME.eq((String)null))
+					.all();
+			assertEquals(1, customersNullNameFromDb.size());
+			assertEquals(customerNullName, customersNullNameFromDb.get(0));
+		}
+		{
+			List<Customer> customersNotNullNameFromDb = customerDao
+					.query(Customer.NAME.isNotNull())
+					.all();
+			assertEquals(1, customersNotNullNameFromDb.size());
+			assertEquals(customerNotNullName, customersNotNullNameFromDb.get(0));
+		}
+	} catch (IOException e) {
+		fail(StringUtil.getStackTrace(e));
+	}
+}
+
+
+	/**
+	 * Quando o tipo eh Long, Double e afins, NULL se torna 0 no banco
+	 */
+/*	public void testNullToZeroQuery () {
+		try {
+			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+	
+			Document documentAuthorNotNull = randomDocument();
+			documentAuthorNotNull.setAuthor(author);
+			assertTrue(docDao.save(documentAuthorNotNull));
+
+			Document documentAuthorNull = randomDocument();
+			documentAuthorNull.setAuthor(null);
+			assertTrue(docDao.save(documentAuthorNull));
+
+			Document documentAuthorNullFromDb = docDao.query(
+					Document.ID_AUTHOR.eq((Long)null)
+				).first();
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb);
+
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+*/
 	private Author randomAuthor() {
 		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
