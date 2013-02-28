@@ -19,7 +19,6 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.Constants;
-import com.quantium.mobile.geradores.velocity.helpers.AssociationHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ConstructorArgsHelper;
 import com.quantium.mobile.geradores.velocity.helpers.GetterHelper;
 import com.quantium.mobile.geradores.velocity.helpers.ImportHelper;

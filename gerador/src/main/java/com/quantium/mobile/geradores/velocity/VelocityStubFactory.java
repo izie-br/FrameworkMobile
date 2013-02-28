@@ -213,6 +213,7 @@ public class VelocityStubFactory {
 		return baseGenPackage.toString();
 	}
 
+/*
 	private String getBaseGenPackageFor (JavaBeanSchema schema) {
 		StringBuilder baseGenPackage = new StringBuilder(this.basePackage);
 		String module = schema.getModule();
@@ -226,5 +227,5 @@ public class VelocityStubFactory {
 		}
 		return baseGenPackage.toString();
 	}
-
+*/
 }

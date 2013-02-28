@@ -10,6 +10,8 @@ import com.quantium.mobile.framework.libjdbctest.gen.AbstractCustomer;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class CustomerImpl extends AbstractCustomer
 {
+    private static final long serialVersionUID = 6217399597870697399L;
+
     public CustomerImpl () {
         super();
     }

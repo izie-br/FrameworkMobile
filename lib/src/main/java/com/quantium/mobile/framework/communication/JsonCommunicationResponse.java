@@ -1,6 +1,5 @@
 package com.quantium.mobile.framework.communication;
 
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;

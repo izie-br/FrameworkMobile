@@ -19,15 +19,15 @@ public class DateUtil {
 	public static final String FORMATO_DATE = "%04d-%02d-%02d";
 
 	// substrings com fim nao inclusivo
-	private static int STRING_TO_DATE_ANO[] = {0,4};
-	private static int STRING_TO_DATE_MES[] = {5,7};
-	private static int STRING_TO_DATE_DIA[] = {8,10};
-	private static int STRING_TO_DATE_HORAS[] = {11,13};
-	private static int STRING_TO_DATE_MINUTOS[] = {14,16};
-	private static int STRING_TO_DATE_SEGUNDOS[] = {17,19};
-
-	public static final int FORMATO_TIMESTAMP_LENGTH =
-		STRING_TO_DATE_SEGUNDOS[1];
+//	private static int STRING_TO_DATE_ANO[] = {0,4};
+//	private static int STRING_TO_DATE_MES[] = {5,7};
+//	private static int STRING_TO_DATE_DIA[] = {8,10};
+//	private static int STRING_TO_DATE_HORAS[] = {11,13};
+//	private static int STRING_TO_DATE_MINUTOS[] = {14,16};
+//	private static int STRING_TO_DATE_SEGUNDOS[] = {17,19};
+//
+//	public static final int FORMATO_TIMESTAMP_LENGTH =
+//		STRING_TO_DATE_SEGUNDOS[1];
 
 	public static Date adicionaMeses(Date date, int meses) {
 		long atual = date.getTime();

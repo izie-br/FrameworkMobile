@@ -99,7 +99,6 @@ public class VelocityVOFactory {
 		ctx.put("Filename", filename);
 		String editableInterfaceName = Type.EDITABLE_INTERFACE.getFilenameFor(schema);
 		ctx.put("EditableInterface", editableInterfaceName);
-		String interfaceName = Type.INTERFACE.getFilenameFor(schema);
 		ctx.put("table", schema.getTabela().getName ());
 		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
 		ctx.put("Klass", classname);
