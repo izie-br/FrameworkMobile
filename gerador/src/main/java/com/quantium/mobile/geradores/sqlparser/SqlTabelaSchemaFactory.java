@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.util.LoggerUtil;
@@ -87,7 +88,8 @@ public class SqlTabelaSchemaFactory {
 
 				// constraints da coluna
 				@SuppressWarnings("unchecked")
-				List<Constraint> constraints = extractColumnConstraints(colunaDefinition, ct.getIndexes());
+				List<Constraint> constraints = extractColumnConstraints(
+						tipoColuna, colunaDefinition, ct.getIndexes());
 				Constraint arrConstraints[] = new Constraint[constraints.size()];
 				constraints.toArray(arrConstraints);
 
@@ -174,7 +176,9 @@ public class SqlTabelaSchemaFactory {
 
 	}
 
-	private static List<Constraint> extractColumnConstraints(ColumnDefinition colunaDefinition, List<Index> indexes) {
+	private static List<Constraint> extractColumnConstraints(
+			Class<?> type, ColumnDefinition colunaDefinition,
+			List<Index> indexes) {
 		@SuppressWarnings("unchecked")
 		List<String> specStrings = colunaDefinition.getColumnSpecStrings();
 		int indexOfPrimaryKeyConstraint = findConstraint(specStrings, PRIMARY_KEY_CONSTRAINT);
@@ -194,6 +198,16 @@ public class SqlTabelaSchemaFactory {
 			constraints.add(Constraint.unique());
 		if (findConstraint(specStrings, NOT_NULL_CONSTRAINT) >= 0)
 			constraints.add(Constraint.notNull());
+		@SuppressWarnings("unchecked")
+		List<String> args = colunaDefinition.getColDataType().getArgumentsStringList();
+		if (type.equals(String.class) && args != null && args.size() == 1 ){
+			try {
+				Short maxLength = Short.parseShort(args.get(0));
+				constraints.add(Constraint.max(maxLength));
+			} catch (RuntimeException e) {
+				LoggerUtil.getLog().error(StringUtil.getStackTrace(e));
+			}
+		}
 		return constraints;
 	}
 

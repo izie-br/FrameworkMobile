@@ -30,8 +30,13 @@ public class ConstraintsHelper {
 
 			Object args [] = getConstraintArgs(constraint);
 			if (args != null && args.length> 0){
+				boolean first = true;
 				for (Object arg : args) {
-					sb.append (", ");
+					if (first){
+						first = false;
+					} else {
+						sb.append (", ");
+					}
 					boolean isString = arg instanceof String;
 					if (isString)
 						sb.append ('"');
