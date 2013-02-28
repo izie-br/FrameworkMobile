@@ -4,6 +4,8 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.List;
 
+import com.quantium.mobile.framework.query.Q.QNode1X1;
+
 public abstract class AbstractQSQLProvider {
 
     private static final String NULL_ARGUMENT_EXCEPTION_FMT =
@@ -111,6 +113,16 @@ public abstract class AbstractQSQLProvider {
         Q.Op1x1 op = node.op();
         Object arg = node.getArg();
 
+        // Para o caso de argumentos NULL com tipos Long e Double
+        // o argumento deve ser convertido em "0"
+        if (arg == null) {
+            if (column.getKlass().equals(Long.class)) {
+                arg = ((Long)0L);
+            } else if (column.getKlass().equals(Double.class)) {
+                arg = ((Double)0.0);
+            }
+        }
+
         sb.append( getColumn(
                 column.getTable().getName(),
                 column)
@@ -174,19 +186,19 @@ public abstract class AbstractQSQLProvider {
 
     protected void outputQNodeUnary(Q.QNodeUnary node, Table table, StringBuilder sb, List<Object> args) {
         Table.Column<?> column = node.column();
-        Q.OpUnary op = node.op();
-
-        sb.append( getColumn(
-            // conferir se eh da mesma tabela
-            ( table.equals(column.getTable()) ?
-                // se for a coluna for da mesma tabela
-                null :
-                // caso seja uma coluna de outra tabela
-                column.getTable().getName()
-            ),
-            column)
-        );
-        sb.append(op.toString());
+        Q.Op1x1 op1x1;
+        switch (node.op()) {
+        case ISNULL:
+            op1x1 = Q.Op1x1.EQ;
+            break;
+        case NOTNULL:
+            op1x1 = Q.Op1x1.NE;
+            break;
+        default:
+            throw new RuntimeException();
+        }
+        QNode1X1 node1x1 = new Q.QNode1X1(column, op1x1, null);
+        this.outputQNode1X1(node1x1, table, sb, args);
     }
 
 }

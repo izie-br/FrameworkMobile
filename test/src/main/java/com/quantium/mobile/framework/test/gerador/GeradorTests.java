@@ -361,7 +361,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	/**
 	 * Quando o tipo eh Long, Double e afins, NULL se torna 0 no banco
 	 */
-/*	public void testNullToZeroQuery () {
+	public void testNullToZeroQuery () {
 		try {
 			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
 			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
@@ -377,16 +377,29 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			documentAuthorNull.setAuthor(null);
 			assertTrue(docDao.save(documentAuthorNull));
 
-			Document documentAuthorNullFromDb = docDao.query(
-					Document.ID_AUTHOR.eq((Long)null)
-				).first();
-			assertEquals(documentAuthorNull, documentAuthorNullFromDb);
+			List<Document> documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.eq((Long)null))
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNull())
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			List<Document> documentAuthorNotNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNotNull())
+					.all();
+			assertEquals(1, documentAuthorNotNullFromDb.size());
+			assertEquals(documentAuthorNotNull, documentAuthorNotNullFromDb.get(0));
 
 		} catch (IOException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
 	}
-*/
+
 	private Author randomAuthor() {
 		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
