@@ -42,7 +42,8 @@ public class FirstLevelCache {
 	private void trim () {
 		Set<EntityKey> keySet = entityCache.keySet();
 		for (EntityKey key : keySet) {
-			getOrRemoveIfNull(key);
+			if (getOrNull(key) == null)
+				entityCache.remove(key);
 		}
 	}
 
@@ -62,22 +63,18 @@ public class FirstLevelCache {
 		readLock.lock();
 		try {
 			EntityKey key = new EntityKey(klassId, keys);
-			return getOrRemoveIfNull(key);
+			return getOrNull(key);
 		} finally {
 			readLock.unlock();
 		}
 	}
 
-	private Object getOrRemoveIfNull(EntityKey key) {
+	private Object getOrNull(EntityKey key) {
 		Reference<?> ref = entityCache.get(key);
 		if (ref == null) {
 			return null;
 		}
 		Object obj = ref.get();
-		if (obj == null) {
-			entityCache.remove(key);
-			return null;
-		}
 		return obj;
 	}
 
@@ -89,7 +86,7 @@ public class FirstLevelCache {
 			ArrayList<Reference<T>> list =
 					new ArrayList<Reference<T>>();
 			for (EntityKey key : entityCache.keySet()) {
-				Object obj = getOrRemoveIfNull(key);
+				Object obj = getOrNull(key);
 				if ( obj != null && klass.isInstance(obj) ){
 					list.add(  new SoftReference<T>( (T)obj )  );
 				}
