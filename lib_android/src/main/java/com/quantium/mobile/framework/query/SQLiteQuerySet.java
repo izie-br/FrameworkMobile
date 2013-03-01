@@ -4,69 +4,20 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.quantium.mobile.framework.utils.StringUtil;
-
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
-	private Q q;
-	private String orderBy;
-
-//	private String groupBy;
-//	private String having;
-
-	private int limit;
-	private int offset;
-
+public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
 	protected abstract T cursorToObject(Cursor cursor);
 
-	protected abstract Table.Column<?>[] getColunas();
-
 	protected abstract SQLiteDatabase getDb();
 
-	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
-		SQLiteQuerySet<T> obj = this.clone();
-		if (column != null) {
-			obj.orderBy =
-					( (this.orderBy == null) ? "" : this.orderBy + ",") +
-					" " + column.getTable().getName() +
-					"." + column.getName() +
-					" " + asc.toString();
-		}
-		return obj;
+	@Override
+	protected String nullsFirstOrderingClause() {
+		// o SQLITE retorna NULLS FIRST por padrao em todas buscas
+		return null;
 	}
-
-	public QuerySet<T> orderBy(Table.Column<?> column){
-		return orderBy(column, Q.ASC);
-	}
-
-	public QuerySet<T> limit (int limit){
-		SQLiteQuerySet<T> obj = this.clone();
-		if (limit > 0)
-			obj.limit = limit;
-		return obj;
-	}
-
-	public QuerySet<T> offset (int offset){
-		SQLiteQuerySet<T> obj = this.clone();
-		if (offset > 0)
-			obj.offset = offset;
-		return obj;
-	}
-
-	public QuerySet<T> filter(Q q){
-		if (q==null)
-			return this;
-		SQLiteQuerySet<T> obj = this.clone();
-		if (this.q==null)
-			obj.q = q;
-		else
-			obj.q = this.q.and (q);
-		return obj;
-	}
-
 
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
@@ -111,11 +62,11 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 	 */
 	public Cursor getCursor(List<?> selection) {
 		String limitStr =
-				(limit>0 && offset>0) ?
+				(limit !=0 && offset != 0) ?
 						String.format("LIMIT %d,%d", offset,limit):
-				(limit>0) ?
+				(limit != 0) ?
 						String.format("LIMIT %d", limit):
-				(offset>0) ?
+				(offset != 0) ?
 						String.format("OFFSET %d,", offset):
 				// limit <= 0 && offset <= 0
 						"";
@@ -139,19 +90,6 @@ public abstract class SQLiteQuerySet<T> implements QuerySet<T>, Cloneable{
 				args
 		);
 		return cursor;
-	}
-
-	@Override
-	protected SQLiteQuerySet<T> clone() {
-		try {
-			@SuppressWarnings("unchecked")
-			SQLiteQuerySet<T> obj = (SQLiteQuerySet<T>)super.clone();
-			return obj;
-		} catch (CloneNotSupportedException e) {
-			// Impossivel a menos que a excecao seja explicitamente criada
-			//    ou que esta classe deixe de implementar Cloenable
-			throw new RuntimeException(StringUtil.getStackTrace(e));
-		}
 	}
 
 }

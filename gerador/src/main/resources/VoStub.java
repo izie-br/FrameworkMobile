@@ -13,6 +13,9 @@ ${Imports}
 #end
 {
 #if ($implementation)
+
+    public static final long serialVersionUID = ${GenImpl}.publicSerialVersionUID;
+
     public ${Filename} () {
         super();
     }

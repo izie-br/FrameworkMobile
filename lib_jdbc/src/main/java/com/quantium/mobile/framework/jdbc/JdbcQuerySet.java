@@ -10,72 +10,19 @@ import java.util.Arrays;
 import java.util.List;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.query.BaseQuerySet;
 import com.quantium.mobile.framework.query.Q;
-import com.quantium.mobile.framework.query.QuerySet;
-import com.quantium.mobile.framework.query.Table;
-import com.quantium.mobile.framework.utils.StringUtil;
 
-public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
-	private Q q;
-	private String orderBy;
-
-//	private String groupBy;
-//	private String having;
-
-	private int limit;
-	private int offset;
-
+public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 
 	protected abstract T cursorToObject(ResultSet cursor);
 
-	protected abstract Table.Column<?>[] getColunas();
-
 	protected abstract Connection getConnection();
 
-	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
-		JdbcQuerySet<T> obj = this.clone();
-		if (column != null) {
-			// O ordenamento usa "NULLS FIRST" para ter comportamento
-			//   compativel com SQLite
-			obj.orderBy =
-					( (this.orderBy == null) ? "" : this.orderBy + ",") +
-					" " + column.getTable().getName() +
-					"." + column.getName() +
-					" " + asc.toString() +
-					" NULLS FIRST";
-		}
-		return obj;
+	@Override
+	protected String nullsFirstOrderingClause() {
+		return "NULLS FIRST";
 	}
-
-	public QuerySet<T> orderBy(Table.Column<?> column){
-		return orderBy(column, Q.ASC);
-	}
-
-	public QuerySet<T> limit (int limit){
-		JdbcQuerySet<T> obj = this.clone();
-		if (limit > 0)
-			obj.limit = limit;
-		return obj;
-	}
-
-	public QuerySet<T> offset (int offset){
-		JdbcQuerySet<T> obj = this.clone();
-		if (offset > 0)
-			obj.offset = offset;
-		return obj;
-	}
-
-	public QuerySet<T> filter(Q q){
-		if (q==null)
-			return this;
-		JdbcQuerySet<T> obj = this.clone();
-		if (this.q==null)
-			obj.q = q;
-		else
-			obj.q = this.q.and (q);
-		return obj;
-	}
-
 
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
@@ -194,19 +141,6 @@ public abstract class JdbcQuerySet<T> implements QuerySet<T>, Cloneable {
 		}
 		ResultSet rs = stm.executeQuery();
 		return rs;
-	}
-
-	@Override
-	protected JdbcQuerySet<T> clone() {
-		try {
-			@SuppressWarnings("unchecked")
-			JdbcQuerySet<T> obj = (JdbcQuerySet<T>)super.clone();
-			return obj;
-		} catch (CloneNotSupportedException e) {
-			// Impossivel a menos que a excecao seja explicitamente criada
-			//    ou que esta classe deixe de implementar Cloenable
-			throw new RuntimeException(StringUtil.getStackTrace(e));
-		}
 	}
 
 }

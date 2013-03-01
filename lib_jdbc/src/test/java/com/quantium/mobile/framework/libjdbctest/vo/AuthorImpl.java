@@ -12,7 +12,8 @@ import com.quantium.mobile.framework.libjdbctest.gen.AbstractAuthor;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class AuthorImpl extends AbstractAuthor
 {
-    private static final long serialVersionUID = 9069129324679577603L;
+
+    public static final long serialVersionUID = AbstractAuthor.publicSerialVersionUID;
 
     public AuthorImpl () {
         super();

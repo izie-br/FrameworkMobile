@@ -14,7 +14,8 @@ import com.quantium.mobile.framework.test.document.gen.AbstractDocument;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class DocumentImpl extends AbstractDocument
 {
-    private static final long serialVersionUID = -1374564622101455900L;
+
+    public static final long serialVersionUID = AbstractDocument.publicSerialVersionUID;
 
     public DocumentImpl () {
         super();

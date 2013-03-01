@@ -12,7 +12,8 @@ import com.quantium.mobile.framework.test.gen.AbstractScore;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class ScoreImpl extends AbstractScore
 {
-    private static final long serialVersionUID = -4711857718797833002L;
+
+    public static final long serialVersionUID = AbstractScore.publicSerialVersionUID;
 
     public ScoreImpl () {
         super();

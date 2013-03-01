@@ -10,7 +10,8 @@ import com.quantium.mobile.framework.test.gen.AbstractCustomer;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class CustomerImpl extends AbstractCustomer
 {
-    private static final long serialVersionUID = -3674103493879914624L;
+
+    public static final long serialVersionUID = AbstractCustomer.publicSerialVersionUID;
 
     public CustomerImpl () {
         super();

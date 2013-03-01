@@ -14,7 +14,8 @@ import com.quantium.mobile.framework.libjdbctest.gen.AbstractDocument;
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 public class DocumentImpl extends AbstractDocument
 {
-    private static final long serialVersionUID = -8011214030127237365L;
+
+    public static final long serialVersionUID = AbstractDocument.publicSerialVersionUID;
 
     public DocumentImpl () {
         super();
