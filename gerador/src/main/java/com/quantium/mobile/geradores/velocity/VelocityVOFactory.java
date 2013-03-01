@@ -155,10 +155,10 @@ public class VelocityVOFactory {
 			ctx.put ("NotNull", vhelper.getNotNull ());
 			ctx.put ("MaxConstraints", vhelper.getMax());
 			ctx.put ("MinConstraints", vhelper.getMin());
-			ctx.put ("LenghtConstraints", vhelper.getLength());
+			ctx.put ("LengthConstraints", vhelper.getLength());
 		}
 
-		ctx.put ("Constraints", new ConstraintsHelper ());
+		ctx.put ("Constraints", new ConstraintsHelper (associationsFromFK));
 
 		File file = new File(
 				Utils.getPackageDir (targetDirectory, genPackage, schema.getModule ()),

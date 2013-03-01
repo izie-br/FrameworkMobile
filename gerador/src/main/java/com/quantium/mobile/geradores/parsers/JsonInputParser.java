@@ -98,21 +98,53 @@ public class JsonInputParser implements InputParser {
 				String type = jsonAttribute.getString("type");
 				boolean isRequired = jsonAttribute.optBoolean("isRequired");
 				boolean isUnique = jsonAttribute.optBoolean("isUnique");
+				int min = jsonAttribute.optInt("min");
+				int max = jsonAttribute.optInt("max");
+				int lengthConstraint = 0;
+				Class<?> classType = convertJsonTypeToJavaType(type);
+				boolean isStringType = String.class.equals(classType);
+				boolean isNumberType = Long.class.equals(classType) ||
+				                       Double.class.equals(classType);
+				if (!isStringType || (min != 0 && max != 0) ) {
+					if(min > max){
+						throw new RuntimeException(String.format(
+								"tamanho minimo de %s.%s maior que o maximo",
+								classId, attributeName));
+					} else if (isStringType && (min == max)) {
+						lengthConstraint = min; /* == max*/
+						min = 0;
+						max = 0;
+					}
+					if (min <0 && isStringType) {
+						throw new RuntimeException(String.format(
+								"tamanho minimo de %s.%s menor que 0",
+								classId, attributeName));
+					}
+					if (max <0 && isStringType) {
+						throw new RuntimeException(String.format(
+								"tamanho maximo de %s.%s menor que 0",
+								classId, attributeName));
+					}
+				}
+
 				if (attributeName == null || attributeName.trim().equals("")) {
 					throw new IllegalArgumentException("Attribute name cannot be null or empty.");
 				}
-				Class<?> classType = convertJsonTypeToJavaType(type);
-				Constraint[] constraints = null;
-				if (isUnique && isRequired) {
-					constraints = new Constraint[] {
-							Constraint.notNull(), Constraint.unique()
-					};
-				} else {
-					if (isUnique) {
-						constraints = new Constraint[] { Constraint.unique()};
-					} else if (isRequired) {
-						constraints = new Constraint[] { Constraint.notNull() };
-					}
+				Constraint constraints[] = null;
+				{
+					List<Constraint> constraintList = new ArrayList<Constraint>();
+					if (isUnique)
+						constraintList.add(Constraint.unique());
+					if (isRequired)
+						constraintList.add(Constraint.notNull());
+					if (isNumberType || min > 0)
+						constraintList.add(Constraint.min(min));
+					if (isNumberType || max > 0)
+						constraintList.add(Constraint.max(max));
+					if (isStringType && lengthConstraint > 0)
+						constraintList.add(Constraint.length(lengthConstraint));
+					constraints = new Constraint[constraintList.size()];
+					constraintList.toArray(constraints);
 				}
 				if (classType == null && modelSchemaBuilderMap.get(type) == null) {
 					if (type.equals(fileId)) {

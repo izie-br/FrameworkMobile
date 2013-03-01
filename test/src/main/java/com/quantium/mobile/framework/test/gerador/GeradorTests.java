@@ -26,13 +26,55 @@ import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
 import com.quantium.mobile.framework.test.vo.Score;
 import com.quantium.mobile.framework.test.vo.ScoreImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
+import com.quantium.mobile.framework.validation.Constraint;
+import com.quantium.mobile.framework.validation.ValidationError;
 
 public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity> {
+
+	private static final int SCORE_MIN = 0;
+	private static final int SCORE_MAX = 100;
+	private static final int AUTHOR_NAME_MIN = 5;
+	private static final int AUTHOR_NAME_MAX = 79;
+	private static final int CUSTOMER_NAME_LEN = 60;
 
 	SessionFacade facade = new SessionFacade();
 
 	public GeradorTests() {
 		super("com.quantium.mobile.framework.test", TestActivity.class);
+	}
+
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		//Limpar o banco
+		{
+			DAO<Score> dao = facade.getDAOFactory().getDaoFor(Score.class);
+			List<Score> objects = dao.query().all();
+			for (Score obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Customer> dao = facade.getDAOFactory().getDaoFor(Customer.class);
+			List<Customer> objects = dao.query().all();
+			for (Customer obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Document> dao = facade.getDAOFactory().getDaoFor(Document.class);
+			List<Document> objects = dao.query().all();
+			for (Document obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			List<Author> objects = dao.query().all();
+			for (Author obj :objects) {
+				dao.delete(obj);
+			}
+		}
 	}
 
 	public void testInsertUpdateDelete(){
@@ -234,7 +276,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Score score = new ScoreImpl();
 		score.setAuthor(author);
 		score.setDocument(document);
-		score.setScore((new Random().nextInt())%100);
+		score.setScore((new Random().nextInt())%SCORE_MAX);
 		assertTrue(scoreDao.save(score));
 
 		Customer customer = randomCustomer();
@@ -400,6 +442,125 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
+	public void testMinMaxIntValidation () {
+		try {
+			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			Document document = randomDocument();
+			document.setAuthor(author);
+			assertTrue(docDao.save(document));
+
+			Score score = new ScoreImpl();
+			score.setAuthor(author);
+			score.setDocument(document);
+
+			Collection<ValidationError> errors;
+			ValidationError error;
+
+			{
+				score.setScore(SCORE_MIN);
+				assertEquals(0, score.validate().size());
+			}
+			{
+				score.setScore(SCORE_MIN-1);
+				errors = score.validate();
+				assertEquals(1, errors.size());
+				error = errors.iterator().next();
+				assertEquals(Score.SCORE, error.getColumn());
+				assertTrue(error.getConstraint() instanceof Constraint.Min);
+			}
+			{
+				score.setScore(SCORE_MAX);
+				assertEquals(0, score.validate().size());
+			}
+			{
+				score.setScore(SCORE_MAX+1);
+				errors = score.validate();
+				assertEquals(1, errors.size());
+				error = errors.iterator().next();
+				assertEquals(Score.SCORE, error.getColumn());
+				assertTrue(error.getConstraint() instanceof Constraint.Max);
+			}
+
+			assertTrue(docDao.delete(document));
+			assertTrue(authorDao.delete(author));
+		}catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	public void testMinMaxStringValidation() {
+		Collection<ValidationError> errors;
+		ValidationError error;
+
+		Author author = randomAuthor();
+		assertEquals(0, author.validate().size());
+
+		{
+			String maxName = RandomStringUtils.randomAlphanumeric(AUTHOR_NAME_MAX);
+			author.setName(maxName);
+			assertEquals(0, author.validate().size());
+		}
+		{
+			String biggerName = RandomStringUtils.randomAlphanumeric(AUTHOR_NAME_MAX+1);
+			author.setName(biggerName);
+			errors = author.validate();
+			assertEquals(1, errors.size());
+			error = errors.iterator().next();
+			assertEquals(Author.NAME, error.getColumn());
+			assertTrue(error.getConstraint() instanceof Constraint.Max);
+		}
+		{
+			String minName = RandomStringUtils.randomAlphanumeric(AUTHOR_NAME_MIN);
+			author.setName(minName);
+			assertEquals(0, author.validate().size());
+		}
+		{
+			String smallerName = RandomStringUtils.randomAlphanumeric(AUTHOR_NAME_MIN-1);
+			author.setName(smallerName);
+			errors = author.validate();
+			assertEquals(1, errors.size());
+			error = errors.iterator().next();
+			assertEquals(Author.NAME, error.getColumn());
+			assertTrue(error.getConstraint() instanceof Constraint.Min);
+		}
+
+	}
+
+	/**
+	 * Fixei o comprimento do nome do customer em 60
+	 * Nao faz sentido, mas eh necessario para o teste
+	 */
+	public void testFixedLengthValidation () {
+		Collection<ValidationError> errors;
+		ValidationError error;
+
+		Customer customer = randomCustomer();
+		assertEquals(CUSTOMER_NAME_LEN, customer.getName().length());
+		assertEquals(0, customer.validate().size());
+
+		String biggerName = customer.getName() +"a";
+		customer.setName(biggerName);
+		errors = customer.validate();
+		assertEquals(1, errors.size());
+		error = errors.iterator().next();
+		assertEquals(Customer.NAME, error.getColumn());
+		assertTrue(error.getConstraint() instanceof Constraint.Length);
+
+		String smallerName = customer.getName().substring(0, CUSTOMER_NAME_LEN-1);
+		customer.setName(smallerName);
+		errors = customer.validate();
+		assertEquals(1, errors.size());
+		error = errors.iterator().next();
+		assertEquals(Customer.NAME, error.getColumn());
+		assertTrue(error.getConstraint() instanceof Constraint.Length);
+	}
+
+
 	private Author randomAuthor() {
 		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
@@ -425,7 +586,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	private Customer randomCustomer () {
 		Customer customer = new CustomerImpl();
-		customer.setName(RandomStringUtils.random(60));
+		customer.setName(RandomStringUtils.random(CUSTOMER_NAME_LEN));
 		return customer;
 	}
 	

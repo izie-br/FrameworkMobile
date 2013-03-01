@@ -21,41 +21,70 @@
 #******##end
 #**##end
 #end
+##
+## Max
+##
 #foreach ($field in $MaxConstraints.keySet())
-#**##set($maxValue = $MaxConstraints[$field].Value)
-#**##if ($field.Klass.equals("String"))
-#******#         if (this.${field.LowerCamel} != null &&
-#******#             this.${field.LowerCamel}.length() > $maxValue)
-#******#        {
-#******#            errors.add (new ValidationError (
-#******#                    ${field.UpperAndUnderscores},
-#******#                    Constraint.max((int)${maxValue})));
-#******#        }
+#**##if (!$associationForField[$field])
+#******##set($value = $MaxConstraints[$field].Value)
+#******##if ($field.Klass.equals("String"))
+#**********#         if (this.${field.LowerCamel} != null &&
+#**********#             this.${field.LowerCamel}.length() > $value)
+#**********#        {
+#**********#            errors.add (new ValidationError (
+#**********#                    ${field.UpperAndUnderscores},
+#**********#                    Constraint.max(${value})));
+#**********#        }
+#******##elseif ($field.Klass.equals("Long"))
+#**********#        if (this.${field.LowerCamel} > ${value}L) {
+#**********#            errors.add (new ValidationError (
+#**********#                    ${field.UpperAndUnderscores},
+#**********#                    Constraint.max(${value}L)));
+#**********#        }
+#******##end
 #**##end
 #end
+##
+## Min
+##
 #foreach ($field in $MinConstraints.keySet())
-#**##set($maxValue = $MinConstraints[$field].Value)
-#**##if ($field.Klass.equals("String"))
-#******#         if (this.${field.LowerCamel} != null &&
-#******#             this.${field.LowerCamel}.length() > $maxValue)
-#******#        {
-#******#            errors.add (new ValidationError (
-#******#                    ${field.UpperAndUnderscores},
-#******#                    Constraint.min((int)${maxValue})));
-#******#        }
+#**##if (!$associationForField[$field])
+#******##set($value = $MinConstraints[$field].Value)
+#******##if ($field.Klass.equals("String"))
+#**********#         if (this.${field.LowerCamel} != null &&
+#**********#             this.${field.LowerCamel}.length() < ${value})
+#**********#        {
+#**********#            errors.add (new ValidationError (
+#**********#                    ${field.UpperAndUnderscores},
+#**********#                    Constraint.min((int)${value})));
+#**********#        }
+#******##elseif ($field.Klass.equals("Long"))
+#**********#        if (this.${field.LowerCamel} < ${value}L) {
+#**********#            errors.add (new ValidationError (
+#**********#                    ${field.UpperAndUnderscores},
+#**********#                    Constraint.min(${value}L)));
+#**********#        }
+#******##end
 #**##end
 #end
+##
+## Length
+##
 #foreach ($field in $LengthConstraints.keySet())
-#**##set($maxValue = $LengtConstraints[$field].Value)
-#**##if ($field.Klass.equals("String"))
-#******#         if (this.${field.LowerCamel} != null &&
-#******#             this.${field.LowerCamel}.length() > $maxValue)
-#******#        {
-#******#            errors.add (new ValidationError (
-#******#                    ${field.UpperAndUnderscores},
-#******#                    Constraint.length((int)${maxValue})));
-#******#        }
+#**##if (!$associationForField[$field])
+#******##set($value = $LengthConstraints[$field].Value)
+#******##if ($field.Klass.equals("String"))
+#**********#         if (this.${field.LowerCamel} != null &&
+#**********#             this.${field.LowerCamel}.length() != ${value})
+#**********#        {
+#**********#            errors.add (new ValidationError (
+#**********#                    ${field.UpperAndUnderscores},
+#**********#                    Constraint.length((int)${value})));
+#**********#        }
+#******##end
 #**##end
 #end
+##
+##
         return errors;
     }

@@ -1,6 +1,6 @@
     public final static Table _TABLE = new Table ("${table}");
 #foreach ($field in $fields)
-#**##set ($constraintsVarargs = ${Constraints[$field.Constraints]})
+#**##set ($constraintsVarargs = ${Constraints[$field]})
 #**##if (!$constraintsVarargs.equals(""))
 #******##set ($constraintsVarargs = ", new Constraint[]{" + $constraintsVarargs + "}")
 #**##end

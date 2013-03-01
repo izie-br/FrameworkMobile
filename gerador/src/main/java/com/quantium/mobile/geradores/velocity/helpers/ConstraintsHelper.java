@@ -1,29 +1,53 @@
 package com.quantium.mobile.geradores.velocity.helpers;
 
 import java.util.Collection;
+import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
 
 import com.quantium.mobile.framework.validation.Constraint;
+import com.quantium.mobile.geradores.filters.associacao.Associacao;
+import com.quantium.mobile.geradores.javabean.Property;
 
 public class ConstraintsHelper {
 
+	private static final String INDENT = "\n                ";
+
+	private Map<Property,OneToManyAssociationHelper> associationForField;
+
+	public ConstraintsHelper(Map<Property,OneToManyAssociationHelper> associationForField) {
+		this.associationForField = associationForField;
+	}
+
 	public String get(Object obj) {
 		Constraint constraints [] = new Constraint[0];
-		if (obj instanceof Constraint[]) {
+		boolean isFk = false;
+		if (obj instanceof Property) {
+			if (associationForField.get(obj) != null) {
+				isFk = true;
+			}
+			constraints = ((Property)obj).getConstraints();
+		}
+		/*if (obj instanceof Constraint[]) {
 			constraints = (Constraint[])obj;
 		} else if (obj instanceof Collection) {
 			@SuppressWarnings("unchecked")
 			Collection<Constraint> col = (Collection<Constraint>) obj;
 			constraints = new Constraint[col.size ()];
 			col.toArray (constraints);
-		}
+		}*/
 
-		final String indent = "\n                ";
 		StringBuilder sb = new StringBuilder ();
 		for (int i=0; i< constraints.length;i++) {
 			Constraint constraint = constraints[i];
-			sb.append(indent);
+			if (isFk && (
+					constraint instanceof Constraint.Min ||
+					constraint instanceof Constraint.Max ||
+					constraint instanceof Constraint.Length))
+			{
+				continue;
+			}
+			sb.append(INDENT);
 			sb.append ("Constraint.");
 			sb.append (getConstraintName(constraint));
 			sb.append ('(');
