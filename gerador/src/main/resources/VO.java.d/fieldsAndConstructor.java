@@ -1,4 +1,5 @@
-    private final static long serialVersionUID = ${serialVersionUID};
+    public final static long publicSerialVersionUID = ${serialVersionUID};
+    private final static long serialVersionUID = publicSerialVersionUID;
 
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])

@@ -7,6 +7,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStreamWriter;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;
@@ -37,6 +38,7 @@ import com.quantium.mobile.geradores.javabean.JavaBeanSchema;
 import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.javabean.ModelSchema.Builder;
 import com.quantium.mobile.geradores.util.Constants;
+import com.quantium.mobile.geradores.util.LoggerUtil;
 
 public class JsonInputParser implements InputParser {
 
@@ -98,32 +100,40 @@ public class JsonInputParser implements InputParser {
 				String type = jsonAttribute.getString("type");
 				boolean isRequired = jsonAttribute.optBoolean("isRequired");
 				boolean isUnique = jsonAttribute.optBoolean("isUnique");
-				int min = jsonAttribute.optInt("min");
-				int max = jsonAttribute.optInt("max");
-				int lengthConstraint = 0;
+
+				BigDecimal min = extractNumber(jsonAttribute.optString("min"));
+				BigDecimal max = extractNumber(jsonAttribute.optString("max"));
+				BigDecimal lengthConstraint = null;
+
 				Class<?> classType = convertJsonTypeToJavaType(type);
 				boolean isStringType = String.class.equals(classType);
-				boolean isNumberType = Long.class.equals(classType) ||
-				                       Double.class.equals(classType);
-				if (!isStringType || (min != 0 && max != 0) ) {
-					if(min > max){
+
+				if (min != null && max != null) {
+					/* min > max */
+					if(min.compareTo(max) > 0) {
 						throw new RuntimeException(String.format(
 								"tamanho minimo de %s.%s maior que o maximo",
 								classId, attributeName));
-					} else if (isStringType && (min == max)) {
-						lengthConstraint = min; /* == max*/
-						min = 0;
-						max = 0;
 					}
-					if (min <0 && isStringType) {
-						throw new RuntimeException(String.format(
-								"tamanho minimo de %s.%s menor que 0",
-								classId, attributeName));
-					}
-					if (max <0 && isStringType) {
-						throw new RuntimeException(String.format(
-								"tamanho maximo de %s.%s menor que 0",
-								classId, attributeName));
+					if (isStringType) {
+						/* min < 0 */
+						if (min.compareTo(BigDecimal.ZERO) < 0) {
+							throw new RuntimeException(String.format(
+									"tamanho minimo de %s.%s menor que 0",
+									classId, attributeName));
+						}
+						/* max < 0 */
+						if (max.compareTo(BigDecimal.ZERO) < 0) {
+							throw new RuntimeException(String.format(
+									"tamanho maximo de %s.%s menor que 0",
+									classId, attributeName));
+						}
+						/* min == max */
+						if (min.equals(max)) {
+							lengthConstraint = min; /* = max*/
+							min = null;
+							max = null;
+						}
 					}
 				}
 
@@ -137,12 +147,24 @@ public class JsonInputParser implements InputParser {
 						constraintList.add(Constraint.unique());
 					if (isRequired)
 						constraintList.add(Constraint.notNull());
-					if (isNumberType || min > 0)
-						constraintList.add(Constraint.min(min));
-					if (isNumberType || max > 0)
-						constraintList.add(Constraint.max(max));
-					if (isStringType && lengthConstraint > 0)
-						constraintList.add(Constraint.length(lengthConstraint));
+					if (Long.class.equals(classType)) {
+						if (min!= null)
+							constraintList.add(Constraint.min(min.intValue()));
+						if (max != null)
+							constraintList.add(Constraint.max(max.intValue()));
+					} else if (Double.class.equals(classType)) {
+						if (min!= null)
+							constraintList.add(Constraint.min(min.doubleValue()));
+						if (max != null)
+							constraintList.add(Constraint.max(max.doubleValue()));
+					} else if (isStringType) {
+						if (min!= null)
+							constraintList.add(Constraint.min(min.intValue()));
+						if (max != null)
+							constraintList.add(Constraint.max(max.intValue()));
+						if (lengthConstraint != null)
+							constraintList.add(Constraint.length(lengthConstraint.intValue()));
+					}
 					constraints = new Constraint[constraintList.size()];
 					constraintList.toArray(constraints);
 				}
@@ -353,6 +375,18 @@ public class JsonInputParser implements InputParser {
 			throw new GeradorException(e);
 		}
 
+	}
+
+	private static BigDecimal extractNumber(String jsonValue) {
+		if (jsonValue == null || "".equals(jsonValue)) {
+			return null;
+		}
+		try {
+			return new BigDecimal(jsonValue);
+		} catch (NumberFormatException e) {
+			LoggerUtil.getLog().error(e.getMessage());
+			return null;
+		}
 	}
 
 }
