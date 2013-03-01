@@ -6,6 +6,7 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.locks.Lock;
@@ -40,10 +41,16 @@ public class FirstLevelCache {
 	}
 
 	private void trim () {
+		List<EntityKey> toRemove = new ArrayList<EntityKey>();
 		Set<EntityKey> keySet = entityCache.keySet();
 		for (EntityKey key : keySet) {
-			if (getOrNull(key) == null)
-				entityCache.remove(key);
+			Reference<?> ref = entityCache.get(key);
+			if (ref == null || ref.get() == null) {
+				toRemove.add(key);
+			}
+		}
+		for (EntityKey key : toRemove){
+			entityCache.remove(key);
 		}
 	}
 
@@ -63,19 +70,11 @@ public class FirstLevelCache {
 		readLock.lock();
 		try {
 			EntityKey key = new EntityKey(klassId, keys);
-			return getOrNull(key);
+			Reference<?> ref = entityCache.get(key);
+			return (ref == null)? null : ref.get();
 		} finally {
 			readLock.unlock();
 		}
-	}
-
-	private Object getOrNull(EntityKey key) {
-		Reference<?> ref = entityCache.get(key);
-		if (ref == null) {
-			return null;
-		}
-		Object obj = ref.get();
-		return obj;
 	}
 
 	@SuppressWarnings("unchecked")
@@ -86,7 +85,8 @@ public class FirstLevelCache {
 			ArrayList<Reference<T>> list =
 					new ArrayList<Reference<T>>();
 			for (EntityKey key : entityCache.keySet()) {
-				Object obj = getOrNull(key);
+				Reference<?> ref = entityCache.get(key);
+				Object obj = (ref == null)? null : ref.get();
 				if ( obj != null && klass.isInstance(obj) ){
 					list.add(  new SoftReference<T>( (T)obj )  );
 				}
