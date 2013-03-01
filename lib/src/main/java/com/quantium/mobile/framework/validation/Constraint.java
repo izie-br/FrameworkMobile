@@ -134,6 +134,16 @@ public abstract class Constraint {
 		return new Length<T>(value);
 	}
 
+	public static class Regex extends ColumnValuePairConstraint<String> {
+		private Regex(String value) {
+			super(value);
+		}
+	}
+
+	public static Regex regex(String pattern) {
+		return new Regex(pattern);
+	}
+
 	public static class Unique extends Constraint {
 
 		private Set<Table.Column<?>> columns;
