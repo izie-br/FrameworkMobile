@@ -2,9 +2,12 @@ package ${package};
 
 import android.database.sqlite.SQLiteDatabase;
 import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.db.AbstractSQLiteDAOFactory;
+import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.db.FirstLevelCache;
 
-public abstract class SQLiteDAOFactory extends AbstractSQLiteDAOFactory {
+public abstract class SQLiteDAOFactory extends FirstLevelCache
+        implements DAOFactory
+{
 
     public abstract SQLiteDatabase getDb();
 

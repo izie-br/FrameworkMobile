@@ -4,15 +4,12 @@ import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.ref.SoftReference;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 
-import com.quantium.mobile.framework.DAOFactory;
-
-public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
+public class FirstLevelCache {
 
 	private final Map<EntityKey, Reference<?>> entityCache =
 			new HashMap<EntityKey, Reference<?>>();
@@ -72,48 +69,6 @@ public abstract class AbstractSQLiteDAOFactory implements DAOFactory {
 			}
 		}
 		return list;
-	}
-
-}
-
-final class EntityKey {
-
-	private final Object klassId;
-	private final Serializable keys[];
-
-	private final int hashcode;
-
-	public EntityKey(Object klassId, Serializable keys []) {
-		this.keys = keys;
-		this.klassId = klassId;
-		this.hashcode = generateHashCode(keys, klassId);
-	}
-
-	@Override
-	public int hashCode() {
-		return hashcode;
-	}
-
-	private static int generateHashCode(Serializable keys [], Object klassId) {
-		final int prime = 31;
-		int result = 1;
-		result = prime * result + Arrays.hashCode(keys);
-		result = prime * result + klassId.hashCode();
-		return result;
-	}
-
-	@Override
-	public boolean equals(Object obj) {
-		if (obj == null)
-			return false;
-		if ( !(obj instanceof EntityKey) )
-			return false;
-		EntityKey other = (EntityKey) obj;
-		if ( !(klassId == other.klassId) )
-			return false;
-		if (!Arrays.equals(keys, other.keys))
-			return false;
-		return true;
 	}
 
 }

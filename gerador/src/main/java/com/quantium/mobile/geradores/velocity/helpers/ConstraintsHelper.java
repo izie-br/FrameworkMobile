@@ -1,12 +1,10 @@
 package com.quantium.mobile.geradores.velocity.helpers;
 
-import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.lang.NotImplementedException;
 
 import com.quantium.mobile.framework.validation.Constraint;
-import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.javabean.Property;
 
 public class ConstraintsHelper {
