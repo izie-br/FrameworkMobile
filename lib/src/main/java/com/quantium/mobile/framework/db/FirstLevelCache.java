@@ -9,10 +9,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.query.Q.QNode1X1;
@@ -20,11 +23,21 @@ import com.quantium.mobile.framework.validation.Constraint;
 
 public class FirstLevelCache {
 
+	private static final long CACHE_TRIM_DELAY = 30*1000; /* 30 secs */
+
 	private final Map<EntityKey, Reference<?>> entityCache =
 			new HashMap<EntityKey, Reference<?>>();
 
-	private int cachePushCount = 0;
+	private Timer trimTimer = null;
 	private ReadWriteLock rwLock = new ReentrantReadWriteLock(false);
+
+	@Override
+	protected void finalize() throws Throwable {
+		super.finalize();
+		if (this.trimTimer != null) {
+			this.trimTimer.cancel();
+		}
+	}
 
 	public void pushToCache(Object klassId, Serializable keys [],
 	                        Object entity)
@@ -35,14 +48,39 @@ public class FirstLevelCache {
 			// Conferir se eh proxy e extrair
 			EntityKey key = new EntityKey(klassId, keys);
 			entityCache.put(key, new SoftReference<Object>(entity));
-			// A cada 10 'pushes'
-			// conferir por itens nao utilizados
-			if ( (cachePushCount%10) == 0 ) {
-				trim();
+			//
+			// o trimtimer nao precisa ser iniciado antes do
+			// primeiro pushtoCache (quando nao ha items)
+			if (this.trimTimer == null) {
+				initTrimTimer();
 			}
 		} finally {
 			writeLock.unlock();
 		}
+	}
+
+	private synchronized void initTrimTimer () {
+		if (this.trimTimer != null) {
+			throw new RuntimeException();
+		}
+		// Thread deve ser "Daemon" que eh interrompida ao finalizar o aplicativo
+		Timer timer = new Timer(true);
+		TimerTask task = new TimerTask() {
+			@Override
+			public void run() {
+				Lock writeLock = rwLock.writeLock();
+				writeLock.lock();
+				try {
+					trim();
+				} catch (Exception e) {
+					LogPadrao.e(e);
+				} finally {
+					writeLock.unlock();
+				}
+			}
+		};
+		timer.schedule(task, CACHE_TRIM_DELAY);
+		this.trimTimer = timer;
 	}
 
 	private void trim () {
