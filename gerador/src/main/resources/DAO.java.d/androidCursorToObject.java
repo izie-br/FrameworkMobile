@@ -20,8 +20,8 @@
 #******#                    new LazyInvocationHandler<${association.Klass}>(
 #******#                        factory.getDaoFor(${association.Klass}.class).query(
 #******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
-#******#                        _${field.LowerCamel},
-#******#                        "${getter[$field]}");
+#******#                            _${field.LowerCamel},
+#******#                            "${getter[$association.ReferenceKey]}");
 #******#                _${association.KeyToA} = (${association.Klass})Proxy.newProxyInstance(
 #******#                    this.getClass().getClassLoader(),
 #******#                    new Class[]{ ${association.Klass}Editable.class },
