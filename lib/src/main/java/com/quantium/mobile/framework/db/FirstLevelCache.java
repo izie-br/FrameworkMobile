@@ -13,6 +13,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.quantium.mobile.framework.query.Q;
+import com.quantium.mobile.framework.query.Table;
+import com.quantium.mobile.framework.query.Q.QNode1X1;
+import com.quantium.mobile.framework.validation.Constraint;
+
 public class FirstLevelCache {
 
 	private final Map<EntityKey, Reference<?>> entityCache =
@@ -95,6 +100,54 @@ public class FirstLevelCache {
 		} finally {
 			readLock.unlock();
 		}
+	}
+
+	/**
+	 * <p>
+	 *   Avalia se a busca representada pelo {Q} pode ser resolvida no cache
+	 *   sem acesso a banco
+	 * </p>
+	 * <p>
+	 *   Na implementacao atual apenas buscas por ID sao suportadas.
+	 * </p>
+	 * <p>
+	 *   Se o cache nao tem a resposta completa ao {Q} este metodo deve
+	 *   retornar NULL
+	 * </p>
+	 * 
+	 * @param klass classe alvo
+	 * @param q {Q} de busca
+	 * @return Items do cache. NULL se o cache nao tem a resposta completa para o {Q}
+	 */
+	public <T> List<T> loadQFromCache(Class<T> klass, Q q) {
+		// Para impedir  uso do cache, comente o corpo do metodo
+		// e substitua por "return null;"
+		if (q == null)
+			return null;
+		if (!(q.getRooNode() instanceof Q.QNode1X1))
+			return null;
+		Q.QNode1X1 node = (QNode1X1) q.getRooNode();
+		if (!isPk(node.column()))
+			return null;
+		Object id = node.getArg();
+		if (id == null || !(id instanceof Serializable))
+			return null;
+		@SuppressWarnings("unchecked")
+		T obj = (T) cacheLookup(klass, new Serializable[]{(Serializable)id});
+		if (obj == null)
+			return null;
+		ArrayList<T> list = new ArrayList<T>(1);
+		list.add(obj);
+		return list;
+	}
+
+	private static boolean isPk(Table.Column<?> column) {
+		Collection<Constraint> constraints = column.getConstraintList();
+		for (Constraint constraint : constraints){
+			if (constraint instanceof Constraint.PrimaryKey)
+				return true;
+		}
+		return false;
 	}
 
 }

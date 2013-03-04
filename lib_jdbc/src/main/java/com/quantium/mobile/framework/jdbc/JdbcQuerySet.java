@@ -24,6 +24,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		return "NULLS FIRST";
 	}
 
+	@Override
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
 		ResultSet cursor = null;
@@ -44,6 +45,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		return all;
 	}
 
+	@Override
 	public T first(){
 		ResultSet cursor = null;
 		try{
