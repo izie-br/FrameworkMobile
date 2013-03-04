@@ -97,9 +97,9 @@ public abstract class AbstractQSQLProvider {
         output(node.child(), table, sb, args);
         if (parenthesis)
             sb.append(')');
-        sb.append(node.nextOp());
         if (node.next() == null)
             return;
+        sb.append(node.nextOp());
         parenthesis = node.next() instanceof Q.QNodeGroup;
         if (parenthesis)
             sb.append('(');
