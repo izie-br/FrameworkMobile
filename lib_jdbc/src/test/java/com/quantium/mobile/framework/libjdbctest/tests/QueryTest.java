@@ -1,9 +1,12 @@
 package com.quantium.mobile.framework.libjdbctest.tests;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.regex.Pattern;
 
 import org.junit.Test;
 
@@ -11,11 +14,14 @@ import static org.junit.Assert.*;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
+import com.quantium.mobile.framework.query.AbstractQSQLProvider;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.Table.Column;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class QueryTest {
@@ -107,6 +113,22 @@ public class QueryTest {
 			assertEquals(first, list1.get(0));
 			assertFalse( first.equals(list3.get(0)) );
 		}
+	}
+
+	@Test
+	public void testNotOp() {
+		Q q = Q.not(Author.ID.eq(1L));
+		QH2DialectProvider provider = new QH2DialectProvider(q);
+		ArrayList<Object> args = new ArrayList<Object>();
+		String str = provider.select(Arrays.asList((Object)Author.ID), args);
+		//removendo parenteses, que podem aparecer arbitrariamente
+		str = str.replaceAll("\\(", " ").replaceAll("\\)", " ");
+		Pattern pattern = Pattern.compile(
+				".*" +                     /* SELECT <colunas> FROM <table> */
+				"where\\s+not\\s+" +       /* WHERE NOT */
+				"[\\w\\._]+\\s*=\\s*\\?",  /* <tabela>.<coluna> = ? */
+				Pattern.CASE_INSENSITIVE); /* case arbitrario */
+		assertTrue(str, pattern.matcher(str).find());
 	}
 
 }
