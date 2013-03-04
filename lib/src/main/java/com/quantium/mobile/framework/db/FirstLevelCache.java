@@ -6,9 +6,9 @@ import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
@@ -84,16 +84,14 @@ public class FirstLevelCache {
 	}
 
 	private void trim () {
-		List<EntityKey> toRemove = new ArrayList<EntityKey>();
-		Set<EntityKey> keySet = entityCache.keySet();
-		for (EntityKey key : keySet) {
-			Reference<?> ref = entityCache.get(key);
+		Iterator<Map.Entry<EntityKey,Reference<?>>> it =
+				entityCache.entrySet().iterator();
+		while (it.hasNext()) {
+			Map.Entry<EntityKey, Reference<?>> entry = it.next();
+			Reference<?> ref = entry.getValue();
 			if (ref == null || ref.get() == null) {
-				toRemove.add(key);
+				it.remove();
 			}
-		}
-		for (EntityKey key : toRemove){
-			entityCache.remove(key);
 		}
 	}
 
