@@ -18,10 +18,8 @@ import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
-import com.quantium.mobile.framework.query.AbstractQSQLProvider;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
-import com.quantium.mobile.framework.query.Table.Column;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class QueryTest {
