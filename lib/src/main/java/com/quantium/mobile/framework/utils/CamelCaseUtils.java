@@ -91,7 +91,7 @@ public class CamelCaseUtils {
 	 * @return string em UowerCamelCase
 	 */
 	public static String toUpperCamelCase(String input){
-		if(input == null || input.trim().isEmpty()){
+		if(input == null || input.trim().equals("")){
 			return input;
 		}
 		String lcc = toLowerCamelCase(input);
