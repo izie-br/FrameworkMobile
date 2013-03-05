@@ -223,7 +223,7 @@ public class JsonInputParser implements InputParser {
 				String tableName = "tb_" + fromName + "_join_" + toName;
 				// a tabela join ficara no modulo da "from" da
 				// associacao
-				Associacao assoc = new AssociacaoManyToMany(fromBuilder.get(), toBuilder.get(), colunaTo, colunaFrom,
+				Associacao assoc = new AssociacaoManyToMany(fromBuilder.get(), toBuilder.get(), colunaFrom, colunaTo,
 						colunaId, colunaId, gerarAssociativa(module, tableName, colunaFrom, colunaTo), tableName);
 				modelSchemaBuilderMap.get(from).addAssociation(assoc);
 				modelSchemaBuilderMap.get(to).addAssociation(assoc);
