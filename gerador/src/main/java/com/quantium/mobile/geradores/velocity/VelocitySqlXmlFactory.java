@@ -45,6 +45,10 @@ public class VelocitySqlXmlFactory {
 				int l = reader.read (buffer);
 				while (l > 0) {
 					String ref = new String(buffer, 0, l);
+					// o xml do google exige {\} antes do apostrofo {'}
+					// mesmo em escape {&apos;}
+					// deve estar como {\'} ou {\&apos;}
+					ref = ref.replaceAll("'", "\\'");
 					sb.append (ref);
 					l = reader.read (buffer);
 				}
