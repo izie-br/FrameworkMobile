@@ -48,7 +48,7 @@ public class VelocitySqlXmlFactory {
 					// o xml do google exige {\} antes do apostrofo {'}
 					// mesmo em escape {&apos;}
 					// deve estar como {\'} ou {\&apos;}
-					ref = ref.replaceAll("'", "\\'");
+					// ref = ref.replaceAll("'", "\\'");
 					sb.append (ref);
 					l = reader.read (buffer);
 				}
