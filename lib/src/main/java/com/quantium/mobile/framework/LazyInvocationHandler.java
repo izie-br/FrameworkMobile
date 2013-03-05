@@ -29,14 +29,41 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 			if (method.getName().equals(this.getter)){
 				return this.key;
 			}
-			lazyInstance = querySet.first();
+			try {
+				lazyInstance = querySet.first();
+			} catch (Exception e) {
+				throw new LazyLoadException(e);
+			}
 			if (lazyInstance == null)
-				throw new RuntimeException(String.format(
+				throw new LazyLoadException(String.format(
 						"Object %s with id %s not found",
 						querySet.getTable().getName(),
 						(key == null)? "null" : key.toString() ));
 		}
 		return method.invoke(lazyInstance, args);
+	}
+
+	public static class LazyLoadException extends RuntimeException {
+
+		private static final long serialVersionUID = 1L;
+
+		public LazyLoadException() {
+			super();
+		}
+
+		public LazyLoadException(String message, Throwable cause) {
+			super(message, cause);
+		}
+
+		public LazyLoadException(String message) {
+			super(message);
+		}
+
+		public LazyLoadException(Throwable cause) {
+			super(cause);
+		}
+
+		
 	}
 
 }
