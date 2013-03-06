@@ -26,6 +26,7 @@ import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.framework.utils.DateUtil;
+import com.quantium.mobile.framework.utils.ValueParser;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
