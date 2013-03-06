@@ -84,7 +84,7 @@
                     factory.pushToCache(${Target}.class, pks, target);
                 } else {
                     factory.removeFromCache(${Target}.class, pks);
-                    LogPadrao.e(String.format("%s nao editavel salvo", target.getClass().getName()));
+                    LogPadrao.e("${table} nao editavel salvo");
                 }
                 return true;
             } else {

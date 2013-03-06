@@ -299,6 +299,29 @@ public class GeradorTest {
 	}
 
 	@Test
+	public void testCacheUpdate() {
+		try {
+			DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+			Author originalAuthor = randomAuthor();
+			assertTrue(dao.save(originalAuthor));
+			assertTrue(originalAuthor.getId() != 0);
+	
+			// Ao inserir um autor com dados diferentes mas
+			AuthorEditable otherAuthor = (AuthorEditable)randomAuthor();
+			// com mesmo ID
+			otherAuthor.setId(originalAuthor.getId());
+			assertTrue(dao.save(otherAuthor));
+
+			// O author inicial, em cache deve ser alterado
+			assertEquals(originalAuthor, otherAuthor);
+			Author authorCache = dao.get(originalAuthor.getId());
+			assertEquals(otherAuthor, authorCache);
+		}catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
 	public void testValidateVO () {
 		Author author = new AuthorImpl ();
 		author.setActive (true);

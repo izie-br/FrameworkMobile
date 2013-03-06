@@ -87,6 +87,8 @@ public class ${Klass} implements JdbcDao<${Target}> {
         };
     }
 
+#parse("DAO.java.d/updateCache.java")
+
 #parse("DAO.java.d/jdbcSave.java")
 
 #parse("DAO.java.d/jdbcDelete.java")
