@@ -80,8 +80,11 @@
 #**#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
 #**#                    }
 #end
-                    pks = new Serializable[]{ value };
-                    factory.pushToCache(${Target}.class, pks, target);
+                    boolean itemFoundInCache = updateCache(target);
+                    if (!itemFoundInCache) {
+                        pks = new Serializable[]{ value };
+                        factory.pushToCache(${Target}.class, pks, target);
+                    }
                 } else {
                     factory.removeFromCache(${Target}.class, pks);
                     LogPadrao.e("${table} nao editavel salvo");
@@ -97,7 +100,10 @@
                 primaryKeysArgs
             );
             if (value > 0) {
-                factory.pushToCache(${Target}.class, pks, target);
+                boolean itemFoundInCache = updateCache(target);
+                if (!itemFoundInCache) {
+                    factory.pushToCache(${Target}.class, pks, target);
+                }
                 return true;
             } else {
                 return false;
