@@ -136,7 +136,7 @@
 #end
                     boolean itemFoundInCache = updateCache(target);
                     if (!itemFoundInCache) {
-                        pks = new Serializable[]{ value };
+                        pks = new Serializable[]{ target.${getter[$primaryKey]}() };
                         factory.pushToCache(${Target}.class, pks, target);
                     }
                 } else {

@@ -28,10 +28,18 @@
 #**##end
 #end
 ##
-#foreach ($association in $manyToManyRelation)
-            stm = getStatement("DELETE FROM ${association.ThroughTable} WHERE ${association.ThroughReferenceKey.LowerAndUnderscores} = ?");
+#foreach ($association in $manyToManyAssociations)
+#if($association.isThisTableA)
+            stm = getStatement("DELETE FROM ${association.JoinTable} WHERE ${association.KeyToA.LowerAndUnderscores} = ?");
+#else
+            stm = getStatement("DELETE FROM ${association.JoinTable} WHERE ${association.KeyToA.LowerAndUnderscores} = ?");
+#end
             try {
-                stm.set${association.ReferenceKey.Klass}(1, target.${getter[$association.ReferenceKey.UpperCamel]}());
+#if($association.isThisTableA)
+                stm.set${association.ReferenceA.Klass}(1, target.${getter[$association.ReferenceA]}());
+#else
+                stm.set${association.ReferenceB.Klass}(1, target.${getter[$association.ReferenceB]}());
+#end
                 stm.executeUpdate();
             } catch (java.sql.SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));

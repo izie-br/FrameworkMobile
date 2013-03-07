@@ -14,6 +14,7 @@ import org.junit.Test;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.PrimaryKeyUpdater;
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
@@ -25,6 +26,7 @@ import com.quantium.mobile.framework.libjdbctest.vo.Document;
 import com.quantium.mobile.framework.libjdbctest.vo.DocumentImpl;
 import com.quantium.mobile.framework.libjdbctest.vo.Score;
 import com.quantium.mobile.framework.libjdbctest.vo.ScoreImpl;
+import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
@@ -499,6 +501,95 @@ public class GeradorTest {
 			fail(StringUtil.getStackTrace(e));
 		}
 	}
+
+	@Test
+	public void testUpdatePrimaryKey() {
+		try {
+			DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
+			DAO<Document> documentDao = this.daoFactory.getDaoFor(Document.class);
+			DAO<Score> scoreDao = this.daoFactory.getDaoFor(Score.class);
+			DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+
+			@SuppressWarnings("unchecked")
+			PrimaryKeyUpdater<Document> primaryKeyUpdater =
+					(PrimaryKeyUpdater<Document>)documentDao;
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			Document document = randomDocument();
+			document.setAuthor(author);
+			assertTrue(documentDao.save(document));
+
+			Score score1 = new ScoreImpl(0, author, document, 55);
+			assertTrue(scoreDao.save(score1));
+
+			Score score2 = new ScoreImpl(0, author, document, 67);
+			assertTrue(scoreDao.save(score2));
+
+			Customer customer1 = randomCustomer();
+			assertTrue(customerDao.save(customer1));
+			documentDao.with(document).add(customer1);
+
+			Customer customer2 = randomCustomer();
+			assertTrue(customerDao.save(customer2));
+			documentDao.with(document).add(customer2);
+
+			// QuerySets de antes da troca de ID
+			QuerySet<Score> scoresQuery = document.getDocumentScores();
+			List<Score> scores = scoresQuery.all();
+			QuerySet<Customer> customersQuery= document.getDocumentCustomers();
+			List<Customer> customers = customersQuery.all();
+
+			assertEquals(2, scoresQuery.count());
+			for (Score score : scores) {
+				assertTrue(score.equals(score1) || score.equals(score2));
+			}
+
+			assertEquals(2, customersQuery.count());
+			for (Customer c :customers) {
+				assertTrue(c.equals(customer1) || c.equals(customer2));
+			}
+
+			long oldPk = document.getId();
+			long newPk = oldPk + 2000;
+			primaryKeyUpdater.updatePrimaryKey(document, newPk);
+
+			assertEquals(newPk, document.getId());
+
+			assertNull(documentDao.get(oldPk));
+
+			// Os querysets antigos apontam para os ID antigo do "document"
+			// nao devem haver registros
+			assertEquals(0, scoresQuery.count());
+			assertEquals(0, customersQuery.count());
+
+			// ao autalizar os querysets
+			scoresQuery = document.getDocumentScores();
+			// eles devem trazer "scores" com o "document" de ID novo
+			assertEquals(2, scoresQuery.count());
+			for (Score score : scores) {
+				assertTrue(score.equals(score1) || score.equals(score2));
+				assertEquals(newPk, score.getDocument().getId());
+			}
+
+			// ao autalizar os querysets
+			customersQuery = document.getDocumentCustomers();
+			// eles devem trazer "customers" com o "document" com ID novo
+			assertEquals(2, customersQuery.count());
+			for (Customer c :customers) {
+				assertTrue(c.equals(customer1) || c.equals(customer2));
+				List<Document> documents = c.getDocumentDocuments().all();
+				assertEquals(1, documents.size());
+				Document customerDocument = documents.get(0);
+				assertEquals(newPk, customerDocument.getId());
+			}
+
+		} catch (IOException e) {
+			fail(e.getMessage());
+		}
+	}
+
 
 	@SuppressWarnings("deprecation")
 	private Author randomAuthor() {
