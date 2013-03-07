@@ -30,9 +30,20 @@
 #**##end
 #end
 ##
-#foreach ($relation in $manyToManyRelation)
-            db.delete("${relation.ThroughTable}", "${relation.ThroughReferenceKey.LowerAndUnderscores} = ?",
-                      new String[] {((${relation.ReferenceKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
+#foreach ($relation in $manyToManyAssociations)
+#**#            {
+#**##if ($association.isThisTableA)
+#**#                final String sqlWhereClause = "${relation.KeyToA.LowerAndUnderscores} = ?";
+#**##else
+#**#                final String sqlWhereClause = "${relation.KeyToB.LowerAndUnderscores} = ?";
+#**##end
+#**##if ($association.isThisTableA)
+#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceA.Klass}) target.${getter[$relation.ReferenceA]}()).toString()};
+#**##else
+#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceB.Klass}) target.${getter[$relation.ReferenceB]}()).toString()};
+#**##end
+#**#                db.delete("${relation.JoinTable}", sqlWhereClause,manyToManyArgs);
+#**#            }
 #end
             int affected;
             try {
