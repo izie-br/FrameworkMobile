@@ -16,6 +16,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.SQLException;
 
 import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.PrimaryKeyUpdater;
 import com.quantium.mobile.framework.LazyInvocationHandler;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
@@ -35,7 +36,7 @@ import com.quantium.mobile.framework.validation.ValidationError;
 ${Imports}
 
 @SuppressWarnings("unused")
-public class ${Klass} implements DAOSQLite<${Target}> {
+public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Target}> {
 
     private ${DaoFactory} factory;
 

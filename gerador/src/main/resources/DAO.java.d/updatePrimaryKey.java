@@ -1,3 +1,4 @@
+    @Override
     public void updatePrimaryKey($Target target, Object newPrimaryKey)
             throws IOException
     {
@@ -39,7 +40,7 @@
             with(editableTarget).add(item);
         }
 #end
-       ${Target} oldItem = get(oldPk);
-       if (delete(oldItem))
-           throw new IOException("error upon deleting old record under updateId process, check logs");
+        ${Target} oldItem = get(oldPk);
+        if (delete(oldItem))
+            throw new IOException("error upon deleting old record under updateId process, check logs");
     }

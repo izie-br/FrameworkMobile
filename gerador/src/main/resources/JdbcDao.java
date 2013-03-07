@@ -14,6 +14,7 @@ import java.util.WeakHashMap;
 import java.sql.*;
 
 import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.PrimaryKeyUpdater;
 import com.quantium.mobile.framework.LazyInvocationHandler;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
@@ -33,7 +34,7 @@ import com.quantium.mobile.framework.validation.ValidationError;
 ${Imports}
 
 @SuppressWarnings("unused")
-public class ${Klass} implements JdbcDao<${Target}> {
+public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}> {
 
     private static final String COUNT_BY_PRIMARY_KEYS =
         "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?";
