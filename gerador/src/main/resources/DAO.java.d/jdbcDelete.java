@@ -29,21 +29,24 @@
 #end
 ##
 #foreach ($association in $manyToManyAssociations)
-#if($association.isThisTableA)
-            stm = getStatement("DELETE FROM ${association.JoinTable} WHERE ${association.KeyToA.LowerAndUnderscores} = ?");
-#else
-            stm = getStatement("DELETE FROM ${association.JoinTable} WHERE ${association.KeyToA.LowerAndUnderscores} = ?");
-#end
-            try {
-#if($association.isThisTableA)
-                stm.set${association.ReferenceA.Klass}(1, target.${getter[$association.ReferenceA]}());
-#else
-                stm.set${association.ReferenceB.Klass}(1, target.${getter[$association.ReferenceB]}());
-#end
-                stm.executeUpdate();
-            } catch (java.sql.SQLException e) {
-                throw new IOException(StringUtil.getStackTrace(e));
-            }
+#**#            {
+#**##if($association.isThisTableA)
+#**#                final String manyToManySqlDelete = "DELETE FROM ${association.JoinTable} WHERE ${association.KeyToA.LowerAndUnderscores} = ?";
+#**##else
+#**#                final String manyToManySqlDelete = "DELETE FROM ${association.JoinTable} WHERE ${association.KeyToB.LowerAndUnderscores} = ?";
+#**##end
+#**#                stm = getStatement(manyToManySqlDelete);
+#**#                try {
+#**##if($association.isThisTableA)
+#**#                    stm.set${association.ReferenceA.Klass}(1, target.${getter[$association.ReferenceA]}());
+#**##else
+#**#                    stm.set${association.ReferenceB.Klass}(1, target.${getter[$association.ReferenceB]}());
+#**##end
+#**#                    stm.executeUpdate();
+#**#                } catch (java.sql.SQLException e) {
+#**#                    throw new IOException(StringUtil.getStackTrace(e));
+#**#                }
+#**#            }
 #end
             stm = getStatement("DELETE FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?");
             int affected;
