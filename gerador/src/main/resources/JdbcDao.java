@@ -91,6 +91,8 @@ public class ${Klass} implements JdbcDao<${Target}> {
 
 #parse("DAO.java.d/jdbcSave.java")
 
+#parse("DAO.java.d/updatePrimaryKey.java")
+
 #parse("DAO.java.d/jdbcDelete.java")
 
 #parse("DAO.java.d/jdbcQuery.java")

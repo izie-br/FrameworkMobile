@@ -58,6 +58,8 @@ public class ${Klass} implements DAOSQLite<${Target}> {
 
 #parse("DAO.java.d/androidSave.java")
 
+#parse("DAO.java.d/updatePrimaryKey.java")
+
 #parse("DAO.java.d/androidDelete.java")
 
 #parse("DAO.java.d/querySetForAssociations.java")
