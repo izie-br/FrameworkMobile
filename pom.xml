@@ -23,7 +23,27 @@
 		<url.releases>http://nexus:8081/nexus/content/repositories/releases</url.releases>
 		<url.snapshots>http://nexus:8081/nexus/content/repositories/snapshots</url.snapshots>
 	</properties>
-	
+
+	<reporting>
+		<plugins>
+			<!-- 
+			     Execute "mvn cobertura:cobertura site" e entre com
+			     um browser em <projeto>/target/site/index.html
+			     O plugin "cobertura" com maven funciona apenas com
+			     projetos individuais. Para o nosso caso, de projeto
+			     multi-modulo, os testes de um projeto nao
+			     "entram na conta" dos outros.
+			     O autor do site abaixo resolveu usando o ant junto com maven
+			     http://thomassundberg.wordpress.com/2012/02/18/test-coverage-in-a-multi-module-maven-project/
+			-->
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>cobertura-maven-plugin</artifactId>
+				<version>2.5.2</version>
+			</plugin>
+		</plugins>
+	</reporting>
+
 	<scm>
 		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/trunk</developerConnection>
 	</scm>
