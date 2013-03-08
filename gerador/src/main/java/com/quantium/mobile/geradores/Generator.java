@@ -11,7 +11,6 @@ import java.nio.channels.FileChannel;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Properties;
 import java.util.TreeMap;
 
 import org.apache.velocity.app.VelocityEngine;
@@ -40,12 +39,12 @@ public class Generator {
 
 	private static final boolean VELOCITY_PERFORMANCE_PARAMS = true;
 
-	private GeneratorConfig projectInformation;
+	private GeneratorConfig projectConfig;
 	private InputParser inputParser;
 
 	public Generator(GeneratorConfig info)
 			throws GeradorException{
-		this.projectInformation = info;
+		this.projectConfig = info;
 		InputParser parser = InputParserRepository.getInputParser(
 			FileParserMapper.getTypeFromFileName(
 				info.getInputFilePath()
@@ -109,29 +108,29 @@ public class Generator {
 	{
 
 		// Arquivo de propriedades para armazenar dados internos do gerador
-		PropertiesLocal props = getProperties(projectInformation.getPropertiesFile());
+//		PropertiesLocal props = getProperties(projectInformation.getPropertiesFile());
 		// Ultima versao do banco lida pelo gerador
 		// Se for diferente da versao em DB.VERSION, o gerador deve
 		//   reescrever os arquivos
-		int propertyVersion = props.containsKey(Constants.PROPERTIY_DB_VERSION) ?
-				Integer.parseInt(props.getProperty(Constants.PROPERTIY_DB_VERSION)) :
-				0;
+//		int propertyVersion = props.containsKey(Constants.PROPERTIY_DB_VERSION) ?
+//				Integer.parseInt(props.getProperty(Constants.PROPERTIY_DB_VERSION)) :
+//				0;
 
-		int dbVersion = projectInformation.retrieveDatabaseVersion();
+		int dbVersion = projectConfig.retrieveDatabaseVersion();
 
 		/*
 		 * Se a versao do banco é a mesma no generator.xml, finaliza o gerador
 		 */
-		LoggerUtil.getLog().info(
-				"Last dbVersion:" + propertyVersion +
-				" current dbVersion" + dbVersion);
-		if (propertyVersion == (int)dbVersion)
-			return;
+//		LoggerUtil.getLog().info(
+//				"Last dbVersion:" + propertyVersion +
+//				" current dbVersion" + dbVersion);
+//		if (propertyVersion == (int)dbVersion)
+//			return;
 
-		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(projectInformation, defaultProperties);
+		Collection<JavaBeanSchema> javaBeanSchemas = inputParser.getSchemas(projectConfig, defaultProperties);
 
 		//gerando migracoes
-		generateMigrations (inputParser, projectInformation, javaBeanSchemas);
+		generateMigrations (inputParser, projectConfig, javaBeanSchemas);
 
 		@SuppressWarnings("unchecked")
 		Map<String,String> serializationAliases =
@@ -140,17 +139,131 @@ public class Generator {
 
 		// Removendo os diretoros temporarios dos arquivos gerados e
 		//   recriando-os vazios.
-		File coreTempDir = resetDir(projectInformation.getCoreTemporaryDirectory());
-		File androidTempDir = resetDir(projectInformation.getAndroidTemporaryDirectory());
-		File jdbcTempDir = resetDir(projectInformation.getJDBCTemporaryDirectory());
-		File appiosTempDir = resetDir(projectInformation.getIOSTemporaryDirectory());
+		File coreTempDir = resetDir(projectConfig.getCoreTemporaryDirectory());
+		File androidTempDir = resetDir(projectConfig.getAndroidTemporaryDirectory());
+		File jdbcTempDir = resetDir(projectConfig.getJDBCTemporaryDirectory());
+		File appiosTempDir = resetDir(projectConfig.getIOSTemporaryDirectory());
 
 		//inicializa e configura a VelocityEngine
 		VelocityEngine ve = initVelocityEngine();
 
+		generateSqlXml(dbVersion, ve);
+
+		VelocityDaoFactory vdaof = null;
+		VelocityDaoFactory vJdbcDaoFactory = null;
+		if (projectConfig.getAndroidDirectory() != null) {
+			vdaof = new VelocityDaoFactory(
+				ve, androidTempDir,
+				VelocityDaoFactory.Type.ANDROID,
+				projectConfig.getBasePackage (),
+				projectConfig.getGeneratedCodePackage(),
+				"vo",
+				serializationAliases);
+		}
+		if (projectConfig.getJdbcDirectory() != null) {
+			vJdbcDaoFactory = new VelocityDaoFactory(
+					ve, jdbcTempDir,
+					VelocityDaoFactory.Type.JDBC,
+					projectConfig.getBasePackage (),
+					projectConfig.getGeneratedCodePackage(),
+					"vo",
+					serializationAliases);
+		}
+		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
+				projectConfig.getBasePackage(), projectConfig.getGeneratedCodePackage(), "vo", serializationAliases);
+		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
+				projectConfig.getBasePackage(), projectConfig.getGeneratedCodePackage(), serializationAliases);
+
+		generateClasses(javaBeanSchemas, vdaof, vJdbcDaoFactory, vvof, vobjcf);
+
+		if (projectConfig.getAndroidDirectory() != null) {
+			VelocityCustomClassesFactory.generateDAOFactory(
+					"SQLiteDAOFactory.java",
+					VelocityDaoFactory.Type.ANDROID.getSuffix (),
+					ve, javaBeanSchemas,
+					projectConfig.getBasePackage (),
+					projectConfig.getGeneratedCodePackage(),
+					"vo",
+					androidTempDir);
+		}
+		if (projectConfig.getJdbcDirectory() != null) {
+			VelocityCustomClassesFactory.generateDAOFactory(
+					"JdbcDAOFactory.java",
+					VelocityDaoFactory.Type.JDBC.getSuffix (),
+					ve, javaBeanSchemas,
+					projectConfig.getBasePackage (),
+					projectConfig.getGeneratedCodePackage(),
+					"vo",
+					jdbcTempDir);
+		}
+
+
+//		String pastaGen = projectInformation.getGeneratedPackageDirectoryPath();
+//
+//		// Substitui os pacotes gen por pastas vazias, para remover os
+//		//   arquivos antigos
+//		File coreGenFolder = resetDir(new File(projectInformation.getCoreDirectory(), pastaGen));
+//		File androidGenDir = resetDir(new File(projectInformation.getAndroidDirectory(), pastaGen));
+//		File jdbcGenDir    = resetDir(new File(projectInformation.getJdbcDirectory(), pastaGen));
+
+		// Copia os novos arquivos para os pacotes gen vazios
+		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
+		//       no caso do "replaceGenFolder"
+
+		String baseDirectory = projectConfig.getBasePackageDirectoryPath ();
+
+		File coreBaseDir = new File(projectConfig.getCoreDirectory (), baseDirectory);
+		resetAllGenFolders (coreTempDir, coreBaseDir);
+		File androidBaseDir = null;
+		if (projectConfig.getAndroidDirectory() != null) {
+			androidBaseDir = new File(
+					projectConfig.getAndroidDirectory (), baseDirectory);
+			resetAllGenFolders (androidTempDir, androidBaseDir);
+		}
+		File jdbcBaseDir = null;
+		if (projectConfig.getJdbcDirectory() != null) {
+			jdbcBaseDir = new File(
+					projectConfig.getJdbcDirectory (), baseDirectory);
+			resetAllGenFolders (jdbcTempDir, jdbcBaseDir);
+		}
+
+		copyDirContentsR (coreTempDir, coreBaseDir);
+		if (androidBaseDir != null) {
+			copyDirContentsR (androidTempDir, androidBaseDir);
+		}
+		if (jdbcBaseDir != null) {
+			copyDirContentsR (jdbcTempDir,jdbcBaseDir);
+		}
+
+		//Stubs
+		VelocityStubFactory implStubFactory = new VelocityStubFactory(
+				ve,
+				VelocityStubFactory.StubType.IMPLEMENTATION,
+				projectConfig.getBasePackage(),
+				projectConfig.getGeneratedCodePackage(),
+				"vo",
+				coreBaseDir,
+				javaBeanSchemas);
+		VelocityStubFactory interfaceStubFactory = new VelocityStubFactory(
+				ve,
+				VelocityStubFactory.StubType.INTERFACE,
+				projectConfig.getBasePackage(),
+				projectConfig.getGeneratedCodePackage(),
+				"vo",
+				coreBaseDir,
+				javaBeanSchemas);
+		checkForStubs(interfaceStubFactory, javaBeanSchemas);
+		checkForStubs(implStubFactory, javaBeanSchemas);
+
+//		props.save();
+	}
+
+
+	private void generateSqlXml(int dbVersion, VelocityEngine ve)
+			throws IOException, FileNotFoundException {
 		{
-			File sqlXmlFile = projectInformation.getSqlXmlOutput ();
-			Map<String, InputStream> migrationsMap = getMigrationsMap (projectInformation, dbVersion);
+			File sqlXmlFile = projectConfig.getSqlXmlOutput ();
+			Map<String, InputStream> migrationsMap = getMigrationsMap (projectConfig, dbVersion);
 			if (sqlXmlFile != null && migrationsMap != null) {
 				if (sqlXmlFile.exists ())
 					sqlXmlFile.delete ();
@@ -160,32 +273,13 @@ public class Generator {
 				vsqlf.generateSqlXml (migrationsMap);
 			}
 		}
+	}
 
-		VelocityDaoFactory vdaof = null;
-		VelocityDaoFactory vJdbcDaoFactory = null;
-		if (projectInformation.getAndroidDirectory() != null) {
-			vdaof = new VelocityDaoFactory(
-				ve, androidTempDir,
-				VelocityDaoFactory.Type.ANDROID,
-				projectInformation.getBasePackage (),
-				projectInformation.getGeneratedCodePackage(),
-				"vo",
-				serializationAliases);
-		}
-		if (projectInformation.getJdbcDirectory() != null) {
-			vJdbcDaoFactory = new VelocityDaoFactory(
-					ve, jdbcTempDir,
-					VelocityDaoFactory.Type.JDBC,
-					projectInformation.getBasePackage (),
-					projectInformation.getGeneratedCodePackage(),
-					"vo",
-					serializationAliases);
-		}
-		VelocityVOFactory vvof = new VelocityVOFactory(ve, coreTempDir,
-				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), "vo", serializationAliases);
-		VelocityObjcFactory vobjcf = new VelocityObjcFactory(ve, appiosTempDir,
-				projectInformation.getBasePackage(), projectInformation.getGeneratedCodePackage(), serializationAliases);
 
+	private void generateClasses(Collection<JavaBeanSchema> javaBeanSchemas,
+			VelocityDaoFactory vdaof, VelocityDaoFactory vJdbcDaoFactory,
+			VelocityVOFactory vvof, VelocityObjcFactory vobjcf)
+			throws IOException {
 		for(JavaBeanSchema javaBeanSchema : javaBeanSchemas){
 			if( javaBeanSchema.isNonEntityTable())
 				continue;
@@ -215,87 +309,6 @@ public class Generator {
 			vobjcf.generateVO(javaBeanSchema, javaBeanSchemas,
 			                  VelocityObjcFactory.Type.EDITABLE_PROTOCOL);
 		}
-
-		if (projectInformation.getAndroidDirectory() != null) {
-			VelocityCustomClassesFactory.generateDAOFactory(
-					"SQLiteDAOFactory.java",
-					VelocityDaoFactory.Type.ANDROID.getSuffix (),
-					ve, javaBeanSchemas,
-					projectInformation.getBasePackage (),
-					projectInformation.getGeneratedCodePackage(),
-					"vo",
-					androidTempDir);
-		}
-		if (projectInformation.getJdbcDirectory() != null) {
-			VelocityCustomClassesFactory.generateDAOFactory(
-					"JdbcDAOFactory.java",
-					VelocityDaoFactory.Type.JDBC.getSuffix (),
-					ve, javaBeanSchemas,
-					projectInformation.getBasePackage (),
-					projectInformation.getGeneratedCodePackage(),
-					"vo",
-					jdbcTempDir);
-		}
-
-
-//		String pastaGen = projectInformation.getGeneratedPackageDirectoryPath();
-//
-//		// Substitui os pacotes gen por pastas vazias, para remover os
-//		//   arquivos antigos
-//		File coreGenFolder = resetDir(new File(projectInformation.getCoreDirectory(), pastaGen));
-//		File androidGenDir = resetDir(new File(projectInformation.getAndroidDirectory(), pastaGen));
-//		File jdbcGenDir    = resetDir(new File(projectInformation.getJdbcDirectory(), pastaGen));
-
-		// Copia os novos arquivos para os pacotes gen vazios
-		// OBS.: Para o caso de ambas as pastas "gen" serem a mesma pasta,
-		//       no caso do "replaceGenFolder"
-
-		String baseDirectory = projectInformation.getBasePackageDirectoryPath ();
-
-		File coreBaseDir = new File(projectInformation.getCoreDirectory (), baseDirectory);
-		resetAllGenFolders (coreTempDir, coreBaseDir);
-		File androidBaseDir = null;
-		if (projectInformation.getAndroidDirectory() != null) {
-			androidBaseDir = new File(
-					projectInformation.getAndroidDirectory (), baseDirectory);
-			resetAllGenFolders (androidTempDir, androidBaseDir);
-		}
-		File jdbcBaseDir = null;
-		if (projectInformation.getJdbcDirectory() != null) {
-			jdbcBaseDir = new File(
-					projectInformation.getJdbcDirectory (), baseDirectory);
-			resetAllGenFolders (jdbcTempDir, jdbcBaseDir);
-		}
-
-		copyDirContentsR (coreTempDir, coreBaseDir);
-		if (androidBaseDir != null) {
-			copyDirContentsR (androidTempDir, androidBaseDir);
-		}
-		if (jdbcBaseDir != null) {
-			copyDirContentsR (jdbcTempDir,jdbcBaseDir);
-		}
-
-		//Stubs
-		VelocityStubFactory implStubFactory = new VelocityStubFactory(
-				ve,
-				VelocityStubFactory.StubType.IMPLEMENTATION,
-				projectInformation.getBasePackage(),
-				projectInformation.getGeneratedCodePackage(),
-				"vo",
-				coreBaseDir,
-				javaBeanSchemas);
-		VelocityStubFactory interfaceStubFactory = new VelocityStubFactory(
-				ve,
-				VelocityStubFactory.StubType.INTERFACE,
-				projectInformation.getBasePackage(),
-				projectInformation.getGeneratedCodePackage(),
-				"vo",
-				coreBaseDir,
-				javaBeanSchemas);
-		checkForStubs(interfaceStubFactory, javaBeanSchemas);
-		checkForStubs(implStubFactory, javaBeanSchemas);
-
-//		props.save();
 	}
 
 	private static void checkForStubs (
@@ -348,59 +361,58 @@ public class Generator {
 		return ve;
 	}
 
-	/**
+	/*
 	 * Classe properties com metodo save para persistir como xml.
-	 * Atualmente nao e utilizada.
 	 * 
 	 * @author Igor Soares
 	 *
 	 */
-	private static class PropertiesLocal extends Properties{
-		private static final long serialVersionUID = -3878975503573330508L;
-
-		private File f;
-
-		private PropertiesLocal(File f) {
-			super();
-			if (f == null ){
-				throw new IllegalArgumentException("file is null");
-			}
-			this.f = f;
-			try{
-				if (!f.exists()){
-					if (f.createNewFile())
-						this.save();
-					else
-						throw new RuntimeException("Could not create " + f.getAbsolutePath());
-				}
-				FileInputStream fis = new FileInputStream(f);
-				if (f.getName().endsWith(".xml")){
-					this.loadFromXML(fis);
-				}
-				else
-					this.load(fis);
-			} catch (FileNotFoundException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new RuntimeException(e);
-			}
-		}
-
-		private void save() throws FileNotFoundException, IOException {
-			FileOutputStream fos = new FileOutputStream(f);
-			if (f.getName().endsWith(".xml"))
-				this.storeToXML(fos, null);
-			else
-				this.store(fos, null);
-		}
-
-	}
-
-	private PropertiesLocal getProperties(File f){
-		return new PropertiesLocal(f);
-	}
+//	private static class PropertiesLocal extends Properties{
+//		private static final long serialVersionUID = -3878975503573330508L;
+//
+//		private File f;
+//
+//		private PropertiesLocal(File f) {
+//			super();
+//			if (f == null ){
+//				throw new IllegalArgumentException("file is null");
+//			}
+//			this.f = f;
+//			try{
+//				if (!f.exists()){
+//					if (f.createNewFile())
+//						this.save();
+//					else
+//						throw new RuntimeException("Could not create " + f.getAbsolutePath());
+//				}
+//				FileInputStream fis = new FileInputStream(f);
+//				if (f.getName().endsWith(".xml")){
+//					this.loadFromXML(fis);
+//				}
+//				else
+//					this.load(fis);
+//			} catch (FileNotFoundException e) {
+//				e.printStackTrace();
+//				throw new RuntimeException(e);
+//			} catch (IOException e) {
+//				e.printStackTrace();
+//				throw new RuntimeException(e);
+//			}
+//		}
+//
+//		private void save() throws FileNotFoundException, IOException {
+//			FileOutputStream fos = new FileOutputStream(f);
+//			if (f.getName().endsWith(".xml"))
+//				this.storeToXML(fos, null);
+//			else
+//				this.store(fos, null);
+//		}
+//
+//	}
+//
+//	private PropertiesLocal getProperties(File f){
+//		return new PropertiesLocal(f);
+//	}
 
 	/**
 	 * Remover um diretorio e todos seus arquivos e diretorios recursivamente
@@ -452,9 +464,16 @@ public class Generator {
 		}
 	}
 
-	// TODO documentar
-	// CUIDADO:: funcao perigosa, pode deletar tudo
-	public static void resetAllGenFolders (File tempDir, File destDir)
+	/**
+	 * Confere a arvore de pastas em "tempgen" e localiza as pastas que em que
+	 * ha arqivos de texto (que nao sao diretorios).
+	 * As pastas com arquivos de texto sao removidas, assim como as subpastas.
+	 * 
+	 * @param tempDir pasta "tempgen"
+	 * @param destDir pasta de destino
+	 * @throws IOException
+	 */
+	private static void resetAllGenFolders (File tempDir, File destDir)
 		throws IOException
 	{
 		if (!destDir.exists ())
@@ -466,7 +485,9 @@ public class Generator {
 			File dest = new File (destDir, f.getName ());
 			if (f.isDirectory ()){
 				resetAllGenFolders (f, dest);
-			} else {
+			} else if (destDir.getName().equals("gen")){
+				// apenas deiretorios de nome "gen" sao removidos
+				// REFATORAR: a string "gen" deveria ser um parametro da funcao
 				resetDir (destDir);
 				break;
 			}
@@ -480,27 +501,26 @@ public class Generator {
 	 * @param destFile
 	 * @throws IOException
 	 */
-	public static void copyFile(File sourceFile, File destFile) throws IOException {
-	    if(!destFile.exists()) {
-	        destFile.createNewFile();
-	    }
+	private static void copyFile(File sourceFile, File destFile) throws IOException {
+		if (!destFile.exists()) {
+			destFile.createNewFile();
+		}
 
-	    FileChannel source = null;
-	    FileChannel destination = null;
+		FileChannel source = null;
+		FileChannel destination = null;
 
-	    try {
-	        source = new FileInputStream(sourceFile).getChannel();
-	        destination = new FileOutputStream(destFile).getChannel();
-	        destination.transferFrom(source, 0, source.size());
-	    }
-	    finally {
-	        if(source != null) {
-	            source.close();
-	        }
-	        if(destination != null) {
-	            destination.close();
-	        }
-	    }
+		try {
+			source = new FileInputStream(sourceFile).getChannel();
+			destination = new FileOutputStream(destFile).getChannel();
+			destination.transferFrom(source, 0, source.size());
+		} finally {
+			if (source != null) {
+				source.close();
+			}
+			if (destination != null) {
+				destination.close();
+			}
+		}
 	}
 
 	private static void generateMigrations(
