@@ -108,6 +108,20 @@ public class JsonInputParser implements InputParser {
 				Class<?> classType = convertJsonTypeToJavaType(type);
 				boolean isStringType = String.class.equals(classType);
 
+				if (isStringType) {
+					/* min < 0 */
+					if (min != null && min.compareTo(BigDecimal.ZERO) < 0) {
+						throw new RuntimeException(String.format(
+								"tamanho minimo de %s.%s menor que 0",
+								classId, attributeName));
+					}
+					/* max < 0 */
+					if (max != null && max.compareTo(BigDecimal.ZERO) < 0) {
+						throw new RuntimeException(String.format(
+								"tamanho maximo de %s.%s menor que 0",
+								classId, attributeName));
+					}
+				}
 				if (min != null && max != null) {
 					/* min > max */
 					if(min.compareTo(max) > 0) {
@@ -116,18 +130,6 @@ public class JsonInputParser implements InputParser {
 								classId, attributeName));
 					}
 					if (isStringType) {
-						/* min < 0 */
-						if (min.compareTo(BigDecimal.ZERO) < 0) {
-							throw new RuntimeException(String.format(
-									"tamanho minimo de %s.%s menor que 0",
-									classId, attributeName));
-						}
-						/* max < 0 */
-						if (max.compareTo(BigDecimal.ZERO) < 0) {
-							throw new RuntimeException(String.format(
-									"tamanho maximo de %s.%s menor que 0",
-									classId, attributeName));
-						}
 						/* min == max */
 						if (min.equals(max)) {
 							lengthConstraint = min; /* = max*/
