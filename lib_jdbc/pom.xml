@@ -112,4 +112,23 @@
 		</snapshotRepository>
 	</distributionManagement>
 	
+	<profiles>
+		<profile>
+			<id>emma</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>emma-maven-plugin</artifactId>
+						<configuration>
+							<dataFiles>${project.basedir}/coverage.ec</dataFiles>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
