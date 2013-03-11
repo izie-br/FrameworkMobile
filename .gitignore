@@ -13,6 +13,7 @@ gerador/target/*
 .project
 .classpath
 .settings
+coverage.ec
 test/bin/*
 gen
 test/target/*

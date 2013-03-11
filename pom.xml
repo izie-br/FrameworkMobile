@@ -119,6 +119,27 @@
 						</plugin>
 					</plugins>
 				</pluginManagement>
+				<plugins>
+					<plugin>
+						<artifactId>maven-clean-plugin</artifactId>
+						<version>2.5</version>
+						<configuration>
+							<filesets>
+								<fileset>
+									<directory>${project.basedir}</directory>
+									<includes>
+										<!--
+										  o coverage.ec tem que ser removido, o EMMA ira
+										  reusar, fazendo merge em uma nova execucao
+										-->
+										<include>coverage.ec</include>
+									</includes>
+									<followSymlinks>true</followSymlinks>
+								</fileset>
+							</filesets>
+						</configuration>
+					</plugin>
+				</plugins>
 			</build>
 		</profile>
 	</profiles>
