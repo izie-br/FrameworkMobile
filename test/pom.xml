@@ -10,7 +10,7 @@
 		<artifactId>frameworkMobile</artifactId>
 		<version>0.34-SNAPSHOT</version>
 	</parent>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>commons-lang</groupId>
@@ -45,24 +45,13 @@
 			<scope>provided</scope>
 		</dependency>
 	</dependencies>
-	
+
+
 	<build>
 		<plugins>
 			<plugin>
 				<groupId>com.jayway.maven.plugins.android.generation2</groupId>
 				<artifactId>android-maven-plugin</artifactId>
-				<version>3.1.1</version>
-				<configuration>
-					<androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
-					<assetsDirectory>${project.basedir}/assets</assetsDirectory>
-					<resourceDirectory>${project.basedir}/res</resourceDirectory>
-					<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
-					<sdk>
-						<platform>7</platform>
-					</sdk>
-					<undeployBeforeDeploy>true</undeployBeforeDeploy>
-				</configuration>
-				<extensions>true</extensions>
 			</plugin>
 			<plugin>
 				<groupId>com.quantium.mobile.framework</groupId>
@@ -104,11 +93,27 @@
 			</plugin>
 		</plugins>
 		<pluginManagement>
-			<!-- O Eclipse percisa de um conector para executar um plugin -->
-			<!-- do Maven. Como nao eh necessario a geracao continua de -->
-			<!-- classes pelo plugin, optei por fazer o eclipse o ignorar -->
 			<plugins>
 				<plugin>
+					<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+					<artifactId>android-maven-plugin</artifactId>
+					<version>3.1.1</version>
+					<configuration>
+						<androidManifestFile>${project.basedir}/AndroidManifest.xml</androidManifestFile>
+						<assetsDirectory>${project.basedir}/assets</assetsDirectory>
+						<resourceDirectory>${project.basedir}/res</resourceDirectory>
+						<nativeLibrariesDirectory>${project.basedir}/src/main/native</nativeLibrariesDirectory>
+						<sdk>
+							<platform>7</platform>
+						</sdk>
+						<undeployBeforeDeploy>true</undeployBeforeDeploy>
+					</configuration>
+					<extensions>true</extensions>
+				</plugin>
+				<plugin>
+					<!-- O Eclipse percisa de um conector para executar um plugin -->
+					<!-- do Maven. Como nao eh necessario a geracao continua de -->
+					<!-- classes pelo plugin, optei por fazer o eclipse o ignorar -->
 					<groupId>org.eclipse.m2e</groupId>
 					<artifactId>lifecycle-mapping</artifactId>
 					<version>1.0.0</version>
@@ -148,5 +153,54 @@
 			<url>${url.snapshots}</url>
 		</snapshotRepository>
 	</distributionManagement>
-	
+
+	<profiles>
+		<profile>
+			<id>emma</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>emma</groupId>
+					<artifactId>emma</artifactId>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>emma-maven-plugin</artifactId>
+					</plugin>
+					<plugin>
+						<groupId>com.jayway.maven.plugins.android.generation2</groupId>
+						<artifactId>android-maven-plugin</artifactId>
+						<configuration>
+							<dex>
+								<noLocals>true</noLocals>
+							</dex>
+							<test>
+								<coverage>true</coverage>
+								<!-- createReport>true</createReport -->
+							</test>
+						</configuration>
+						<executions>
+							<execution>
+								<id>pull-coverage</id>
+								<phase>post-integration-test</phase>
+								<goals>
+									<goal>pull</goal>
+								</goals>
+								<configuration>
+									<pullSource>/data/data/com.quantium.mobile.framework.test/files/coverage.ec</pullSource>
+									<pullDestination>${project.basedir}/target/emma/coverage.ec</pullDestination>
+								</configuration>
+							</execution>
+						</executions>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
