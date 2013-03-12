@@ -185,4 +185,56 @@
 		</snapshotRepository>
 	</distributionManagement>
 	 
+	<profiles>
+		<profile>
+			<id>emma</id>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+
+			<dependencies>
+				<dependency>
+					<groupId>emma</groupId>
+					<artifactId>emma</artifactId>
+				</dependency>
+			</dependencies>
+			<build>
+				<plugins>
+					<plugin>
+						<groupId>org.codehaus.mojo</groupId>
+						<artifactId>emma-maven-plugin</artifactId>
+						<executions>
+							<execution>
+								<!-- 
+								     O plugin do Jetty recompila o projeto antes de sua execucao,
+								     invocando "process-classes" duas vezes.
+								     Alterei a execucao para "process-test-classes", que roda uma vez.
+								-->
+								<phase>process-test-classes</phase>
+								<goals>
+									<goal>instrument</goal>
+								</goals>
+							</execution>
+						</executions>
+						<configuration>
+							<!--
+							     As classes udadas pelo gerador devem ser filtradas,
+							     para evitar um "crash" do gerador.
+							-->
+							<filters>
+								<filter>+com.quantium.mobile.framework.FrameworkJSONTokener</filter>
+								<filter>+com.quantium.mobile.framework.LazyInvocationHandler</filter>
+								<filter>+com.quantium.mobile.framework.MapToObjectIterator</filter>
+								<filter>+com.quantium.mobile.framework.StreamJsonIterator</filter>
+								<filter>+com.quantium.mobile.framework.communication.*</filter>
+								<filter>+com.quantium.mobile.framework.db.*</filter>
+								<filter>+com.quantium.mobile.framework.query.*</filter>
+								<filter>-com.quantium.mobile.framework.query.Table*</filter>
+							</filters>
+						</configuration>
+					</plugin>
+				</plugins>
+			</build>
+		</profile>
+	</profiles>
 </project>
