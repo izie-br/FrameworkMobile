@@ -15,14 +15,16 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
 
     @Override
     protected String getColumn(String tableAs, Column<?> column) {
-        String columnNameWithTable =
-                (
-                    (tableAs != null) ?
-                        // se a tabela for nomeada com "tablename AS tablealias"
-                        (tableAs + '.') :
-                         // se nao ha alias
-                        ""
-                ) + column.getName();
+        // Eh bom reforcar o uso de "alias" para tabelas em um ORM
+//        String columnNameWithTable =
+//                (
+//                    (tableAs != null) ?
+//                        // se a tabela for nomeada com "tablename AS tablealias"
+//                        (tableAs + '.') :
+//                         // se nao ha alias
+//                        ""
+//                ) + column.getName();
+      String columnNameWithTable = tableAs + '.' + column.getName();
             return columnNameWithTable;
     }
 
@@ -54,18 +56,26 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
         StringBuilder sb = new StringBuilder(2*glob.length());
 
         // Escape torna-se true ao encontrar um '\'
-        boolean escape = false;
+        boolean escapeNext = false;
 
         for (int i = 0; i < glob.length(); i++){
-            if (escape){
-                escape = false;
-                continue;
-            }
             char c = glob.charAt(i);
             switch (c){
-            case '\\':
-                sb.append('\\');
-                escape = true;
+            case '[':
+                if (escapeNext) {
+                    sb.append("\\[");
+                } else {
+                    sb.append('[');
+                    escapeNext = true;
+                }
+                break;
+            case ']':
+                if (escapeNext) {
+                    escapeNext = false;
+                    sb.append(']');
+                } else {
+                    sb.append("\\]");
+                }
                 break;
             case '*':
                 sb.append(".*");

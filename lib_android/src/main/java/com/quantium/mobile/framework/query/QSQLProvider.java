@@ -17,14 +17,16 @@ public class QSQLProvider extends AbstractQSQLProvider {
 
     @Override
     protected String getColumn(String tableAs, Table.Column<?> column) {
-        String columnNameWithTable =
-            (
-                (tableAs != null) ?
-                    // se a tabela for nomeada com "tablename AS tablealias"
-                    tableAs + '.' :
-                     // se nao ha alias
-                    ""
-            ) + column.getName();
+          // Eh bom reforcar o uso de "alias" para tabelas em um ORM
+//        String columnNameWithTable =
+//            (
+//                (tableAs != null) ?
+//                    // se a tabela for nomeada com "tablename AS tablealias"
+//                    tableAs + '.' :
+//                     // se nao ha alias
+//                    ""
+//            ) + column.getName();
+      String columnNameWithTable = tableAs + '.' + column.getName();
         return
             // tratar a classe Date para o SQlite3
             (column.getKlass().equals(Date.class)) ?

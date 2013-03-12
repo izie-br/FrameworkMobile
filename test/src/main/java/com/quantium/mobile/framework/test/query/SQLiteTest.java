@@ -37,10 +37,14 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Author author3 = new AuthorImpl();
 		author3.setName("outro");
 		author3.setCreatedAt(now);
+		Author author4 = new AuthorImpl();
+		author4.setName("com caracteres *[.^$+-(){}]");
+		author4.setCreatedAt(now);
 		try {
 			assertTrue(dao.save(author1));
 			assertTrue(dao.save(author2));
 			assertTrue(dao.save(author3));
+			assertTrue(dao.save(author4));
 		} catch (IOException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
@@ -60,6 +64,14 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertEquals(2, authors.size());
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
+
+		authors = dao.query(Q.glob(
+				Author.NAME,
+				"*[*[].^$+-(){}]")
+			).all();
+		assertEquals(1, authors.size());
+		assertEquals(author4, authors.iterator().next());
+
 	}
 
 	public void testImmutableQuerySet() throws Exception{

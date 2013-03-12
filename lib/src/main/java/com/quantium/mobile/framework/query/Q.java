@@ -140,7 +140,27 @@ public final class Q {
     /**
      * <p>Faz a busca por texto com operador GLOB (unix-like).</p>
      * <p>Exemplo: &quot;colunm GLOB ?&quot;</p>
+     * <pre>
+     * Regras de glob (retirado de um comentario do fonte):
+     *      '*'       Matches any sequence of zero or more characters.
      *
+     *      '?'       Matches exactly one character.
+     *
+     *     [...]      Matches one character from the enclosed list of
+     *                characters.
+     *
+     *     [^...]     Matches one character not in the enclosed list.
+     *
+     * With the [...] and [^...] matching, a ']' character can be included
+     * in the list by making it the first character after '[' or '^'.  A
+     * range of characters can be specified using '-'.  Example:
+     * "[a-z]" matches any single lower-case letter.  To match a '-', make
+     * it the last character in the list.
+     * [...]
+     * Hints: to match '*' or '?', put them in "[]".  Like this:
+     *
+     *         abc[*]xyz        Matches "abc*xyz" only
+     * </pre>
      * @param colum coluna
      * @param pattern expressao
      */

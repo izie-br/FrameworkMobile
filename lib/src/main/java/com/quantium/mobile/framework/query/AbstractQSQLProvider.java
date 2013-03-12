@@ -26,42 +26,50 @@ public abstract class AbstractQSQLProvider {
         Table table = q.getTable();
         Collection<Q.InnerJoin> joins = q.getInnerJoins();
 
-        String out = "SELECT ";
+        StringBuilder out = new StringBuilder("SELECT ");
         Iterator<?> it = selection.iterator ();
         while (it.hasNext ()){
             Object obj = it.next ();
             if (obj instanceof Table.Column) {
                 Table.Column<?> column = (Table.Column<?>)obj;
-                out += getColumn(
+                out.append(getColumn(
                     column.getTable().getName(),
                     column
-                );
+                ));
             } else if (obj instanceof String) {
-                out += (String)obj;
+                out.append((String)obj);
             }
             if( it.hasNext () )
-                out += ',';
+                out.append(',');
             else
                 break;
         }
-        out += " FROM " + table.getName() + " AS " + table.getName();
+        String tableName = table.getName();
+        out.append(" FROM ");
+        out.append(tableName);
+        out.append(" AS ");
+        out.append(tableName);
         if (joins != null ){
             for(Q.InnerJoin j: joins) {
-                out += " JOIN " + j.getForeignKey().getTable().getName() +
-                    " AS " + j.getForeignKey().getTable().getName() +
-                    " ON " +
-                    getColumn(j.getColumn().getTable().getName(), j.getColumn()) +
-                    j.op().toString() +
-                    getColumn(j.getForeignKey().getTable().getName(), j.getForeignKey());
+                String foreignKeyTableName = j.getForeignKey().getTable().getName();
+                out.append(" JOIN ");
+                out.append(foreignKeyTableName);
+                out.append(" AS ");
+                out.append(foreignKeyTableName);
+                out.append(" ON ");
+                out.append(getColumn(j.getColumn().getTable().getName(), j.getColumn()));
+                out.append(j.op().toString());
+                out.append(getColumn(foreignKeyTableName, j.getForeignKey()));
             }
         }
         StringBuilder sb = new StringBuilder();
         genQstringAndArgs(sb, args);
         String qstring = sb.toString();
         if(qstring != null && !qstring.matches("\\s*")){
-            out += " WHERE " + qstring;
+            out.append(" WHERE ");
+            out.append(qstring);
         }
-        return out;
+        return out.toString();
     }
 
     private void genQstringAndArgs (StringBuilder sb, List<Object> args) {
