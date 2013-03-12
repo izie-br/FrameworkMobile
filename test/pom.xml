@@ -172,6 +172,14 @@
 					<plugin>
 						<groupId>org.codehaus.mojo</groupId>
 						<artifactId>emma-maven-plugin</artifactId>
+						<configuration>
+							<filters>
+								<filter>+com.quantium.mobile.framework.test.gen.*</filter>
+								<filter>+com.quantium.mobile.framework.test.vo.*</filter>
+								<filter>+com.quantium.mobile.framework.test.document.gen.*</filter>
+								<filter>+com.quantium.mobile.framework.test.document.vo.*</filter>
+							</filters>
+						</configuration>
 					</plugin>
 					<plugin>
 						<groupId>com.jayway.maven.plugins.android.generation2</groupId>

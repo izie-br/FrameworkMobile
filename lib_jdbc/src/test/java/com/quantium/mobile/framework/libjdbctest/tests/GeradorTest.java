@@ -592,7 +592,7 @@ public class GeradorTest {
 
 
 	@SuppressWarnings("deprecation")
-	private Author randomAuthor() {
+	public static Author randomAuthor() {
 		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
 		Date now = new Date();
@@ -604,7 +604,7 @@ public class GeradorTest {
 	}
 
 	@SuppressWarnings("deprecation")
-	private Document randomDocument () {
+	public static Document randomDocument () {
 		Document document = new DocumentImpl();
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
@@ -616,7 +616,7 @@ public class GeradorTest {
 		return document;
 	}
 
-	private Customer randomCustomer () {
+	public static Customer randomCustomer () {
 		Customer customer = new CustomerImpl();
 		customer.setName(RandomStringUtils.random(60));
 		return customer;

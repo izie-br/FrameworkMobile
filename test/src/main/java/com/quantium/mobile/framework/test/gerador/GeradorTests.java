@@ -675,7 +675,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 
-	private Author randomAuthor() {
+	public static Author randomAuthor() {
 		Author author = new AuthorImpl();
 		author.setName(RandomStringUtils.random(60));
 		Date now = new Date();
@@ -686,7 +686,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		return author;
 	}
 
-	private Document randomDocument () {
+	public static Document randomDocument () {
 		Document document = new DocumentImpl();
 		document.setText(RandomStringUtils.random(6000));
 		document.setTitle(RandomStringUtils.random(60));
@@ -698,7 +698,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		return document;
 	}
 
-	private Customer randomCustomer () {
+	public static Customer randomCustomer () {
 		Customer customer = new CustomerImpl();
 		customer.setName(RandomStringUtils.random(CUSTOMER_NAME_LEN));
 		return customer;
