@@ -78,10 +78,16 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
                 }
                 break;
             case '*':
-                sb.append(".*");
+                if (escapeNext)
+                    sb.append("\\*");
+                else
+                    sb.append(".*");
                 break;
             case '?':
-                sb.append(".");
+                if (escapeNext)
+                    sb.append("\\?");
+                else
+                    sb.append(".");
                 break;
             // Escapar estes .^$+-(){}
             case '.':

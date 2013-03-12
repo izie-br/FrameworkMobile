@@ -43,7 +43,7 @@ public class QueryTest {
 		author3.setName("outro");
 		author3.setCreatedAt(now);
 		Author author4 = new AuthorImpl();
-		author4.setName("com caracteres *[.^$+-(){}]");
+		author4.setName("com caracteres *[?.^$+-(){}]");
 		author4.setCreatedAt(now);
 		try {
 			assertTrue(dao.save(author1));
@@ -72,7 +72,11 @@ public class QueryTest {
 
 		authors = dao.query(Q.glob(
 					Author.NAME,
-					"*[*[].^$+-(){}]")
+					// os caracteres *, [ e ? devem estar entre chaves []
+					// o caractere ] deve estar sozinho, sem uma [ associada
+					// nenhum desses outros caracteres deve ser tratado
+					// de forma especial
+					"*[*[?].^$+-(){}]")
 				).all();
 		assertEquals(1, authors.size());
 		assertEquals(author4, authors.iterator().next());
