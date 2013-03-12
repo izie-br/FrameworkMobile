@@ -53,7 +53,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 		finally{
 			cursor.close();
 		}
-		return -1;
+		throw new RuntimeException();
 	}
 
 	/**
@@ -61,13 +61,15 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 	 * @return cursor
 	 */
 	public Cursor getCursor(List<?> selection) {
+		if (limit <= 0)
+			limit = -1;
 		String limitStr =
-				(limit !=0 && offset != 0) ?
-						String.format("LIMIT %d,%d", offset,limit):
-				(limit != 0) ?
+				(offset > 0) ?
+						String.format("LIMIT %d,%d", offset, limit):
+				(limit > 0) ?
 						String.format("LIMIT %d", limit):
-				(offset != 0) ?
-						String.format("OFFSET %d,", offset):
+//				(offset != 0) ?
+//						String.format("LIMIT %d,%d", -1, offset):
 				// limit <= 0 && offset <= 0
 						"";
 

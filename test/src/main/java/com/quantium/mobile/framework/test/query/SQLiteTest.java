@@ -13,8 +13,11 @@ import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
+import com.quantium.mobile.framework.test.document.vo.Document;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
+import com.quantium.mobile.framework.test.vo.Customer;
+import com.quantium.mobile.framework.test.vo.Score;
 
 public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -23,6 +26,39 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		super("com.quantium.mobile.framework.test", TestActivity.class);
 	}
 
+	@Override
+	protected void setUp() throws Exception {
+		super.setUp();
+		//Limpar o banco
+		{
+			DAO<Score> dao = facade.getDAOFactory().getDaoFor(Score.class);
+			List<Score> objects = dao.query().all();
+			for (Score obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Customer> dao = facade.getDAOFactory().getDaoFor(Customer.class);
+			List<Customer> objects = dao.query().all();
+			for (Customer obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Document> dao = facade.getDAOFactory().getDaoFor(Document.class);
+			List<Document> objects = dao.query().all();
+			for (Document obj :objects) {
+				dao.delete(obj);
+			}
+		}
+		{
+			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			List<Author> objects = dao.query().all();
+			for (Author obj :objects) {
+				dao.delete(obj);
+			}
+		}
+	}
 
 	public void testLikeAndGlob(){
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
@@ -78,6 +114,39 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertEquals(author4, authors.iterator().next());
 	}
 
+	public void testLimitOffset () {
+		try {
+			Date now = new Date();
+			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+
+			Author author1 = new AuthorImpl(0, now, "author1", true, null, null);
+			Author author2 = new AuthorImpl(0, now, "author2", true, null, null);
+			Author author3 = new AuthorImpl(0, now, "author3", false, null, null);
+			Author author4 = new AuthorImpl(0, now, "author4", true, null, null);
+
+			assertTrue(dao.save(author1));
+			assertTrue(dao.save(author2));
+			assertTrue(dao.save(author3));
+			assertTrue(dao.save(author4));
+
+			List<Author> authors = dao.query().limit(1).all();
+			assertEquals(1, authors.size());
+
+			authors = dao.query().offset(2).all();
+			assertEquals(2, authors.size());
+
+			authors = dao.query(Author.ACTIVE.eq(true))
+					.limit(1).offset(1)
+					.orderBy(Author.NAME)
+					.all();
+			assertEquals(1, authors.size());
+			assertEquals(author2, authors.get(0));
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+
 	public void testImmutableQuerySet() throws Exception{
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		for (int i=0; i< 10; i++){
@@ -123,4 +192,5 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		}
 	}
 
+	
 }

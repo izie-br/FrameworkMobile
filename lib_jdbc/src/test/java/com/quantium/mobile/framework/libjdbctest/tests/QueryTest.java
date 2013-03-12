@@ -83,6 +83,39 @@ public class QueryTest {
 	}
 
 	@Test
+	public void testLimitOffset () {
+		try {
+			Date now = new Date();
+			DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+
+			Author author1 = new AuthorImpl(0, now, "author1", true, null, null);
+			Author author2 = new AuthorImpl(0, now, "author2", true, null, null);
+			Author author3 = new AuthorImpl(0, now, "author3", false, null, null);
+			Author author4 = new AuthorImpl(0, now, "author4", true, null, null);
+
+			assertTrue(dao.save(author1));
+			assertTrue(dao.save(author2));
+			assertTrue(dao.save(author3));
+			assertTrue(dao.save(author4));
+
+			List<Author> authors = dao.query().limit(1).all();
+			assertEquals(1, authors.size());
+
+			authors = dao.query().offset(2).all();
+			assertEquals(2, authors.size());
+
+			authors = dao.query(Author.ACTIVE.eq(true))
+					.limit(1).offset(1)
+					.orderBy(Author.NAME)
+					.all();
+			assertEquals(1, authors.size());
+			assertEquals(author2, authors.get(0));
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
 	public void testImmutableQuerySet() throws Exception{
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
 		for (int i=0; i< 10; i++){

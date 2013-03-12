@@ -86,7 +86,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 				LogPadrao.e(e);
 			}
 		}
-		return -1;
+		throw new RuntimeException();
 	}
 
 	/**
@@ -94,14 +94,14 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	 * @return cursor
 	 */
 	public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
+		if (limit <= 0)
+			limit = -1;
 		String limitStr =
-				(limit>0 && offset>0) ?
-						String.format("LIMIT %d OFFSET %d", offset,limit):
-				(limit>0) ?
+				(this.offset > 0) ?
+						String.format("LIMIT %d OFFSET %d", limit, offset) :
+				(this.limit > 0) ?
 						String.format("LIMIT %d", limit):
-				(offset>0) ?
-						String.format("OFFSET %d,", offset):
-				// limit <= 0 && offset <= 0
+				//(limit == 0 && offset == 0) ?
 						"";
 
 		if (this.q == null) {
