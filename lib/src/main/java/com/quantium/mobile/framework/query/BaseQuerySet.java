@@ -1,5 +1,7 @@
 package com.quantium.mobile.framework.query;
 
+import java.util.List;
+
 public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	protected Q q;
@@ -11,7 +13,7 @@ public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 	protected int limit;
 	protected int offset;
 
-	protected abstract Table.Column<?>[] getColunas();
+	protected abstract List<Table.Column<?>> getColumns();
 
 	protected abstract String nullsFirstOrderingClause();
 

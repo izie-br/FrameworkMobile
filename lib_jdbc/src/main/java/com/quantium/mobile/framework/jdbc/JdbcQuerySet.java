@@ -29,7 +29,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		List<T> all = new ArrayList<T>();
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor(Arrays.asList (getColunas ()));
+			cursor = getCursor(getColumns ());
 			while(cursor.next())
 				all.add(cursorToObject(cursor));
 		} catch (java.sql.SQLException e) {
@@ -49,7 +49,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	public T first(){
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor(Arrays.asList (getColunas ()));
+			cursor = getCursor(getColumns ());
 			if(cursor.next())
 				return cursorToObject(cursor);
 		} catch (java.sql.SQLException e) {

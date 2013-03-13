@@ -56,7 +56,7 @@
         }
 
         @Override
-        protected Table.Column<?> [] getColunas() {
+        protected List<Table.Column<?>> getColumns() {
             return COLUMNS;
         }
 

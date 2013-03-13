@@ -5,7 +5,9 @@ import java.io.Serializable;
 import java.lang.ref.Reference;
 import java.lang.reflect.Proxy;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -39,11 +41,14 @@ ${Imports}
 @SuppressWarnings("unused")
 public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Target}> {
 
-    public static final Table.Column<?> COLUMNS [] = new Table.Column<?>[] {
+    @SuppressWarnings("unchecked")
+    public static final List<Table.Column<?>> COLUMNS =
+            Collections.unmodifiableList(Arrays.asList(
 #foreach ($field in $fields)
-                ${Target}.${field.UpperAndUnderscores},
+                    (Table.Column<?>)${Target}.${field.UpperAndUnderscores}#if($foreach.count != $fields.size()),#end
+
 #end
-    };
+            ));
 
     private ${DaoFactory} factory;
 

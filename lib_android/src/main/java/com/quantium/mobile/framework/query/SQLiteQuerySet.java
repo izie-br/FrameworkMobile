@@ -21,7 +21,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
-		Cursor cursor = getCursor(Arrays.asList (getColunas ()));
+		Cursor cursor = getCursor(getColumns ());
 		try{
 			while(cursor.moveToNext())
 				all.add(cursorToObject(cursor));
@@ -32,7 +32,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 	}
 
 	public T first(){
-		Cursor cursor = getCursor(Arrays.asList (getColunas ()));
+		Cursor cursor = getCursor(getColumns ());
 		try{
 			if(cursor.moveToNext())
 				return cursorToObject(cursor);
