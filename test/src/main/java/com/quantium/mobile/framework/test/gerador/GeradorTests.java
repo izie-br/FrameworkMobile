@@ -394,6 +394,180 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
+	public void testValidateVO () {
+		Author author = new AuthorImpl ();
+		author.setActive (true);
+		author.setName (null);
+		author.setCreatedAt (null);
+
+		Collection<ValidationError> validationErrors = author.validate ();
+
+		boolean nameNull = false;
+		boolean createdAtNull = false;
+
+		for (ValidationError error : validationErrors) {
+			if (error.getColumn ().equals (Author.NAME) &&
+			    error.getConstraint() instanceof Constraint.NotNull)
+			{
+				nameNull = true;
+			} else if (error.getColumn ().equals (Author.CREATED_AT) &&
+			           error.getConstraint() instanceof Constraint.NotNull)
+			{
+				createdAtNull = true;
+			} else {
+				fail (
+					"O usuario deve ter nome null ou createdAt null, mas " +
+					"foi encontrado " +
+					error.getColumn ().getName () + 
+					" com constraint invalida: " +
+					error.getConstraint ().getClass().getSimpleName()
+				);
+			}
+		}
+		if (!nameNull)
+			fail ("Usuario com nome NULL deve ser invalido");
+		if (!createdAtNull)
+			fail ("Usuario com createdAt NULL deve ser invalido");
+
+		author.setName ("Nome Qualquer");
+		author.setCreatedAt (new Date ());
+
+		// a lista de erros deve ser uma lista vazia (nao pode ser null)
+		assertEquals (0, author.validate ().size ());
+
+		// o nome tem tamanho maximo de 79 pois eh um VARCHAR[79]
+		author.setName(RandomStringUtils.randomAlphanumeric(80));
+		validationErrors = author.validate();
+		assertEquals(1, validationErrors.size());
+		ValidationError maxError = validationErrors.iterator().next();
+		assertEquals(Author.NAME, maxError.getColumn());
+		assertTrue(maxError.getConstraint() instanceof Constraint.Max);
+	}
+
+	public void testValidateThroughDAO () {
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor (Author.class);
+		Author author1= randomAuthor ();
+		try {
+			assertTrue (dao.save (author1));
+		} catch (IOException e) {
+			fail ();
+		}
+		String author1Name = author1.getName ();
+
+		Author author2;
+		do {
+			author2 = randomAuthor ();
+		} while (author2.getName ().equals (author1Name));
+
+		Collection<ValidationError> errors = dao.validate (author2);
+		assertEquals (0, errors.size ());
+
+		author2.setName (author1Name);
+		errors = dao.validate (author2);
+		assertEquals (1, errors.size ());
+
+		ValidationError error = errors.iterator ().next ();
+		assertTrue (error.getConstraint () instanceof Constraint.Unique);
+		assertEquals (Author.NAME, error.getColumn ());
+	}
+
+	public void testQuerySetCount () {
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor (Author.class);
+
+		Author author1 = randomAuthor ();
+		Author author2 = randomAuthor ();
+		Author author3 = randomAuthor ();
+
+		// Dois dos autores estao com active false
+		author1.setActive (false);
+		author2.setActive (false);
+		author3.setActive (true);
+
+		try {
+			assertTrue (dao.save (author1));
+			assertTrue (dao.save (author2));
+			assertTrue (dao.save (author3));
+		} catch (IOException e) {
+			fail ();
+		}
+		// Dois dos autores devem estar com active false
+		long qty = dao.query (Author.ACTIVE.eq (false)).count ();
+		assertEquals (2, qty);
+	}
+
+	public void testNullQuery () {
+		try {
+			DAO<Customer> customerDao = facade.getDAOFactory().getDaoFor(Customer.class);
+	
+			Customer customerNullName = randomCustomer();
+			customerNullName.setName(null);
+			assertTrue(customerDao.save(customerNullName));
+	
+			Customer customerNotNullName = randomCustomer();
+			assertTrue(customerDao.save(customerNotNullName));
+	
+			{
+				List<Customer> customersNullNameFromDb = customerDao
+						.query(Customer.NAME.eq((String)null))
+						.all();
+				assertEquals(1, customersNullNameFromDb.size());
+				assertEquals(customerNullName, customersNullNameFromDb.get(0));
+			}
+			{
+				List<Customer> customersNotNullNameFromDb = customerDao
+						.query(Customer.NAME.isNotNull())
+						.all();
+				assertEquals(1, customersNotNullNameFromDb.size());
+				assertEquals(customerNotNullName, customersNotNullNameFromDb.get(0));
+			}
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+
+	/**
+	 * Quando o tipo eh Long, Double e afins, NULL se torna 0 no banco
+	 */
+	public void testNullToZeroQuery () {
+		try {
+			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+	
+			Document documentAuthorNotNull = randomDocument();
+			documentAuthorNotNull.setAuthor(author);
+			assertTrue(docDao.save(documentAuthorNotNull));
+
+			Document documentAuthorNull = randomDocument();
+			documentAuthorNull.setAuthor(null);
+			assertTrue(docDao.save(documentAuthorNull));
+
+			List<Document> documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.eq((Long)null))
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			documentAuthorNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNull())
+					.all();
+			assertEquals(1, documentAuthorNullFromDb.size());
+			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
+
+			List<Document> documentAuthorNotNullFromDb = docDao
+					.query(Document.ID_AUTHOR.isNotNull())
+					.all();
+			assertEquals(1, documentAuthorNotNullFromDb.size());
+			assertEquals(documentAuthorNotNull, documentAuthorNotNullFromDb.get(0));
+
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
 	public void testUpdatePrimaryKey() {
 		try {
 			DAOFactory daoFactory = this.facade.getDAOFactory();
@@ -479,80 +653,6 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 		} catch (IOException e) {
 			fail(e.getMessage());
-		}
-	}
-
-
-	public void testNullQuery () {
-	try {
-		DAO<Customer> customerDao = facade.getDAOFactory().getDaoFor(Customer.class);
-
-		Customer customerNullName = randomCustomer();
-		customerNullName.setName(null);
-		assertTrue(customerDao.save(customerNullName));
-
-		Customer customerNotNullName = randomCustomer();
-		assertTrue(customerDao.save(customerNotNullName));
-
-		{
-			List<Customer> customersNullNameFromDb = customerDao
-					.query(Customer.NAME.eq((String)null))
-					.all();
-			assertEquals(1, customersNullNameFromDb.size());
-			assertEquals(customerNullName, customersNullNameFromDb.get(0));
-		}
-		{
-			List<Customer> customersNotNullNameFromDb = customerDao
-					.query(Customer.NAME.isNotNull())
-					.all();
-			assertEquals(1, customersNotNullNameFromDb.size());
-			assertEquals(customerNotNullName, customersNotNullNameFromDb.get(0));
-		}
-	} catch (IOException e) {
-		fail(StringUtil.getStackTrace(e));
-	}
-}
-
-
-	/**
-	 * Quando o tipo eh Long, Double e afins, NULL se torna 0 no banco
-	 */
-	public void testNullToZeroQuery () {
-		try {
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
-
-			Author author = randomAuthor();
-			assertTrue(authorDao.save(author));
-	
-			Document documentAuthorNotNull = randomDocument();
-			documentAuthorNotNull.setAuthor(author);
-			assertTrue(docDao.save(documentAuthorNotNull));
-
-			Document documentAuthorNull = randomDocument();
-			documentAuthorNull.setAuthor(null);
-			assertTrue(docDao.save(documentAuthorNull));
-
-			List<Document> documentAuthorNullFromDb = docDao
-					.query(Document.ID_AUTHOR.eq((Long)null))
-					.all();
-			assertEquals(1, documentAuthorNullFromDb.size());
-			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
-
-			documentAuthorNullFromDb = docDao
-					.query(Document.ID_AUTHOR.isNull())
-					.all();
-			assertEquals(1, documentAuthorNullFromDb.size());
-			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
-
-			List<Document> documentAuthorNotNullFromDb = docDao
-					.query(Document.ID_AUTHOR.isNotNull())
-					.all();
-			assertEquals(1, documentAuthorNotNullFromDb.size());
-			assertEquals(documentAuthorNotNull, documentAuthorNotNullFromDb.get(0));
-
-		} catch (IOException e) {
-			fail(StringUtil.getStackTrace(e));
 		}
 	}
 
