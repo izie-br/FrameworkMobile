@@ -3,13 +3,13 @@
         Collection<ValidationError> errors = new ArrayList<ValidationError>();
         errors.addAll(target.validate ());
 ##TODO teste de unique
-#foreach ($fields in $Uniques)
-#**##if ( ($fields.size() > 1) ||
-          ($fields.size() == 1 && !$fields[0].PrimaryKey))
+#foreach ($uniqueFields in $Uniques)
+#**##if ( ($uniqueFields.size() > 1) ||
+          ($uniqueFields.size() == 1 && !$uniqueFields[0].PrimaryKey))
 #******#        {
-#******#            int qty = query ((
+#******#            long qty = query ((
 #******#                (${Target}.${primaryKey.UpperAndUnderscores}) .ne (target.${getter[$primaryKey]} ())
-#******##foreach ($field in $fields)
+#******##foreach ($field in $uniqueFields)
 #**********##if ($associationForField[$field])
 #**************##set ($association = $associationForField[$field])
 #**************#            ).and (
@@ -22,18 +22,18 @@
 #**************#                (${Target}.${field.UpperAndUnderscores}) .eq (target.${getter[$field]} ())
 #**********##end
 #******##end
-#******#            )).all ().size ();
+#******#            )).count ();
 #******#            if (qty > 0) {
-#******##if ($fields.size() == 1)
+#******##if ($uniqueFields.size() == 1)
 #**********#                errors.add (new ValidationError (
-#**********#                    ${Target}.${fields[0].UpperAndUnderscores},
+#**********#                    ${Target}.${uniqueFields[0].UpperAndUnderscores},
 #**********#                    Constraint.unique()
 #**********#                ));
 #******##else
 #**********#                errors.add (new ValidationError (null, new Constraint (
 #**********#                    Constraint.UNIQUE,
-#**********##foreach ($field in $fields)
-#**************#                    ${Target}.${field.UpperAndUnderscores}#if ($foreach.count < $fields.size()),#end
+#**********##foreach ($field in $uniqueFields)
+#**************#                    ${Target}.${field.UpperAndUnderscores}#if ($foreach.count < $uniqueFields.size()),#end
 #**********##end
 #**********#                )));
 #******##end
