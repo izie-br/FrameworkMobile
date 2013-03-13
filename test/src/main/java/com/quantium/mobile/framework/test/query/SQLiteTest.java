@@ -14,6 +14,7 @@ import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.document.vo.Document;
+import com.quantium.mobile.framework.test.gerador.GeradorTests;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.test.vo.Customer;
@@ -146,6 +147,71 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		}
 	}
 
+	public void testQueryByDate() {
+		Date referenceDate = new Date();
+		Date beforeReference = new Date(referenceDate.getTime() - 2*60*1000);
+		Date afterReference = new Date(referenceDate.getTime() + 2*60*1000);
+
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+
+		Author author1 = GeradorTests.randomAuthor();
+		author1.setCreatedAt(beforeReference);
+		Author author2 = GeradorTests.randomAuthor();
+		author2.setCreatedAt(afterReference);
+
+		try{
+			assertTrue(dao.save(author1));
+			assertTrue(dao.save(author2));
+
+			List<Author> authorsCreatedBefore = dao
+					.query(Author.CREATED_AT.lt(referenceDate))
+					.all();
+			assertEquals(1, authorsCreatedBefore.size());
+			assertEquals(author1, authorsCreatedBefore.get(0));
+
+			List<Author> authorsCreatedAfter = dao
+					.query(Author.CREATED_AT.gt(referenceDate))
+					.all();
+			assertEquals(1, authorsCreatedAfter.size());
+			assertEquals(author2, authorsCreatedAfter.get(0));
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	public void testJoinQuery(){
+		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+
+		Author author1 = GeradorTests.randomAuthor();
+		Author author2 = GeradorTests.randomAuthor();
+		Author author3 = GeradorTests.randomAuthor();
+
+		Document doc1 = GeradorTests.randomDocument();
+		doc1.setAuthor(author1);
+		Document doc2 = GeradorTests.randomDocument();
+		doc2.setAuthor(author2);
+		Document doc3 = GeradorTests.randomDocument();
+		doc3.setAuthor(author3);
+
+		try {
+			assertTrue(authorDao.save(author1));
+			assertTrue(authorDao.save(author2));
+			assertTrue(authorDao.save(author3));
+			assertTrue(documentDao.save(doc1));
+			assertTrue(documentDao.save(doc2));
+			assertTrue(documentDao.save(doc3));
+
+			List<Author> authors = authorDao.query(
+					Author.ID.eq(Document.ID_AUTHOR)
+					.and(Document.ID.eq(doc2.getId()))
+			).all();
+			assertEquals(1, authors.size());
+			assertEquals(author2, authors.get(0));
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
 
 	public void testImmutableQuerySet() throws Exception{
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);

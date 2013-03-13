@@ -18,6 +18,7 @@ import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
+import com.quantium.mobile.framework.libjdbctest.vo.Document;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
@@ -111,6 +112,74 @@ public class QueryTest {
 			assertEquals(1, authors.size());
 			assertEquals(author2, authors.get(0));
 		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testQueryByDate() {
+		Date referenceDate = new Date();
+		Date beforeReference = new Date(referenceDate.getTime() - 2*60*1000);
+		Date afterReference = new Date(referenceDate.getTime() + 2*60*1000);
+
+		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+
+		Author author1 = GeradorTest.randomAuthor();
+		author1.setCreatedAt(beforeReference);
+		Author author2 = GeradorTest.randomAuthor();
+		author2.setCreatedAt(afterReference);
+
+		try{
+			assertTrue(dao.save(author1));
+			assertTrue(dao.save(author2));
+
+			List<Author> authorsCreatedBefore = dao
+					.query(Author.CREATED_AT.lt(referenceDate))
+					.all();
+			assertEquals(1, authorsCreatedBefore.size());
+			assertEquals(author1, authorsCreatedBefore.get(0));
+
+			List<Author> authorsCreatedAfter = dao
+					.query(Author.CREATED_AT.gt(referenceDate))
+					.all();
+			assertEquals(1, authorsCreatedAfter.size());
+			assertEquals(author2, authorsCreatedAfter.get(0));
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testJoinQuery(){
+		DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
+		DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+
+		Author author1 = GeradorTest.randomAuthor();
+		Author author2 = GeradorTest.randomAuthor();
+		Author author3 = GeradorTest.randomAuthor();
+
+		Document doc1 = GeradorTest.randomDocument();
+		doc1.setAuthor(author1);
+		Document doc2 = GeradorTest.randomDocument();
+		doc2.setAuthor(author2);
+		Document doc3 = GeradorTest.randomDocument();
+		doc3.setAuthor(author3);
+
+		try {
+			assertTrue(authorDao.save(author1));
+			assertTrue(authorDao.save(author2));
+			assertTrue(authorDao.save(author3));
+			assertTrue(documentDao.save(doc1));
+			assertTrue(documentDao.save(doc2));
+			assertTrue(documentDao.save(doc3));
+
+			List<Author> authors = authorDao.query(
+					Author.ID.eq(Document.ID_AUTHOR)
+					.and(Document.ID.eq(doc2.getId()))
+			).all();
+			assertEquals(1, authors.size());
+			assertEquals(author2, authors.get(0));
+		} catch (IOException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
 	}
