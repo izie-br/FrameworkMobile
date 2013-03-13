@@ -26,3 +26,4 @@ test/migrations/schema*
 *.swp
 maven_plugin_gerador/target
 maven_plugin_gerador/bin
+coverage/*
