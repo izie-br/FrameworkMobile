@@ -39,19 +39,16 @@ ${Imports}
 @SuppressWarnings("unused")
 public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Target}> {
 
+    public static final Table.Column<?> COLUMNS [] = new Table.Column<?>[] {
+#foreach ($field in $fields)
+                ${Target}.${field.UpperAndUnderscores},
+#end
+    };
+
     private ${DaoFactory} factory;
 
     public ${Klass}(${DaoFactory} factory){
         this.factory = factory;
-    }
-
-    @Override
-    public String[] getColumns() {
-        return new String[] {
-#foreach ($field in $fields)
-            "${field.UpperAndUnderscores}",
-#end
-        };
     }
 
 #parse("DAO.java.d/getById.java")

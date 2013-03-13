@@ -36,6 +36,12 @@ ${Imports}
 @SuppressWarnings("unused")
 public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}> {
 
+    public static final Table.Column<?> COLUMNS [] = new Table.Column<?>[] {
+#foreach ($field in $fields)
+                ${Target}.${field.UpperAndUnderscores},
+#end
+    };
+
     private static final String COUNT_BY_PRIMARY_KEYS =
         "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?";
 
@@ -77,15 +83,6 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
         } catch (java.sql.SQLException e) {
             throw new RuntimeException(StringUtil.getStackTrace(e));
         }
-    }
-
-    @Override
-    public String[] getColumns() {
-        return new String[] {
-#foreach ($field in $fields)
-            "${field.UpperAndUnderscores}",
-#end
-        };
     }
 
 #parse("DAO.java.d/updateCache.java")

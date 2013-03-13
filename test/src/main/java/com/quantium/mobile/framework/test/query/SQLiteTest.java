@@ -180,29 +180,25 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 	}
 
 	public void testJoinQuery(){
-		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 
 		Author author1 = GeradorTests.randomAuthor();
 		Author author2 = GeradorTests.randomAuthor();
 		Author author3 = GeradorTests.randomAuthor();
 
 		Document doc1 = GeradorTests.randomDocument();
-		doc1.setAuthor(author1);
 		Document doc2 = GeradorTests.randomDocument();
-		doc2.setAuthor(author2);
 		Document doc3 = GeradorTests.randomDocument();
-		doc3.setAuthor(author3);
 
 		try {
-			assertTrue(authorDao.save(author1));
-			assertTrue(authorDao.save(author2));
-			assertTrue(authorDao.save(author3));
-			assertTrue(documentDao.save(doc1));
-			assertTrue(documentDao.save(doc2));
-			assertTrue(documentDao.save(doc3));
+			assertTrue(dao.save(author1));
+			assertTrue(dao.with(author1).add(doc1));
+			assertTrue(dao.save(author2));
+			assertTrue(dao.with(author2).add(doc2));
+			assertTrue(dao.save(author3));
+			assertTrue(dao.with(author3).add(doc3));
 
-			List<Author> authors = authorDao.query(
+			List<Author> authors = dao.query(
 					Author.ID.eq(Document.ID_AUTHOR)
 					.and(Document.ID.eq(doc2.getId()))
 			).all();

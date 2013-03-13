@@ -57,11 +57,7 @@
 
         @Override
         protected Table.Column<?> [] getColunas() {
-            return new Table.Column[] {
-#foreach ($field in $fields)
-                ${Target}.${field.UpperAndUnderscores},
-#end
-            };
+            return COLUMNS;
         }
 
         protected ${Target} cursorToObject(ResultSet cursor) {
