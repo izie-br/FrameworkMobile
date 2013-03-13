@@ -33,7 +33,7 @@
 #******#
 #**##else
 #******##if ($field.Klass.equals("Boolean") )
-#******#        ${field.Type} _${field.LowerCamel} = (cursor.getShort(${columnIndex}) > 0);
+#******#        ${field.Type} _${field.LowerCamel} = SQLiteUtils.integerToBoolean(cursor.getShort(${columnIndex}));
 #******##elseif ($field.Klass.equals("Date") )
 #******#        ${field.Type} _${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
 #******##elseif ($field.Klass.equals("Long") )
