@@ -28,8 +28,8 @@ import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunicationIT {
 
-	private static final String URL = "http://127.0.0.1:9091/";
-	private static final String PLAIN_TEXT_URL = URL + "text_plain.jsp";
+	private static final String URL = "http://127.0.0.1:9091";
+	private static final String PLAIN_TEXT_URL = URL + "/text_plain";
 
 	private static final DAO<User> USER_DAO = new UserMapDAO();
 
@@ -52,16 +52,15 @@ public class JsonCommunicationIT {
 	}
 
 	@Test
-	public void testJsonCommunication() {
+	public void testJsonCommunicationPOST() {
 		JsonCommunication jsonComm = new JsonCommunication();
 		String param1 = "param1";
 		String param2 = "param2";
 		String val1 = "val1";
 		String val2 = "val2";
 
-		jsonComm.setURL(URL);
+		jsonComm.setURL(URL + "/echo");
 		Map<String,Object> params = jsonComm.getParameters();
-		params.put(RouterBean.METHOD_PARAM, "echo");
 		params.put(param1, val1);
 		params.put(param2, val2);
 		try {
@@ -74,9 +73,103 @@ public class JsonCommunicationIT {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
+			assertEquals("POST", map.get(RouterBean.METHOD_PARAM));
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
-			assertEquals(params.size() ,map.size());
+			assertEquals(params.size()+1 ,map.size());
+		} catch (Exception e) {
+			fail (StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testJsonCommunicationGET() {
+		JsonCommunication jsonComm = new JsonCommunication();
+		String param1 = "param1";
+		String param2 = "param2";
+		String val1 = "val1";
+		String val2 = "val2";
+
+		jsonComm.setURL(URL + "/echo");
+		Map<String,Object> params = jsonComm.getParameters();
+		params.put(param1, val1);
+		params.put(param2, val2);
+		try {
+			Map<String,Object> map = jsonComm.get().getResponseMap();
+			Iterator<String> iterator = params.keySet().iterator();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				Object object = map.get(key);
+				assertNotNull(key + " eh null", object);
+				String value = object.toString();
+				assertEquals (params.get(key), value);
+			}
+			assertEquals("GET", map.get(RouterBean.METHOD_PARAM));
+			Object obj = map.remove(Echo.ERROR_KEY);
+			assertNull(obj);
+			assertEquals(params.size()+1 ,map.size());
+		} catch (Exception e) {
+			fail (StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testJsonCommunicationPUT() {
+		JsonCommunication jsonComm = new JsonCommunication();
+		String param1 = "param1";
+		String param2 = "param2";
+		String val1 = "val1";
+		String val2 = "val2";
+
+		jsonComm.setURL(URL + "/echo");
+		Map<String,Object> params = jsonComm.getParameters();
+		params.put(param1, val1);
+		params.put(param2, val2);
+		try {
+			Map<String,Object> map = jsonComm.put().getResponseMap();
+			Iterator<String> iterator = params.keySet().iterator();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				Object object = map.get(key);
+				assertNotNull(key + " eh null", object);
+				String value = object.toString();
+				assertEquals (params.get(key), value);
+			}
+			assertEquals("PUT", map.get(RouterBean.METHOD_PARAM));
+			Object obj = map.remove(Echo.ERROR_KEY);
+			assertNull(obj);
+			assertEquals(params.size()+1 ,map.size());
+		} catch (Exception e) {
+			fail (StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testJsonCommunicationDELETE() {
+		JsonCommunication jsonComm = new JsonCommunication();
+		String param1 = "param1";
+		String param2 = "param2";
+		String val1 = "val1";
+		String val2 = "val2";
+
+		jsonComm.setURL(URL + "/echo");
+		Map<String,Object> params = jsonComm.getParameters();
+		params.put(param1, val1);
+		params.put(param2, val2);
+		try {
+			Map<String,Object> map = jsonComm.delete().getResponseMap();
+			Iterator<String> iterator = params.keySet().iterator();
+			while (iterator.hasNext()) {
+				String key = iterator.next();
+				Object object = map.get(key);
+				assertNotNull(key + " eh null", object);
+				String value = object.toString();
+				assertEquals (params.get(key), value);
+			}
+			assertEquals("DELETE", map.get(RouterBean.METHOD_PARAM));
+			Object obj = map.remove(Echo.ERROR_KEY);
+			assertNull(obj);
+			assertEquals(params.size()+1 ,map.size());
 		} catch (Exception e) {
 			fail (StringUtil.getStackTrace(e));
 		}

@@ -9,4 +9,22 @@
     <welcome-file>index.jsp</welcome-file>
   </welcome-file-list>
 
+  <servlet>
+    <servlet-name>echo</servlet-name>
+    <servlet-class>com.quantium.mobile.framework.libandroidtest.server.EchoServlet</servlet-class>
+  </servlet>
+  <servlet>
+    <servlet-name>text_plain</servlet-name>
+    <servlet-class>com.quantium.mobile.framework.libandroidtest.server.TextPlainServlet</servlet-class>
+  </servlet>
+
+  <servlet-mapping>
+    <servlet-name>echo</servlet-name>
+    <url-pattern>/echo</url-pattern>
+  </servlet-mapping>
+  <servlet-mapping>
+    <servlet-name>text_plain</servlet-name>
+    <url-pattern>/text_plain</url-pattern>
+  </servlet-mapping>
+
 </web-app>

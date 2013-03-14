@@ -260,5 +260,8 @@ public class JsonCommunication extends GenericCommunication
 		return execute(PUT);
 	}
 
+	public SerializedCommunicationResponse delete() throws RuntimeException{
+		return execute(DELETE);
+	}
 
 }

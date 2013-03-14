@@ -26,4 +26,6 @@ public interface Communication {
 
 	public SerializedCommunicationResponse post () throws RuntimeException;
 	public SerializedCommunicationResponse get () throws RuntimeException;
+	public SerializedCommunicationResponse put () throws RuntimeException;
+	public SerializedCommunicationResponse delete () throws RuntimeException;
 }

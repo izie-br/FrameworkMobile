@@ -194,7 +194,8 @@ public abstract class GenericCommunication implements Communication {
 			throws Exception {
 		switch(method){
 		case GET:
-			HttpGet httpGet = (HttpGet)httpRequest;
+		case DELETE:
+			HttpRequestBase httpGet = (HttpRequestBase)httpRequest;
 			URI uri = httpGet.getURI();
 			String url = String.format(
 					"%s://%s%s",
@@ -240,9 +241,11 @@ public abstract class GenericCommunication implements Communication {
 			return new HttpGet();
 		if (method == PUT)
 			return new HttpPut();
+		if (method == POST )
+			return new HttpPost();
 		if (method == DELETE)
 			return new HttpDelete();
-		return new HttpPost();
+		throw new RuntimeException();
 	}
 
 //	public static boolean downloadFile(
