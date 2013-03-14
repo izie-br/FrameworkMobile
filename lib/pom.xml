@@ -228,14 +228,25 @@
 							     para evitar um "crash" do gerador.
 							-->
 							<filters>
-								<filter>+com.quantium.mobile.framework.FrameworkJSONTokener</filter>
 								<filter>+com.quantium.mobile.framework.LazyInvocationHandler</filter>
 								<filter>+com.quantium.mobile.framework.MapToObjectIterator</filter>
 								<filter>+com.quantium.mobile.framework.StreamJsonIterator</filter>
 								<filter>+com.quantium.mobile.framework.communication.*</filter>
 								<filter>+com.quantium.mobile.framework.db.*</filter>
 								<filter>+com.quantium.mobile.framework.query.*</filter>
+								<!-- filter>+com.quantium.mobile.framework.validation.*</filter -->
+								<!--
+								   As classes Table e Table.Column e Constraint sao dependencias
+								   do gerador e devem ser excluidas para evitar o "crash" do plugin
+								-->
 								<filter>-com.quantium.mobile.framework.query.Table*</filter>
+								<filter>-com.quantium.mobile.framework.validation.Constraint</filter>
+								<filter>-com.quantium.mobile.framework.validation.ValidationError</filter>
+								<!--
+								  O FrameworkJSONTokener foi copiado do fonte do "JSON.org"
+								  nao sera coberto pelo EMMA
+								-->
+								<filter>-com.quantium.mobile.framework.FrameworkJSONTokener</filter>
 							</filters>
 						</configuration>
 					</plugin>

@@ -8,8 +8,6 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.quantium.mobile.framework.communication.JsonCommunication;
-
 public class EchoServlet extends HttpServlet {
 
 	private static final long serialVersionUID = -5721166991478995320L;
