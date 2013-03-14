@@ -2,7 +2,10 @@ package com.quantium.mobile.framework.libandroidtest.server;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.Map;
+
+import org.json.JSONArray;
 
 public abstract class BaseServerBean {
 
@@ -19,9 +22,22 @@ public abstract class BaseServerBean {
 	}
 
 	public String getParameter(String name) {
-		String values[] = (String[])getMap().get(name);
-		return (values != null && values.length >0)? values[0] : null;
-
+		Object obj = getMap().get(name);
+		if (obj == null)
+			return null;
+		if (obj instanceof String[]) {
+			String values [] = (String[]) obj;
+			if (values.length > 1) {
+				return new JSONArray(Arrays.asList(values)).toString();
+			} else {
+				return (values != null && values.length >0)? values[0] : null;
+			}
+		}
+		if (obj instanceof String) {
+			return (String)obj;
+		}
+		throw new IllegalArgumentException(
+				obj.getClass().getName() + "::" + obj.toString());
 	}
 
 	public Object getApplication() {

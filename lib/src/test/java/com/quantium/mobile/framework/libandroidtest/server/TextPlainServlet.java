@@ -9,13 +9,17 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 
+/**
+ * Este servlet tem de estar mapeado no "web.xml", pois eh um GenericServlet
+ */
 public class TextPlainServlet extends GenericServlet {
 
 	private static final long serialVersionUID = 7068861441208302980L;
 
 	@Override
 	public void service(ServletRequest arg0, ServletResponse arg1)
-			throws ServletException, IOException {
+			throws ServletException, IOException
+	{
 		Reader r = arg0.getReader();
 		PrintWriter out = arg1.getWriter();
 		int c = r.read();

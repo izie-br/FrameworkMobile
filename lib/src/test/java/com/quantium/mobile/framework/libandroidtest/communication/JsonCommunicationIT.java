@@ -23,13 +23,14 @@ import com.quantium.mobile.framework.libandroidtest.User;
 import com.quantium.mobile.framework.libandroidtest.UserMapDAO;
 import com.quantium.mobile.framework.libandroidtest.server.Array;
 import com.quantium.mobile.framework.libandroidtest.server.Echo;
-import com.quantium.mobile.framework.libandroidtest.server.RouterBean;
 import com.quantium.mobile.framework.utils.StringUtil;
 
 public class JsonCommunicationIT {
 
 	private static final String URL = "http://127.0.0.1:9091";
 	private static final String PLAIN_TEXT_URL = URL + "/text_plain";
+	public static final String METHOD_PARAM = "__method__";
+	public static final String CLASSNAME_PARAM = "classname";
 
 	private static final DAO<User> USER_DAO = new UserMapDAO();
 
@@ -40,9 +41,8 @@ public class JsonCommunicationIT {
 
 	private void clear() {
 		GenericCommunication comm = new JsonCommunication();
-		comm.setURL(URL);
-		comm.setParameter(RouterBean.METHOD_PARAM, "clear");
-		comm.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
+		comm.setURL(URL + "/clear");
+		comm.setParameter(CLASSNAME_PARAM, User.class.getSimpleName());
 		comm.post();
 	}
 
@@ -73,7 +73,7 @@ public class JsonCommunicationIT {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
-			assertEquals("POST", map.get(RouterBean.METHOD_PARAM));
+			assertEquals("POST", map.get(METHOD_PARAM));
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
 			assertEquals(params.size()+1 ,map.size());
@@ -104,7 +104,7 @@ public class JsonCommunicationIT {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
-			assertEquals("GET", map.get(RouterBean.METHOD_PARAM));
+			assertEquals("GET", map.get(METHOD_PARAM));
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
 			assertEquals(params.size()+1 ,map.size());
@@ -135,7 +135,7 @@ public class JsonCommunicationIT {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
-			assertEquals("PUT", map.get(RouterBean.METHOD_PARAM));
+			assertEquals("PUT", map.get(METHOD_PARAM));
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
 			assertEquals(params.size()+1 ,map.size());
@@ -166,7 +166,7 @@ public class JsonCommunicationIT {
 				String value = object.toString();
 				assertEquals (params.get(key), value);
 			}
-			assertEquals("DELETE", map.get(RouterBean.METHOD_PARAM));
+			assertEquals("DELETE", map.get(METHOD_PARAM));
 			Object obj = map.remove(Echo.ERROR_KEY);
 			assertNull(obj);
 			assertEquals(params.size()+1 ,map.size());
@@ -179,9 +179,7 @@ public class JsonCommunicationIT {
 	public void testJsonArrayResponse(){
 		JsonCommunication jsonComm = new JsonCommunication();
 
-		jsonComm.setURL(URL);
-		Map<String,Object> params = jsonComm.getParameters();
-		params.put(RouterBean.METHOD_PARAM, "array");
+		jsonComm.setURL(URL + "/array");
 		try {
 			Map<String,Object> map = jsonComm.post().getResponseMap();
 			assertEquals(1, map.size());
@@ -232,10 +230,9 @@ public class JsonCommunicationIT {
 
 	protected Iterator<User> saveOnServer(ArrayList<User> list) {
 		GenericCommunication comm = new JsonCommunication();
-		comm.setURL(URL);
+		comm.setURL(URL + "/insert");
 		comm.setParameterSerializer(new InnerJsonParametersSerializer());
-		comm.setParameter(RouterBean.METHOD_PARAM, "insert");
-		comm.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
+		comm.setParameter(CLASSNAME_PARAM, User.class.getSimpleName());
 		HashMap<String, Object> objects = new HashMap<String, Object>();
 		HashMap<String, Object> jsonBody = new HashMap<String, Object>();
 		objects.put("list", list);
@@ -278,9 +275,8 @@ public class JsonCommunicationIT {
 		saveOnServer(list);
 
 		GenericCommunication authorsDao = new JsonCommunication();
-		authorsDao.setURL(URL);
-		authorsDao.setParameter(RouterBean.METHOD_PARAM, "query");
-		authorsDao.setParameter(RouterBean.CLASSNAME_PARAM, User.class.getSimpleName());
+		authorsDao.setURL(URL + "/query");
+		authorsDao.setParameter(CLASSNAME_PARAM, User.class.getSimpleName());
 		Iterator<User> it = null;
 		try {
 			it = authorsDao.get().getIterator(USER_DAO,"list");
