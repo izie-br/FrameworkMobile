@@ -13,6 +13,24 @@ import org.apache.http.message.BasicNameValuePair;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.JSONUtils;
 
+/**
+ * Transforma o Map
+ * <pre>
+ * {
+ *     "nome" : "Item1" ,
+ *     "valor" : {
+ *         "subitema": 1,
+ *         "subitemb": 2
+ *     }
+ * }
+ * </pre>
+ * Em:
+ * <pre>
+ *    nome=Item1&valor="{\"subitema\": 1, \"subitemb\": 2}"
+ * </pre>
+ * 
+ * @author Igor Soares
+ */
 public class InnerJsonParametersSerializer extends ParametersSerializer{
 
 	@Override

@@ -254,7 +254,7 @@ public class VelocityObjcFactory {
 	 * Classe para usada para adicionar um underscore '_' em LowerCamel;
 	 * Util para fazer o  escape de "id" para "id_"
 	 * 
-	 * @author bruno
+	 * @author Igor Soares
 	 *
 	 */
 	public static class PropId extends Property {

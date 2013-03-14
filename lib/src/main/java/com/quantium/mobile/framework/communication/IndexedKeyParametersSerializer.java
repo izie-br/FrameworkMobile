@@ -15,6 +15,24 @@ import org.apache.http.message.BasicNameValuePair;
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
+/**
+ * Transforma o Map
+ * <pre>
+ * {
+ *     "nome" : "Item1" ,
+ *     "valor" : {
+ *         "subitema": 1,
+ *         "subitemb": 2
+ *     }
+ * }
+ * </pre>
+ * Em:
+ * <pre>
+ *    nome=Item1&valor.subitema=1&valor.subitemb=2
+ * </pre>
+ * 
+ * @author Igor Soares
+ */
 public class IndexedKeyParametersSerializer extends ParametersSerializer{
 
 	private String pattern = "%1$s.%2$s";

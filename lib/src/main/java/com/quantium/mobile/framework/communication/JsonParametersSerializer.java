@@ -10,6 +10,11 @@ import org.apache.http.entity.StringEntity;
 import com.quantium.mobile.framework.utils.JSONUtils;
 import com.quantium.mobile.framework.utils.StringUtil;
 
+/**
+ * Transforma o map em JSON simples.
+ * @author Igor Soares
+ *
+ */
 public class JsonParametersSerializer extends ParametersSerializer{
 
 	@Override
