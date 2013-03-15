@@ -5,6 +5,7 @@ import java.util.Iterator;
 import java.util.List;
 
 import com.quantium.mobile.framework.query.Q.QNode1X1;
+import com.quantium.mobile.framework.utils.StringUtil;
 
 public abstract class AbstractQSQLProvider {
 
@@ -15,12 +16,39 @@ public abstract class AbstractQSQLProvider {
 
     protected abstract Object parseArgument(Object arg);
 
+    protected abstract void limitOffsetOut(long limit, long offset,
+                                           StringBuilder selectStatement);
 
     public AbstractQSQLProvider(Q q) {
         this.q = q;
     }
 
     private Q q;
+    private long limit;
+    private long offset;
+    private String orderby;
+
+    public AbstractQSQLProvider limit(long limit) {
+        this.limit = limit;
+        return this;
+    }
+
+    public AbstractQSQLProvider offset(long offset) {
+        this.offset = offset;
+        return this;
+    }
+
+    public AbstractQSQLProvider orderBy(String orderby) {
+        this.orderby = orderby;
+        return this;
+    }
+
+    protected void orderByOut(String orderby, StringBuilder out) {
+        if (StringUtil.isNull(orderby))
+            return;
+        out.append(" ORDER BY ");
+        out.append(orderby);
+    }
 
     public String select(List<?> selection, List<Object> args){
         Table table = q.getTable();
@@ -69,6 +97,8 @@ public abstract class AbstractQSQLProvider {
             out.append(" WHERE ");
             out.append(qstring);
         }
+        orderByOut(orderby, out);
+        limitOffsetOut(limit, offset, out);
         return out.toString();
     }
 

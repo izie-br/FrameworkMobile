@@ -16,6 +16,22 @@ public class QSQLProvider extends AbstractQSQLProvider {
     }
 
     @Override
+    protected void limitOffsetOut(long limit, long offset,
+                                  StringBuilder selectStatement)
+    {
+        if (limit <= 0)
+            limit = -1;
+        String limitStr =
+                (offset > 0) ?
+                        String.format(" LIMIT %d,%d", offset, limit):
+                (limit > 0) ?
+                        String.format(" LIMIT %d", limit):
+                // limit <= 0 && offset <= 0
+                        "";
+        selectStatement.append(limitStr);
+    }
+
+    @Override
     protected String getColumn(String tableAs, Table.Column<?> column) {
           // Eh bom reforcar o uso de "alias" para tabelas em um ORM
 //        String columnNameWithTable =

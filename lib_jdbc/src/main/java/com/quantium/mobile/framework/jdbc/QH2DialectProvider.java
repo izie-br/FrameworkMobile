@@ -34,6 +34,22 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
     }
 
     @Override
+    protected void limitOffsetOut(long limit, long offset,
+                                  StringBuilder selectStatement)
+    {
+        if (limit <= 0)
+            limit = -1;
+        String limitStr =
+                (offset > 0) ?
+                        String.format(" LIMIT %d OFFSET %d", limit, offset) :
+                (limit > 0) ?
+                        String.format(" LIMIT %d", limit):
+                //(limit == 0 && offset == 0) ?
+                        "";
+        selectStatement.append(limitStr);
+    }
+
+    @Override
     protected void outputQNode1X1(
             Q.QNode1X1 node, Table table, StringBuilder sb,
             List<Object> args)

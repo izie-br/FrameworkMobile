@@ -94,30 +94,19 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	 * @return cursor
 	 */
 	public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
-		if (limit <= 0)
-			limit = -1;
-		String limitStr =
-				(this.offset > 0) ?
-						String.format("LIMIT %d OFFSET %d", limit, offset) :
-				(this.limit > 0) ?
-						String.format("LIMIT %d", limit):
-				//(limit == 0 && offset == 0) ?
-						"";
-
 		if (this.q == null) {
 			this.q = new Q (getTable());
 		}
 
 		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QH2DialectProvider(q).select(selection, listArg);
+		String qstr = new QH2DialectProvider(q)
+				.limit(this.limit)
+				.offset(this.offset)
+				.orderBy(this.orderBy)
+				.select(selection, listArg);
 
-		String orderByLocal = orderBy == null  ? "" : (" ORDER BY " + orderBy + " ");
 		Connection conn = getConnection();
-		PreparedStatement stm = conn.prepareStatement(
-				qstr +
-				orderByLocal +
-				" " +limitStr
-		);
+		PreparedStatement stm = conn.prepareStatement(qstr);
 		for (int i = 0; i< listArg.size(); i++){
 			Object arg = listArg.get(i);
 			int index = i+1;
