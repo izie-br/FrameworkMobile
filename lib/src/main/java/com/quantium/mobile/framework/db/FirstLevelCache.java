@@ -9,34 +9,31 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.query.Q.QNode1X1;
 import com.quantium.mobile.framework.validation.Constraint;
 
+/**
+ * Crie um Timer, ou similar para executar o metodo trim,
+ * para remover todas as SoftReference vazias do cache
+ * 
+ * @author Igor Soares
+ *
+ */
 public class FirstLevelCache {
-
-	private static final long CACHE_TRIM_DELAY = 30*1000; /* 30 secs */
 
 	private final Map<EntityKey, Reference<?>> entityCache =
 			new HashMap<EntityKey, Reference<?>>();
 
-	private Timer trimTimer = null;
 	private ReadWriteLock rwLock = new ReentrantReadWriteLock(false);
 
-	@Override
-	protected void finalize() throws Throwable {
-		super.finalize();
-		if (this.trimTimer != null) {
-			this.trimTimer.cancel();
-		}
+	protected <T> Reference<T> createReference(T obj) {
+		return new SoftReference<T>(obj);
 	}
 
 	public void pushToCache(Object klassId, Serializable keys [],
@@ -47,51 +44,27 @@ public class FirstLevelCache {
 		try {
 			// Conferir se eh proxy e extrair
 			EntityKey key = new EntityKey(klassId, keys);
-			entityCache.put(key, new SoftReference<Object>(entity));
-			//
-			// o trimtimer nao precisa ser iniciado antes do
-			// primeiro pushtoCache (quando nao ha items)
-			if (this.trimTimer == null) {
-				initTrimTimer();
-			}
+			entityCache.put(key, createReference(entity));
 		} finally {
 			writeLock.unlock();
 		}
 	}
 
-	private synchronized void initTrimTimer () {
-		if (this.trimTimer != null) {
-			throw new RuntimeException();
-		}
-		// Thread deve ser "Daemon" que eh interrompida ao finalizar o aplicativo
-		Timer timer = new Timer(true);
-		TimerTask task = new TimerTask() {
-			@Override
-			public void run() {
-				Lock writeLock = rwLock.writeLock();
-				writeLock.lock();
-				try {
-					trim();
-				} catch (Exception e) {
-					LogPadrao.e(e);
-				} finally {
-					writeLock.unlock();
+	public void trim () {
+		Lock writeLock = rwLock.writeLock();
+		writeLock.lock();
+		try {
+			Iterator<Map.Entry<EntityKey,Reference<?>>> it =
+					entityCache.entrySet().iterator();
+			while (it.hasNext()) {
+				Map.Entry<EntityKey, Reference<?>> entry = it.next();
+				Reference<?> ref = entry.getValue();
+				if (ref == null || ref.get() == null) {
+					it.remove();
 				}
 			}
-		};
-		timer.schedule(task, CACHE_TRIM_DELAY);
-		this.trimTimer = timer;
-	}
-
-	private void trim () {
-		Iterator<Map.Entry<EntityKey,Reference<?>>> it =
-				entityCache.entrySet().iterator();
-		while (it.hasNext()) {
-			Map.Entry<EntityKey, Reference<?>> entry = it.next();
-			Reference<?> ref = entry.getValue();
-			if (ref == null || ref.get() == null) {
-				it.remove();
-			}
+		} finally {
+			writeLock.unlock();
 		}
 	}
 
@@ -129,7 +102,7 @@ public class FirstLevelCache {
 				Reference<?> ref = entityCache.get(key);
 				Object obj = (ref == null)? null : ref.get();
 				if ( obj != null && klass.isInstance(obj) ){
-					list.add(  new SoftReference<T>( (T)obj )  );
+					list.add(createReference((T)obj));
 				}
 			}
 			return list;

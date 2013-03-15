@@ -1,6 +1,8 @@
 package com.quantium.mobile.framework.libjdbctest.tests;
 
 import java.io.IOException;
+import java.lang.ref.WeakReference;
+import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -16,6 +18,7 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.PrimaryKeyUpdater;
 import com.quantium.mobile.framework.Save;
+import com.quantium.mobile.framework.db.FirstLevelCache;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
@@ -296,6 +299,106 @@ public class GeradorTest {
 
 			assertTrue(documentDao.delete(document));
 		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testLazyInvocationHandler() {
+		try {
+			// Substituindo as SoftReference por WeakReference
+			// As anteriores demoram muito ate serem coletadas
+			DAOFactory weakRefFactory = weakRefCacheFactory();
+
+			DAO<Author> authorDao = weakRefFactory.getDaoFor(Author.class);
+			DAO<Document> documentDao = weakRefFactory.getDaoFor(Document.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			long authorId = author.getId();
+			assertTrue(authorId != 0);
+			String authorName = author.getName();
+			assertNotNull(authorName);
+
+			Document document = randomDocument();
+			document.setAuthor(author);
+			assertTrue(documentDao.save(document));
+
+			// armazenando o ID para uma busca
+			long documentId = document.getId();
+
+			// Usando o objeto Author para monitorar o gc
+			WeakReference<Author> authorWeakRef =
+					new WeakReference<Author>(author);
+			// Removendo todas referencias fortes ao Author
+			author = null;
+			document = null;
+
+			// Quando esta referencia fraca se tornar null
+			// significa que o GC rodou!
+			while (authorWeakRef.get() != null) {
+				System.gc();
+				Thread.sleep(50);
+			}
+
+			// Buscando novamente o document
+			document = documentDao.get(documentId);
+			assertNotNull(document);
+
+			// O author deve "existir" e deve ser um Proxy
+			// @see java.lang.reflect.Proxy
+			author = document.getAuthor();
+			assertNotNull(author);
+			assertTrue(Proxy.isProxyClass(author.getClass()));
+
+			assertEquals(authorId, author.getId());
+			assertEquals(authorName, author.getName());
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testFirstLevelCacheTrim() {
+		try {
+			// Substituindo as SoftReference por WeakReference
+			// As anteriores demoram muito ate serem coletadas
+			DAOFactory weakRefFactory = weakRefCacheFactory();
+
+			DAO<Author> authorDao = weakRefFactory.getDaoFor(Author.class);
+
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			long authorId = author.getId();
+			assertTrue(authorId != 0);
+			String authorName = author.getName();
+			assertNotNull(authorName);
+
+			// Usando o objeto Author para monitorar o gc
+			WeakReference<Author> authorWeakRef =
+					new WeakReference<Author>(author);
+			// Removendo todas referencias fortes ao Author
+			author = null;
+
+			// Quando esta referencia fraca se tornar null
+			// significa que o GC rodou!
+			while (authorWeakRef.get() != null) {
+				System.gc();
+				Thread.sleep(50);
+			}
+
+			// Nesta implementacal o dao herda do FirstLevelCache
+			FirstLevelCache cache = (FirstLevelCache)weakRefFactory;
+			// deve rodar sem excecao
+			cache.trim();
+
+			author = authorDao.get(authorId);
+			assertEquals(authorId, author.getId());
+			assertEquals(authorName, author.getName());
+
+		} catch (Exception e) {
 			fail(StringUtil.getStackTrace(e));
 		}
 	}
@@ -620,6 +723,16 @@ public class GeradorTest {
 		Customer customer = new CustomerImpl();
 		customer.setName(RandomStringUtils.random(60));
 		return customer;
+	}
+
+	private DAOFactory weakRefCacheFactory() {
+		DAOFactory weakRefFactory = new MemDaoFactory(){
+			@Override
+			protected <T> java.lang.ref.Reference<T> createReference(T obj) {
+				return new WeakReference<T>(obj);
+			}
+		};
+		return weakRefFactory;
 	}
 
 }
