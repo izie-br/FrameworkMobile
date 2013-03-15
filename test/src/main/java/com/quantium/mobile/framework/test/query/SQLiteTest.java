@@ -245,7 +245,7 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		}
 
 		{
-			QuerySet<Author> qs3 = qs1.orderBy(Author.ID, Q.DESC);
+			QuerySet<Author> qs3 = qs1.orderBy(Author.ID.desc());
 			list1 = qs1.all();
 			assertFalse(qs1 == qs3);
 			List<Author> list3 = qs3.all();

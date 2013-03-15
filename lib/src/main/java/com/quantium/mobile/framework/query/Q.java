@@ -428,4 +428,21 @@ public final class Q {
         ASC, DESC
     }
 
+    public static class OrderByClause {
+        private final Table.Column<?> column;
+        private final OrderByAsc type;
+
+        public OrderByClause(Table.Column<?> column, OrderByAsc type) {
+            this.column = column;
+            this.type = type;
+        }
+
+        public Table.Column<?> getColumn() {
+            return column;
+        }
+
+        public OrderByAsc getType() {
+            return type;
+        }
+    }
 }

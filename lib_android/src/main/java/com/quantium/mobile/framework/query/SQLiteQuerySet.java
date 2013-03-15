@@ -13,12 +13,6 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
 	protected abstract SQLiteDatabase getDb();
 
-	@Override
-	protected String nullsFirstOrderingClause() {
-		// o SQLITE retorna NULLS FIRST por padrao em todas buscas
-		return null;
-	}
-
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
 		Cursor cursor = getCursor(getColumns ());
@@ -69,7 +63,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 		String qstr = new QSQLProvider(this.q)
 				.limit(this.limit)
 				.offset(this.offset)
-				.orderBy(this.orderBy)
+				.orderBy(this.orderClauses)
 				.select(selection,listArg);
 		if (listArg.size() > 0) {
 			args = new String[listArg.size()];

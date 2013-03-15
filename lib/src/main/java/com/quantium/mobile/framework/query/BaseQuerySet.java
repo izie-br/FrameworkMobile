@@ -1,11 +1,13 @@
 package com.quantium.mobile.framework.query;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	protected Q q;
-	protected String orderBy;
+	protected List<Q.OrderByClause> orderClauses =
+			new ArrayList<Q.OrderByClause>(1);
 
 //	private String groupBy;
 //	private String having;
@@ -15,36 +17,21 @@ public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	protected abstract List<Table.Column<?>> getColumns();
 
-	protected abstract String nullsFirstOrderingClause();
-
 	public QuerySet<T> orderBy(Table.Column<?> column, Q.OrderByAsc asc){
-		StringBuilder orderBySb = new StringBuilder();
-		// Adiciona "{orderbyantigo}, " antes do novo item {orderBy}
-		if (this.orderBy != null) {
-			orderBySb.append(this.orderBy);
-			orderBySb.append(',');
-		}
-		// Escreve:
-		//   "{tabela}.{coluna} {ASC|DESC} <NULL_ORDERING>"
-		orderBySb.append(column.getTable().getName());
-		orderBySb.append(".");
-		orderBySb.append(column.getName());
-		orderBySb.append(" ");
-		orderBySb.append(asc.toString());
-		// NULL_ORDERING, nao eh necessario no SQLITE
-		// no H2DB eh "NULLS FIRST"
-		String nullOrdering = this.nullsFirstOrderingClause();
-		if (nullOrdering != null) {
-			orderBySb.append(" ");
-			orderBySb.append(nullOrdering);
-		}
-		BaseQuerySet<T> obj = this.clone();
-		obj.orderBy = orderBySb.toString();
-		return obj;
+		if (asc == null || asc == Q.ASC)
+			return orderBy(column.asc());
+		else
+			return orderBy(column.desc());
 	}
 
 	public QuerySet<T> orderBy(Table.Column<?> column){
-		return orderBy(column, Q.ASC);
+		return orderBy(column.asc());
+	}
+
+	public QuerySet<T> orderBy(Q.OrderByClause clause){
+		BaseQuerySet<T> obj = this.clone();
+		obj.orderClauses.add(clause);
+		return obj;
 	}
 
 	public QuerySet<T> limit (int limit){
@@ -77,6 +64,7 @@ public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 		try {
 			@SuppressWarnings("unchecked")
 			BaseQuerySet<T> obj = (BaseQuerySet<T>)super.clone();
+			obj.orderClauses = new ArrayList<Q.OrderByClause>(obj.orderClauses);
 			return obj;
 		} catch (CloneNotSupportedException e) {
 			// Impossivel a menos que a excecao seja explicitamente criada

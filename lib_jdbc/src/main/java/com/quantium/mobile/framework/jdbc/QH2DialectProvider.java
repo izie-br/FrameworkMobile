@@ -50,6 +50,11 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
     }
 
     @Override
+    protected String getNullOrderingClause() {
+        return "NULLS FIRST";
+    }
+
+    @Override
     protected void outputQNode1X1(
             Q.QNode1X1 node, Table table, StringBuilder sb,
             List<Object> args)

@@ -19,6 +19,10 @@ public abstract class AbstractQSQLProvider {
     protected abstract void limitOffsetOut(long limit, long offset,
                                            StringBuilder selectStatement);
 
+    protected String getNullOrderingClause() {
+        return null;
+    }
+
     public AbstractQSQLProvider(Q q) {
         this.q = q;
     }
@@ -26,7 +30,7 @@ public abstract class AbstractQSQLProvider {
     private Q q;
     private long limit;
     private long offset;
-    private String orderby;
+    private List<Q.OrderByClause> orderby;
 
     public AbstractQSQLProvider limit(long limit) {
         this.limit = limit;
@@ -38,16 +42,37 @@ public abstract class AbstractQSQLProvider {
         return this;
     }
 
-    public AbstractQSQLProvider orderBy(String orderby) {
+    public AbstractQSQLProvider orderBy(List<Q.OrderByClause> orderby) {
         this.orderby = orderby;
         return this;
     }
 
-    protected void orderByOut(String orderby, StringBuilder out) {
-        if (StringUtil.isNull(orderby))
+    protected void orderByOut(List<Q.OrderByClause> orderby, StringBuilder out) {
+        if (orderby == null || orderby.size() == 0)
             return;
-        out.append(" ORDER BY ");
-        out.append(orderby);
+        else
+            out.append(" ORDER BY ");
+        Iterator<Q.OrderByClause> orderByIterator = orderby.iterator();
+        for (;;) {
+            Q.OrderByClause item = orderByIterator.next();
+            Table.Column<?> column = item.getColumn();
+            Q.OrderByAsc asc = item.getType();
+            String nullOrdering = this.getNullOrderingClause();
+            out.append(column.getTable().getName());
+            out.append(".");
+            out.append(column.getName());
+            out.append(" ");
+            out.append(asc.toString());
+            if (!StringUtil.isNull(nullOrdering)){
+                out.append(' ');
+                out.append(nullOrdering);
+            }
+            if (orderByIterator.hasNext()) {
+                out.append(", ");
+            } else {
+                break;
+            }
+        }
     }
 
     public String select(List<?> selection, List<Object> args){

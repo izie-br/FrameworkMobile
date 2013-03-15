@@ -219,6 +219,14 @@ public final class Table {
             return new Q(this, Q.OpUnary.NOTNULL);
         }
 
+        public Q.OrderByClause asc() {
+            return new Q.OrderByClause(this, Q.ASC);
+        }
+
+        public Q.OrderByClause desc() {
+            return new Q.OrderByClause(this, Q.DESC);
+        }
+
         @Override
         public int hashCode() {
             return Table.this.getName().hashCode() * this.getName().hashCode();

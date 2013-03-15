@@ -20,11 +20,6 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	protected abstract Connection getConnection();
 
 	@Override
-	protected String nullsFirstOrderingClause() {
-		return "NULLS FIRST";
-	}
-
-	@Override
 	public List<T> all(){
 		List<T> all = new ArrayList<T>();
 		ResultSet cursor = null;
@@ -102,7 +97,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		String qstr = new QH2DialectProvider(q)
 				.limit(this.limit)
 				.offset(this.offset)
-				.orderBy(this.orderBy)
+				.orderBy(this.orderClauses)
 				.select(selection, listArg);
 
 		Connection conn = getConnection();
