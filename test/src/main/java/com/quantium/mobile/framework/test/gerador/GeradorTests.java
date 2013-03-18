@@ -366,6 +366,36 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
+	public void testInsertMultipleManyToManyEntries() {
+		DAO<Author> authorDao = this.facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = this.facade.getDAOFactory().getDaoFor(Document.class);
+		DAO<Customer> customerDao = this.facade.getDAOFactory().getDaoFor(Customer.class);
+
+		try {
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			Document document = randomDocument();
+			assertTrue(authorDao.with(author).add(document));
+
+			Customer customer = randomCustomer();
+
+			// O metodo with(  ).add() deve salvar o customer que ainda
+			// que ainda nao tem ID
+			assertTrue(documentDao.with(document).add(customer));
+			List<Document> documents = customer.getCustomerDocuments().all();
+			assertEquals(1, documents.size());
+			assertEquals(document, documents.get(0));
+
+			assertFalse(customerDao.with(customer).add(document));
+			List<Customer> customers = document.getCustomerCustomers().all();
+			assertEquals(1, customers.size());
+			assertEquals(customer, customers.get(0));
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
 	public void testFirstLevelCache() {
 		try {
 			Author author = randomAuthor();

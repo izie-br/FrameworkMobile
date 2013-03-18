@@ -285,6 +285,8 @@ public class GeradorTest {
 
 			Customer customer = randomCustomer();
 
+			// O metodo with(  ).add() deve salvar o customer que ainda
+			// que ainda nao tem ID
 			assertTrue(documentDao.with(document).add(customer));
 			List<Document> documents = customer.getDocumentDocuments().all();
 			assertEquals(1, documents.size());
