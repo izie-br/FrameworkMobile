@@ -271,6 +271,35 @@ public class GeradorTest {
 	}
 
 	@Test
+	public void testInsertMultipleManyToManyEntries() {
+		DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
+		DAO<Document> documentDao = this.daoFactory.getDaoFor(Document.class);
+		DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+
+		try {
+			Author author = randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			Document document = randomDocument();
+			assertTrue(authorDao.with(author).add(document));
+
+			Customer customer = randomCustomer();
+
+			assertTrue(documentDao.with(document).add(customer));
+			List<Document> documents = customer.getDocumentDocuments().all();
+			assertEquals(1, documents.size());
+			assertEquals(document, documents.get(0));
+
+			assertFalse(customerDao.with(customer).add(document));
+			List<Customer> customers = document.getDocumentCustomers().all();
+			assertEquals(1, customers.size());
+			assertEquals(customer, customers.get(0));
+		} catch (IOException e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
 	public void testFirstLevelCache() {
 		try {
 			Author author = randomAuthor();
