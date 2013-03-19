@@ -358,7 +358,8 @@ public class JsonInputParser implements InputParser {
 			writeSchemasToOutput(tables, firstVersion);
 
 		int version = config.retrieveDatabaseVersion();
-		if (version > 1) {
+		//if (version > 1)
+		{
 			String currentSchemaName = "schema_" + version + ".sql";
 			File currentSchema = new File(outputDir, currentSchemaName);
 			writeSchemasToOutput(tables, currentSchema);
