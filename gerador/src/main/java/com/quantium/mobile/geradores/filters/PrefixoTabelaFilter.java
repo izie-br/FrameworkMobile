@@ -5,6 +5,19 @@ import java.util.Collection;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.Constraint;
 
+/**
+ * <p>
+ *   Altera a instancia de {@link Table}, modificando o nome adicionando
+ *   um prefixo antes do nome original.
+ * </p>
+ * <p>
+ *   Onde o metodo {@link Table#getName()} retornaria "NOME_DA_TABELA",
+ *   com prefixo= "TB_", passara a retornar "TB_NOME_DA_TABELA"
+ * </p>
+ * 
+ * @author Igor Soares
+ *
+ */
 public class PrefixoTabelaFilter extends TabelaSchemaFilter{
 
 	private String prefixo;
@@ -35,10 +48,27 @@ public class PrefixoTabelaFilter extends TabelaSchemaFilter{
 		return newtable;
 	}
 
+	/**
+	 * @see PrefixoTabelaFilter\
+	 * 
+	 * @author Igor Soares
+	 *
+	 */
 	public static class Factory implements TabelaSchemaFilterFactory{
 
 		private String prefixo;
 
+		/**
+		 * <p>Instancia uma Factory de {@link PrefixoTabelaFilter}.</p>
+		 * <p>
+		 *   Todas as instancias criadas por esta factory terao
+		 *   o mesmo {@code prefixo}.
+		 * </p>
+		 * 
+		 * @see PrefixoTabelaFilter
+		 * 
+		 * @param prefixo prefixo de todas instacias geradas
+		 */
 		public Factory(String prefixo) {
 			super();
 			this.prefixo = prefixo;

@@ -7,7 +7,12 @@ import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.javabean.ModelSchema;
 import com.quantium.mobile.geradores.javabean.Property;
 
-
+/**
+ * Padrao GOF Chain of Responsibility (apelidado de Filter)
+ * 
+ * @author Igor Soares
+ *
+ */
 public abstract class TabelaSchemaFilter {
 
 	private TabelaSchemaFilter proximo = null;

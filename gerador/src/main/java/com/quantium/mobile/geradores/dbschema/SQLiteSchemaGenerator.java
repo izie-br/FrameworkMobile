@@ -12,6 +12,12 @@ import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 
+/**
+ * Gerador de schema SQL para instancias de {@link Table}.
+ * 
+ * @author Igor Soares
+ *
+ */
 public class SQLiteSchemaGenerator {
 
 	public String getSchemaFor(Table table) {
@@ -46,7 +52,7 @@ public class SQLiteSchemaGenerator {
 		return schemaSb.toString();
 	}
 
-	private Table.Column<?> extractPK(Table table) {
+	private static Table.Column<?> extractPK(Table table) {
 		for (Table.Column<?> col : table.getColumns ()) {
 			if (ColumnsUtils.checkIfIsPK (col))
 				return col;

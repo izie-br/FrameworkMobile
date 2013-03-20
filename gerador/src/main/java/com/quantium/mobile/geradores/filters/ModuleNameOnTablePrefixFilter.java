@@ -6,6 +6,19 @@ import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.util.Constants;
 
+/**
+ * <p>
+ *   Altera a instancia de {@link Table}, modificando o nome adicionando o
+ *   nome do modulo antes ao nome original.
+ * </p>
+ * <p>
+ *   Onde o metodo {@link Table#getName()} retornaria "NOME_DA_TABELA",
+ *   passara a retornar "MODULO_NOME_DA_TABELA"
+ * </p>
+ * 
+ * @author Igor Soares
+ *
+ */
 public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
 
 
@@ -50,6 +63,13 @@ public class ModuleNameOnTablePrefixFilter extends TabelaSchemaFilter {
  *		return nome;
  *	}
  */
+
+	/**
+	 * @see ModuleNameOnTablePrefixFilter
+	 * 
+	 * @author Igor Soares
+	 *
+	 */
 	public static class Factory implements TabelaSchemaFilterFactory {
 
 		@Override
