@@ -11,6 +11,18 @@ import java.util.regex.Pattern;
 
 import com.quantium.mobile.geradores.util.Constants;
 
+/**
+ * <p>Le multiplos arquivos de entrada SQL, seguindo o dialeto do H2DB.</p>
+ * <p>
+ *   Apos concatenar todos scripts, realiza processo semelhante ao
+ *   {@link SQLiteInputParser}
+ * </p>
+ * 
+ * <p>TODO:: Isolar trechos especificos do H2DB</p>
+ * 
+ * @author Igor Soares
+ *
+ */
 public class MigrationsInputParser extends SQLiteInputParser {
 
 	public static final String INPUT_PARSER_IDENTIFIER = "migrations";
