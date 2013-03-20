@@ -90,6 +90,7 @@ public class VelocityDaoFactory {
 		this.voPackage = voPackage;
 		parentCtx = new VelocityContext();
 		parentCtx.put("defaultId", Constants.DEFAULT_ID);
+		parentCtx.put("getter", new GetterHelper());
 		this.aliases = serializationAliases;
 		// parentCtx.put("basePackage", basePackage);
 	}
@@ -97,12 +98,12 @@ public class VelocityDaoFactory {
 	public void generate(JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas) throws IOException {
 		if (schema.isNonEntityTable())
 			return;
-		parentCtx.put("package", Utils.getPackageName(basePackage, genPackage, schema.getModule()));
 		String targetclass = CamelCaseUtils.toUpperCamelCase(schema.getNome());
 		String classname = targetclass + this.type.getSuffix();
 		String filename = classname + ".java";
 		File file = new File(getPackageDir(targetDirectory, genPackage, schema.getModule()), filename);
 		VelocityContext ctx = new VelocityContext(parentCtx);
+		ctx.put("package", Utils.getPackageName(basePackage, genPackage, schema.getModule()));
 		ctx.put("Klass", classname);
 		ctx.put("EditableInterface", editableInterface(targetclass));
 		ctx.put("KlassImpl", targetclass + "Impl");
@@ -159,9 +160,6 @@ public class VelocityDaoFactory {
 
 		ValidateHelper vhelper = new ValidateHelper(schema, fields);
 		ctx.put("Uniques", vhelper.getUniques());
-
-		GetterHelper getterHelper = new GetterHelper();
-		ctx.put("getter", getterHelper);
 
 		Writer w = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 		template.merge(ctx, w);

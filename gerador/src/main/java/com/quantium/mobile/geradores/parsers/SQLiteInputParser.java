@@ -27,6 +27,12 @@ import com.quantium.mobile.geradores.util.LoggerUtil;
 import com.quantium.mobile.geradores.util.SQLiteGeradorUtils;
 import com.quantium.mobile.shared.util.XMLUtil;
 
+/**
+ * <p>Usa o script "sql.xml", formato android, como input do gerador.</p>
+ * 
+ * @author Igor Soares
+ *
+ */
 public class SQLiteInputParser implements InputParser {
 	
 	public static final String INPUT_PARSER_IDENTIFIER = "sqlite";
