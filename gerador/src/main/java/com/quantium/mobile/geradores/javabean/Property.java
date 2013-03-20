@@ -3,6 +3,13 @@ package com.quantium.mobile.geradores.javabean;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.framework.validation.Constraint;
 
+/**
+ * Propriedades que compoem um {@link JavaBeanSchema} ou um 
+ * {@link ModelSchema}
+ * 
+ * @author Igor Soares
+ *
+ */
 public class Property {
 
 	private final String name;
@@ -12,12 +19,29 @@ public class Property {
 	private final boolean set;
 	private final Constraint constraints [];
 
+	/**
+	 * 
+	 * @param name
+	 * @param klass
+	 * @param get tem permissao de leitura (getter)
+	 * @param set tem permissao de escrita (getter)
+	 * @param constraints
+	 */
 	public Property(String name, Class<?> klass,
 	                   boolean get, boolean set, Constraint...constraints)
 	{
 		this (name, klass, get, set, null, constraints);
 	}
 
+	/**
+	 * 
+	 * @param name
+	 * @param klass
+	 * @param get tem permissao de leitura (getter)
+	 * @param set tem permissao de escrita (setter)
+	 * @param alias alias de serializacao (em Map)
+	 * @param constraints
+	 */
 	public Property(String name, Class<?> klass, boolean get,
 	                boolean set, String alias, Constraint...constraints)
 	{
@@ -51,11 +75,18 @@ public class Property {
 		return CamelCaseUtils.toUpperCamelCase(name);
 	}
 
+	/**
+	 * Alias de serializacao
+	 * @return alias de serializacao
+	 */
 	public String getSerializationAlias(){
 		return alias;
 	}
 
-
+	/**
+	 * Alias de serializacao
+	 * @return alias de serializacao
+	 */
 	public String getAlias(){
 		return alias;
 	}
@@ -78,10 +109,20 @@ public class Property {
 		return klass.getSimpleName();
 	}
 
+	/**
+	 * Boolean de permissao de leitura (getter)
+	 * 
+	 * @return true se tem permissao de leitura (getter)
+	 */
 	public boolean isGet() {
 		return get;
 	}
 
+	/**
+	 * Boolean de permissao de escrita (setter)
+	 * 
+	 * @return true se tem permissao de escrita (setter)
+	 */
 	public boolean isSet() {
 		return set;
 	}

@@ -54,8 +54,9 @@ public final class ModelSchema {
 		private Builder() {}
 
 		/**
-		 * Adiciona uma propriedade, com o nome e tipo.
-		 * Opcionalmente, adiciona-se as {@link Constraint}'s.
+		 * Adiciona uma propriedade, com o nome e tipo, ao {@link ModelSchema}.
+		 * Opcionalmente, adiciona-se as {@link Constraint}'s a esta
+		 * propriedade.
 		 *
 		 * @param name
 		 * @param type
