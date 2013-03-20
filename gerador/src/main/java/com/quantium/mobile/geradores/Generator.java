@@ -35,6 +35,12 @@ import com.quantium.mobile.geradores.velocity.VelocitySqlXmlFactory;
 import com.quantium.mobile.geradores.velocity.VelocityStubFactory;
 import com.quantium.mobile.geradores.velocity.VelocityVOFactory;
 
+/**
+ * TODO: mover os defaultProperties para o {@link GeneratorConfig}
+ * 
+ * @author Igor Soares
+ *
+ */
 public class Generator {
 
 	private static final boolean VELOCITY_PERFORMANCE_PARAMS = true;
@@ -55,9 +61,6 @@ public class Generator {
 	}
 
 
-	/**
-	 * @param args
-	 */
 	public static void main(String[] args) throws GeradorException{
 
 		if(args==null||args.length < 4){
