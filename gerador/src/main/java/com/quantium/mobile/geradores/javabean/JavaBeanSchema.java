@@ -177,12 +177,16 @@ public class JavaBeanSchema {
 			Collection<Associacao> associations =
 					modelSchema.getAssociacoes ();
 
+			// Note:: loop com LABEL
 			property_loop:
 			for (Property property : modelSchema.getProperties ()){
+
 				// confere se eh PK
 				if (property.equals (pk)){
+					// Note: usando label
 					continue property_loop;
 				}
+
 				// confere se eh FK
 				for (Associacao assoc : associations) {
 					if (assoc instanceof AssociacaoOneToMany) {
@@ -190,13 +194,20 @@ public class JavaBeanSchema {
 								(AssociacaoOneToMany) assoc;
 						String name = property.getNome ();
 						if (o2m.getKeyToA ().equals (name)) {
+							// Note: usando label
 							continue property_loop;
 						}
 					}
 				}
-				// chega aqui se a propriedade nao for PK nem FK
+
+				// chega aqui houver pelo menos uma propriedade
+				// que nao for PK nem FK
+				// Eh uma "entity table"
 				return false;
 			}
+
+			// chega aqui houver apenas propriedades
+			// que sao PK ou FK
 			return true;
 		}
 
@@ -207,10 +218,10 @@ public class JavaBeanSchema {
 
 		@Override
 		public Property getPropriedade(String coluna) {
-			for (Property it : modelSchema.getProperties ()) {
-				if (it.getNome().equals(coluna)) {
+			for (Property property : modelSchema.getProperties ()) {
+				if (property.getNome().equals(coluna)) {
 					boolean isNotPrimaryKey = true;
-					Constraint constraints[] = it.getConstraints();
+					Constraint constraints[] = property.getConstraints();
 					if (constraints != null) {
 						for (Constraint constraint : constraints) {
 							if (constraint instanceof Constraint.PrimaryKey) {
@@ -219,8 +230,10 @@ public class JavaBeanSchema {
 						}
 					}
 					return new Property(
-							it.getNome(), it.getPropertyClass (),
-							true, isNotPrimaryKey, it.getConstraints ());
+							property.getNome(), property.getPropertyClass (),
+							/*get=*/ true,
+							/*set=*/ isNotPrimaryKey,
+							property.getConstraints ());
 				}
 			}
 			throw new IllegalArgumentException(String.format(
