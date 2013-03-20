@@ -8,6 +8,11 @@ import java.util.HashSet;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 
+/**
+ * 
+ * @author Igor Soares
+ *
+ */
 public final class ModelSchema {
 
 	private final String name;
@@ -19,11 +24,23 @@ public final class ModelSchema {
 	private final Collection<Associacao> associacoes =
 			new HashSet<Associacao>();
 
+	/**
+	 * @see ModelSchema#create(String, String)
+	 * @param module
+	 * @param name
+	 */
 	private ModelSchema(String module, String name) {
 		this.module = module;
 		this.name = name;
 	}
 
+	/**
+	 * Instancia um {@link Builder}
+	 * 
+	 * @param module
+	 * @param name
+	 * @return builder
+	 */
 	public static Builder create(String module, String name) {
 		ModelSchema tabela = new ModelSchema(module, name);
 		return tabela.new Builder();
@@ -31,8 +48,20 @@ public final class ModelSchema {
 
 	public final class Builder {
 
+		/**
+		 * @see ModelSchema#create(String, String)
+		 */
 		private Builder() {}
 
+		/**
+		 * Adiciona uma propriedade, com o nome e tipo.
+		 * Opcionalmente, adiciona-se as {@link Constraint}'s.
+		 *
+		 * @param name
+		 * @param type
+		 * @param constraints
+		 * @return this
+		 */
 		public Builder addProperty(String name, Class<?> type,
 		                           Constraint... constraints)
 		{
@@ -51,16 +80,33 @@ public final class ModelSchema {
 			return this;
 		}
 
+		/**
+		 * Adiciona constraint.
+		 * 
+		 * @param constraint
+		 * @return this
+		 */
 		public Builder addConstraint(Constraint constraint) {
 			ModelSchema.this.constraints.add(constraint);
 			return this;
 		}
 
+		/**
+		 * Adiciona associacao one-to-many, many-to-one ou many-to-many.
+		 * 
+		 * @param associcacao
+		 * @return this
+		 */
 		public Builder addAssociation (Associacao assoc) {
 			ModelSchema.this.associacoes.add (assoc);
 			return this;
 		}
 
+		/**
+		 * Retorna o {@link ModelSchema} em criacao.
+		 * 
+		 * @return modelSchema
+		 */
 		public ModelSchema get() {
 			return ModelSchema.this;
 		}
@@ -68,8 +114,9 @@ public final class ModelSchema {
 	}
 
 	/**
+	 * Retorna todas associacoes one-to-many, many-to-one e many-to-many.
 	 * 
-	 * @return association (unmodifiable collection)
+	 * @return associations (unmodifiable collection)
 	 */
 	public Collection<Associacao> getAssociacoes() {
 		return Collections.unmodifiableCollection (associacoes);
@@ -84,7 +131,8 @@ public final class ModelSchema {
 	}
 
 	/**
-	 * Nome do module
+	 * Nome do modulo
+	 * 
 	 * @return module name
 	 */
 	public String getModule () {
@@ -92,7 +140,7 @@ public final class ModelSchema {
 	}
 
 	/**
-	 * Nome do modelo
+	 * Nome da classe da entidade
 	 * 
 	 * @return name
 	 */
@@ -101,14 +149,19 @@ public final class ModelSchema {
 	}
 
 	/**
-	 * Colunas e tipos de dados de cada uma
+	 * Todas colunas, em classe {@link Property}
 	 * 
-	 * @return Map com pares ( nome_da_coluna , classe_java )
+	 * @return properties
 	 */
 	public Collection<Property> getProperties() {
 		return Collections.unmodifiableCollection (colunas);
 	}
 
+	/**
+	 * {@link Property} da chave primaria
+	 * 
+	 * @return chave primaria
+	 */
 	public Property getPrimaryKey() {
 		for (Property coluna : colunas) {
 			for (Constraint constraint : coluna.getConstraints()) {
