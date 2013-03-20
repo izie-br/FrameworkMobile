@@ -14,9 +14,12 @@ import com.quantium.mobile.geradores.util.ColumnsUtils;
 import com.quantium.mobile.geradores.util.TableUtil;
 
 /**
- * Classe base dos esquemas usados pelo gerador. Usa uma Tabela schema como
- * unica fonte de dados. Dados derivados sao obtidos por processamento dos
- * filtros. Filtro e um Design Pattern GOF (chain of responsibility)
+ * <p>
+ *   Classe base dos esquemas usados pelo gerador. Usa uma {@link ModelSchema
+ *   como unica fonte de dados. Dados derivados sao obtidos por processamento
+ *   dos filtros.
+ * </p>
+ * <p>Filtro eh um Design Pattern GOF (chain of responsibility)</p>
  * 
  * Fluxo das chamadas ao JavaBeanSchema
  * <ul>
@@ -40,10 +43,24 @@ public class JavaBeanSchema {
 	private final ModelSchema modelSchema;
 	private TabelaSchemaFilter filterChain;
 
+	/**
+	 * Retorna o {@link ModelSchema} que eh a fonte de dados desta instancia
+	 * de {@link JavaBeanSchema}. Nao altere o ModelSchema.
+	 * @return modelschema
+	 */
 	public ModelSchema getModelSchema () {
 		return modelSchema;
 	}
 
+	/**
+	 * <p>Retorna o esquema da tabela (SQL, relacional) para esta entidade.</p>
+	 * <p>
+	 *   Deve ser identica aquela representada pela constante _TABLE
+	 *   presente nas classes de entidade geradas.
+	 * </p>
+	 * 
+	 * @return esquema da tabela relacional para esta entidade
+	 */
 	public Table getTabela() {
 		return filterChain.getTable ();
 	}
@@ -56,14 +73,36 @@ public class JavaBeanSchema {
 		return filterChain.getModule ();
 	}
 
+	/**
+	 * Confere este o javabeanschema eh uma entidade, ou uma representacao de
+	 * tabela associativa.
+	 * 
+	 * @return true se eh uma associativa
+	 */
 	public boolean isNonEntityTable() {
 		return filterChain.isNonEntityTable();
 	}
 
+	/**
+	 * <p>
+	 *   Busca uma propriedade {@link Property} cujo nome da coluna seja o
+	 *   mesmo do argumento.
+	 * </p>
+	 * <p>
+	 *   Use {@link JavaBeanSchema#getColunas()} para obter os nomes
+	 *   das colunas
+	 * </p>
+	 * @param nome da coluna
+	 * @return {@link Property}
+	 */
 	public Property getPropriedade(String coluna) {
 		return filterChain.getPropriedade(coluna);
 	}
 
+	/**
+	 * Retorna todos nomes de colunas.
+	 * @return nomes de colunas
+	 */
 	public Collection<String> getColunas() {
 		Collection<String> colunas = new HashSet<String>();
 		for (Property coluna : modelSchema.getProperties ())
@@ -75,14 +114,19 @@ public class JavaBeanSchema {
 		return filterChain.getPrimaryKey ();
 	}
 
-	public String getConstante(String coluna) {
-		return filterChain.getConstante(coluna);
-	}
-
+	/**
+	 * Associacoes que envolvem esta entidade, sejam elas one-to-many,
+	 * many-to-one ou many-to-many.
+	 * @return todas associacoes
+	 */
 	public Collection<Associacao> getAssociacoes() {
 		return filterChain.getAssociacoes();
 	}
 
+	/**
+	 * Soh deve ser acessado pela factory
+	 * @param filtro
+	 */
 	private void adicionarFiltro(TabelaSchemaFilter filtro) {
 		filtro.proximoFiltro(this.filterChain);
 		this.filterChain = filtro;
@@ -96,6 +140,16 @@ public class JavaBeanSchema {
 		this.modelSchema = tabela;
 	}
 
+	/**
+	 * <p>
+	 *   O filtro raiz busca dados diretamente da fonte, {@link ModelSchema},
+	 *   em vez de buscar no próximo filtro.
+	 * </p>
+	 * <p>Nao deve haver proximo filtro em relacao a este.</p>
+	 * 
+	 * @author Igor Soares
+	 *
+	 */
 	private class FiltroRaiz extends TabelaSchemaFilter {
 
 		@Override
@@ -175,11 +229,6 @@ public class JavaBeanSchema {
 		}
 
 		@Override
-		public String getConstante(String coluna) {
-			return getPropriedade(coluna).getNome();
-		}
-
-		@Override
 		public Table getTable () {
 			return TableUtil.tableForModelSchema (modelSchema);
 		}
@@ -191,6 +240,24 @@ public class JavaBeanSchema {
 
 	}
 
+	/**
+	 * <p>
+	 *   Usa instancias de {@link ModelSchema} para criar instancias de
+	 *   {@link JavaBeanSchema}.
+	 * </p>
+	 * <p>
+	 *   Recebe instancias de {@link TabelaSchemaFilterFactory}, que sao
+	 *   usadas para instanciar {@link TabelaSchemaFilter} para os
+	 *   {@link JavaBeanSchema}.
+	 * </p>
+	 * <p>
+	 *   Os filtros sao adicionados aos {@link JavaBeanSchema} seguindo a
+	 *   mesma ordem em que as {@link TabelaSchemaFilterFactory} foram
+	 *   aqui inseridas.
+	 * </p>
+	 * 
+	 * @author Igor Soares
+	 */
 	public static class Factory {
 
 		private Collection<TabelaSchemaFilterFactory> filtros =

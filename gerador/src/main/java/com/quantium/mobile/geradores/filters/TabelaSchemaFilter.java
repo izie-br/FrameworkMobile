@@ -40,10 +40,6 @@ public abstract class TabelaSchemaFilter {
 		return proximo.getPrimaryKey ();
 	}
 
-	public String getConstante(String coluna){
-		return proximo.getConstante(coluna);
-	}
-
 	public Collection<Associacao> getAssociacoes(){
 		return proximo.getAssociacoes();
 	}
