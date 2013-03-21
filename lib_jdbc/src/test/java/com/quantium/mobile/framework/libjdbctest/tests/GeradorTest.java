@@ -22,6 +22,7 @@ import com.quantium.mobile.framework.db.FirstLevelCache;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
+import com.quantium.mobile.framework.libjdbctest.gen.DocumentEditable;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
 import com.quantium.mobile.framework.libjdbctest.vo.Customer;
 import com.quantium.mobile.framework.libjdbctest.vo.CustomerImpl;
@@ -446,12 +447,60 @@ public class GeradorTest {
 			AuthorEditable otherAuthor = (AuthorEditable)randomAuthor();
 			// com mesmo ID
 			otherAuthor.setId(originalAuthor.getId());
+
+			String otherAuthorNewName = otherAuthor.getName();
+			Date otherAuthorNewCreatedAt = otherAuthor.getCreatedAt();
+
 			assertTrue(dao.save(otherAuthor));
 
 			// O author inicial, em cache deve ser alterado
 			assertEquals(originalAuthor, otherAuthor);
+			assertEquals(otherAuthorNewName, originalAuthor.getName());
+			assertEquals(otherAuthorNewCreatedAt, originalAuthor.getCreatedAt());
+
 			Author authorCache = dao.get(originalAuthor.getId());
 			assertEquals(otherAuthor, authorCache);
+		}catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testUpdateCacheWithAssociation() {
+		try {
+			DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
+			DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+
+			Author originalAuthor = randomAuthor();
+			Author otherAuthor = randomAuthor();
+
+			assertTrue(authorDao.save(originalAuthor));
+			assertTrue(authorDao.save(otherAuthor));
+
+			// os authors devem ter diferentes ids
+			assertTrue(originalAuthor.getId() != otherAuthor.getId());
+
+			Document originalDocument = randomDocument();
+			originalDocument.setAuthor(originalAuthor);
+			assertTrue(documentDao.save(originalDocument));
+
+			// o outro Document tem mesmo ID mas Author diferente
+			Document otherDocument = randomDocument();
+			((DocumentEditable)otherDocument).setId(originalDocument.getId());
+			otherDocument.setAuthor(otherAuthor);
+
+			// O Document original deve ter o Author alterado
+			assertTrue(documentDao.save(otherDocument));
+			assertEquals(otherDocument, originalDocument);
+			assertEquals(otherAuthor, originalDocument.getAuthor());
+
+			// deve funcionar tambem ao marcar author como NULL
+			// lembrando que author pode ser NULL
+			otherDocument.setAuthor(null);
+			assertTrue(documentDao.save(otherDocument));
+			assertEquals(otherDocument, originalDocument);
+			assertEquals(null, originalDocument.getAuthor());
+
 		}catch (Exception e) {
 			fail(StringUtil.getStackTrace(e));
 		}

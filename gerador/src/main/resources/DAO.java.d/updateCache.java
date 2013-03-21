@@ -15,11 +15,14 @@
 #******##set ($association = $associationForField[$field])
 #******#               ${association.Klass} _${association.KeyToA} = target.get${association.KeyToA}();
 #******#               ${association.Klass} _cache${association.KeyToA} = editable.get${association.KeyToA}();
-#******#               boolean _${association.KeyToA}Changed = ( _${association.KeyToA} == null)?
-#******#                       (_cache${association.KeyToA} != null) :
-#******#                       !(((${field.Klass})_${association.KeyToA}.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())));
-#******#               if (_${association.KeyToA}Changed) {
-#******#                   editable.set${association.KeyToA}(this.factory.getDaoFor(${association.Klass}.class).get(_${association.KeyToA}.${getter[$association.ReferenceKey]}()));
+#******#               if ( _${association.KeyToA} == null) {
+#******#                   if (_cache${association.KeyToA} != null) {
+#******#                       editable.set${association.KeyToA}(null);
+#******#                   }
+#******#               } else {
+#******#                   if ( !(((${field.Klass})_${association.KeyToA}.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
+#******#                       editable.set${association.KeyToA}(this.factory.getDaoFor(${association.Klass}.class).get(_${association.KeyToA}.${getter[$association.ReferenceKey]}()));
+#******#                   }
 #******#               }
 #**##elseif (!$field.PrimaryKey)
 #******#               ${field.Klass} _${field.LowerCamel} = target.${getter[$field]}();
