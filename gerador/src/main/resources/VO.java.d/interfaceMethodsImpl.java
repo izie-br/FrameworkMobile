@@ -4,7 +4,7 @@
 #**##if ($field.SerializationAlias)
 #******##set ($alias = $field.SerializationAlias)
 #**##else
-#******##set ($alias = $field.LowerAndUnderscores)
+#******##set ($alias = $field.LowerCamel)
 #**##end
 #**###
 #**##set ($association = false)

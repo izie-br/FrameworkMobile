@@ -184,7 +184,7 @@ public class VelocityVOFactory {
 				return aliasForAllClasses;
 			}
 		}
-		return field;
+		return null;
 	}
 
 
