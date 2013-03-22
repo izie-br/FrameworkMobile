@@ -37,12 +37,14 @@ import com.quantium.mobile.framework.validation.ValidationError;
 
 public class GeradorTest {
 
+	private static final int SCORE_MAX = 100;
+	private static final int CUSTOMER_NAME_LEN = 60;
 	DAOFactory daoFactory = new MemDaoFactory();
 
 	@Test
 	public void testInsertUpdateDelete(){
 		try {
-			DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			int count = dao.query().all().size();
 			Author author = randomAuthor();
 			assertTrue(dao.save(author));
@@ -66,7 +68,7 @@ public class GeradorTest {
 	@Test
 	public void testQuery(){
 		int count = 5;
-		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 		Author authors[]  = new Author[count];
 		// inserindo 5 authors diferentes
 		for(int i=0;i<count;i++){
@@ -119,7 +121,7 @@ public class GeradorTest {
 
 	@Test
 	public void testGetById () {
-		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author1 = randomAuthor ();
 		Author author2 = randomAuthor ();
@@ -141,32 +143,9 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testSaveInsertIfNotExists () {
-		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
-
-		Author author = randomAuthor ();
-		final long id = 5L;
-		((AuthorEditable)author).setId (id);
-
-		try{
-			assertTrue (dao.save (randomAuthor ()));
-			assertTrue (dao.save (randomAuthor ()));
-			assertTrue (dao.save (randomAuthor ()));
-			assertTrue (dao.save (author, Save.INSERT_IF_NOT_EXISTS));
-		} catch (IOException e) {
-			fail ();
-		}
-
-		assertEquals (id, author.getId ());
-
-		Author authorFromDb = dao.get (id);
-		assertEquals (author, authorFromDb);
-	}
-
-	@Test
 	public void testMapSerialization(){
-		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
-		DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 		Author author = randomAuthor();
 		try {
 		assertTrue(dao.save(author));
@@ -194,12 +173,35 @@ public class GeradorTest {
 	}
 
 	@Test
+	public void testSaveInsertIfNotExists () {
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
+
+		Author author = randomAuthor ();
+		final long id = 5L;
+		((AuthorEditable)author).setId (id);
+
+		try{
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (author, Save.INSERT_IF_NOT_EXISTS));
+		} catch (IOException e) {
+			fail ();
+		}
+
+		assertEquals (id, author.getId ());
+
+		Author authorFromDb = dao.get (id);
+		assertEquals (author, authorFromDb);
+	}
+
+	@Test
 	public void testDeleteCascade () {
 		try {
-		DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
-		DAO<Document> docDao = daoFactory.getDaoFor(Document.class);
-		DAO<Score> scoreDao = daoFactory.getDaoFor(Score.class);
-		DAO<Customer> customerDao = daoFactory.getDaoFor(Customer.class);
+		DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
+		DAO<Score> scoreDao = getDaoFactory().getDaoFor(Score.class);
+		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 		Author author = randomAuthor();
 		assertTrue(authorDao.save(author));
 
@@ -210,7 +212,7 @@ public class GeradorTest {
 		Score score = new ScoreImpl();
 		score.setAuthor(author);
 		score.setDocument(document);
-		score.setScore((new Random().nextInt())%100);
+		score.setScore((new Random().nextInt())%SCORE_MAX);
 		assertTrue(scoreDao.save(score));
 
 		Customer customer = randomCustomer();
@@ -273,9 +275,9 @@ public class GeradorTest {
 
 	@Test
 	public void testInsertMultipleManyToManyEntries() {
-		DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
-		DAO<Document> documentDao = this.daoFactory.getDaoFor(Document.class);
-		DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+		DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
+		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 
 		try {
 			Author author = randomAuthor();
@@ -306,11 +308,11 @@ public class GeradorTest {
 	public void testFirstLevelCache() {
 		try {
 			Author author = randomAuthor();
-			DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			assertTrue(authorDao.save(author));
 
 			Document document = randomDocument();
-			DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 			assertTrue(documentDao.save(document));
 
 			// Se o cache funcionar, a busca pelo mesmo autor (mesma PrimaryKey)
@@ -438,7 +440,7 @@ public class GeradorTest {
 	@Test
 	public void testCacheUpdate() {
 		try {
-			DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			Author originalAuthor = randomAuthor();
 			assertTrue(dao.save(originalAuthor));
 			assertTrue(originalAuthor.getId() != 0);
@@ -468,8 +470,8 @@ public class GeradorTest {
 	@Test
 	public void testUpdateCacheWithAssociation() {
 		try {
-			DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
-			DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author originalAuthor = randomAuthor();
 			Author otherAuthor = randomAuthor();
@@ -559,7 +561,7 @@ public class GeradorTest {
 
 	@Test
 	public void testValidateThroughDAO () {
-		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 		Author author1= randomAuthor ();
 		try {
 			assertTrue (dao.save (author1));
@@ -587,7 +589,7 @@ public class GeradorTest {
 
 	@Test
 	public void testQuerySetCount () {
-		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author1 = randomAuthor ();
 		Author author2 = randomAuthor ();
@@ -613,7 +615,7 @@ public class GeradorTest {
 	@Test
 	public void testNullQuery () {
 		try {
-			DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+			DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 	
 			Customer customerNullName = randomCustomer();
 			customerNullName.setName(null);
@@ -648,8 +650,8 @@ public class GeradorTest {
 	@Test
 	public void testNullToZeroQuery () {
 		try {
-			DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
-			DAO<Document> docDao = this.daoFactory.getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author author = randomAuthor();
 			assertTrue(authorDao.save(author));
@@ -688,10 +690,11 @@ public class GeradorTest {
 	@Test
 	public void testUpdatePrimaryKey() {
 		try {
-			DAO<Author> authorDao = this.daoFactory.getDaoFor(Author.class);
-			DAO<Document> documentDao = this.daoFactory.getDaoFor(Document.class);
-			DAO<Score> scoreDao = this.daoFactory.getDaoFor(Score.class);
-			DAO<Customer> customerDao = this.daoFactory.getDaoFor(Customer.class);
+			DAOFactory daoFactory = getDaoFactory();
+			DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
+			DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
+			DAO<Score> scoreDao = daoFactory.getDaoFor(Score.class);
+			DAO<Customer> customerDao = daoFactory.getDaoFor(Customer.class);
 
 			@SuppressWarnings("unchecked")
 			PrimaryKeyUpdater<Document> primaryKeyUpdater =
@@ -801,8 +804,12 @@ public class GeradorTest {
 
 	public static Customer randomCustomer () {
 		Customer customer = new CustomerImpl();
-		customer.setName(RandomStringUtils.random(60));
+		customer.setName(RandomStringUtils.random(CUSTOMER_NAME_LEN));
 		return customer;
+	}
+
+	private DAOFactory getDaoFactory() {
+		return daoFactory;
 	}
 
 	private DAOFactory weakRefCacheFactory() {

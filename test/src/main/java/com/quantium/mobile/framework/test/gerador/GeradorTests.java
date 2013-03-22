@@ -56,28 +56,28 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		super.setUp();
 		//Limpar o banco
 		{
-			DAO<Score> dao = facade.getDAOFactory().getDaoFor(Score.class);
+			DAO<Score> dao = getDaoFactory().getDaoFor(Score.class);
 			List<Score> objects = dao.query().all();
 			for (Score obj :objects) {
 				dao.delete(obj);
 			}
 		}
 		{
-			DAO<Customer> dao = facade.getDAOFactory().getDaoFor(Customer.class);
+			DAO<Customer> dao = getDaoFactory().getDaoFor(Customer.class);
 			List<Customer> objects = dao.query().all();
 			for (Customer obj :objects) {
 				dao.delete(obj);
 			}
 		}
 		{
-			DAO<Document> dao = facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Document> dao = getDaoFactory().getDaoFor(Document.class);
 			List<Document> objects = dao.query().all();
 			for (Document obj :objects) {
 				dao.delete(obj);
 			}
 		}
 		{
-			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			List<Author> objects = dao.query().all();
 			for (Author obj :objects) {
 				dao.delete(obj);
@@ -87,7 +87,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testInsertUpdateDelete(){
 		try {
-			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			int count = dao.query().all().size();
 			Author author = randomAuthor();
 			assertTrue(dao.save(author));
@@ -110,7 +110,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	 */
 	public void testQuery(){
 		int count = 5;
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 		Author authors[]  = new Author[count];
 		// inserindo 5 authors diferentes
 		for(int i=0;i<count;i++){
@@ -162,7 +162,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testGetById () {
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author1 = randomAuthor ();
 		Author author2 = randomAuthor ();
@@ -184,8 +184,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testMapSerialization(){
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-		DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 		Author author = randomAuthor();
 		try {
 		assertTrue(dao.save(author));
@@ -221,7 +221,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		 * testando document, com dois alias "id_document" e "created"
 		 */
 		DAO<Document> documentDao =
-				facade.getDAOFactory().getDaoFor(Document.class);
+				getDaoFactory().getDaoFor(Document.class);
 		Map<String,Object> map = new HashMap<String, Object>();
 		// "idDocmuent" eh o alias de "document.id"
 		// ver no pom.xml
@@ -239,7 +239,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		/*
 		 *  testando author com 1 alias "created"
 		 */
-		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+		DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 		// "created" eh o alias de "created_at" para todas classes
 		Map<String,Object> authorMap = new HashMap<String, Object>();
 		authorMap.put(createdAlias, created);
@@ -251,24 +251,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		assertEquals(created, authorToMap.get(createdAlias));
 	}
 
-/*	public void testGenericBean() {
-		Author obj = randomAuthor();
-		try {
-			GenericBean genericObj = obj;
-			assertTrue(genericObj.save(getSession()));
-			assertTrue(obj.getId()>0);
-			long id = obj.getId();
-			assertTrue(genericObj.delete());
-			Author fromDb = Author.objects(getSession()).filter(Author.ID.eq(id)).first();
-			assertNull(fromDb);
-		} catch (ClassCastException e) {
-			fail ("Beans nao herdam da classe " + GenericBean.class.getSimpleName());
-		}
-	}
-*/
-
 	public void testSaveInsertIfNotExists () {
-		DAO<Author> dao = facade.getDAOFactory ().getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author = randomAuthor ();
 		final long id = 5L;
@@ -291,11 +275,10 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testDeleteCascade () {
 		try {
-		DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-		DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
-		DAO<Score> scoreDao = facade.getDAOFactory().getDaoFor(Score.class);
-		DAO<Customer> customerDao = (DAO<Customer>) facade.getDAOFactory()
-				.getDaoFor(Customer.class);
+		DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
+		DAO<Score> scoreDao = getDaoFactory().getDaoFor(Score.class);
+		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 		Author author = randomAuthor();
 		assertTrue(authorDao.save(author));
 
@@ -368,9 +351,9 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testInsertMultipleManyToManyEntries() {
-		DAO<Author> authorDao = this.facade.getDAOFactory().getDaoFor(Author.class);
-		DAO<Document> documentDao = this.facade.getDAOFactory().getDaoFor(Document.class);
-		DAO<Customer> customerDao = this.facade.getDAOFactory().getDaoFor(Customer.class);
+		DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+		DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
+		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 
 		try {
 			Author author = randomAuthor();
@@ -400,11 +383,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testFirstLevelCache() {
 		try {
 			Author author = randomAuthor();
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			assertTrue(authorDao.save(author));
 
 			Document document = randomDocument();
-			DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 			assertTrue(documentDao.save(document));
 
 			// Se o cache funcionar, a busca pelo mesmo autor (mesma PrimaryKey)
@@ -431,8 +414,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testLazyInvocationHandler() {
 		try {
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-			DAO<Document> documentDao = facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author author = randomAuthor();
 			assertTrue(authorDao.save(author));
@@ -491,7 +474,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testFirstLevelCacheTrim() {
 		try {
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 
 			Author author = randomAuthor();
 			assertTrue(authorDao.save(author));
@@ -524,7 +507,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			listStr= null;
 
 			// Nesta implementacal o dao herda do FirstLevelCache
-			FirstLevelCache cache = (FirstLevelCache)facade.getDAOFactory();
+			FirstLevelCache cache = (FirstLevelCache)getDaoFactory();
 			// deve rodar sem excecao
 			cache.trim();
 
@@ -539,7 +522,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testCacheUpdate() {
 		try {
-			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			Author originalAuthor = randomAuthor();
 			assertTrue(dao.save(originalAuthor));
 			assertTrue(originalAuthor.getId() != 0);
@@ -568,8 +551,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testUpdateCacheWithAssociation() {
 		try {
-			DAO<Author> authorDao = this.facade.getDAOFactory().getDaoFor(Author.class);
-			DAO<Document> documentDao = this.facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author originalAuthor = randomAuthor();
 			Author otherAuthor = randomAuthor();
@@ -657,7 +640,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testValidateThroughDAO () {
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 		Author author1= randomAuthor ();
 		try {
 			assertTrue (dao.save (author1));
@@ -684,7 +667,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testQuerySetCount () {
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor (Author.class);
+		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author1 = randomAuthor ();
 		Author author2 = randomAuthor ();
@@ -709,7 +692,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testNullQuery () {
 		try {
-			DAO<Customer> customerDao = facade.getDAOFactory().getDaoFor(Customer.class);
+			DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 	
 			Customer customerNullName = randomCustomer();
 			customerNullName.setName(null);
@@ -743,8 +726,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	 */
 	public void testNullToZeroQuery () {
 		try {
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author author = randomAuthor();
 			assertTrue(authorDao.save(author));
@@ -782,7 +765,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testUpdatePrimaryKey() {
 		try {
-			DAOFactory daoFactory = this.facade.getDAOFactory();
+			DAOFactory daoFactory = getDaoFactory();
 			DAO<Author> authorDao = daoFactory.getDaoFor(Author.class);
 			DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
 			DAO<Score> scoreDao = daoFactory.getDaoFor(Score.class);
@@ -870,8 +853,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testMinMaxIntValidation () {
 		try {
-			DAO<Author> authorDao = facade.getDAOFactory().getDaoFor(Author.class);
-			DAO<Document> docDao = facade.getDAOFactory().getDaoFor(Document.class);
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 
 			Author author = randomAuthor();
 			assertTrue(authorDao.save(author));
@@ -1014,6 +997,10 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Customer customer = new CustomerImpl();
 		customer.setName(RandomStringUtils.random(CUSTOMER_NAME_LEN));
 		return customer;
+	}
+
+	private DAOFactory getDaoFactory() {
+		return facade.getDAOFactory();
 	}
 
 	private static int fib(int n) {
