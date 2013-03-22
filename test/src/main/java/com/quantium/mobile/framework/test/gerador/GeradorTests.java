@@ -472,53 +472,53 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		}
 	}
 
-	public void testFirstLevelCacheTrim() {
-		try {
-			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
-
-			Author author = randomAuthor();
-			assertTrue(authorDao.save(author));
-
-			long authorId = author.getId();
-			assertTrue(authorId != 0);
-			String authorName = author.getName();
-			assertNotNull(authorName);
-
-			// Usando o objeto Author para monitorar o gc
-			WeakReference<Author> authorWeakRef =
-					new WeakReference<Author>(author);
-			// Removendo todas referencias fortes ao Author
-			author = null;
-
-			// Quando esta referencia fraca se tornar null
-			// significa que o GC rodou!
-			// O GC do android precisa de um "hackzinho" para rodar
-			// nao isole esta parte abaixo em um metodo,
-			// se nao vira loop infinito
-			List<WeakReference<byte[]>> listStr = new ArrayList<WeakReference<byte[]>>();
-			int i = 1;
-			while (authorWeakRef.get() != null) {
-				System.gc();
-				// Use uma sequencia de fibonacci para evitar
-				// estouro de memoria
-				int size = fib(i++)*1000000;
-				listStr.add(new WeakReference<byte[]>(new byte[size]));
-			}
-			listStr= null;
-
-			// Nesta implementacal o dao herda do FirstLevelCache
-			FirstLevelCache cache = (FirstLevelCache)getDaoFactory();
-			// deve rodar sem excecao
-			cache.trim();
-
-			author = authorDao.get(authorId);
-			assertEquals(authorId, author.getId());
-			assertEquals(authorName, author.getName());
-
-		} catch (Exception e) {
-			fail(StringUtil.getStackTrace(e));
-		}
-	}
+//	public void testFirstLevelCacheTrim() {
+//		try {
+//			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+//
+//			Author author = randomAuthor();
+//			assertTrue(authorDao.save(author));
+//
+//			long authorId = author.getId();
+//			assertTrue(authorId != 0);
+//			String authorName = author.getName();
+//			assertNotNull(authorName);
+//
+//			// Usando o objeto Author para monitorar o gc
+//			WeakReference<Author> authorWeakRef =
+//					new WeakReference<Author>(author);
+//			// Removendo todas referencias fortes ao Author
+//			author = null;
+//
+//			// Quando esta referencia fraca se tornar null
+//			// significa que o GC rodou!
+//			// O GC do android precisa de um "hackzinho" para rodar
+//			// nao isole esta parte abaixo em um metodo,
+//			// se nao vira loop infinito
+//			List<WeakReference<byte[]>> listStr = new ArrayList<WeakReference<byte[]>>();
+//			int i = 1;
+//			while (authorWeakRef.get() != null) {
+//				System.gc();
+//				// Use uma sequencia de fibonacci para evitar
+//				// estouro de memoria
+//				int size = fib(i++)*1000000;
+//				listStr.add(new WeakReference<byte[]>(new byte[size]));
+//			}
+//			listStr= null;
+//
+//			// Nesta implementacal o dao herda do FirstLevelCache
+//			FirstLevelCache cache = (FirstLevelCache)getDaoFactory();
+//			// deve rodar sem excecao
+//			cache.trim();
+//
+//			author = authorDao.get(authorId);
+//			assertEquals(authorId, author.getId());
+//			assertEquals(authorName, author.getName());
+//
+//		} catch (Exception e) {
+//			fail(StringUtil.getStackTrace(e));
+//		}
+//	}
 
 	public void testCacheUpdate() {
 		try {
