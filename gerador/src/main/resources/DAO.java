@@ -73,6 +73,8 @@ public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Targe
 
 #parse("DAO.java.d/mapToObject.java")
 
+#parse("DAO.java.d/updateWithMap.java")
+
 #parse("DAO.java.d/androidValidate.java")
 
 #foreach ($association in $manyToManyAssociations)
@@ -83,9 +85,12 @@ public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Targe
 
 #parse("DAO.java.d/androidQuery.java")
 
+    protected ${Target} new${Target}(){
+        return new ${KlassImpl}();
+    }
+
     protected ${Target} new${Target}(${constructorArgsDecl}){
         return new ${KlassImpl}(${constructorArgs});
     }
-
 }
 

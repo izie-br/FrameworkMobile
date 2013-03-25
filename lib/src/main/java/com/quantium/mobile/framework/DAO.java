@@ -16,6 +16,7 @@ public interface DAO<T> {
 	boolean delete(T obj) throws IOException;
 	ToManyDAO with(T obj);
 	T mapToObject(Map<String, Object> map);
+	void updateWithMap(T target, Map<String, Object> map);
 	Collection<ValidationError> validate (T obj);
 	T get(Object id);
 }

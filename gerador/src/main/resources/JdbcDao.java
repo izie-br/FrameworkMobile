@@ -108,11 +108,17 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
 
 #parse("DAO.java.d/mapToObject.java")
 
+#parse("DAO.java.d/updateWithMap.java")
+
 #parse("DAO.java.d/jdbcValidate.java")
 
 #parse("DAO.java.d/jdbcManyToManyHandlers.java")
 
 #parse("DAO.java.d/toManyDAO.java")
+
+    protected ${Target} new${Target}(){
+        return new ${KlassImpl}();
+    }
 
     protected ${Target} new${Target}(${constructorArgsDecl}){
         return new ${KlassImpl}(${constructorArgs});

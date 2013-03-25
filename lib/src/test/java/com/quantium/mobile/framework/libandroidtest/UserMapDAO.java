@@ -71,6 +71,11 @@ public class UserMapDAO implements DAO<User> {
     }
 
     @Override
+    public void updateWithMap(User target, Map<String, Object> map) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
     public Collection<ValidationError> validate (User user){
         return new ArrayList<ValidationError> ();
     }
