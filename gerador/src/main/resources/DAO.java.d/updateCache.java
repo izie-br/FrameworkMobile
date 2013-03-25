@@ -29,7 +29,7 @@
 #******#               ${field.Klass} _cache${field.LowerCamel} = editable.${getter[$field]}();
 #******#               boolean _${field.LowerCamel}Changed = ( _${field.LowerCamel} == null)?
 #******#                       (_cache${field.LowerCamel} != null) :
-#******#                       !(_cache${field.LowerCamel}.equals(_${field.LowerCamel}));
+#******#                       !(_${field.LowerCamel}.equals(_cache${field.LowerCamel}));
 #******#               if (_${field.LowerCamel}Changed) {
 #******#                   editable.set${field.UpperCamel}(_${field.LowerCamel});
 #******#               }
