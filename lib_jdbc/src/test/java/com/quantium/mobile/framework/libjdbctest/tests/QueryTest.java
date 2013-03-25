@@ -16,6 +16,7 @@ import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
+import com.quantium.mobile.framework.libjdbctest.util.Utils;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
 import com.quantium.mobile.framework.libjdbctest.vo.Document;
@@ -124,9 +125,9 @@ public class QueryTest {
 
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
 
-		Author author1 = GeradorTest.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		author1.setCreatedAt(beforeReference);
-		Author author2 = GeradorTest.randomAuthor();
+		Author author2 = Utils.randomAuthor();
 		author2.setCreatedAt(afterReference);
 
 		try{
@@ -153,13 +154,13 @@ public class QueryTest {
 	public void testJoinQuery(){
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
 
-		Author author1 = GeradorTest.randomAuthor();
-		Author author2 = GeradorTest.randomAuthor();
-		Author author3 = GeradorTest.randomAuthor();
+		Author author1 = Utils.randomAuthor();
+		Author author2 = Utils.randomAuthor();
+		Author author3 = Utils.randomAuthor();
 
-		Document doc1 = GeradorTest.randomDocument();
-		Document doc2 = GeradorTest.randomDocument();
-		Document doc3 = GeradorTest.randomDocument();
+		Document doc1 = Utils.randomDocument();
+		Document doc2 = Utils.randomDocument();
+		Document doc3 = Utils.randomDocument();
 		try {
 			assertTrue(dao.save(author1));
 			assertTrue(dao.with(author1).add(doc1));

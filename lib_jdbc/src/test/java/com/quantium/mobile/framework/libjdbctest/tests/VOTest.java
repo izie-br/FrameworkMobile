@@ -5,6 +5,7 @@ import java.util.Date;
 import org.junit.Test;
 import static org.junit.Assert.*;
 
+import com.quantium.mobile.framework.libjdbctest.util.Utils;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
 import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
 import com.quantium.mobile.framework.utils.DateUtil;
@@ -13,7 +14,7 @@ public class VOTest {
 
 	@Test
 	public void testHashCode() {
-		Author author1 = GeradorTest.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
 				author1.getId(), author1.getCreatedAt(),
 				author1.getName(), author1.isActive(), null, null);
@@ -22,7 +23,7 @@ public class VOTest {
 	}
 
 	public void testEquals() {
-		Author author1 = GeradorTest.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
 				author1.getId(), author1.getCreatedAt(),
 				author1.getName(), author1.isActive(), null, null);

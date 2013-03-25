@@ -1,0 +1,10 @@
+TESTES
+======
+
+* Os testes de "lib_jdbc" sao criados usando o parser de "SQL migrations"
+  Os testes de "test" sao criados usando o parser de "JSON"
+  Eles tem a logica e codigo praticamente identicos, mas classes diferentes.
+  Recomendo o uso de uma ferramenta de "diff" textual, tal qual o "vimdiff"
+  para sincroniza-los.
+
+* Fiz um esforço em unificar os testes em "test_common"
