@@ -5,6 +5,7 @@ import java.util.Date;
 import android.test.ActivityInstrumentationTestCase2;
 
 import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.test.utils.Utils;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.utils.DateUtil;
@@ -16,7 +17,7 @@ public class VOTests extends ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	public void testHashCode() {
-		Author author1 = GeradorTests.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
 				author1.getId(), author1.getCreatedAt(),
 				author1.getName(), author1.isActive(), null, null);
@@ -25,7 +26,7 @@ public class VOTests extends ActivityInstrumentationTestCase2<TestActivity> {
 	}
 
 	public void testEquals() {
-		Author author1 = GeradorTests.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
 				author1.getId(), author1.getCreatedAt(),
 				author1.getName(), author1.isActive(), null, null);

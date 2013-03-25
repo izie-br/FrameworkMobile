@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Random;
 
 import org.apache.commons.lang.RandomStringUtils;
 
@@ -19,16 +18,14 @@ import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.test.utils.Utils;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.gen.AuthorEditable;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.test.vo.Customer;
-import com.quantium.mobile.framework.test.vo.CustomerImpl;
 import com.quantium.mobile.framework.test.document.gen.DocumentEditable;
 import com.quantium.mobile.framework.test.document.vo.Document;
-import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
 import com.quantium.mobile.framework.test.vo.Score;
-import com.quantium.mobile.framework.test.vo.ScoreImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
@@ -85,7 +82,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		try {
 			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			int count = dao.query().all().size();
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(dao.save(author));
 			long id  = author.getId();
 			assertTrue(id>0);
@@ -110,7 +107,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author authors[]  = new Author[count];
 		// inserindo 5 authors diferentes
 		for(int i=0;i<count;i++){
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			// para garantir strings diferentes, o comprimento varia com "i"
 			author.setName(RandomStringUtils.random(20+i));
 			author.setActive(true);
@@ -160,8 +157,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testGetById () {
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
-		Author author1 = randomAuthor ();
-		Author author2 = randomAuthor ();
+		Author author1 = Utils.randomAuthor ();
+		Author author2 = Utils.randomAuthor ();
 
 		try{
 			assertTrue (dao.save (author1));
@@ -182,7 +179,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testMapSerialization(){
 		DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 		DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
-		Author author = randomAuthor();
+		Author author = Utils.randomAuthor();
 		try {
 		assertTrue(dao.save(author));
 		assertTrue(author.getId()>0);
@@ -194,13 +191,13 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author authorDesserialized =
 				dao.mapToObject(map);
 		assertEquals(author, authorDesserialized);
-		Author authorIdNull = randomAuthor();
+		Author authorIdNull = Utils.randomAuthor();
 		Map<String, Object> mapIdNull = authorIdNull.toMap();
 		Author authorIdNullDesserialized =
 				dao.mapToObject(mapIdNull);
 		assertEquals(authorIdNull, authorIdNullDesserialized);
 		// A classe document tem um campo date mais "desafiador"
-		Document doc = randomDocument();
+		Document doc = Utils.randomDocument();
 		map = doc.toMap();
 		assertNotNull(map);
 		Document docDesserialized = documentDao
@@ -250,14 +247,14 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testSaveInsertIfNotExists () {
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
-		Author author = randomAuthor ();
+		Author author = Utils.randomAuthor ();
 		final long id = 5L;
 		((AuthorEditable)author).setId (id);
 
 		try{
-			assertTrue (dao.save (randomAuthor ()));
-			assertTrue (dao.save (randomAuthor ()));
-			assertTrue (dao.save (randomAuthor ()));
+			assertTrue (dao.save (Utils.randomAuthor ()));
+			assertTrue (dao.save (Utils.randomAuthor ()));
+			assertTrue (dao.save (Utils.randomAuthor ()));
 			assertTrue (dao.save (author, Save.INSERT_IF_NOT_EXISTS));
 		} catch (IOException e) {
 			fail ();
@@ -275,20 +272,19 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 		DAO<Score> scoreDao = getDaoFactory().getDaoFor(Score.class);
 		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
-		Author author = randomAuthor();
+		Author author = Utils.randomAuthor();
 		assertTrue(authorDao.save(author));
 
-		Document document = randomDocument();
+		Document document = Utils.randomDocument();
 		document.setAuthor(author);
 		assertTrue(docDao.save(document));
 
-		Score score = new ScoreImpl();
+		Score score = Utils.randomScore();
 		score.setAuthor(author);
 		score.setDocument(document);
-		score.setScore((new Random().nextInt())%SCORE_MAX);
 		assertTrue(scoreDao.save(score));
 
-		Customer customer = randomCustomer();
+		Customer customer = Utils.randomCustomer();
 		assertTrue(customerDao.save(customer));
 
 		// adicionar os documentos oa customer
@@ -352,13 +348,13 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 
 		try {
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
-			Document document = randomDocument();
+			Document document = Utils.randomDocument();
 			assertTrue(authorDao.with(author).add(document));
 
-			Customer customer = randomCustomer();
+			Customer customer = Utils.randomCustomer();
 
 			// O metodo with(  ).add() deve salvar o customer que ainda
 			// que ainda nao tem ID
@@ -378,11 +374,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testFirstLevelCache() {
 		try {
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			assertTrue(authorDao.save(author));
 
-			Document document = randomDocument();
+			Document document = Utils.randomDocument();
 			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 			assertTrue(documentDao.save(document));
 
@@ -414,7 +410,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
 			long authorId = author.getId();
@@ -422,7 +418,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			String authorName = author.getName();
 			assertNotNull(authorName);
 
-			Document document = randomDocument();
+			Document document = Utils.randomDocument();
 			document.setAuthor(author);
 			assertTrue(documentDao.save(document));
 
@@ -473,7 +469,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		try {
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
 			long authorId = author.getId();
@@ -521,12 +517,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testCacheUpdate() {
 		try {
 			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
-			Author originalAuthor = randomAuthor();
+			Author originalAuthor = Utils.randomAuthor();
 			assertTrue(dao.save(originalAuthor));
 			assertTrue(originalAuthor.getId() != 0);
 	
 			// Ao inserir um autor com dados diferentes mas
-			AuthorEditable otherAuthor = (AuthorEditable)randomAuthor();
+			AuthorEditable otherAuthor = (AuthorEditable)Utils.randomAuthor();
 			// com mesmo ID
 			otherAuthor.setId(originalAuthor.getId());
 
@@ -552,8 +548,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			DAO<Document> documentDao = getDaoFactory().getDaoFor(Document.class);
 
-			Author originalAuthor = randomAuthor();
-			Author otherAuthor = randomAuthor();
+			Author originalAuthor = Utils.randomAuthor();
+			Author otherAuthor = Utils.randomAuthor();
 
 			assertTrue(authorDao.save(originalAuthor));
 			assertTrue(authorDao.save(otherAuthor));
@@ -561,12 +557,12 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			// os authors devem ter diferentes ids
 			assertTrue(originalAuthor.getId() != otherAuthor.getId());
 
-			Document originalDocument = randomDocument();
+			Document originalDocument = Utils.randomDocument();
 			originalDocument.setAuthor(originalAuthor);
 			assertTrue(documentDao.save(originalDocument));
 
 			// o outro Document tem mesmo ID mas Author diferente
-			Document otherDocument = randomDocument();
+			Document otherDocument = Utils.randomDocument();
 			((DocumentEditable)otherDocument).setId(originalDocument.getId());
 			otherDocument.setAuthor(otherAuthor);
 
@@ -588,7 +584,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 
 	public void testValidateVO () {
-		Author author = new AuthorImpl ();
+		Author author = Utils.randomAuthor();
 		author.setActive (true);
 		author.setName (null);
 		author.setCreatedAt (null);
@@ -639,7 +635,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 	public void testValidateThroughDAO () {
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
-		Author author1= randomAuthor ();
+		Author author1= Utils.randomAuthor ();
 		try {
 			assertTrue (dao.save (author1));
 		} catch (IOException e) {
@@ -649,7 +645,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 
 		Author author2;
 		do {
-			author2 = randomAuthor ();
+			author2 = Utils.randomAuthor ();
 		} while (author2.getName ().equals (author1Name));
 
 		Collection<ValidationError> errors = dao.validate (author2);
@@ -667,9 +663,9 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	public void testQuerySetCount () {
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
-		Author author1 = randomAuthor ();
-		Author author2 = randomAuthor ();
-		Author author3 = randomAuthor ();
+		Author author1 = Utils.randomAuthor ();
+		Author author2 = Utils.randomAuthor ();
+		Author author3 = Utils.randomAuthor ();
 
 		// Dois dos autores estao com active false
 		author1.setActive (false);
@@ -692,11 +688,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		try {
 			DAO<Customer> customerDao = getDaoFactory().getDaoFor(Customer.class);
 	
-			Customer customerNullName = randomCustomer();
+			Customer customerNullName = Utils.randomCustomer();
 			customerNullName.setName(null);
 			assertTrue(customerDao.save(customerNullName));
 	
-			Customer customerNotNullName = randomCustomer();
+			Customer customerNotNullName = Utils.randomCustomer();
 			assertTrue(customerDao.save(customerNotNullName));
 	
 			{
@@ -727,14 +723,14 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 	
-			Document documentAuthorNotNull = randomDocument();
+			Document documentAuthorNotNull = Utils.randomDocument();
 			documentAuthorNotNull.setAuthor(author);
 			assertTrue(docDao.save(documentAuthorNotNull));
 
-			Document documentAuthorNull = randomDocument();
+			Document documentAuthorNull = Utils.randomDocument();
 			documentAuthorNull.setAuthor(null);
 			assertTrue(docDao.save(documentAuthorNull));
 
@@ -773,24 +769,28 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			PrimaryKeyUpdater<Document> primaryKeyUpdater =
 					(PrimaryKeyUpdater<Document>)documentDao;
 
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
-			Document document = randomDocument();
+			Document document = Utils.randomDocument();
 			document.setAuthor(author);
 			assertTrue(documentDao.save(document));
 
-			Score score1 = new ScoreImpl(0, author, document, 55);
+			Score score1 = Utils.randomScore();
+			score1.setAuthor(author);
+			score1.setDocument(document);
 			assertTrue(scoreDao.save(score1));
 
-			Score score2 = new ScoreImpl(0, author, document, 67);
+			Score score2 = Utils.randomScore();
+			score2.setAuthor(author);
+			score2.setDocument(document);
 			assertTrue(scoreDao.save(score2));
 
-			Customer customer1 = randomCustomer();
+			Customer customer1 = Utils.randomCustomer();
 			assertTrue(customerDao.save(customer1));
 			documentDao.with(document).add(customer1);
 
-			Customer customer2 = randomCustomer();
+			Customer customer2 = Utils.randomCustomer();
 			assertTrue(customerDao.save(customer2));
 			documentDao.with(document).add(customer2);
 
@@ -854,14 +854,14 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
 			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
 
-			Author author = randomAuthor();
+			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
-			Document document = randomDocument();
+			Document document = Utils.randomDocument();
 			document.setAuthor(author);
 			assertTrue(docDao.save(document));
 
-			Score score = new ScoreImpl();
+			Score score = Utils.randomScore();
 			score.setAuthor(author);
 			score.setDocument(document);
 
@@ -904,7 +904,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Collection<ValidationError> errors;
 		ValidationError error;
 
-		Author author = randomAuthor();
+		Author author = Utils.randomAuthor();
 		assertEquals(0, author.validate().size());
 
 		{
@@ -946,7 +946,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Collection<ValidationError> errors;
 		ValidationError error;
 
-		Customer customer = randomCustomer();
+		Customer customer = Utils.randomCustomer();
 		assertEquals(CUSTOMER_NAME_LEN, customer.getName().length());
 		assertEquals(0, customer.validate().size());
 
@@ -965,36 +965,6 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		error = errors.iterator().next();
 		assertEquals(Customer.NAME, error.getColumn());
 		assertTrue(error.getConstraint() instanceof Constraint.Length);
-	}
-
-
-	public static Author randomAuthor() {
-		Author author = new AuthorImpl();
-		author.setName(RandomStringUtils.random(60));
-		Date now = new Date();
-		author.setCreatedAt(new Date(
-				now.getYear(), now.getMonth(), now.getDate(),
-				now.getHours(), now.getMinutes()));
-		author.setActive(true);
-		return author;
-	}
-
-	public static Document randomDocument () {
-		Document document = new DocumentImpl();
-		document.setText(RandomStringUtils.random(6000));
-		document.setTitle(RandomStringUtils.random(60));
-		Date now = new Date();
-		document.setCreatedAt( new Date(
-			now.getYear(), now.getMonth(), now.getDate(),
-			now.getHours(), now.getMinutes()//, now.getSeconds()
-		));
-		return document;
-	}
-
-	public static Customer randomCustomer () {
-		Customer customer = new CustomerImpl();
-		customer.setName(RandomStringUtils.random(CUSTOMER_NAME_LEN));
-		return customer;
 	}
 
 	private DAOFactory getDaoFactory() {

@@ -14,7 +14,7 @@ import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.document.vo.Document;
-import com.quantium.mobile.framework.test.gerador.GeradorTests;
+import com.quantium.mobile.framework.test.utils.Utils;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.test.vo.Customer;
@@ -154,9 +154,9 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 
-		Author author1 = GeradorTests.randomAuthor();
+		Author author1 = Utils.randomAuthor();
 		author1.setCreatedAt(beforeReference);
-		Author author2 = GeradorTests.randomAuthor();
+		Author author2 = Utils.randomAuthor();
 		author2.setCreatedAt(afterReference);
 
 		try{
@@ -182,13 +182,13 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 	public void testJoinQuery(){
 		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 
-		Author author1 = GeradorTests.randomAuthor();
-		Author author2 = GeradorTests.randomAuthor();
-		Author author3 = GeradorTests.randomAuthor();
+		Author author1 = Utils.randomAuthor();
+		Author author2 = Utils.randomAuthor();
+		Author author3 = Utils.randomAuthor();
 
-		Document doc1 = GeradorTests.randomDocument();
-		Document doc2 = GeradorTests.randomDocument();
-		Document doc3 = GeradorTests.randomDocument();
+		Document doc1 = Utils.randomDocument();
+		Document doc2 = Utils.randomDocument();
+		Document doc3 = Utils.randomDocument();
 
 		try {
 			assertTrue(dao.save(author1));
