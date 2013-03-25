@@ -5,6 +5,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Proxy;
 import java.util.Collection;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -164,6 +165,108 @@ public class GeradorTest {
 		Document docDesserialized = documentDao
 			.mapToObject(map);
 		assertEquals(doc, docDesserialized);
+	}
+
+	@Test
+	public void testUpdateWithMap() {
+		try {
+			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
+			Author author1= Utils.randomAuthor();
+			assertTrue(dao.save(author1));
+
+			Author author2 = Utils.randomAuthor();
+			assertFalse(author2.equals(author1));
+
+			Date author2CreatedAt = author2.getCreatedAt();
+			boolean author2Active = author2.isActive();
+
+			//
+			// atualizar somente o nome
+			//
+
+			//o nome de author2 nao pode ser NULL, inicialmente
+			assertNotNull(author2.getName());
+
+			Map<String,Object> mapWithNameOnly = new HashMap<String, Object>();
+			// adicionando o nome NULL no Map
+			// eh importante perceber a diferenca de:
+			//   + Map com { "name" = NULL }
+			//     -  map.containsKey("name") == TRUE;
+			//     -  map.get("name") == NULL;
+			//   + Map sem chave "name"
+			//     -  map.containsKey("name") == FALSE;
+			//     -  map.get("name") == NULL;
+			mapWithNameOnly.put(Author.NAME.getName(), null);
+
+			// ao rodar updateWithMap
+			dao.updateWithMap(author2, mapWithNameOnly);
+			// entao, o nome deve ter sido alterado para null
+			assertEquals(null, author2.getName());
+			// e os outros campos nao
+			assertEquals(author2CreatedAt, author2.getCreatedAt());
+			assertEquals(author2Active, author2.isActive());
+
+			// ao usar um outro nome
+			mapWithNameOnly.put(Author.NAME.getName(), author1.getName());
+			dao.updateWithMap(author2, mapWithNameOnly);
+			// o nome deve ter sido alterado
+			assertEquals(author1.getName(), author2.getName());
+
+			//
+			// autualizando tudo menos o nome
+			//
+			author2.setName("test");
+			// Seja um Map populado com os campos de author1
+			Map<String,Object> mapWithoutName = author1.toMap();
+			assertTrue(mapWithoutName.containsKey(Author.NAME.getName()));
+			// mas sem o nome
+			mapWithoutName.remove(Author.NAME.getName());
+
+			dao.updateWithMap(author2, mapWithoutName);
+			assertEquals("test", author2.getName());
+			// e os outros campos devem ter sido alterados
+			assertEquals(author1.getCreatedAt(), author2.getCreatedAt());
+			assertEquals(author1.isActive(), author2.isActive());
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
+
+	@Test
+	public void testUpdateAssociationWithMap() {
+		try {
+			DAO<Author> authorDao = getDaoFactory().getDaoFor(Author.class);
+			DAO<Document> docDao = getDaoFactory().getDaoFor(Document.class);
+
+			Author author1= Utils.randomAuthor();
+			assertTrue(authorDao.save(author1));
+
+			Author author2 = Utils.randomAuthor();
+			assertTrue(authorDao.save(author2));
+
+			Document document1 = Utils.randomDocument();
+			document1.setAuthor(author1);
+			assertTrue(docDao.save(document1));
+
+			Document document2 = Utils.randomDocument();
+			document2.setAuthor(author2);
+			assertTrue(docDao.save(document2));
+
+			Map<String,Object> doc2map = document2.toMap();
+
+			docDao.updateWithMap(document1, doc2map);
+
+			// todos os campos e a associacao deve ter sido alteradas
+			assertEquals(author2, document1.getAuthor());
+			assertEquals(document2.getTitle(), document1.getTitle());
+			assertEquals(document2.getText(), document1.getText());
+			assertEquals(document2.getCreatedAt(), document1.getCreatedAt());
+			// Apenas o Id deve permanece inalterado
+			assertFalse(document2.getId() == document1.getId());
+
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
 	}
 
 	@Test
