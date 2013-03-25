@@ -386,49 +386,49 @@ public class GeradorTest {
 		}
 	}
 
-//	@Test
-//	public void testFirstLevelCacheTrim() {
-//		try {
-//			// Substituindo as SoftReference por WeakReference
-//			// As anteriores demoram muito ate serem coletadas
-//			DAOFactory weakRefFactory = weakRefCacheFactory();
-//
-//			DAO<Author> authorDao = weakRefFactory.getDaoFor(Author.class);
-//
-//			Author author = randomAuthor();
-//			assertTrue(authorDao.save(author));
-//
-//			long authorId = author.getId();
-//			assertTrue(authorId != 0);
-//			String authorName = author.getName();
-//			assertNotNull(authorName);
-//
-//			// Usando o objeto Author para monitorar o gc
-//			WeakReference<Author> authorWeakRef =
-//					new WeakReference<Author>(author);
-//			// Removendo todas referencias fortes ao Author
-//			author = null;
-//
-//			// Quando esta referencia fraca se tornar null
-//			// significa que o GC rodou!
-//			while (authorWeakRef.get() != null) {
-//				System.gc();
-//				Thread.sleep(50);
-//			}
-//
-//			// Nesta implementacal o dao herda do FirstLevelCache
-//			FirstLevelCache cache = (FirstLevelCache)weakRefFactory;
-//			// deve rodar sem excecao
-//			cache.trim();
-//
-//			author = authorDao.get(authorId);
-//			assertEquals(authorId, author.getId());
-//			assertEquals(authorName, author.getName());
-//
-//		} catch (Exception e) {
-//			fail(StringUtil.getStackTrace(e));
-//		}
-//	}
+	@Test
+	public void testFirstLevelCacheTrim() {
+		try {
+			// Substituindo as SoftReference por WeakReference
+			// As anteriores demoram muito ate serem coletadas
+			DAOFactory weakRefFactory = weakRefCacheFactory();
+
+			DAO<Author> authorDao = weakRefFactory.getDaoFor(Author.class);
+
+			Author author = Utils.randomAuthor();
+			assertTrue(authorDao.save(author));
+
+			long authorId = author.getId();
+			assertTrue(authorId != 0);
+			String authorName = author.getName();
+			assertNotNull(authorName);
+
+			// Usando o objeto Author para monitorar o gc
+			WeakReference<Author> authorWeakRef =
+					new WeakReference<Author>(author);
+			// Removendo todas referencias fortes ao Author
+			author = null;
+
+			// Quando esta referencia fraca se tornar null
+			// significa que o GC rodou!
+			while (authorWeakRef.get() != null) {
+				System.gc();
+				Thread.sleep(50);
+			}
+
+			// Nesta implementacal o dao herda do FirstLevelCache
+			FirstLevelCache cache = (FirstLevelCache)weakRefFactory;
+			// deve rodar sem excecao
+			cache.trim();
+
+			author = authorDao.get(authorId);
+			assertEquals(authorId, author.getId());
+			assertEquals(authorName, author.getName());
+
+		} catch (Exception e) {
+			fail(StringUtil.getStackTrace(e));
+		}
+	}
 
 	@Test
 	public void testCacheUpdate() {
