@@ -9,11 +9,11 @@ RUN_EMMA="java -cp $EMMA_JAR emma report -r html -in $INPUT_FILES -sp $SOURCE_FO
 
 echo $RUN_MVN
 $RUN_MVN
-echo 'cd test'
-cd test
-echo $RUN_MVN
-$RUN_MVN
-echo 'cd ..'
-cd ..
+#echo 'cd test'
+#cd test
+#echo $RUN_MVN
+#$RUN_MVN
+#echo 'cd ..'
+#cd ..
 echo $RUN_EMMA
 $RUN_EMMA

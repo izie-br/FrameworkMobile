@@ -224,7 +224,7 @@
 						</executions>
 						<configuration>
 							<!--
-							     As classes udadas pelo gerador devem ser filtradas,
+							     As classes usadas pelo gerador devem ser filtradas,
 							     para evitar um "crash" do gerador.
 							-->
 							<filters>
