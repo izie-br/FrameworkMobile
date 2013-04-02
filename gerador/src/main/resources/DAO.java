@@ -85,6 +85,8 @@ public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Targe
 
 #parse("DAO.java.d/androidQuery.java")
 
+#parse("DAO.java.d/getTable.java")
+
     protected ${Target} new${Target}(){
         return new ${KlassImpl}();
     }

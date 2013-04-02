@@ -12,6 +12,7 @@ import java.util.Date;
 import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
 import com.quantium.mobile.framework.validation.ValidationError;
 
@@ -83,6 +84,11 @@ public class UserMapDAO implements DAO<User> {
     public ToManyDAO with(User obj){
         throw new UnsupportedOperationException();
     }
+
+	@Override
+	public Table getTable() {
+		return null;
+	}
 
 }
 

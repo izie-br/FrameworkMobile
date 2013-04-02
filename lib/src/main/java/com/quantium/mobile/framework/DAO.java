@@ -6,6 +6,7 @@ import java.util.Map;
 
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.ValidationError;
 
 public interface DAO<T> {
@@ -19,4 +20,5 @@ public interface DAO<T> {
 	void updateWithMap(T target, Map<String, Object> map);
 	Collection<ValidationError> validate (T obj);
 	T get(Object id);
+	Table getTable();
 }

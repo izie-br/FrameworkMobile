@@ -116,6 +116,8 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
 
 #parse("DAO.java.d/toManyDAO.java")
 
+#parse("DAO.java.d/getTable.java")
+
     protected ${Target} new${Target}(){
         return new ${KlassImpl}();
     }
