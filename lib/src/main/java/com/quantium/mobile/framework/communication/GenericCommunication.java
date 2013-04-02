@@ -45,7 +45,7 @@ public abstract class GenericCommunication implements Communication {
 	private static boolean connected = true;
 	private static ConnectionStatusChangeListener connectionListeners[];
 	private ParametersSerializer serializer =
-			new IndexedKeyParametersSerializer("%1$s['%2$s']");
+			new IndexedKeyParametersSerializer("%1$s[%2$s]");
 	private String contentType = DEFAULT_CONTENT_TYPE;
 
 	/**
