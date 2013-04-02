@@ -10,6 +10,10 @@
             throw new IllegalArgumentException("PrimarKey is NULL");
         if ( !(newPrimaryKey instanceof ${primaryKey.Klass}) )
             throw new IllegalArgumentException("PrimarKey is not " + newPrimaryKey.getClass().getName() );
+        if (target.getId() == 0)
+        	throw new IllegalArgumentException("Target was not persisted");
+        if (newPrimaryKey.equals(target.getId()))
+        	throw new IllegalArgumentException("Target and new primaryKey are the same");
         ${EditableInterface} editableTarget = (${EditableInterface})target;
         ${primaryKey.Klass} newPk = (${primaryKey.Klass})newPrimaryKey;
         ${primaryKey.Klass} oldPk = editableTarget.${getter[$primaryKey]}();
