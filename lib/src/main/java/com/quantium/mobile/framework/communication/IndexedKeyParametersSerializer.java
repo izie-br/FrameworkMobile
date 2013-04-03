@@ -3,6 +3,7 @@ package com.quantium.mobile.framework.communication;
 import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +15,7 @@ import org.apache.http.message.BasicNameValuePair;
 
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.DateUtil;
 
 /**
  * Transforma o Map
@@ -76,6 +78,8 @@ public class IndexedKeyParametersSerializer extends ParametersSerializer{
 			}
 		} else if (obj instanceof MapSerializable){
 			serializeObj(parentKey, ((MapSerializable<?>)obj).toMap(), out);
+		} else if (obj instanceof Date){
+			out.add(new BasicNameValuePair(parentKey, DateUtil.timestampToString((Date) obj)));
 		} else if (obj instanceof Collection){
 			Iterator<?> it = ((Collection<?>)obj).iterator();
 			Integer i=0;
