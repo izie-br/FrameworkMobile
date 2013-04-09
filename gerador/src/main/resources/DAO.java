@@ -94,5 +94,9 @@ public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Targe
     protected ${Target} new${Target}(${constructorArgsDecl}){
         return new ${KlassImpl}(${constructorArgs});
     }
+    
+    protected final ${DaoFactory} getFactory(){
+    	return factory;
+    }
 }
 

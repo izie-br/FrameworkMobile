@@ -125,6 +125,10 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
     protected ${Target} new${Target}(${constructorArgsDecl}){
         return new ${KlassImpl}(${constructorArgs});
     }
+    
+    protected final ${DaoFactory} getFactory(){
+    	return factory;
+    }
 
 }
 
