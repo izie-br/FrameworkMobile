@@ -38,8 +38,10 @@
                     });
             if (!cursor.moveToNext()) {
                 throw new IOException("Erro ao mover o cursor ao adicionar many-to-many");
-            } else if (cursor.getLong(0) != 0L){
+            } else if (cursor.getLong(0) < 0L){
                 return false;
+            } else if (cursor.getLong(0) == 1L){
+                return true;
             }
             ContentValues contentValues = new ContentValues();
             contentValues.put("${association.KeyToA.LowerAndUnderscores}", idA);

@@ -391,7 +391,7 @@ public class GeradorTest {
 			assertEquals(1, documents.size());
 			assertEquals(document, documents.get(0));
 
-			assertFalse(customerDao.with(customer).add(document));
+			assertTrue(customerDao.with(customer).add(document));
 			List<Customer> customers = document.getDocumentCustomers().all();
 			assertEquals(1, customers.size());
 			assertEquals(customer, customers.get(0));

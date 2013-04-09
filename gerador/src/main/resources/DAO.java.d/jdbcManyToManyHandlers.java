@@ -39,8 +39,10 @@
 #**#            // conferir se ja existe outros registros
 #**#            if (!rs.next()) {
 #**#                throw new IOException("Erro ao mover o cursor ao adicionar many-to-many");
-#**#            } else if (rs.getLong(1) != 0) {
+#**#            } else if (rs.getLong(1) < 0) {
 #**#                return false;
+#**#            } else if (rs.getLong(1) == 1) {
+#**#                return true;
 #**#            }
 #**#            stm = getStatement(
 #**#                "INSERT INTO ${association.JoinTable} (" +
