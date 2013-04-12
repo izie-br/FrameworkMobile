@@ -56,54 +56,6 @@ public class JsonInputParser implements InputParser {
 	private String dateId;
 	private String fileId;
 
-	String fileJsonTemplate = "\"id\": \"%s\"," + " \"name\": \"LibFile\","
-			+ " \"isAbstract\": false," + " \"label\": \"File\","
-			+ " \"parentClass\": null," + " \"databaseTable\": \"TB_FILE\","
-			+ " \"primaryKey\": \"ID_FILE\"," + " \"sequence\": \"SQ_FILE\","
-			+ " \"databaseSchema\": \"SC_FMVV_COMMON\","
-			+ " \"hasHistory\": false," + " \"hasForm\": true,"
-			+ " \"hasList\": true," + " \"attributeList\": [" + " {"
-			+ " \"id\": \"_yT7Z5L9EeK_A60dBCoRJw\","
-			+ " \"name\": \"fileName\"," + " \"type\": \"String\","
-			+ " \"isHiddenField\": false," + " \"label\": \"Nome do Arquivo\","
-			+ " \"formElement\": \"Text\"," + " \"min\": null,"
-			+ " \"max\": null," + " \"validationRegex\": null,"
-			+ " \"isUnique\": false," + " \"isRequired\": false,"
-			+ " \"isEntityIdentifier\": false,"
-			+ " \"isStateMachineAttribute\": false,"
-			+ " \"databaseColumn\": \"TX_FILE_NAME\"" + " }," + " {"
-			+ " \"id\": \"_yT7ZL9EeK_A60dBCoRJw\","
-			+ " \"name\": \"fileOsName\"," + " \"type\": \"String\","
-			+ " \"isHiddenField\": false,"
-			+ " \"label\": \"Nome do Arquivo no SO\","
-			+ " \"formElement\": \"Text\"," + " \"min\": null,"
-			+ " \"max\": null," + " \"validationRegex\": null,"
-			+ " \"isUnique\": false," + " \"isRequired\": false,"
-			+ " \"isEntityIdentifier\": false,"
-			+ " \"isStateMachineAttribute\": false,"
-			+ " \"databaseColumn\": \"TX_FILE_OS_NAME\"" + " }," + " {"
-			+ " \"id\": \"_y7Z5L9EeK_A60dBCoRJw\","
-			+ " \"name\": \"fileType\"," + " \"type\": \"String\","
-			+ " \"isHiddenField\": false," + " \"label\": \"Tipo do Arquivo\","
-			+ " \"formElement\": \"Text\"," + " \"min\": null,"
-			+ " \"max\": null," + " \"validationRegex\": null,"
-			+ " \"isUnique\": false," + " \"isRequired\": false,"
-			+ " \"isEntityIdentifier\": false,"
-			+ " \"isStateMachineAttribute\": false,"
-			+ " \"databaseColumn\": \"TX_FILE_TYPE\"" + " }," + " {"
-			+ " \"id\": \"_yT7Z5L9EeK_A60dBCRJw\","
-			+ " \"name\": \"fileSize\"," + " \"type\": \"String\","
-			+ " \"isHiddenField\": false,"
-			+ " \"label\": \"Tamanho do Arquivo\","
-			+ " \"formElement\": \"Text\"," + " \"min\": null,"
-			+ " \"max\": null," + " \"validationRegex\": null,"
-			+ " \"isUnique\": false," + " \"isRequired\": false,"
-			+ " \"isEntityIdentifier\": false,"
-			+ " \"isStateMachineAttribute\": false,"
-			+ " \"databaseColumn\": \"TX_FILE_TYPE\"" + " }" + " ],"
-			+ " \"fromAssociationList\": []," + " \"toAssociationList\": []"
-			+ " ";
-
 	@Override
 	public Collection<JavaBeanSchema> getSchemas(GeneratorConfig information,
 			Map<String, Object> defaultProperties) throws GeradorException {
@@ -140,10 +92,6 @@ public class JsonInputParser implements InputParser {
 	private void extractModelSchema() throws JSONException {
 		for (JSONObject jsonClass : allClasses) {
 			extractClass(jsonClass);
-		}
-		if (fileId != null) {
-			extractClass(new JSONObject("{"
-					+ String.format(fileJsonTemplate, fileId) + "}"));
 		}
 		Set<Entry<String, JSONObject>> associationJsonEntrySet = associationsJsonMap
 				.entrySet();
@@ -211,7 +159,9 @@ public class JsonInputParser implements InputParser {
 				Iterator<String> keys = o.keys();
 				while (keys.hasNext()) {
 					String key = keys.next();
-					builder.addProperty(key, String.class);
+					builder.addProperty(
+							CamelCaseUtils.camelToLowerAndUnderscores(key),
+							String.class);
 				}
 				continue;
 			}
@@ -341,13 +291,6 @@ public class JsonInputParser implements InputParser {
 			for (JSONObject jsonClass : classes) {
 				mapClasses(moduleName, isLibrary, jsonClass);
 			}
-		}
-		if (fileId != null) {
-			mapClasses(
-					"common",
-					false,
-					new JSONObject("{"
-							+ String.format(fileJsonTemplate, fileId) + "}"));
 		}
 	}
 
