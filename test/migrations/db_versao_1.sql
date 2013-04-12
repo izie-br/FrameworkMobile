@@ -3,6 +3,7 @@ CREATE TABLE tb_document (
     title varchar(79) NOT NULL,
     created_at timestamp NOT NULL,
     id_author integer,
+    active integer,
     text text NOT NULL
 );
 CREATE TRIGGER tb_document_on_insert AFTER INSERT ON tb_document BEGIN
@@ -11,17 +12,20 @@ END;
 CREATE TABLE tb_author (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
+    active integer,
     UNIQUE (name)
 );
 CREATE TABLE tb_score (
     id_author integer NOT NULL,
     id_document integer NOT NULL,
     score integer DEFAULT 0,
+    active integer,
     PRIMARY KEY(id_author,id_document)
 );
 CREATE TABLE tb_customer (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
+    active integer,
     UNIQUE (name)
 );
 CREATE TABLE tb_customer_join_document (

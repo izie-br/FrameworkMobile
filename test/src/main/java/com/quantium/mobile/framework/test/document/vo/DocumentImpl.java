@@ -21,14 +21,12 @@ public class DocumentImpl extends AbstractDocument
         super();
     }
 
-    public DocumentImpl (
-            long _id, Date _createdAt, String _text,
-            String _title, Author _Author, QuerySet<Score> _DocumentScores,
-            QuerySet<Customer> _DocumentCustomers) {
-        super(
-            _id, _createdAt, _text,
-            _title, _Author, _DocumentScores,
-            _DocumentCustomers);
-    }
+	public DocumentImpl(long _id, Date _createdAt, String _text, String _title,
+			long _active, Author _Author, QuerySet<Score> _DocumentScores,
+			QuerySet<Customer> _CustomerCustomers) {
+		super(_id, _createdAt, _text, _title, _active, _Author, _DocumentScores,
+				_CustomerCustomers);
+	}
+
 }
 

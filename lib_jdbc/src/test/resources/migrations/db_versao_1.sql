@@ -11,17 +11,20 @@ END;
 CREATE TABLE tb_author (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
+    active integer,
     UNIQUE (name)
 );
 CREATE TABLE tb_score (
     id_author integer NOT NULL,
     id_document integer NOT NULL,
     score integer DEFAULT 0,
+    active integer,
     PRIMARY KEY(id_author,id_document)
 );
 CREATE TABLE tb_customer (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79) NOT NULL,
+    active integer,
     UNIQUE (name)
 );
 CREATE TABLE tb_customer_join_document (

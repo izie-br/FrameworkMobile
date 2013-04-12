@@ -175,7 +175,6 @@ public abstract class GenericCommunication implements Communication {
 			GenericCommunication.setConnected(false);
 			throw e;
 		} catch (Exception e){
-			LogPadrao.e(e);
 			throw new RuntimeException(e);
 		}
 		GenericCommunication.setConnected(true);

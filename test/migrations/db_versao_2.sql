@@ -3,6 +3,7 @@ CREATE TABLE tb_score (
     id_author integer NOT NULL,
     id_document integer NOT NULL,
     score integer DEFAULT 0,
+    active integer,
     PRIMARY KEY(id_author,id_document)
 );
 INSERT INTO tb_score (id_author, id_document, score)
