@@ -9,19 +9,22 @@ import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.gen.AuthorEditable;
 import com.quantium.mobile.framework.test.gen.AbstractScore;
 
-@SuppressWarnings("unused")
-/* remova este SuppressWarnings ao editar este arquivo */
-public class ScoreImpl extends AbstractScore {
+@SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
+public class ScoreImpl extends AbstractScore
+{
 
-	public static final long serialVersionUID = AbstractScore.publicSerialVersionUID;
+    public static final long serialVersionUID = AbstractScore.publicSerialVersionUID;
 
-	public ScoreImpl() {
-		super();
-	}
+    public ScoreImpl () {
+        super();
+    }
 
-	public ScoreImpl(long _id, long _active, Author _Author,
-			Document _Document, long _score) {
-		super(_id, _active, _Author, _Document, _score);
-	}
-
+    public ScoreImpl (
+            long _id, Author _Author, Document _Document,
+            long _score) {
+        super(
+            _id, _Author, _Document,
+            _score);
+    }
 }
+

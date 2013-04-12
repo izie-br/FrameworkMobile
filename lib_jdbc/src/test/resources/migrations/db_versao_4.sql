@@ -2,7 +2,6 @@ ALTER TABLE tb_customer RENAME TO tb_customer_tmp;
 CREATE TABLE tb_customer (
     id integer NOT NULL PRIMARY KEY AUTOINCREMENT,
     name varchar(79),
-    active integer,
     UNIQUE (name)
 );
 INSERT INTO tb_customer (id, name)

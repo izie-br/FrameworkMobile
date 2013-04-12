@@ -173,42 +173,42 @@ public class JavaBeanSchema {
 
 		@Override
 		public boolean isNonEntityTable() {
-			Property pk = modelSchema.getPrimaryKey ();
-			Collection<Associacao> associations =
-					modelSchema.getAssociacoes ();
-
-			// Note:: loop com LABEL
-			property_loop:
-			for (Property property : modelSchema.getProperties ()){
-
-				// confere se eh PK
-				if (property.equals (pk)){
-					// Note: usando label
-					continue property_loop;
-				}
-
-				// confere se eh FK
-				for (Associacao assoc : associations) {
-					if (assoc instanceof AssociacaoOneToMany) {
-						AssociacaoOneToMany o2m =
-								(AssociacaoOneToMany) assoc;
-						String name = property.getNome ();
-						if (o2m.getKeyToA ().equals (name)) {
-							// Note: usando label
-							continue property_loop;
-						}
-					}
-				}
-
-				// chega aqui houver pelo menos uma propriedade
-				// que nao for PK nem FK
-				// Eh uma "entity table"
-				return false;
-			}
+//			Property pk = modelSchema.getPrimaryKey ();
+//			Collection<Associacao> associations =
+//					modelSchema.getAssociacoes ();
+//
+//			// Note:: loop com LABEL
+//			property_loop:
+//			for (Property property : modelSchema.getProperties ()){
+//
+//				// confere se eh PK
+//				if (property.equals (pk)){
+//					// Note: usando label
+//					continue property_loop;
+//				}
+//
+//				// confere se eh FK
+//				for (Associacao assoc : associations) {
+//					if (assoc instanceof AssociacaoOneToMany) {
+//						AssociacaoOneToMany o2m =
+//								(AssociacaoOneToMany) assoc;
+//						String name = property.getNome ();
+//						if (o2m.getKeyToA ().equals (name)) {
+//							// Note: usando label
+//							continue property_loop;
+//						}
+//					}
+//				}
+//
+//				// chega aqui houver pelo menos uma propriedade
+//				// que nao for PK nem FK
+//				// Eh uma "entity table"
+//				return false;
+//			}
 
 			// chega aqui houver apenas propriedades
 			// que sao PK ou FK
-			return true;
+			return false;
 		}
 
 		@Override

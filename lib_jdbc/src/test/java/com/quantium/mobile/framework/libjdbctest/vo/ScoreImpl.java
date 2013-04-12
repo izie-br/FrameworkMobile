@@ -19,10 +19,12 @@ public class ScoreImpl extends AbstractScore
         super();
     }
 
-	public ScoreImpl(long _id, long _active, Author _Author,
-			Document _Document, long _score) {
-		super(_id, _active, _Author, _Document, _score);
-	}
-
+    public ScoreImpl (
+            long _id, Author _Author, Document _Document,
+            long _score) {
+        super(
+            _id, _Author, _Document,
+            _score);
+    }
 }
 

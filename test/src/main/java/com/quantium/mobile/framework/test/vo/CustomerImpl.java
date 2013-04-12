@@ -17,10 +17,10 @@ public class CustomerImpl extends AbstractCustomer
         super();
     }
 
-	public CustomerImpl(long _id, String _name, long _active,
-			QuerySet<Document> _CustomerDocuments) {
-		super(_id, _name, _active, _CustomerDocuments);
-	}
-
+    public CustomerImpl (
+            long _id, String _name, QuerySet<Document> _DocumentDocuments) {
+        super(
+            _id, _name, _DocumentDocuments);
+    }
 }
 

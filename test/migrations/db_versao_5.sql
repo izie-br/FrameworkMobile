@@ -3,7 +3,6 @@ CREATE TABLE tb_documents_document(
   created_at TIMESTAMP NOT NULL,
   id_author INTEGER,
   text TEXT NOT NULL,
-  active integer,
   title TEXT NOT NULL
 );
 DROP TABLE tb_document;
