@@ -193,6 +193,7 @@ public abstract class GenericCommunication implements Communication {
 			throws Exception {
 		switch(method){
 		case GET:
+		case PUT:
 		case DELETE:
 			HttpRequestBase httpGet = (HttpRequestBase)httpRequest;
 			URI uri = httpGet.getURI();
