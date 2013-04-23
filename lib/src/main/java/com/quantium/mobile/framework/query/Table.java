@@ -206,6 +206,15 @@ public final class Table {
         public Q in(Collection<T> args){
             return new Q(this, Q.Op1xN.IN, args);
         }
+        
+        public Q notIn(T...array){
+            Collection<T> col = Arrays.asList(array);
+            return notIn(col);
+        }
+
+        public Q notIn(Collection<T> args){
+            return new Q(this, Q.Op1xN.NOT_IN, args);
+        }
 
         public Q like(String pattern){
             return Q.like(this, pattern);

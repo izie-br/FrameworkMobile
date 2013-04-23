@@ -406,10 +406,11 @@ public final class Q {
     }
 
     public static enum Op1xN {
-        IN;
+        IN, NOT_IN;
         public String toString() throws QueryParseException {
             return
-                this == IN   ?  " IN " :
+            		this == IN   ?  " IN " :
+        			this == NOT_IN   ?  " NOT IN " :
                 null;
         }
     }
