@@ -53,7 +53,7 @@ public class IndexedKeyParametersSerializer extends ParametersSerializer{
 
 	@Override
 	public HttpEntity getEntity(Map<String, Object> map) throws UnsupportedEncodingException {
-		return new UrlEncodedFormEntity(serialize(map));
+		return new UrlEncodedFormEntity(serialize(map), "UTF-8");
 	}
 
 	public void serializeObj(
