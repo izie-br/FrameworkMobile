@@ -20,7 +20,7 @@ public class ScoreImpl extends AbstractScore
     }
 
     public ScoreImpl (
-            long _id, Author _Author, Document _Document,
+            String _id, Author _Author, Document _Document,
             long _score) {
         super(
             _id, _Author, _Document,

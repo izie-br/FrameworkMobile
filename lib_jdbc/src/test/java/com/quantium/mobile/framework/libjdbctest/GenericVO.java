@@ -17,7 +17,7 @@ public interface GenericVO {
 
 	public abstract boolean equalsImpl(Object obj);
 
-	public abstract long getId();
+	public abstract String getId();
 
 	public abstract Collection<ValidationError> validate ();
 

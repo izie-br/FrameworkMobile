@@ -14,7 +14,7 @@ public interface Constants {
 	public static final String GENERIC_BEAN_CLASS = "GenericBean";
 	public static final String GENERIC_BEAN_PACKAGE = null;
 
-	public static final long DEFAULT_ID = 0;
+	public static final String DEFAULT_ID = "null";
 
 	public static final String DEFAULT_MODULE_NAME = "default";
 

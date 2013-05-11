@@ -13,12 +13,16 @@ import com.quantium.mobile.framework.validation.Constraint;
 public class Property {
 
 	private final String name;
-	private final Class<?> klass;
+	private Class<?> klass;
 	private final String alias;
 	private final boolean get;
 	private final boolean set;
 	private final Constraint constraints [];
-
+//
+	
+	public void setKlass(Class<?> klass){
+		this.klass = klass;
+	}
 	/**
 	 * 
 	 * @param name
@@ -175,5 +179,4 @@ public class Property {
 		return true;
 	}
 
-	
 }

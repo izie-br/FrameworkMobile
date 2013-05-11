@@ -252,7 +252,7 @@ public class JsonInputParser implements InputParser {
 					&& modelSchemaBuilderMap.get(type) != null) {
 				String fkId = CamelCaseUtils.camelToLowerAndUnderscores("id_"
 						+ attributeName);
-				builder.addProperty(fkId, Long.class, constraints);
+				builder.addProperty(fkId, String.class, constraints);
 				ModelSchema tabelaA = modelSchemaBuilderMap.get(type).get();
 				ModelSchema tabelaB = builder.get();
 				AssociacaoOneToMany assoc = new AssociacaoOneToMany(tabelaA,
@@ -325,7 +325,7 @@ public class JsonInputParser implements InputParser {
 		allClasses.add(jsonClass);
 		ModelSchema.Builder tabelaBuilder = ModelSchema.create(moduleName,
 				CamelCaseUtils.camelToLowerAndUnderscores(className));
-		tabelaBuilder.addProperty("id", convertJsonTypeToJavaType("Long"),
+		tabelaBuilder.addProperty("id", convertJsonTypeToJavaType("String"),
 				Constraint.primaryKey());
 		modelSchemaBuilderMap.put(jsonClass.getString("id"), tabelaBuilder);
 		for (JSONObject jsonAssociation : fromAssociations) {
@@ -342,9 +342,9 @@ public class JsonInputParser implements InputParser {
 			String databaseTable, String colunaFrom, String colunaTo) {
 		ModelSchema.Builder tabelaBuilder = ModelSchema
 				.create(module, databaseTable)
-				.addProperty("id", Long.class, Constraint.primaryKey())
-				.addProperty(colunaFrom, Long.class, Constraint.notNull())
-				.addProperty(colunaTo, Long.class, Constraint.notNull());
+				.addProperty("id", String.class, Constraint.primaryKey())
+				.addProperty(colunaFrom, String.class, Constraint.notNull())
+				.addProperty(colunaTo, String.class, Constraint.notNull());
 		return tabelaBuilder.get();
 	}
 

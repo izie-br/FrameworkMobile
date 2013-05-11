@@ -51,7 +51,7 @@
             stm = getStatement("DELETE FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?");
             int affected;
             try {
-                stm.setLong(1, target.${getter[$primaryKey]}());
+                stm.setString(1, target.${getter[$primaryKey]}());
                 affected = stm.executeUpdate();
             } catch (java.sql.SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));

@@ -10,7 +10,7 @@
             throw new IllegalArgumentException("PrimarKey is NULL");
         if ( !(newPrimaryKey instanceof ${primaryKey.Klass}) )
             throw new IllegalArgumentException("PrimarKey is not " + newPrimaryKey.getClass().getName() );
-        if (target.getId() == 0)
+        if (target.getId() == null)
         	throw new IllegalArgumentException("Target was not persisted");
         if (newPrimaryKey.equals(target.getId()))
         	throw new IllegalArgumentException("Target and new primaryKey are the same");

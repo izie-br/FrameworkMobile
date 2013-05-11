@@ -6,7 +6,7 @@
 #******##set ($association = $associationForField[$field])
 #******#    ${association.Klass} _${association.KeyToA};
 #**##else
-#******#    ${field.Type} ${field.LowerCamel}#if ($field.PrimaryKey) = ${defaultId}#end;
+#******#    ${field.Type} ${field.LowerCamel};
 #**##end
 #end
 ##

@@ -79,8 +79,8 @@ public class ValueParser {
 			return associationDao.mapToObject(submap);
 		} else {
 			temp = allFieldsMap.get(foreignKey);
-			long associationId = parseLong(temp);
-			return (associationId == 0)?
+			String associationId = parseString(temp);
+			return (associationId == null)?
 					null :
 					associationDao.get(associationId);
 		}

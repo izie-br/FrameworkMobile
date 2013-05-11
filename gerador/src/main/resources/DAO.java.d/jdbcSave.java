@@ -10,7 +10,7 @@
         if (insertIfNotExists){
             try {
                 PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
-                stm.setLong(1, target.${getter[$primaryKey]}());
+                stm.setString(1, target.${getter[$primaryKey]}());
                 ResultSet rs = stm.executeQuery();
                 insert = rs.next() && rs.getLong(1) == 0L;
                 rs.close();
@@ -22,7 +22,8 @@
             target.${getter[$primaryKey]}(),
         };
         if (insert) {
-            long value;
+            String value;
+            int qty;
             try{
                 PreparedStatement stm;
                 if (insertIfNotExists) {
@@ -67,7 +68,7 @@
 #**********#                stm.set${field.Klass}(
 #**********#                        ${argIndex},
 #**********#                        (target.get${association.KeyToA}() == null) ?
-#**********#                            0 :
+#**********#                            null :
 #**********#                            target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
@@ -85,18 +86,18 @@
 ##
                 if (insertIfNotExists) {
 #set ($argIndex = $argIndex + 1)
-                    stm.setLong(${argIndex}, target.${getter[$primaryKey]}());
+                    stm.setString(${argIndex}, target.${getter[$primaryKey]}());
                 }
-                int qty = stm.executeUpdate();
+                qty = stm.executeUpdate();
                 if (qty != 1) {
                     LogPadrao.e("Insert retornou %d", qty);
                     return false;
                 }
-                value = qty;
+                value = String.valueOf(qty);
                 if (!insertIfNotExists) {
                     ResultSet rs = stm.getGeneratedKeys();
-                    value = (rs.next() ) ? rs.getLong(1) : -1;
-                    if (value <= 0){
+                    value = (rs.next() ) ? rs.getString(1) : null;
+                    if (value == null){
                         LogPadrao.e("id '%d' gerado", value);
                         return false;
                     }
@@ -104,7 +105,7 @@
             } catch (java.sql.SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
-            if (value > 0){
+            if (qty > 0){
                 if (target instanceof ${EditableInterface}) {
                     $EditableInterface editable = (${EditableInterface})target;
                     if (!insertIfNotExists) {
@@ -172,7 +173,7 @@
 #**********#                stm.set${field.Klass}(
 #**********#                        ${argIndex},
 #**********#                        (target.get${association.KeyToA}() == null) ?
-#**********#                            0 :
+#**********#                            null :
 #**********#                            target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
@@ -189,7 +190,7 @@
 #end
 ##
 #set ($argIndex = $argIndex + 1)
-                stm.setLong(${argIndex}, target.${getter[$primaryKey]}());
+                stm.setString(${argIndex}, target.${getter[$primaryKey]}());
                 int value = stm.executeUpdate();
                 if (value == 1) {
                     boolean itemFoundInCache = updateCache(target);

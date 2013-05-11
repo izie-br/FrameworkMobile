@@ -10,7 +10,7 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#        contentValues.put("${field.LowerAndUnderscores}",
-#******#                          (target.get${association.KeyToA}() == null) ? 0 : target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
+#******#                          (target.get${association.KeyToA}() == null) ? null : target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #**##elseif (!$field.PrimaryKey)
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",
@@ -25,7 +25,7 @@
         SQLiteDatabase db = this.factory.getDb();
         boolean insert;
         String primaryKeysArgs [] = new String[]{
-            ((Long)target.${getter[$primaryKey]}()).toString()
+            target.${getter[$primaryKey]}()
         };
         boolean insertIfNotExists = ( (flags&Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${getter[$primaryKey]}() == ${defaultId};
@@ -34,7 +34,7 @@
             Cursor cursor = this.factory.getDb().rawQuery(
                 "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?",
                 primaryKeysArgs);
-            insert = cursor.moveToNext() && cursor.getLong(0) == 0L;
+            insert = cursor.moveToNext() && "0".equals(cursor.getString(0));
             cursor.close();
         }
         Serializable pks [] = new Serializable[]{
@@ -44,13 +44,15 @@
             if (insertIfNotExists) {
                 contentValues.put("${primaryKey.LowerAndUnderscores}", target.${getter[$primaryKey]}());
             }
-            long value;
+            String value;
+            long qty;
             try{
-                value = db.insertOrThrow("${table}", null, contentValues);
+            	qty = db.insertOrThrow("${table}", null, contentValues);
+            	value = String.valueOf(qty);
             } catch (SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
-            if (value > 0){
+            if (qty > 0){
                 if (target instanceof ${EditableInterface}) {
                     $EditableInterface editable = (${EditableInterface})target;
                     if (!insertIfNotExists) {

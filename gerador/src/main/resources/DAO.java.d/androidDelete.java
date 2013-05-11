@@ -50,7 +50,7 @@
                 affected = db.delete(
                     "${table}",
                     "${primaryKey.LowerAndUnderscores}=?",
-                    new String[]{ ((Long)target.${getter[$primaryKey]}()).toString() });
+                    new String[]{ target.${getter[$primaryKey]}() });
             } catch (SQLException e) {
                 throw new IOException(StringUtil.getStackTrace(e));
             }

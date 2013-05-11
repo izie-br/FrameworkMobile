@@ -9,14 +9,14 @@
 #**##set ($columnIndex = $foreach.count)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        Long _${field.LowerCamel};
+#******#        String _${field.LowerCamel};
 #******#        try{
-#******#            _${field.LowerCamel} = cursor.getLong(${columnIndex});
+#******#            _${field.LowerCamel} = cursor.getString(${columnIndex});
 #******#        } catch (java.sql.SQLException e) {
 #******#            throw new RuntimeException(e);
 #******#        }
 #******#        ${association.Klass} _${association.KeyToA} = null;
-#******#        if (!_${field.LowerCamel}.equals((long)${defaultId})) {
+#******#        if (!_${field.LowerCamel}.equals(${defaultId})) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
 #******#                new Serializable[]{_${field.LowerCamel}});

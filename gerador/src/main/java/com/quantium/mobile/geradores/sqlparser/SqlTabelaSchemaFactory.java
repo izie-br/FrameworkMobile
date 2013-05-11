@@ -93,8 +93,6 @@ public class SqlTabelaSchemaFactory {
 				Constraint arrConstraints[] = new Constraint[constraints.size()];
 				constraints.toArray(arrConstraints);
 
-				tabelaBuilder.addProperty (nomeColuna, tipoColuna, arrConstraints);
-
 				/*
 				 * contagem e validacao de primaryKeys
 				 */
@@ -105,7 +103,14 @@ public class SqlTabelaSchemaFactory {
 						break;
 					}
 				}
-				System.out.println("isPrimaryKey:" + isPrimaryKey);
+				boolean isForeignKey = false;
+				for (Constraint constraint : arrConstraints) {
+					if (constraint instanceof Constraint.ForeignKey) {
+						isForeignKey = true;
+						break;
+					}
+				}
+				
 				if (isPrimaryKey) {
 					if (primaryKeyCount >= 1) {
 						throw new RuntimeException(tabela.getName () + " tem mais de uma primary key");
@@ -114,6 +119,11 @@ public class SqlTabelaSchemaFactory {
 						throw new RuntimeException(tabela.getName () + " tem primarykey NON-INTEGER");
 					}
 					primaryKeyCount++;
+				}
+				if(isForeignKey || isPrimaryKey){
+					tabelaBuilder.addProperty (nomeColuna, String.class, arrConstraints);
+				}else{
+					tabelaBuilder.addProperty (nomeColuna, tipoColuna, arrConstraints);
 				}
 			}
 			if (primaryKeyCount == 0) {

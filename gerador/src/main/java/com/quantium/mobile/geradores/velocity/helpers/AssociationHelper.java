@@ -62,7 +62,8 @@ public class AssociationHelper {
 			return oneToMany;
 		}
 
-		public void setManyToMany(ArrayList<ManyToManyAssociationHelper> manyToMany) {
+		public void setManyToMany(
+				ArrayList<ManyToManyAssociationHelper> manyToMany) {
 			this.manyToMany = manyToMany;
 		}
 
@@ -75,50 +76,59 @@ public class AssociationHelper {
 		}
 	}
 
-	public static AssociationHolder findAssociations(JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas) {
+	public static AssociationHolder findAssociations(JavaBeanSchema schema,
+			Collection<JavaBeanSchema> allSchemas) {
 		String tablename = schema.getModelSchema().getName();
 		Collection<Associacao> assocs = schema.getAssociacoes();
 		ArrayList<OneToManyAssociationHelper> manyToOne = new ArrayList<OneToManyAssociationHelper>();
 		ArrayList<OneToManyAssociationHelper> oneToMany = new ArrayList<OneToManyAssociationHelper>();
 		ArrayList<ManyToManyAssociationHelper> manyToMany = new ArrayList<ManyToManyAssociationHelper>();
 		AssociationHolder holder = new AssociationHolder();
-		
+
 		if (assocs != null) {
 			for (Associacao assoc : assocs) {
 				if (assoc instanceof AssociacaoManyToMany) {
 					if (manyToMany == null)
 						continue;
 					AssociacaoManyToMany m2m = (AssociacaoManyToMany) assoc;
-					ManyToManyAssociationHelper obj = extractManyToManyObject(m2m, schema, allSchemas);
+					ManyToManyAssociationHelper obj = extractManyToManyObject(
+							m2m, schema, allSchemas);
 					manyToMany.add(obj);
 				} else if (assoc instanceof AssociacaoOneToMany) {
 					AssociacaoOneToMany o2m = (AssociacaoOneToMany) assoc;
 					if (tablename.equals(assoc.getTabelaB().getName())) {
 						if (manyToOne == null)
 							continue;
-						OneToManyAssociationHelper obj = extractOneToManyObject(o2m, schema, allSchemas);
+						OneToManyAssociationHelper obj = extractOneToManyObject(
+								o2m, schema, allSchemas);
 						manyToOne.add(obj);
 						continue;
 					} else {
 						if (oneToMany == null)
 							continue;
-						OneToManyAssociationHelper obj = extractOneToManyObject(o2m, schema, allSchemas);
+						OneToManyAssociationHelper obj = extractOneToManyObject(
+								o2m, schema, allSchemas);
 						oneToMany.add(obj);
 					}
 				}
 			}
 		}
-		holder.setManyToMany(ColumnsUtils.orderedManyToManyAssociations(manyToMany));
-		holder.setManyToOne(ColumnsUtils.orderedOneToManyAssociations(manyToOne));
-		holder.setOneToMany(ColumnsUtils.orderedOneToManyAssociations(oneToMany));
+		holder.setManyToMany(ColumnsUtils
+				.orderedManyToManyAssociations(manyToMany));
+		holder.setManyToOne(ColumnsUtils
+				.orderedOneToManyAssociations(manyToOne));
+		holder.setOneToMany(ColumnsUtils
+				.orderedOneToManyAssociations(oneToMany));
 		return holder;
 	}
 
-	protected static JavaBeanSchema findSchema(Collection<JavaBeanSchema> allSchemas, String assocTableName,
+	protected static JavaBeanSchema findSchema(
+			Collection<JavaBeanSchema> allSchemas, String assocTableName,
 			String module) {
 		JavaBeanSchema assocSchema = null;
 		for (JavaBeanSchema sch : allSchemas) {
-			if (sch.getModelSchema().getName().equals(assocTableName) && sch.getModule().equals(module)) {
+			if (sch.getModelSchema().getName().equals(assocTableName)
+					&& sch.getModule().equals(module)) {
 				assocSchema = sch;
 				break;
 			}
@@ -126,7 +136,8 @@ public class AssociationHelper {
 		return assocSchema;
 	}
 
-	private static ManyToManyAssociationHelper extractManyToManyObject(AssociacaoManyToMany m2m, JavaBeanSchema schema,
+	private static ManyToManyAssociationHelper extractManyToManyObject(
+			AssociacaoManyToMany m2m, JavaBeanSchema schema,
 			Collection<JavaBeanSchema> allSchemas) {
 		String tablename = schema.getModelSchema().getName();
 		ManyToManyAssociationHelper obj = new ManyToManyAssociationHelper();
@@ -134,7 +145,8 @@ public class AssociationHelper {
 		String klassname;
 		if (tablename.equals(m2m.getTabelaB().getName())) {
 			String assocTableName = m2m.getTabelaA().getName();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName, m2m.getTabelaA().getModule());
+			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName,
+					m2m.getTabelaA().getModule());
 			schemaA = assocSchema;
 			schemaB = schema;
 			obj.setThisTableA(false);
@@ -142,7 +154,8 @@ public class AssociationHelper {
 			klassname = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
 		} else {
 			String assocTableName = m2m.getTabelaB().getName();
-			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName, m2m.getTabelaB().getModule());
+			JavaBeanSchema assocSchema = findSchema(allSchemas, assocTableName,
+					m2m.getTabelaB().getModule());
 			schemaA = schema;
 			schemaB = assocSchema;
 			obj.setThisTableA(true);
@@ -151,20 +164,24 @@ public class AssociationHelper {
 		}
 		obj.setJoinTable(m2m.getTabelaJuncao().getName());
 		Property refPropA = schemaA.getPropriedade(m2m.getReferenciaA());
-		Property keyPropA = new Property(m2m.getKeyToA(), refPropA.getPropertyClass(), false, false);
+		Property keyPropA = new Property(m2m.getKeyToA(),
+				refPropA.getPropertyClass(), false, false);
 		obj.setKeyToA(keyPropA);
 		obj.setReferenceA(refPropA);
 		Property refPropB = schemaB.getPropriedade(m2m.getReferenciaB());
-		Property keyPropB = new Property(m2m.getKeyToB(), refPropB.getPropertyClass(), false, false);
+		Property keyPropB = new Property(m2m.getKeyToB(),
+				refPropB.getPropertyClass(), false, false);
 		obj.setKeyToB(keyPropB);
 		obj.setReferenceB(refPropB);
 		obj.setKlass(klassname);
-		obj.setPluralized(CamelCaseUtils.toUpperCamelCase(m2m.getKeyToA().substring(2))
+		obj.setPluralized(CamelCaseUtils.toUpperCamelCase(m2m.getKeyToA()
+				.substring(2))
 				+ PluralizacaoUtils.pluralizar((String) klassname));
 		return obj;
 	}
 
-	private static OneToManyAssociationHelper extractOneToManyObject(AssociacaoOneToMany o2m, JavaBeanSchema schema,
+	private static OneToManyAssociationHelper extractOneToManyObject(
+			AssociacaoOneToMany o2m, JavaBeanSchema schema,
 			Collection<JavaBeanSchema> allSchemas) {
 		OneToManyAssociationHelper map = new OneToManyAssociationHelper();
 		String tablename = schema.getModelSchema().getName();
@@ -172,28 +189,34 @@ public class AssociationHelper {
 		JavaBeanSchema assocSchema;
 		if (tablename.equals(o2m.getTabelaA().getName())) {
 			String assocTableName = o2m.getTabelaB().getName();
-			assocSchema = findSchema(allSchemas, assocTableName, o2m.getTabelaB().getModule());
+			assocSchema = findSchema(allSchemas, assocTableName, o2m
+					.getTabelaB().getModule());
 			schemaA = schema;
 			schemaB = assocSchema;
-			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
+			String nome = CamelCaseUtils
+					.toUpperCamelCase(assocSchema.getNome());
 			String pluralized = PluralizacaoUtils.pluralizar(nome);
 			map.setModule(assocSchema.getModule());
 			map.setKlass(nome);
 			map.setPluralized(pluralized);
 		} else {
 			String assocTableName = o2m.getTabelaA().getName();
-			assocSchema = findSchema(allSchemas, assocTableName, o2m.getTabelaA().getModule());
+			assocSchema = findSchema(allSchemas, assocTableName, o2m
+					.getTabelaA().getModule());
 			schemaA = assocSchema;
 			schemaB = schema;
-			String nome = CamelCaseUtils.toUpperCamelCase(assocSchema.getNome());
+			String nome = CamelCaseUtils
+					.toUpperCamelCase(assocSchema.getNome());
 			map.setModule(assocSchema.getModule());
 			map.setKlass(nome);
 		}
 		map.setTable(assocSchema.getTabela());
 		Property fkProp = schemaB.getPropriedade(o2m.getKeyToA());
 		map.setForeignKey(fkProp);
-		map.setKeyToA(CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA().substring(2)));
-		map.setKeyToAPluralized(CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA().substring(2))
+		map.setKeyToA(CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA()
+				.substring(2)));
+		map.setKeyToAPluralized(CamelCaseUtils.toUpperCamelCase(o2m.getKeyToA()
+				.substring(2))
 				+ PluralizacaoUtils.pluralizar((String) map.getKlass()));
 		Property refProp = schemaA.getPropriedade(o2m.getReferenciaA());
 		map.setReferenceKey(refProp);
@@ -201,13 +224,19 @@ public class AssociationHelper {
 		return map;
 	}
 
-	public static Map<Property, OneToManyAssociationHelper> getAssociationsForFK(List<Property> fields,
-			List<OneToManyAssociationHelper> manyToOne) {
+	public static Map<Property, OneToManyAssociationHelper> getAssociationsForFK(
+			List<Property> fields, List<OneToManyAssociationHelper> manyToOne) {
 		Map<Property, OneToManyAssociationHelper> associationsFromFK = new HashMap<Property, OneToManyAssociationHelper>();
 		for (OneToManyAssociationHelper o2mObj : manyToOne) {
 			for (Property property : fields) {
-				if (property.equals(o2mObj.getForeignKey()))
+				if (property.equals(o2mObj.getForeignKey())) {
+//					Property newProperty = new Property(property.getNome(),
+//							String.class, true, true,
+//							property.getConstraints());
+//					o2mObj.setForeignKey(newProperty);
+					property.setKlass(String.class);
 					associationsFromFK.put(property, o2mObj);
+				}
 			}
 		}
 		return associationsFromFK;

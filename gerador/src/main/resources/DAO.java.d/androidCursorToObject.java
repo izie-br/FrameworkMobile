@@ -9,9 +9,9 @@
 #**##set ($columnIndex = $foreach.index)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        Long _${field.LowerCamel} = cursor.getLong(${columnIndex});
+#******#        String _${field.LowerCamel} = cursor.getString(${columnIndex});
 #******#        ${association.Klass} _${association.KeyToA} = null;
-#******#        if (!_${field.LowerCamel}.equals((long)${defaultId})) {
+#******#        if (_${field.LowerCamel} != null) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
 #******#                new Serializable[]{_${field.LowerCamel}});

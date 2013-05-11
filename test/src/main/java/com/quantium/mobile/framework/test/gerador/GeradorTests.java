@@ -84,8 +84,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			int count = dao.query().all().size();
 			Author author = Utils.randomAuthor();
 			assertTrue(dao.save(author));
-			long id  = author.getId();
-			assertTrue(id>0);
+			String id  = author.getId();
+			assertTrue(id!=null);
 			author.setName(RandomStringUtils.random(40));
 			assertTrue(dao.save(author));
 			assertEquals(id, author.getId());
@@ -113,7 +113,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			author.setActive(true);
 			try {
 				assertTrue(dao.save(author));
-				assertTrue(author.getId()>0);
+				assertTrue(author.getId()!=null);
 			} catch (IOException e){
 				fail(StringUtil.getStackTrace(e));
 			}
@@ -167,11 +167,11 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			fail ();
 		}
 
-		long id1 = author1.getId ();
+		String id1 = author1.getId ();
 		Author author1FromDb = dao.get (id1);
 		assertEquals (author1, author1FromDb);
 
-		long id2 = author2.getId ();
+		String id2 = author2.getId ();
 		Author author2FromDb = dao.get (id2);
 		assertEquals (author2, author2FromDb);
 	}
@@ -182,7 +182,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		Author author = Utils.randomAuthor();
 		try {
 		assertTrue(dao.save(author));
-		assertTrue(author.getId()>0);
+		assertTrue(author.getId()!=null);
 		} catch (IOException e){
 			fail(StringUtil.getStackTrace(e));
 		}
@@ -306,7 +306,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 	}
 	public void testSerializationAlias(){
 		final String idDocumentAlias = "id_document";
-		final long idDocument = 9;
+		final String idDocument = "9";
 		final String createdAlias = "created";
 		final Date created = new Date(99, 0, 1, 1, 0, 0);
 		/*
@@ -347,7 +347,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author = Utils.randomAuthor ();
-		final long id = 5L;
+		final String id = "5";
 		((AuthorEditable)author).setId (id);
 
 		try{
@@ -513,7 +513,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			assertTrue(authorDao.save(author));
 
 			long authorId = author.getId();
-			assertTrue(authorId != 0);
+			assertTrue(authorId != null);
 			String authorName = author.getName();
 			assertNotNull(authorName);
 
@@ -572,7 +572,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			assertTrue(authorDao.save(author));
 
 			long authorId = author.getId();
-			assertTrue(authorId != 0);
+			assertTrue(authorId != null);
 			String authorName = author.getName();
 			assertNotNull(authorName);
 
@@ -618,7 +618,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			Author originalAuthor = Utils.randomAuthor();
 			assertTrue(dao.save(originalAuthor));
-			assertTrue(originalAuthor.getId() != 0);
+			assertTrue(originalAuthor.getId() != null);
 	
 			// Ao inserir um autor com dados diferentes mas
 			AuthorEditable otherAuthor = (AuthorEditable)Utils.randomAuthor();
@@ -834,7 +834,7 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 			assertTrue(docDao.save(documentAuthorNull));
 
 			List<Document> documentAuthorNullFromDb = docDao
-					.query(Document.ID_AUTHOR.eq((Long)null))
+					.query(Document.ID_AUTHOR.eq((String)null))
 					.all();
 			assertEquals(1, documentAuthorNullFromDb.size());
 			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
@@ -909,8 +909,8 @@ public class GeradorTests extends ActivityInstrumentationTestCase2<TestActivity>
 				assertTrue(c.equals(customer1) || c.equals(customer2));
 			}
 
-			long oldPk = document.getId();
-			long newPk = oldPk + 2000;
+			String oldPk = document.getId();
+			String newPk = oldPk + 2000;
 			primaryKeyUpdater.updatePrimaryKey(document, newPk);
 
 			assertEquals(newPk, document.getId());

@@ -10,10 +10,10 @@
 #**##set ($association = false)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        $field.Type $field.LowerCamel = (_${association.KeyToA} == null)? 0 : _${association.KeyToA}.get${association.ReferenceKey.UpperCamel}();
+#******#        $field.Type $field.LowerCamel = (_${association.KeyToA} == null)? null : _${association.KeyToA}.get${association.ReferenceKey.UpperCamel}();
 #**##end
 #**##if ($field.PrimaryKey || $association)
-#******#        if (${field.LowerCamel} != ${defaultId}) {
+#******#        if (${field.LowerCamel} != null) {
 #******#            map.put("${alias}", ${field.LowerCamel});
 #******#        }
 #**##else
@@ -24,19 +24,19 @@
 
     @Override
     public int hashCodeImpl() {
-        int value = 1;
+        int _value = 1;
 #foreach ($field in $fields)
 #**##if (!$associationForField[$field])
 #******##if ($field.Klass.equals("Boolean"))
-#**********#        value += (${field.LowerCamel}) ? 1 : 0;
+#**********#        _value += (${field.LowerCamel}) ? 1 : 0;
 #******##elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
-#**********#        value +=(int) ${field.LowerCamel};
+#**********#        _value +=(int) ${field.LowerCamel};
 #******##else
-#**********#        value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
+#**********#        _value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
 #******##end
 #**##end
 #end
-        return value;
+        return _value;
     }
 
     @Override

@@ -43,8 +43,8 @@ public class GeradorTest {
 			int count = dao.query().all().size();
 			Author author = Utils.randomAuthor();
 			assertTrue(dao.save(author));
-			long id  = author.getId();
-			assertTrue(id>0);
+			String id  = author.getId();
+			assertTrue(id!=null);
 			author.setName(RandomStringUtils.random(40));
 			assertTrue(dao.save(author));
 			assertEquals(id, author.getId());
@@ -73,7 +73,7 @@ public class GeradorTest {
 			author.setActive(true);
 			try {
 				assertTrue(dao.save(author));
-				assertTrue(author.getId()>0);
+				assertTrue(author.getId()!=null);
 			} catch (IOException e){
 				fail(StringUtil.getStackTrace(e));
 			}
@@ -128,11 +128,11 @@ public class GeradorTest {
 			fail ();
 		}
 
-		long id1 = author1.getId ();
+		String id1 = author1.getId ();
 		Author author1FromDb = dao.get (id1);
 		assertEquals (author1, author1FromDb);
 
-		long id2 = author2.getId ();
+		String id2 = author2.getId ();
 		Author author2FromDb = dao.get (id2);
 		assertEquals (author2, author2FromDb);
 	}
@@ -144,7 +144,7 @@ public class GeradorTest {
 		Author author = Utils.randomAuthor();
 		try {
 		assertTrue(dao.save(author));
-		assertTrue(author.getId()>0);
+		assertTrue(author.getId()!=null);
 		} catch (IOException e){
 			fail(StringUtil.getStackTrace(e));
 		}
@@ -274,7 +274,7 @@ public class GeradorTest {
 		DAO<Author> dao = getDaoFactory().getDaoFor (Author.class);
 
 		Author author = Utils.randomAuthor ();
-		final long id = 5L;
+		final String id = "5";
 		((AuthorEditable)author).setId (id);
 
 		try{
@@ -446,8 +446,8 @@ public class GeradorTest {
 			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
-			long authorId = author.getId();
-			assertTrue(authorId != 0);
+			String authorId = author.getId();
+			assertTrue(authorId != null);
 			String authorName = author.getName();
 			assertNotNull(authorName);
 
@@ -456,7 +456,7 @@ public class GeradorTest {
 			assertTrue(documentDao.save(document));
 
 			// armazenando o ID para uma busca
-			long documentId = document.getId();
+			String documentId = document.getId();
 
 			// Usando o objeto Author para monitorar o gc
 			WeakReference<Author> authorWeakRef =
@@ -501,8 +501,8 @@ public class GeradorTest {
 			Author author = Utils.randomAuthor();
 			assertTrue(authorDao.save(author));
 
-			long authorId = author.getId();
-			assertTrue(authorId != 0);
+			String authorId = author.getId();
+			assertTrue(authorId != null);
 			String authorName = author.getName();
 			assertNotNull(authorName);
 
@@ -539,7 +539,7 @@ public class GeradorTest {
 			DAO<Author> dao = getDaoFactory().getDaoFor(Author.class);
 			Author originalAuthor = Utils.randomAuthor();
 			assertTrue(dao.save(originalAuthor));
-			assertTrue(originalAuthor.getId() != 0);
+			assertTrue(originalAuthor.getId() != null);
 	
 			// Ao inserir um autor com dados diferentes mas
 			AuthorEditable otherAuthor = (AuthorEditable)Utils.randomAuthor();
@@ -761,7 +761,7 @@ public class GeradorTest {
 			assertTrue(docDao.save(documentAuthorNull));
 
 			List<Document> documentAuthorNullFromDb = docDao
-					.query(Document.ID_AUTHOR.eq((Long)null))
+					.query(Document.ID_AUTHOR.eq((String)null))
 					.all();
 			assertEquals(1, documentAuthorNullFromDb.size());
 			assertEquals(documentAuthorNull, documentAuthorNullFromDb.get(0));
@@ -837,8 +837,8 @@ public class GeradorTest {
 				assertTrue(c.equals(customer1) || c.equals(customer2));
 			}
 
-			long oldPk = document.getId();
-			long newPk = oldPk + 2000;
+			String oldPk = document.getId();
+			String newPk = oldPk + 2000;
 			primaryKeyUpdater.updatePrimaryKey(document, newPk);
 
 			assertEquals(newPk, document.getId());
