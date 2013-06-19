@@ -63,7 +63,7 @@ public abstract class BaseModelFacade {
 			return false;
 		}
 		Collection<ValidationError> validate = newValidate(obj);
-		if (getDefaultId().equals(obj.getId())) {
+		if (obj.getId() == null || obj.getId().equals(getDefaultId())) {
 			primaryKeyProvider.generatePrimaryKey(
 					daoFactory.getDaoFor((Class<T>) obj.getClass()), obj);
 		}

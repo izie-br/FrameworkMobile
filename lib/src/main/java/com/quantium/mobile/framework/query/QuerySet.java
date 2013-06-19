@@ -1,8 +1,9 @@
 package com.quantium.mobile.framework.query;
 
+import java.io.Serializable;
 import java.util.List;
 
-public interface QuerySet<T>{
+public interface QuerySet<T> extends Serializable {
 
 	Table getTable();
 

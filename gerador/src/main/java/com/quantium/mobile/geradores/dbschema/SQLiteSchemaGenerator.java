@@ -28,7 +28,13 @@ public class SQLiteSchemaGenerator {
 		//Chave primaria
 		Table.Column<?> pk = extractPK (table);
 		schemaSb.append(pk.getName ());
-		schemaSb.append(" INTEGER PRIMARY KEY AUTOINCREMENT");
+		if(Long.class.equals(pk.getKlass())){
+			schemaSb.append(" INTEGER PRIMARY KEY AUTOINCREMENT");
+		}else{
+			schemaSb.append(' ');
+			schemaSb.append(SQLiteGeradorUtils.getSqlTypeFromClass(pk.getKlass ()));
+			schemaSb.append(" NOT NULL ");
+		}
 
 		//Outras colunas, exceto a chave primaria
 

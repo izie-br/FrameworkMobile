@@ -8,14 +8,19 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
-import com.quantium.mobile.framework.db.BaseDB;
 import com.quantium.mobile.framework.query.Table;
 
 public class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 
+	private SQLiteDatabase db;
+	
+	public AndroidPrimaryKeyProvider(SQLiteDatabase db) {
+		super();
+		this.db = db;
+	}
+	
 	@Override
 	public String sequenceNextFor(Table table) throws IOException {
-		SQLiteDatabase db = BaseDB.getDb();
 		ContentValues cv = new ContentValues();
 		cv.put(CLASSNAME.getName(), table.getName());
 		long id = db.insert(SYNC_TABLE.getName(), null, cv);
@@ -27,7 +32,6 @@ public class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 
 	@Override
 	public List<String> listIds(DAO<? extends BaseGenericVO> dao) {
-		SQLiteDatabase db = BaseDB.getDb();
 		List<String> ids = new ArrayList<String>();
 		Cursor c = db.query(SYNC_TABLE.getName(), new String[] {}, String
 				.format("%s=?", CLASSNAME.getName()), new String[] { dao
@@ -42,7 +46,6 @@ public class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	@Override
 	public boolean delete(DAO<? extends BaseGenericVO> dao, String id) {
 		if (listIds(dao).contains(id)) {
-			SQLiteDatabase db = BaseDB.getDb();
 			int rows = db.delete(SYNC_TABLE.getName(),
 					String.format("%s=?", ID.getName()),
 					new String[] { String.valueOf(id) });

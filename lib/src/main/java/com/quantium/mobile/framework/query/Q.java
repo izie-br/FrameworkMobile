@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.query;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -9,9 +10,13 @@ import com.quantium.mobile.framework.utils.StringUtil;
 /**
  * Classe geradora de querystrings.
  */
-public final class Q {
+public final class Q implements Serializable {
 
-    public static final OrderByAsc ASC = OrderByAsc.ASC;
+    /**
+	 * 
+	 */
+	private static final long serialVersionUID = 2405204956251092532L;
+	public static final OrderByAsc ASC = OrderByAsc.ASC;
     public static final OrderByAsc DESC = OrderByAsc.DESC;
 
     private Table table;
@@ -244,8 +249,13 @@ public final class Q {
 
     //Classes NODE
 
-    public static class QNode{
-        @Override
+    public static class QNode implements Serializable{
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 120576936302851248L;
+
+		@Override
         protected QNode clone(){
             QNode cloned;
             try {
@@ -257,8 +267,12 @@ public final class Q {
         }
     }
 
-    static class QNodeGroup extends QNode implements Cloneable{
-        private QNode next;
+    static class QNodeGroup extends QNode implements Cloneable, Serializable{
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -8180841190456747196L;
+		private QNode next;
         private ChainOp nextOp;
         private boolean notOp;
         private QNode node;
@@ -293,8 +307,12 @@ public final class Q {
 
     }
 
-    public static class QNode1X1 extends QNode implements Cloneable{
-        private Table.Column<?> column;
+    public static class QNode1X1 extends QNode implements Cloneable, Serializable{
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -6281843350325328879L;
+		private Table.Column<?> column;
         private Op1x1 op;
         private Object arg;
 
@@ -319,8 +337,12 @@ public final class Q {
 
     }
 
-    public static class QNode1xN extends QNode implements Cloneable{
-        private Table.Column<?> column;
+    public static class QNode1xN extends QNode implements Cloneable, Serializable{
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -4799267465650790716L;
+		private Table.Column<?> column;
         private Op1xN op;
         private Collection<?> args;
 
@@ -337,8 +359,12 @@ public final class Q {
         }
     }
 
-    public static class QNodeUnary extends QNode {
-        private Table.Column<?> column;
+    public static class QNodeUnary extends QNode implements Serializable {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = 4084040232716835337L;
+		private Table.Column<?> column;
         private OpUnary op;
 
         public Table.Column<?> column(){
@@ -350,8 +376,12 @@ public final class Q {
         }
     }
 
-    public class InnerJoin {
-        private Table.Column<?> foreignColumn;
+    public class InnerJoin implements Serializable {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -2103736536036069040L;
+		private Table.Column<?> foreignColumn;
         private Op1x1 op;
         private Table.Column<?> column;
 
@@ -429,8 +459,12 @@ public final class Q {
         ASC, DESC
     }
 
-    public static class OrderByClause {
-        private final Table.Column<?> column;
+    public static class OrderByClause implements Serializable {
+        /**
+		 * 
+		 */
+		private static final long serialVersionUID = -5730910638653922653L;
+		private final Table.Column<?> column;
         private final OrderByAsc type;
 
         public OrderByClause(Table.Column<?> column, OrderByAsc type) {

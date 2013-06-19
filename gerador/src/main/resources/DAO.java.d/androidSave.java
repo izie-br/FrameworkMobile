@@ -31,11 +31,15 @@
         insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists)
         {
-            Cursor cursor = this.factory.getDb().rawQuery(
-                "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?",
-                primaryKeysArgs);
-            insert = cursor.moveToNext() && "0".equals(cursor.getString(0));
-            cursor.close();
+        	if (target.${getter[$primaryKey]}() == null) {
+        		insert = true;
+        	} else {
+	            Cursor cursor = this.factory.getDb().rawQuery(
+	                "SELECT COUNT(*) FROM ${table} WHERE ${primaryKey.LowerAndUnderscores}=?",
+	                primaryKeysArgs);
+	            insert = cursor.moveToNext() && cursor.getLong(0) == 0;
+	            cursor.close();
+        	}
         }
         Serializable pks [] = new Serializable[]{
             target.${getter[$primaryKey]}()

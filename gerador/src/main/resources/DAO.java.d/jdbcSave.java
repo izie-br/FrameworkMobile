@@ -9,11 +9,15 @@
         boolean insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists){
             try {
-                PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
-                stm.setString(1, target.${getter[$primaryKey]}());
-                ResultSet rs = stm.executeQuery();
-                insert = rs.next() && rs.getLong(1) == 0L;
-                rs.close();
+            	if (target.${getter[$primaryKey]}() == null) {
+            		insert = true;
+            	} else {
+	                PreparedStatement stm = getStatement(COUNT_BY_PRIMARY_KEYS);
+	                stm.setString(1, target.${getter[$primaryKey]}());
+	                ResultSet rs = stm.executeQuery();
+	                insert = rs.next() && rs.getLong(1) == 0L;
+	                rs.close();
+            	}
             } catch (java.sql.SQLException e) {
                 throw new RuntimeException(StringUtil.getStackTrace(e));
             }

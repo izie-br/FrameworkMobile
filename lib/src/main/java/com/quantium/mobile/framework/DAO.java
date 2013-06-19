@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.util.Collection;
 import java.util.Map;
 
@@ -9,7 +10,7 @@ import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.ValidationError;
 
-public interface DAO<T> {
+public interface DAO<T> extends Serializable {
 	QuerySet<T> query();
 	QuerySet<T> query(Q q);
 	boolean save(T obj) throws IOException;

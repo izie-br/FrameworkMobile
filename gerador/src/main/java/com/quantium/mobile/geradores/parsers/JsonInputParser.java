@@ -342,9 +342,9 @@ public class JsonInputParser implements InputParser {
 			String databaseTable, String colunaFrom, String colunaTo) {
 		ModelSchema.Builder tabelaBuilder = ModelSchema
 				.create(module, databaseTable)
-				.addProperty("id", String.class, Constraint.primaryKey())
-				.addProperty(colunaFrom, String.class, Constraint.notNull())
-				.addProperty(colunaTo, String.class, Constraint.notNull());
+//				.addProperty("id", String.class, Constraint.primaryKey())
+				.addProperty(colunaFrom, String.class, Constraint.primaryKey())
+				.addProperty(colunaTo, String.class, Constraint.primaryKey());
 		return tabelaBuilder.get();
 	}
 
