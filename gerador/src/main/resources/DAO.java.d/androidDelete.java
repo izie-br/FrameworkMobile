@@ -7,21 +7,23 @@
         try {
             db.beginTransaction();
 #if ($hasNullableAssociation)
-            ContentValues contentValues;
 #end
 ##
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
+#**#            {
+#**#            ContentValues contentValues;
 #**#            contentValues = new ContentValues();
 #**#            contentValues.putNull("${relation.ForeignKey.LowerAndUnderscores}");
 #**#            db.update(
 #**#                "${relation.Table.Name}", contentValues,
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
+#**#           }
 #**#           Runnable _${relation.KeyToAPluralized}NullFkThread =
 #**#               new ${relation.KeyToAPluralized}NullFkThread(target);
 #**#           //_${relation.Klass}NullFkThread.start();
-#**#
+#**#                        
 #**##else
 #**#            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
 #**#            for (${relation.Klass} obj: target.get${relation.KeyToAPluralized}().all()) {

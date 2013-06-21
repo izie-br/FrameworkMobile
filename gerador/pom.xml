@@ -25,6 +25,11 @@
 			<scope>compile</scope>
 		</dependency>
 		<dependency>
+			<groupId>br.com.izie.utils</groupId>
+			<artifactId>mmtojson</artifactId>
+			<version>0.0.1-SNAPSHOT</version>
+		</dependency>
+		<dependency>
 			<groupId>jsqlparser</groupId>
 			<artifactId>jsqlparser</artifactId>
 			<version>0.3.14</version>

@@ -32,7 +32,7 @@ public class ColumnsUtils {
 		public int compare(ManyToManyAssociationHelper col1, ManyToManyAssociationHelper col2) {
 			if (!col1.getKlass().equals(col2.getKlass()))
 				return col1.getJoinTable().compareTo(col2.getJoinTable());
-			return col1.getKeyToA().getAlias().compareTo(col2.getKeyToA().getAlias());
+			return col1.getKeyToA().getNome().compareTo(col2.getKeyToA().getNome());
 		}
 	}
 

@@ -13,6 +13,7 @@ public class FileParserMapper {
 		{
 			put("xml", "sqlite");
 			put("json", "json");
+			put("mm", "mm");
 			put("migrations", "migrations");
 		}
 	};

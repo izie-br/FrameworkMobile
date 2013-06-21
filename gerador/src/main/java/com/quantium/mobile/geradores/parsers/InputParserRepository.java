@@ -20,6 +20,9 @@ public class InputParserRepository {
 		InputParserRepository.registerInputParser(
 				JsonInputParser.INPUT_PARSER_IDENTIFIER,
 				new JsonInputParser());
+		InputParserRepository.registerInputParser(
+				MMInputParser.INPUT_PARSER_IDENTIFIER,
+				new MMInputParser());
 		InputParserRepository.registerInputParser (
 				MigrationsInputParser.INPUT_PARSER_IDENTIFIER,
 				new MigrationsInputParser ());
