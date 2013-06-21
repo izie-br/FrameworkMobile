@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>br.com.izie.utils</groupId>
 			<artifactId>mmtojson</artifactId>
-			<version>0.0.1-SNAPSHOT</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>jsqlparser</groupId>
