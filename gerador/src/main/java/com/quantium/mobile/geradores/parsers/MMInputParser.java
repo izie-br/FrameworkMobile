@@ -46,16 +46,17 @@ public class MMInputParser implements InputParser {
 		Parser parser = new Parser(config.getInputFile());
 		List<Clazz> parsed = parser.doParse();
 		for (Clazz clazz : parsed) {
-			ModelSchema.Builder tabelaBuilder = ModelSchema.create(clazz.getModule(),
-					CamelCaseUtils.camelToLowerAndUnderscores(clazz
-							.getSingularName()));
+			ModelSchema.Builder tabelaBuilder = ModelSchema.create(clazz
+					.getModule(), CamelCaseUtils
+					.camelToLowerAndUnderscores(clazz.getSingularName()));
 			for (Attribute attribute : clazz.getAttributeList()) {
 				Class<?> classType = attribute.getType();
 
 				if (!classType.equals(List.class)
 						&& !classType.equals(Clazz.class)) {
-					tabelaBuilder.addProperty(CamelCaseUtils.camelToLowerAndUnderscores(attribute.getName()), classType,
-							constraintsFromAttribute(attribute));
+					tabelaBuilder.addProperty(CamelCaseUtils
+							.camelToLowerAndUnderscores(attribute.getName()),
+							classType, constraintsFromAttribute(attribute));
 				}
 			}
 			tabelaBuilder.addProperty("id", String.class,
@@ -70,22 +71,24 @@ public class MMInputParser implements InputParser {
 				ModelSchema tabelaA = allClasses.get(association.getFrom())
 						.get();
 				ModelSchema tabelaB = allClasses.get(association.getTo()).get();
-				System.out.println("association:" + association);
+				// System.out.println("association:" + association);
 				Associacao assoc = null;
 				if (association.isHasOne()) {
-					System.out.println("Adicionando propriedade " + fkId
-							+ " na tabela " + association.getFrom().getPluralName());
-					allClasses.get(association.getFrom()).addProperty(fkId, String.class,
+					// System.out.println("Adicionando propriedade " + fkId
+					// + " na tabela " + association.getFrom().getPluralName());
+					allClasses.get(association.getFrom()).addProperty(fkId,
+							String.class,
 							constraintsFromAttribute(association.getSource()));
 					assoc = new AssociacaoOneToMany(tabelaB, tabelaA, fkId,
 							!association.getSource().isRequired(), "id");
 				} else if (association.isHasMany()) {
-//					System.out.println("Adicionando propriedade " + fkId
-//							+ " na tabela " + association.getTo().getPluralName());
-//					allClasses.get(association.getTo()).addProperty(fkId, String.class,
-//							constraintsFromAttribute(association.getSource()));
-//					assoc = new AssociacaoOneToMany(tabelaA, tabelaB, fkId,
-//							!association.getSource().isRequired(), "id");
+					// System.out.println("Adicionando propriedade " + fkId
+					// + " na tabela " + association.getTo().getPluralName());
+					// allClasses.get(association.getTo()).addProperty(fkId,
+					// String.class,
+					// constraintsFromAttribute(association.getSource()));
+					// assoc = new AssociacaoOneToMany(tabelaA, tabelaB, fkId,
+					// !association.getSource().isRequired(), "id");
 				} else if (association.isManyToMany()) {
 					String fromName = CamelCaseUtils
 							.camelToLowerAndUnderscores(association.getFrom()
@@ -101,8 +104,8 @@ public class MMInputParser implements InputParser {
 					// a tabela join ficara no modulo da "from" da
 					// associacao
 					assoc = new AssociacaoManyToMany(tabelaA, tabelaB,
-							colunaFrom, colunaTo, "id", "id",
-							gerarAssociativa(clazz.getModule(), tableName, colunaFrom,
+							colunaFrom, colunaTo, "id", "id", gerarAssociativa(
+									clazz.getModule(), tableName, colunaFrom,
 									colunaTo), tableName);
 				} else {
 					throw new GeradorException(
@@ -111,8 +114,10 @@ public class MMInputParser implements InputParser {
 									+ " no relacionamento "
 									+ association.getSource().getName());
 				}
-				allClasses.get(clazz).addAssociation(assoc);
-				allClasses.get(association.getTo()).addAssociation(assoc);
+				if (assoc != null) {
+					allClasses.get(clazz).addAssociation(assoc);
+					allClasses.get(association.getTo()).addAssociation(assoc);
+				}
 			}
 
 		}

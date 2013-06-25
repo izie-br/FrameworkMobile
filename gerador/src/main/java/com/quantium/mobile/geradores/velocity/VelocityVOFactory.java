@@ -15,6 +15,7 @@ import org.apache.velocity.VelocityContext;
 import org.apache.velocity.app.VelocityEngine;
 
 import com.quantium.mobile.framework.utils.CamelCaseUtils;
+import com.quantium.mobile.geradores.GeradorException;
 import com.quantium.mobile.geradores.filters.associacao.Associacao;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoManyToMany;
 import com.quantium.mobile.geradores.filters.associacao.AssociacaoOneToMany;
@@ -37,11 +38,11 @@ import static com.quantium.mobile.geradores.velocity.helpers.AssociationHelper.*
 public class VelocityVOFactory {
 
 	public enum Type {
-		INTERFACE, EDITABLE_INTERFACE , IMPLEMENTATION;
+		INTERFACE, EDITABLE_INTERFACE, IMPLEMENTATION;
 
 		public String getFilenameFor(JavaBeanSchema schema) {
-			String classname = CamelCaseUtils.toUpperCamelCase(
-					schema.getNome());
+			String classname = CamelCaseUtils
+					.toUpperCamelCase(schema.getNome());
 			switch (this) {
 			case INTERFACE:
 				return classname + "Gen";
@@ -61,13 +62,11 @@ public class VelocityVOFactory {
 	private String voPackage;
 	private File targetDirectory;
 	private VelocityContext parentCtx;
-	private Map<String,String> aliases;
+	private Map<String, String> aliases;
 
 	public VelocityVOFactory(VelocityEngine ve, File targetDirectory,
-	                         String basePackage, String genPackage,
-	                         String voPackage,
-	                         Map<String,String> serializationAliases)
-	{
+			String basePackage, String genPackage, String voPackage,
+			Map<String, String> serializationAliases) {
 		this.template = ve.getTemplate("VO.java");
 		this.basePackage = basePackage;
 		this.genPackage = genPackage;
@@ -80,16 +79,14 @@ public class VelocityVOFactory {
 		this.aliases = serializationAliases;
 	}
 
-	public void generateVO(
-			JavaBeanSchema schema, Collection<JavaBeanSchema> allSchemas,
-			VelocityVOFactory.Type type)
-			throws IOException
-	{
+	public void generateVO(JavaBeanSchema schema,
+			Collection<JavaBeanSchema> allSchemas, VelocityVOFactory.Type type)
+			throws IOException {
 		String classname = CamelCaseUtils.toUpperCamelCase(schema.getNome());
 		VelocityContext ctx = new VelocityContext(parentCtx);
-		ctx.put("package", Utils.getPackageName (
-				basePackage, genPackage, schema.getModule ()
-		));
+		ctx.put("package",
+				Utils.getPackageName(basePackage, genPackage,
+						schema.getModule()));
 
 		ctx.put("interface", type == Type.INTERFACE);
 		ctx.put("editableInterface", type == Type.EDITABLE_INTERFACE);
@@ -97,15 +94,17 @@ public class VelocityVOFactory {
 
 		String filename = type.getFilenameFor(schema);
 		ctx.put("Filename", filename);
-		String editableInterfaceName = Type.EDITABLE_INTERFACE.getFilenameFor(schema);
+		String editableInterfaceName = Type.EDITABLE_INTERFACE
+				.getFilenameFor(schema);
 		ctx.put("EditableInterface", editableInterfaceName);
-		ctx.put("table", schema.getTabela().getName ());
-		ctx.put("serialVersionUID", ""+generateSerialUID(schema)+"L");
+		ctx.put("table", schema.getTabela().getName());
+		ctx.put("serialVersionUID", "" + generateSerialUID(schema) + "L");
 		ctx.put("Klass", classname);
 
 		AssociationHolder holder = findAssociations(schema, allSchemas);
 		ArrayList<OneToManyAssociationHelper> oneToMany = holder.getOneToMany();
-		ArrayList<ManyToManyAssociationHelper> manyToMany = holder.getManyToMany();
+		ArrayList<ManyToManyAssociationHelper> manyToMany = holder
+				.getManyToMany();
 		ArrayList<OneToManyAssociationHelper> manyToOne = holder.getManyToOne();
 		ctx.put("manyToOneAssociations", manyToOne);
 		ctx.put("oneToManyAssociations", oneToMany);
@@ -115,34 +114,33 @@ public class VelocityVOFactory {
 		toMany.addAll(manyToMany);
 		ctx.put("toManyAssociations", toMany);
 		List<Property> fields = new ArrayList<Property>();
-		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)){
+		for (String col : ColumnsUtils.orderedColumnsFromJavaBeanSchema(schema)) {
 			Property prop = schema.getPropriedade(col);
-			prop = new Property (
-					prop.getNome (), prop.getPropertyClass (),
-					prop.isGet (), prop.isSet (),
-					getAlias(aliases, classname, col),
-					prop.getConstraints());
+			prop = new Property(prop.getNome(), prop.getPropertyClass(),
+					prop.isGet(), prop.isSet(), getAlias(aliases, classname,
+							col), prop.getConstraints());
 			fields.add(prop);
 		}
 		ctx.put("fields", fields);
 		ctx.put("primaryKey", schema.getPrimaryKey());
 
 		int options = getOptions(schema);
-		ctx.put("haveDateField", (options&HAS_DATE_FIELD)!=0);
-		ctx.put("hasDatePK", (options&HAS_DATE_PK)!=0);
+		ctx.put("haveDateField", (options & HAS_DATE_FIELD) != 0);
+		ctx.put("hasDatePK", (options & HAS_DATE_PK) != 0);
 
-		Map<Property, OneToManyAssociationHelper> associationsFromFK =
-				getAssociationsForFK(fields, manyToOne);
+		Map<Property, OneToManyAssociationHelper> associationsFromFK = getAssociationsForFK(
+				fields, manyToOne);
 
-		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
-				schema, fields, associationsFromFK, oneToMany, manyToMany);
+		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(schema,
+				fields, associationsFromFK, oneToMany, manyToMany);
 
-		ImportHelper importHelper =
-				new ImportHelper (basePackage, genPackage, voPackage, null);
-		String imports = importHelper.getImports (
-				schema, allSchemas, oneToMany, manyToOne, manyToMany);
+		ImportHelper importHelper = new ImportHelper(basePackage, genPackage,
+				voPackage, null);
+		String imports = importHelper.getImports(schema, allSchemas, oneToMany,
+				manyToOne, manyToMany);
 		if (type == Type.EDITABLE_INTERFACE) {
-			String packageName = Utils.getPackageName(basePackage, voPackage, schema.getModule());
+			String packageName = Utils.getPackageName(basePackage, voPackage,
+					schema.getModule());
 			imports += String.format("import %s.%s;\n", packageName, classname);
 		}
 		ctx.put("Imports", imports);
@@ -151,31 +149,28 @@ public class VelocityVOFactory {
 		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
 		if (type == VelocityVOFactory.Type.IMPLEMENTATION) {
-			ValidateHelper vhelper = new ValidateHelper (schema, fields);
-			ctx.put ("NotNull", vhelper.getNotNull ());
-			ctx.put ("MaxConstraints", vhelper.getMax());
-			ctx.put ("MinConstraints", vhelper.getMin());
-			ctx.put ("LengthConstraints", vhelper.getLength());
+			ValidateHelper vhelper = new ValidateHelper(schema, fields);
+			ctx.put("NotNull", vhelper.getNotNull());
+			ctx.put("MaxConstraints", vhelper.getMax());
+			ctx.put("MinConstraints", vhelper.getMin());
+			ctx.put("LengthConstraints", vhelper.getLength());
 		}
 
-		ctx.put ("Constraints", new ConstraintsHelper (associationsFromFK));
+		ctx.put("Constraints", new ConstraintsHelper(associationsFromFK));
 
-		File file = new File(
-				Utils.getPackageDir (targetDirectory, genPackage, schema.getModule ()),
-				filename + ".java");
-		Writer w = new OutputStreamWriter(
-				new FileOutputStream(file),
-				"UTF-8");
+		File file = new File(Utils.getPackageDir(targetDirectory, genPackage,
+				schema.getModule()), filename + ".java");
+		Writer w = new OutputStreamWriter(new FileOutputStream(file), "UTF-8");
 		template.merge(ctx, w);
 		w.close();
 	}
 
 	public static String getAlias(Map<String, String> aliases,
-	                               String classname, String field){
+			String classname, String field) {
 		String name = classname + '.' + field;
-		if (aliases != null){
-			for (String k : aliases.keySet()){
-				if ( CamelCaseUtils.camelEquals(name,k)){
+		if (aliases != null) {
+			for (String k : aliases.keySet()) {
+				if (CamelCaseUtils.camelEquals(name, k)) {
 					return aliases.get(k);
 				}
 			}
@@ -187,28 +182,36 @@ public class VelocityVOFactory {
 		return null;
 	}
 
-
-	private long generateSerialUID(JavaBeanSchema schema){
+	private long generateSerialUID(JavaBeanSchema schema) {
 		long result = 1;
 		Collection<String> columns = schema.getColunas();
-		for(String key : columns){
+		for (String key : columns) {
 			Property prop = schema.getPropriedade(key);
 			// este e o algoritmo de gerar o numero arbitrario
 			// esta linha pode ser alterada com algo que faca sentido
-			result += result*prop.getNome().hashCode() +
-			         prop.getPropertyClass().getName().hashCode();
+			result += result * prop.getNome().hashCode()
+					+ prop.getPropertyClass().getName().hashCode();
 		}
-		for (Associacao assoc : schema.getAssociacoes()){
-			String other = assoc.getTabelaA().getName ();
+		for (Associacao assoc : schema.getAssociacoes()) {
+			if (assoc == null) {
+				throw new RuntimeException("Uma associacao nula na classe "
+						+ schema.getModule() + "." + schema.getNome());
+			}
+			if (assoc.getTabelaA() == null) {
+				throw new RuntimeException(
+						"Tabela A nula em uma associacao da classe "
+								+ schema.getModule() + "." + schema.getNome());
+			}
+			String other = assoc.getTabelaA().getName();
 			boolean hasmany = assoc instanceof AssociacaoManyToMany;
-			if (other.equals(schema.getTabela().getName ())){
-				other = assoc.getTabelaB().getName ();
+			if (other.equals(schema.getTabela().getName())) {
+				other = assoc.getTabelaB().getName();
 				if (assoc instanceof AssociacaoOneToMany)
 					hasmany = true;
 			}
 			// este e o algoritmo de gerar o numero arbitrario
 			// esta linha pode ser alterada com algo que faca sentido
-			result += other.hashCode() + (hasmany? result : 0);
+			result += other.hashCode() + (hasmany ? result : 0);
 		}
 		return result;
 	}
