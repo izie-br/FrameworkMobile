@@ -10,7 +10,7 @@
 		<artifactId>frameworkMobile</artifactId>
 		<version>1.0.1-SNAPSHOT</version>
 	</parent>
-
+<properties><android.sdk.path>/Volumes/Files/Users/marcelomarra/android-sdks2</android.sdk.path></properties>
 	<dependencies>
 		<dependency>
 			<groupId>commons-lang</groupId>

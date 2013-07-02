@@ -48,7 +48,7 @@ public class MMInputParser implements InputParser {
 		for (Clazz clazz : parsed) {
 			ModelSchema.Builder tabelaBuilder = ModelSchema.create(clazz
 					.getModule(), CamelCaseUtils
-					.camelToLowerAndUnderscores(clazz.getSingularName()));
+					.camelToLowerAndUnderscores(clazz.getSingularName().replace(" ", "")));
 			for (Attribute attribute : clazz.getAttributeList()) {
 				Class<?> classType = attribute.getType();
 
