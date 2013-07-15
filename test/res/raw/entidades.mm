@@ -1,12 +1,10 @@
 
 <map version="0.9.0">
-    <node ID="6CEFA339-DA8D-4FC2-B60E-35024923AF56" TEXT="Mind Map" FOLDED="false">
-        <font NAME="LucidaGrande" SIZE="12"></font>
-        <edge COLOR="#7F7F7F"></edge>
-        <node ID="348050E1-7E40-4A5C-982B-EEDF649B2ADD" TEXT="Authors:Author" POSITION="right" FOLDED="false" COLOR="#000000">
+    <node TEXT="Mind Map">
+        <node ID="348050E1-7E40-4A5C-982B-EEDF649B2ADD" TEXT="Authors:Author" FOLDED="false" COLOR="#000000">
             <font NAME="LucidaGrande" SIZE="13"></font>
             <edge COLOR="#7F7F7F"></edge>
-            <node ID="76809DD6-F870-4957-9458-1B483A5D353D" TEXT="Active" FOLDED="false" COLOR="#000000">
+            <node ID="76809DD6-F870-4957-9458-1B483A5D353D" TEXT="Active" POSITION="left" FOLDED="false" COLOR="#000000">
                 <font NAME="LucidaGrande" SIZE="12"></font>
                 <edge COLOR="#66CCFF"></edge>
                 <node ID="B9745ED8-E510-4377-AE03-B53FB37EE45D" TEXT="type:Boolean" FOLDED="false" COLOR="#000000">
