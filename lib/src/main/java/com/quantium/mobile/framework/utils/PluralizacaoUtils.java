@@ -12,6 +12,7 @@ public class PluralizacaoUtils {
 		{
 			//add(new Regra("(.*)ao$", "$1oes"));
 			//add(new Regra("(.*[r])$", "$1es"));
+			add(new Regra("(.*[y])$", "$1ies"));
 			add(new Regra("(.*[sz])$", "$1es"));
 			add(new Regra("(.*)$", "$1s"));
 		}
