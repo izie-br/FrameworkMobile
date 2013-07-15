@@ -1,4 +1,4 @@
-package com.quantium.mobile.geradores.util;
+package com.quantium.mobile.framework.utils;
 
 import java.util.ArrayList;
 import java.util.List;
