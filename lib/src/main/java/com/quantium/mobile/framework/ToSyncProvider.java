@@ -22,13 +22,14 @@ public abstract class ToSyncProvider {
 	public static final Table.Column<Long> ACTION = TO_SYNC_TABLE.addColumn(
 			Long.class, "action");
 
-	public abstract List<String> listIds(DAO<? extends BaseGenericVO> dao,
-			String idUser, long action) throws IOException;
+	public abstract List<String> listIds(String idUser,
+			DAO<? extends BaseGenericVO> dao, long action) throws IOException;
 
-	public abstract <T extends BaseGenericVO> boolean save(DAO<T> dao, String idUser,
-			String id, long action) throws IOException;
+	public abstract <T extends BaseGenericVO> boolean save(String idUser,
+			DAO<T> dao, String id, long action) throws IOException;
 
-	public abstract boolean delete(DAO<? extends BaseGenericVO> dao, String id,
-			String idUser, long action) throws IOException;
+	public abstract boolean delete(String idUser,
+			DAO<? extends BaseGenericVO> dao, String id, long action)
+			throws IOException;
 
 }

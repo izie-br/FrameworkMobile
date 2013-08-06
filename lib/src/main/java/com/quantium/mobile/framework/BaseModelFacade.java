@@ -29,27 +29,27 @@ public abstract class BaseModelFacade {
 
 	protected abstract String getLoggedUserId();
 
-	public final <T extends BaseGenericVO> boolean addToSync(Class<T> klass, String id,
-			long action) throws IOException {
-		return toSyncProvider.save(daoFactory.getDaoFor(klass),
-				getLoggedUserId(), id, action);
+	public final <T extends BaseGenericVO> boolean addToSync(Class<T> klass,
+			String id, long action) throws IOException {
+		return toSyncProvider.save(getLoggedUserId(),
+				daoFactory.getDaoFor(klass), id, action);
 	}
 
-	public final <T extends BaseGenericVO> List<String> listTempIds(Class<T> klass)
-			throws IOException {
+	public final <T extends BaseGenericVO> List<String> listTempIds(
+			Class<T> klass) throws IOException {
 		return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
 	}
 
-	public final <T extends BaseGenericVO> List<String> listToSyncIds(Class<T> klass,
-			long action) throws IOException {
-		return toSyncProvider.listIds(daoFactory.getDaoFor(klass),
-				getLoggedUserId(), action);
+	public final <T extends BaseGenericVO> List<String> listToSyncIds(
+			Class<T> klass, long action) throws IOException {
+		return toSyncProvider.listIds(getLoggedUserId(),
+				daoFactory.getDaoFor(klass), action);
 	}
 
-	public final <T extends BaseGenericVO> boolean deleteToSyncId(Class<T> klass,
-			String id, long action) throws IOException {
-		return toSyncProvider.delete(daoFactory.getDaoFor(klass),
-				getLoggedUserId(), id, action);
+	public final <T extends BaseGenericVO> boolean deleteToSyncId(
+			Class<T> klass, String id, long action) throws IOException {
+		return toSyncProvider.delete(getLoggedUserId(),
+				daoFactory.getDaoFor(klass), id, action);
 	}
 
 	public final <T extends BaseGenericVO> boolean deleteTempId(Class<T> klass,
@@ -58,18 +58,36 @@ public abstract class BaseModelFacade {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final <T extends BaseGenericVO> boolean save(T obj) throws IOException {
+	public final <T extends BaseGenericVO> boolean save(T obj)
+			throws IOException {
+		return save(obj, false);
+	}
+
+	@SuppressWarnings("unchecked")
+	public final <T extends BaseGenericVO> boolean save(T obj, boolean skipSync)
+			throws IOException {
 		if (obj == null) {
 			return false;
 		}
+		boolean newObj = obj.getId() == null
+				|| obj.getId().equals(getDefaultId());
+		DAO<T> dao = daoFactory.getDaoFor((Class<T>) obj.getClass());
 		Collection<ValidationError> validate = newValidate(obj);
-		if (obj.getId() == null || obj.getId().equals(getDefaultId())) {
-			primaryKeyProvider.generatePrimaryKey(
-					daoFactory.getDaoFor((Class<T>) obj.getClass()), obj);
+		if (newObj) {
+			primaryKeyProvider.generatePrimaryKey(dao, obj);
 		}
 		if (validate.size() == 0) {
-			return daoFactory.getDaoFor((Class<T>) obj.getClass()).save(obj,
-					Save.INSERT_IF_NOT_EXISTS);
+			if (dao.save(obj, Save.INSERT_IF_NOT_EXISTS)) {
+				if (skipSync) {
+					return true;
+				}
+				if (!newObj) {
+					return toSyncProvider.save(getLoggedUserId(), dao,
+							obj.getId(), ToSyncProvider.SAVE);
+				}
+				return true;
+			}
+			return false;
 		} else {
 			if (debugValidation) {
 				for (ValidationError error : validate) {
@@ -101,7 +119,8 @@ public abstract class BaseModelFacade {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final <T extends BaseGenericVO> boolean delete(T obj) throws IOException {
+	public final <T extends BaseGenericVO> boolean delete(T obj)
+			throws IOException {
 		if (obj == null) {
 			return false;
 		}
@@ -109,9 +128,9 @@ public abstract class BaseModelFacade {
 		if (primaryKeyProvider.delete(dao, obj.getId())) {
 			return dao.delete(obj);
 		} else {
-			toSyncProvider.delete(dao, obj.getId(), getLoggedUserId(),
+			toSyncProvider.delete(getLoggedUserId(), dao, obj.getId(),
 					ToSyncProvider.SAVE);
-			if (toSyncProvider.save(dao, getLoggedUserId(), obj.getId(),
+			if (toSyncProvider.save(getLoggedUserId(), dao, obj.getId(),
 					ToSyncProvider.DELETE)) {
 				return dao.delete(obj);
 			}
@@ -151,8 +170,8 @@ public abstract class BaseModelFacade {
 	}
 
 	@SuppressWarnings("unchecked")
-	public final <T extends BaseGenericVO> boolean withRemove(T with, Object remove)
-			throws IOException {
+	public final <T extends BaseGenericVO> boolean withRemove(T with,
+			Object remove) throws IOException {
 		return daoFactory.getDaoFor((Class<T>) with.getClass()).with(with)
 				.remove(remove);
 	}

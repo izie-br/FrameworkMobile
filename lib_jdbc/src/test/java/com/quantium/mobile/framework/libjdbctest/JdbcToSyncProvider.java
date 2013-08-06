@@ -15,8 +15,8 @@ import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
 public class JdbcToSyncProvider extends ToSyncProvider {
 
 	@Override
-	public List<String> listIds(DAO<? extends BaseGenericVO> dao, String idUser,
-			long action) throws IOException {
+	public List<String> listIds(String idUser,
+			DAO<? extends BaseGenericVO> dao, long action) throws IOException {
 		String tableName = dao.getTable().getName();
 		List<String> ids = new ArrayList<String>();
 		Connection conn = null;
@@ -47,8 +47,8 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> boolean save(DAO<T> dao, String id, String idUser,
-			long action) throws IOException {
+	public <T extends BaseGenericVO> boolean save(String idUser, DAO<T> dao,
+			String id, long action) throws IOException {
 		String tableName = dao.getTable().getName();
 		Connection conn = null;
 		try {
@@ -89,8 +89,8 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public boolean delete(DAO<? extends BaseGenericVO> dao, String id, String idUser,
-			long action) throws IOException {
+	public boolean delete(String idUser, DAO<? extends BaseGenericVO> dao,
+			String id, long action) throws IOException {
 		Connection conn = null;
 		try {
 			conn = MyJdbcDAOFactory.createConnection();

@@ -19,8 +19,8 @@ public class AndroidToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> boolean save(DAO<T> dao, String id,
-			String idUser, long action) throws IOException {
+	public <T extends BaseGenericVO> boolean save(String idUser, DAO<T> dao,
+			String id, long action) throws IOException {
 		ContentValues cv = new ContentValues();
 		cv.put(CLASSNAME.getName(), dao.getTable().getName());
 		cv.put(ID.getName(), String.valueOf(id));
@@ -50,8 +50,8 @@ public class AndroidToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public List<String> listIds(DAO<? extends BaseGenericVO> dao,
-			String idUser, long action) {
+	public List<String> listIds(String idUser,
+			DAO<? extends BaseGenericVO> dao, long action) {
 		List<String> ids = new ArrayList<String>();
 		Cursor c = db.query(TO_SYNC_TABLE.getName(), new String[] {}, String
 				.format("%s=? AND %s=? AND %s=?", CLASSNAME.getName(),
@@ -67,8 +67,8 @@ public class AndroidToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public boolean delete(DAO<? extends BaseGenericVO> dao, String id,
-			String idUser, long action) {
+	public boolean delete(String idUser, DAO<? extends BaseGenericVO> dao,
+			String id, long action) {
 		int rows = db.delete(TO_SYNC_TABLE.getName(), String.format(
 				"%s=? AND %s=? AND %s=? AND %s=?", ID.getName(),
 				CLASSNAME.getName(), ACTION.getName(), ID_USER.getName()),
