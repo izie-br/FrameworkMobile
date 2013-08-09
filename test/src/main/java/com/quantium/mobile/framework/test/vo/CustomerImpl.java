@@ -18,9 +18,11 @@ public class CustomerImpl extends AbstractCustomer
     }
 
     public CustomerImpl (
-            String _id, String _name, QuerySet<Document> _DocumentDocuments) {
+            String _id, Date _createdAt, Date _lastModified,
+            String _name, QuerySet<Document> _CustomerDocuments) {
         super(
-            _id, _name, _DocumentDocuments);
+            _id, _createdAt, _lastModified,
+            _name, _CustomerDocuments);
     }
 }
 

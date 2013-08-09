@@ -2,6 +2,7 @@ package com.quantium.mobile.framework;
 
 import java.util.Collection;
 import java.util.Map;
+import java.util.Date;
 
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.ValidationError;
@@ -27,5 +28,12 @@ public interface BaseGenericVO {
 	public String getId();
 	
 	public void setId(String id);
+
+	public Date getCreatedAt();
 	
+	public void setCreatedAt(Date createdAt);
+
+	public Date getLastModified();
+	
+	public void setLastModified(Date changedAt);
 }

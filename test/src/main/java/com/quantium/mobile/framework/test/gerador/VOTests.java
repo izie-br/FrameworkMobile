@@ -19,7 +19,7 @@ public class VOTests extends ActivityInstrumentationTestCase2<TestActivity> {
 	public void testHashCode() {
 		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
-				author1.getId(), author1.getCreatedAt(),
+				author1.getId(), author1.getCreatedAt(),null,
 				author1.getName(), author1.isActive(), null, null);
 		assertEquals(author1, author2);
 		assertEquals(author1.hashCode(), author2.hashCode());
@@ -28,7 +28,7 @@ public class VOTests extends ActivityInstrumentationTestCase2<TestActivity> {
 	public void testEquals() {
 		Author author1 = Utils.randomAuthor();
 		Author author2 = new AuthorImpl(
-				author1.getId(), author1.getCreatedAt(),
+				author1.getId(), author1.getCreatedAt(),null,
 				author1.getName(), author1.isActive(), null, null);
 
 		assertTrue(author1.equals(author2));
@@ -41,25 +41,25 @@ public class VOTests extends ActivityInstrumentationTestCase2<TestActivity> {
 
 		assertFalse(author1.equals(new AuthorImpl(
 				author1.getId()+1,    /* changed */
-				author1.getCreatedAt(),
+				author1.getCreatedAt(),null,
 				author1.getName(), author1.isActive(), null, null
 		)));
 
 		Date newCreatedAt = DateUtil.adicionaDias(author1.getCreatedAt(), 3);
 		assertFalse(author1.equals(new AuthorImpl(
 				author1.getId(),
-				newCreatedAt,    /* changed */
+				newCreatedAt,    /* changed */null,
 				author1.getName(), author1.isActive(), null, null
 		)));
 
 		assertFalse(author1.equals(new AuthorImpl(
-				author1.getId(), author1.getCreatedAt(),
+				author1.getId(), author1.getCreatedAt(),null,
 				author1.getName() + " Diff",    /* changed */
 				author1.isActive(), null, null
 		)));
 
 		assertFalse(author1.equals(new AuthorImpl(
-				author1.getId(), author1.getCreatedAt(),
+				author1.getId(), author1.getCreatedAt(),null,
 				author1.getName(),
 				!(author1.isActive()),    /* changed */
 				null, null

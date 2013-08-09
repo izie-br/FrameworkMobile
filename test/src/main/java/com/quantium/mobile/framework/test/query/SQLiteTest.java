@@ -120,10 +120,10 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 			Date now = new Date();
 			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 
-			Author author1 = new AuthorImpl(null, now, "author1", true, null, null);
-			Author author2 = new AuthorImpl(null, now, "author2", true, null, null);
-			Author author3 = new AuthorImpl(null, now, "author3", false, null, null);
-			Author author4 = new AuthorImpl(null, now, "author4", true, null, null);
+			Author author1 = new AuthorImpl(null, now,null, "author1", true, null, null);
+			Author author2 = new AuthorImpl(null, now, null,"author2", true, null, null);
+			Author author3 = new AuthorImpl(null, now,null, "author3", false, null, null);
+			Author author4 = new AuthorImpl(null, now,null, "author4", true, null, null);
 
 			assertTrue(dao.save(author1));
 			assertTrue(dao.save(author2));

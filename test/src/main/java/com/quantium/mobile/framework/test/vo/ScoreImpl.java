@@ -20,11 +20,11 @@ public class ScoreImpl extends AbstractScore
     }
 
     public ScoreImpl (
-            String _id, Author _Author, Document _Document,
-            long _score) {
+            String _id, Date _createdAt, Date _lastModified,
+            Author _Author, Document _Document, long _score) {
         super(
-            _id, _Author, _Document,
-            _score);
+            _id, _createdAt, _lastModified,
+            _Author, _Document, _score);
     }
 }
 

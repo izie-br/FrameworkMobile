@@ -20,11 +20,13 @@ public class AuthorImpl extends AbstractAuthor
     }
 
     public AuthorImpl (
-            String _id, Date _createdAt, String _name,
-            boolean _active, QuerySet<Document> _AuthorDocuments, QuerySet<Score> _AuthorScores) {
+            String _id, Date _createdAt, Date _lastModified,
+            String _name, boolean _active, QuerySet<Document> _AuthorDocuments,
+            QuerySet<Score> _AuthorScores) {
         super(
-            _id, _createdAt, _name,
-            _active, _AuthorDocuments, _AuthorScores);
+            _id, _createdAt, _lastModified,
+            _name, _active, _AuthorDocuments,
+            _AuthorScores);
     }
 }
 

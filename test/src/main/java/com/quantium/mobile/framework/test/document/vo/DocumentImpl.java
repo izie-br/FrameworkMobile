@@ -11,20 +11,24 @@ import com.quantium.mobile.framework.test.vo.Customer;
 import com.quantium.mobile.framework.test.gen.CustomerEditable;
 import com.quantium.mobile.framework.test.document.gen.AbstractDocument;
 
-@SuppressWarnings("unused")
-/* remova este SuppressWarnings ao editar este arquivo */
-public class DocumentImpl extends AbstractDocument {
+@SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
+public class DocumentImpl extends AbstractDocument
+{
 
-	public static final long serialVersionUID = AbstractDocument.publicSerialVersionUID;
+    public static final long serialVersionUID = AbstractDocument.publicSerialVersionUID;
 
-	public DocumentImpl() {
-		super();
-	}
+    public DocumentImpl () {
+        super();
+    }
 
-	public DocumentImpl(String _id, Date _createdAt, Author _Author,
-			String _text, String _title, QuerySet<Score> _DocumentScores,
-			QuerySet<Customer> _DocumentCustomers) {
-		super(_id, _createdAt, _Author, _text, _title, _DocumentScores,
-				_DocumentCustomers);
-	}
+    public DocumentImpl (
+            String _id, Date _createdAt, Date _lastModified,
+            Author _Author, String _text, String _title,
+            QuerySet<Score> _DocumentScores, QuerySet<Customer> _CustomerCustomers) {
+        super(
+            _id, _createdAt, _lastModified,
+            _Author, _text, _title,
+            _DocumentScores, _CustomerCustomers);
+    }
 }
+

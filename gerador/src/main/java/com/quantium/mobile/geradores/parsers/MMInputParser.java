@@ -6,6 +6,7 @@ import java.io.FileOutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -61,6 +62,8 @@ public class MMInputParser implements InputParser {
 			}
 			tabelaBuilder.addProperty("id", String.class,
 					Constraint.primaryKey());
+			tabelaBuilder.addProperty("created_at", Date.class);
+			tabelaBuilder.addProperty("last_modified", Date.class);
 			allClasses.put(clazz, tabelaBuilder);
 		}
 		Set<Clazz> keys = allClasses.keySet();
