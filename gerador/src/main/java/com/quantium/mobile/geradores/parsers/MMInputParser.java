@@ -64,6 +64,7 @@ public class MMInputParser implements InputParser {
 					Constraint.primaryKey());
 			tabelaBuilder.addProperty("created_at", Date.class);
 			tabelaBuilder.addProperty("last_modified", Date.class);
+			tabelaBuilder.addProperty("inactivated_at", Date.class);
 			allClasses.put(clazz, tabelaBuilder);
 		}
 		Set<Clazz> keys = allClasses.keySet();

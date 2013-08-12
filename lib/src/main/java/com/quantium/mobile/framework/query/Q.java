@@ -249,7 +249,7 @@ public final class Q implements Serializable {
 
     //Classes NODE
 
-    public static class QNode implements Serializable{
+    public static class QNode implements Serializable, Cloneable{
         /**
 		 * 
 		 */

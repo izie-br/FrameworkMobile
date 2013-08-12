@@ -35,5 +35,9 @@ public interface BaseGenericVO {
 
 	public Date getLastModified();
 	
-	public void setLastModified(Date changedAt);
+	public void setLastModified(Date lastModified);
+	
+	public Date getInactivatedAt();
+	
+	public void setInactivatedAt(Date inactivatedAt);
 }
