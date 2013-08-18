@@ -5,6 +5,7 @@
 ##
     @Override
     public  $Target cursorToObject(Cursor cursor, boolean useCache){
+		ValueParser parser = this.factory.getValueParser();
 #foreach ($field in $fields)
 #**##set ($columnIndex = $foreach.index)
 #**##if ($associationForField[$field])
@@ -35,7 +36,7 @@
 #******##if ($field.Klass.equals("Boolean") )
 #******#        ${field.Type} _${field.LowerCamel} = SQLiteUtils.integerToBoolean(cursor.getShort(${columnIndex}));
 #******##elseif ($field.Klass.equals("Date") )
-#******#        ${field.Type} _${field.LowerCamel} = DateUtil.stringToDate(cursor.getString(${columnIndex}));
+#******#        ${field.Type} _${field.LowerCamel} = parser.parse${field.Klass}(cursor.getString(${columnIndex}));
 #******##elseif ($field.Klass.equals("Long") )
 #******#        ${field.Type} _${field.LowerCamel} = cursor.getLong(${columnIndex});
 #******##elseif ($field.Klass.equals("Double") )

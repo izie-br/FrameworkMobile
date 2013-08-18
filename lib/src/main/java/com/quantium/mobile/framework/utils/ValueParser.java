@@ -64,6 +64,18 @@ public class ValueParser {
 		throw new IllegalArgumentException(value.toString());
 	}
 
+	public String unparseDate(Date date) {
+		if (date == null)
+			return null;
+		return DateUtil.dateToString(date);
+	}
+
+	public String unparseTimestamp(Date date) {
+		if (date == null)
+			return null;
+		return DateUtil.timestampToString(date);
+	}
+
 	public String parseString(Object value) {
 		return (value == null) ? null : value.toString();
 	}
@@ -84,6 +96,13 @@ public class ValueParser {
 					null :
 					associationDao.get(associationId);
 		}
+	}
+
+	public int unparseBoolean(boolean active) {
+		if(active){
+			return 1;
+		}
+		return 0;
 	}
 
 }

@@ -5,6 +5,7 @@
 
     @Override
     public boolean save($Target target, int flags) throws IOException {
+    	ValueParser parser = this.factory.getValueParser();
         ContentValues contentValues = new ContentValues();
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
@@ -14,9 +15,9 @@
 #**##elseif (!$field.PrimaryKey)
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",
-#******#                          DateUtil.timestampToString(target.${getter[$field]}()));
+#******#                          parser.unparseTimestamp(target.${getter[$field]}()));
 #******##elseif ($field.Klass.equals("Boolean") )
-#******#        contentValues.put("${field.LowerAndUnderscores}", SQLiteUtils.booleanToInteger(target.${getter[$field]}()));
+#******#        contentValues.put("${field.LowerAndUnderscores}", parser.unparseBoolean(target.${getter[$field]}()));
 #******##else
 #******#        contentValues.put("${field.LowerAndUnderscores}", target.${getter[$field]}());
 #******##end
