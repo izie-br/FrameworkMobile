@@ -6,11 +6,16 @@ import com.quantium.mobile.framework.query.AbstractQSQLProvider;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.query.Table.Column;
+import com.quantium.mobile.framework.utils.ValueParser;
 
 public class QH2DialectProvider extends AbstractQSQLProvider {
 
-    public QH2DialectProvider(Q q) {
-        super(q);
+	public QH2DialectProvider(Q q) {
+        super(q, new ValueParser());
+    }
+	
+	public QH2DialectProvider(Q q, ValueParser parser) {
+        super(q, parser);
     }
 
     @Override
@@ -26,11 +31,6 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
 //                ) + column.getName();
       String columnNameWithTable = tableAs + '.' + column.getName();
             return columnNameWithTable;
-    }
-
-    @Override
-    protected Object parseArgument(Object arg) {
-        return arg;
     }
 
     @Override

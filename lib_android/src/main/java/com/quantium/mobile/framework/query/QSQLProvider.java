@@ -2,17 +2,19 @@ package com.quantium.mobile.framework.query;
 
 import java.util.Date;
 
+import com.quantium.mobile.framework.AndroidValueParser;
 import com.quantium.mobile.framework.utils.SQLiteUtils;
+import com.quantium.mobile.framework.utils.ValueParser;
 
 public class QSQLProvider extends AbstractQSQLProvider {
 
     public QSQLProvider(Q q){
-        super(q);
+        super(q, new AndroidValueParser());
     }
 
-    @Override
-    protected Object parseArgument(Object arg) {
-        return SQLiteUtils.parse(arg);
+
+    public QSQLProvider(Q q, ValueParser parser){
+        super(q, parser);
     }
 
     @Override

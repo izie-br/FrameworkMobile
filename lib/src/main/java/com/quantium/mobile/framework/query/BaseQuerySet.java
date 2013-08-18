@@ -3,9 +3,12 @@ package com.quantium.mobile.framework.query;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.quantium.mobile.framework.utils.ValueParser;
+
 public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	protected Q q;
+	protected ValueParser parser;
 	protected List<Q.OrderByClause> orderClauses =
 			new ArrayList<Q.OrderByClause>(1);
 
@@ -14,6 +17,14 @@ public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 
 	protected int limit;
 	protected int offset;
+
+	public BaseQuerySet(ValueParser parser) {
+		this.parser = parser;
+	}
+	
+	public ValueParser getParser() {
+		return parser;
+	}
 
 	protected abstract List<Table.Column<?>> getColumns();
 

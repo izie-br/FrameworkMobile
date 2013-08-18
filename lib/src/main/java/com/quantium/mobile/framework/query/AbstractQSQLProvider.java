@@ -1,20 +1,43 @@
 package com.quantium.mobile.framework.query;
 
+import java.util.Calendar;
 import java.util.Collection;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
 import com.quantium.mobile.framework.query.Q.QNode1X1;
 import com.quantium.mobile.framework.utils.StringUtil;
+import com.quantium.mobile.framework.utils.ValueParser;
 
 public abstract class AbstractQSQLProvider {
+
+	private ValueParser parser;
+	
+	private static final String ERRO_CLASSE_SEM_STRING_FORMAT =
+			"Classe \"%s\" sem um metodo parse de sring correspodente.";
 
     private static final String NULL_ARGUMENT_EXCEPTION_FMT =
             "Operador %s operando coluna %s com argumento %s";
 
     protected abstract String getColumn(String tableAs, Table.Column<?> column);
 
-    protected abstract Object parseArgument(Object arg);
+    protected final Object parseArgument(Object arg){
+    	if(arg instanceof Boolean)
+    		return parser.unparseBoolean((Boolean) arg);
+    	if(arg instanceof Date)
+    		return parser.unparseTimestamp((Date) arg);
+    	if(CharSequence.class.isInstance(arg))
+			return parser.unparseCharSequence((CharSequence)arg);
+		if(Number.class.isInstance(arg))
+			return parser.unparseNumber((Number)arg);
+		if(Calendar.class.isInstance(arg))
+			return parser.unparseTimestamp(((Calendar)arg).getTime());
+		throw new RuntimeException(String.format(
+				ERRO_CLASSE_SEM_STRING_FORMAT,
+				arg.getClass().getSimpleName()
+		));
+    }
 
     protected abstract void limitOffsetOut(long limit, long offset,
                                            StringBuilder selectStatement);
@@ -23,8 +46,9 @@ public abstract class AbstractQSQLProvider {
         return null;
     }
 
-    public AbstractQSQLProvider(Q q) {
+    public AbstractQSQLProvider(Q q, ValueParser parser) {
         this.q = q;
+        this.parser = parser;
     }
 
     private Q q;

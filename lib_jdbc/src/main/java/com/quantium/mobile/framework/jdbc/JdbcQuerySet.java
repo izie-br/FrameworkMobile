@@ -12,8 +12,13 @@ import java.util.List;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.BaseQuerySet;
 import com.quantium.mobile.framework.query.Q;
+import com.quantium.mobile.framework.utils.ValueParser;
 
 public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
+
+	public JdbcQuerySet(ValueParser parser) {
+		super(parser);
+	}
 
 	protected abstract T cursorToObject(ResultSet cursor);
 
@@ -94,7 +99,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		}
 
 		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QH2DialectProvider(q)
+		String qstr = new QH2DialectProvider(q, parser)
 				.limit(this.limit)
 				.offset(this.offset)
 				.orderBy(this.orderClauses)

@@ -105,4 +105,12 @@ public class ValueParser {
 		return 0;
 	}
 
+	public Object unparseNumber(Number arg) {
+		return arg.toString();
+	}
+
+	public Object unparseCharSequence(CharSequence arg) {
+		return arg.toString();
+	}
+
 }

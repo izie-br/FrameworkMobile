@@ -4,10 +4,16 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import com.quantium.mobile.framework.utils.ValueParser;
+
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 
 public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
+
+	public SQLiteQuerySet(ValueParser parser) {
+		super(parser);
+	}
 
 	protected abstract T cursorToObject(Cursor cursor);
 
@@ -60,7 +66,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 		}
 		String args [] = null;
 		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QSQLProvider(this.q)
+		String qstr = new QSQLProvider(this.q, parser)
 				.limit(this.limit)
 				.offset(this.offset)
 				.orderBy(this.orderClauses)

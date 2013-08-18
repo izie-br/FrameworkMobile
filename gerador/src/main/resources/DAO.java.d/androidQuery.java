@@ -15,6 +15,10 @@
 
     private final class QuerySetImpl extends SQLiteQuerySet<${Target}> {
 
+    	public QuerySetImpl(){
+    		super(factory.getValueParser());
+    	}
+    	
         @Override
         public ${Target} first() {
             List<${Target}> cache = factory.loadQFromCache(${Target}.class, this.q);
