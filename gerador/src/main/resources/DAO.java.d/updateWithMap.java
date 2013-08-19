@@ -26,7 +26,7 @@
 #**##elseif (!$field.PrimaryKey)
 #******#        if (mapAnyCamelCase.containsKey("${alias}")) {
 #******#            temp = mapAnyCamelCase.get("${alias}");
-#******#            ${field.Type} _${field.LowerCamel} = parser.parse${field.Klass}(temp);
+#******#            ${field.Type} _${field.LowerCamel} = parser.${field.Klass}FromMap(temp);
 #******#            target.set${field.UpperCamel}(_${field.LowerCamel});
 #******#        }
 #**##end

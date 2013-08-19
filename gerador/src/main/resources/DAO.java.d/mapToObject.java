@@ -25,7 +25,7 @@
 #******#                mapAnyCamelCase, _${association.KeyToA}dao, "${association.KeyToA}", "${alias}");
 #**##else
 #******#        temp = mapAnyCamelCase.get("${alias}");
-#******#        ${field.Type} _${field.LowerCamel} = parser.parse${field.Klass}(temp);
+#******#        ${field.Type} _${field.LowerCamel} = parser.${field.Klass}FromMap(temp);
 #**##end
 #end
 

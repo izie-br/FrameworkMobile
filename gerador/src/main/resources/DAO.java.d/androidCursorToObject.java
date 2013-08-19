@@ -34,9 +34,9 @@
 #******#
 #**##else
 #******##if ($field.Klass.equals("Boolean") )
-#******#        ${field.Type} _${field.LowerCamel} = SQLiteUtils.integerToBoolean(cursor.getShort(${columnIndex}));
+#******#        ${field.Type} _${field.LowerCamel} = parser.booleanFromDatabase(cursor.getShort(${columnIndex}));
 #******##elseif ($field.Klass.equals("Date") )
-#******#        ${field.Type} _${field.LowerCamel} = parser.parse${field.Klass}(cursor.getString(${columnIndex}));
+#******#        ${field.Type} _${field.LowerCamel} = parser.dateFromDatabase(cursor.getString(${columnIndex}));
 #******##elseif ($field.Klass.equals("Long") )
 #******#        ${field.Type} _${field.LowerCamel} = cursor.getLong(${columnIndex});
 #******##elseif ($field.Klass.equals("Double") )

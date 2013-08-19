@@ -15,9 +15,9 @@
 #**##elseif (!$field.PrimaryKey)
 #******##if ($field.Klass.equals("Date") )
 #******#        contentValues.put("${field.LowerAndUnderscores}",
-#******#                          parser.unparseTimestamp(target.${getter[$field]}()));
+#******#                          parser.dateToDatabase(target.${getter[$field]}()));
 #******##elseif ($field.Klass.equals("Boolean") )
-#******#        contentValues.put("${field.LowerAndUnderscores}", parser.unparseBoolean(target.${getter[$field]}()));
+#******#        contentValues.put("${field.LowerAndUnderscores}", parser.booleanToDatabase(target.${getter[$field]}()));
 #******##else
 #******#        contentValues.put("${field.LowerAndUnderscores}", target.${getter[$field]}());
 #******##end

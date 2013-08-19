@@ -24,15 +24,15 @@ public abstract class AbstractQSQLProvider {
 
     protected final Object parseArgument(Object arg){
     	if(arg instanceof Boolean)
-    		return parser.unparseBoolean((Boolean) arg);
+    		return parser.booleanToDatabase((Boolean) arg);
     	if(arg instanceof Date)
-    		return parser.unparseTimestamp((Date) arg);
+    		return parser.dateToDatabase((Date) arg);
     	if(CharSequence.class.isInstance(arg))
-			return parser.unparseCharSequence((CharSequence)arg);
+			return parser.stringToDatabase((CharSequence)arg);
 		if(Number.class.isInstance(arg))
-			return parser.unparseNumber((Number)arg);
+			return parser.numberToDatabase((Number)arg);
 		if(Calendar.class.isInstance(arg))
-			return parser.unparseTimestamp(((Calendar)arg).getTime());
+			return parser.dateToDatabase(((Calendar)arg).getTime());
 		throw new RuntimeException(String.format(
 				ERRO_CLASSE_SEM_STRING_FORMAT,
 				arg.getClass().getSimpleName()
