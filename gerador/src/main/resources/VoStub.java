@@ -20,9 +20,6 @@ ${Imports}
         super();
     }
 
-    public ${Filename} (${constructorArgsDecl}) {
-        super(${constructorArgs});
-    }
 #end
 }
 

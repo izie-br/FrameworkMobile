@@ -23,10 +23,13 @@ public class ScoreImpl extends AbstractScore
             String _id, Date _createdAt, Date _inactivatedAt,
             Date _lastModified, Author _Author, Document _Document,
             long _score) {
-        super(
-            _id, _createdAt, _inactivatedAt,
-            _lastModified, _Author, _Document,
-            _score);
+    	setId(_id);
+    	setCreatedAt(_createdAt);
+    	setInactivatedAt(_inactivatedAt);
+    	setLastModified(_lastModified);
+        setAuthor(_Author);
+        setDocument(_Document);
+        setScore(_score);
     }
 }
 

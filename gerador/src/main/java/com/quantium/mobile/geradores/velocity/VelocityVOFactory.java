@@ -146,7 +146,7 @@ public class VelocityVOFactory {
 		ctx.put("Imports", imports);
 
 		ctx.put("associationForField", associationsFromFK);
-		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
+//		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 
 		if (type == VelocityVOFactory.Type.IMPLEMENTATION) {
 			ValidateHelper vhelper = new ValidateHelper(schema, fields);

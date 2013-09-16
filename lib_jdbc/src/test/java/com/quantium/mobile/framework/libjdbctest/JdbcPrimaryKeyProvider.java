@@ -81,7 +81,37 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public boolean delete(DAO<? extends BaseGenericVO> dao, String id)
+	public <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao,
+			Object id) throws IOException {
+		String tableName = dao.getTable().getName();
+		String idServer = null;
+		Connection conn = null;
+		try {
+			conn = MyJdbcDAOFactory.createConnection();
+			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
+					+ CLASSNAME.getName() + "=? AND "+ID.getName() +" =? ";
+			PreparedStatement stm = conn.prepareStatement(sql);
+			stm.setString(1, tableName);
+			stm.setObject(2, id);
+			ResultSet rs = stm.executeQuery();
+			while (rs.next()) {
+				idServer = rs.getString(1);
+			}
+		} catch (java.sql.SQLException e) {
+			throw new IOException(e);
+		} finally {
+			try {
+				if (conn != null)
+					conn.close();
+			} catch (java.sql.SQLException e) {
+				throw new IOException(e);
+			}
+		}
+		return idServer;
+	}
+
+	@Override
+	public <T extends BaseGenericVO> boolean delete(DAO<T> dao, String id)
 			throws IOException {
 		Connection conn = null;
 		try {
@@ -102,6 +132,30 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 			}
 		}
 		return true;
+	}
+
+	@Override
+	public <T extends BaseGenericVO> void updateIdServer(DAO<T> dao,
+			Object oldId, Object newPrimaryKey) throws IOException {
+		Connection conn = null;
+		try {
+			conn = MyJdbcDAOFactory.createConnection();
+			String sql = "UPDATE " + SYNC_TABLE.getName() + "SET "+ID_SERVER.getName()+" =? WHERE "
+					+ ID.getName() + "=?";
+			PreparedStatement stm = conn.prepareStatement(sql);
+			stm.setString(1, newPrimaryKey.toString());
+			stm.setString(2, oldId.toString());
+			stm.execute();
+		} catch (java.sql.SQLException e) {
+			throw new IOException(e);
+		} finally {
+			try {
+				if (conn != null)
+					conn.close();
+			} catch (java.sql.SQLException e) {
+				throw new IOException(e);
+			}
+		}
 	}
 
 }

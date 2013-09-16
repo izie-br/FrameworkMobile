@@ -2,8 +2,11 @@ package com.quantium.mobile.framework.test;
 
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+
+import com.quantium.mobile.framework.Observer;
 
 @SuppressWarnings("serial")
 public abstract class GenericBean implements Serializable, GenericVO {
@@ -51,4 +54,51 @@ public abstract class GenericBean implements Serializable, GenericVO {
         return equalsImpl(obj);
     }
 
+    @Override
+    public void registerObserver(Observer observer) {
+    	// TODO Auto-generated method stub
+    	
+    }
+    
+    @Override
+    public void unregisterObserver(Observer observer) {
+    	// TODO Auto-generated method stub
+    	
+    }
+    
+    @Override
+    public void setInactivatedAt(Date inactivatedAt) {
+    	// TODO Auto-generated method stub
+    	
+    }
+    
+    @Override
+    public void setCreatedAt(Date createdAt) {
+    	// TODO Auto-generated method stub
+    	
+    }
+    
+    @Override
+    public void setLastModified(Date lastModified) {
+    	// TODO Auto-generated method stub
+    	
+    }
+    
+    @Override
+    public Date getCreatedAt() {
+    	// TODO Auto-generated method stub
+    	return null;
+    }
+    
+    @Override
+    public Date getInactivatedAt() {
+    	// TODO Auto-generated method stub
+    	return null;
+    }
+    
+    @Override
+    public Date getLastModified() {
+    	// TODO Auto-generated method stub
+    	return null;
+    }
 }

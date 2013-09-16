@@ -22,9 +22,10 @@ public class ScoreImpl extends AbstractScore
     public ScoreImpl (
             String _id, Author _Author, Document _Document,
             long _score) {
-        super(
-            _id, _Author, _Document,
-            _score);
+        setId(_id);
+        setAuthor(_Author);
+        setDocument(_Document);
+        setScore(_score);
     }
 }
 

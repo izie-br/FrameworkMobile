@@ -27,6 +27,7 @@ public abstract class BaseModelFacade {
 		this.daoFactory = daoFactory;
 		this.primaryKeyProvider = primaryKeyProvider;
 		this.toSyncProvider = toSyncProvider;
+		this.daoFactory.setModelFacade(this);
 	}
 
 	protected abstract String getLoggedUserId();
@@ -41,6 +42,11 @@ public abstract class BaseModelFacade {
 			throws IOException {
 		return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
 	}
+	
+	public <T extends BaseGenericVO> Object getIdServerById(Object tempId, Class<T> klass)
+			throws IOException {
+		return primaryKeyProvider.getIdServerById(daoFactory.getDaoFor(klass), tempId);
+	}
 
 	public <T extends BaseGenericVO> List<String> listToSyncIds(Class<T> klass,
 			long action) throws IOException {
@@ -52,11 +58,6 @@ public abstract class BaseModelFacade {
 			String id, long action) throws IOException {
 		return toSyncProvider.delete(getLoggedUserId(),
 				daoFactory.getDaoFor(klass), id, action);
-	}
-
-	public <T extends BaseGenericVO> boolean deleteTempId(Class<T> klass,
-			String id) throws IOException {
-		return primaryKeyProvider.delete(daoFactory.getDaoFor(klass), id);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -108,8 +109,11 @@ public abstract class BaseModelFacade {
 	@SuppressWarnings("unchecked")
 	public <T extends BaseGenericVO> void updatePrimaryKey(T target,
 			Object newPrimaryKey) throws IOException {
-		((PrimaryKeyUpdater<T>) daoFactory.getDaoFor((Class<T>) target
-				.getClass())).updatePrimaryKey(target, newPrimaryKey);
+		String oldId = target.getId();
+		DAO<T> dao = daoFactory.getDaoFor((Class<T>) target
+				.getClass());
+		((PrimaryKeyUpdater<T>) dao).updatePrimaryKey(target, newPrimaryKey);
+		primaryKeyProvider.updateIdServer(dao, oldId, newPrimaryKey);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -173,6 +177,12 @@ public abstract class BaseModelFacade {
 			throws IOException {
 		return daoFactory.getDaoFor((Class<T>) obj.getClass()).validate(obj);
 	}
+	
+	@SuppressWarnings("unchecked")
+	public <T> Collection<ValidationError> validate(T obj)
+			throws IOException {
+		return daoFactory.getDaoFor((Class<T>) obj.getClass()).validate(obj);
+	}
 
 	@SuppressWarnings("unchecked")
 	public <T extends BaseGenericVO> boolean withAdd(T with, Object add)
@@ -184,7 +194,7 @@ public abstract class BaseModelFacade {
 			return false;
 		}
 	}
-
+	
 	@SuppressWarnings("unchecked")
 	public <T extends BaseGenericVO> boolean withRemove(T with, Object remove)
 			throws IOException {

@@ -2,6 +2,7 @@ package com.quantium.mobile.framework;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.List;
 
 import com.quantium.mobile.framework.query.QuerySet;
 
@@ -10,15 +11,18 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 	QuerySet<T> querySet;
 	Object key;
 	String getter;
-
+	BaseModelFacade modelFacade;
 	T lazyInstance = null;
+	Class<? extends BaseGenericVO> klass;
 
-	public LazyInvocationHandler(QuerySet<T> querySet, Object fk, String getter){
+	public LazyInvocationHandler(Class<? extends BaseGenericVO> klass, BaseModelFacade modelFacade, QuerySet<T> querySet, Object fk, String getter){
 		if (querySet == null)
 			throw new RuntimeException();
 		this.querySet = querySet;
+		this.klass = klass;
 		this.key = fk;
 		this.getter = getter;
+		this.modelFacade = modelFacade;
 	}
 
 	@Override
@@ -34,11 +38,28 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 			} catch (Exception e) {
 				throw new LazyLoadException(e);
 			}
-			if (lazyInstance == null)
-				throw new LazyLoadException(String.format(
-						"Object %s with id %s not found",
-						querySet.getTable().getName(),
-						(key == null)? "null" : key.toString() ));
+			if (lazyInstance == null){
+				//tentando procurar um serverId para este temp id;
+				Object serverId = modelFacade.getIdServerById(key, klass);
+				if(serverId == null){
+					throw new LazyLoadException(String.format(
+							"Object's server id %s from id %s not found",
+							querySet.getTable().getName(),
+							(key == null)? "null" : key.toString() ));
+				}else{
+					BaseGenericVO serverObj = modelFacade.get(klass, serverId);
+					if(serverObj == null){
+						throw new LazyLoadException(String.format(
+								"Object %s server id %s not found",
+								querySet.getTable().getName(),
+								(serverId == null)? "null" : serverId.toString() ));	
+					} else {
+						modelFacade.updatePrimaryKey(serverObj, key);
+						modelFacade.updatePrimaryKey(serverObj, serverId);
+					}
+
+				}
+			}
 		}
 		return method.invoke(lazyInstance, args);
 	}

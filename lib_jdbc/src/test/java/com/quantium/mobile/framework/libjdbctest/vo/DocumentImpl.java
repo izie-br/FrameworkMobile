@@ -25,10 +25,13 @@ public class DocumentImpl extends AbstractDocument
             String _id, Date _createdAt, String _text,
             String _title, Author _Author, QuerySet<Score> _DocumentScores,
             QuerySet<Customer> _DocumentCustomers) {
-        super(
-            _id, _createdAt, _text,
-            _title, _Author, _DocumentScores,
-            _DocumentCustomers);
+        setId(_id);
+        setCreatedAt(_createdAt);
+        setText(_text);
+        setDocumentCustomers(_DocumentCustomers);
+        setAuthor(_Author);
+        setDocumentScores(_DocumentScores);
+        setTitle(_title);
     }
 }
 

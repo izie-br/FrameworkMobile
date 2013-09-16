@@ -23,6 +23,8 @@
 #******#            if (cacheItem == null) {
 #******#                LazyInvocationHandler<${association.Klass}> handler =
 #******#                    new LazyInvocationHandler<${association.Klass}>(
+#******#                        ${association.Klass}.class,
+#******#                        factory.getModelFacade(),
 #******#                        factory.getDaoFor(${association.Klass}.class).query(
 #******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
 #******#                            _${field.LowerCamel},

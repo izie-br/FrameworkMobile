@@ -22,9 +22,12 @@ public class AuthorImpl extends AbstractAuthor
     public AuthorImpl (
             String _id, Date _createdAt, String _name,
             boolean _active, QuerySet<Document> _AuthorDocuments, QuerySet<Score> _AuthorScores) {
-        super(
-            _id, _createdAt, _name,
-            _active, _AuthorDocuments, _AuthorScores);
+        setId(_id);
+        setCreatedAt(_createdAt);
+        setName(_name);
+        setActive(_active);
+        setAuthorDocuments(_AuthorDocuments);
+        setAuthorScores(_AuthorScores);
     }
 }
 

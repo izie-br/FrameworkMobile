@@ -1,6 +1,8 @@
 package ${package};
 
 import android.database.sqlite.SQLiteDatabase;
+
+import com.quantium.mobile.framework.BaseModelFacade;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.db.FirstLevelCache;
@@ -28,6 +30,7 @@ public abstract class SQLiteDAOFactory extends FirstLevelCache
 //    }
 
     private ValueParser parser;
+    private BaseModelFacade modelFacade;
 
     public SQLiteDAOFactory(ValueParser valueParser) {
         this.parser = valueParser;
@@ -36,6 +39,17 @@ public abstract class SQLiteDAOFactory extends FirstLevelCache
     public SQLiteDAOFactory() {
         this.parser = new ValueParser();
     }
+    
+    
+    @Override
+	public BaseModelFacade getModelFacade() {
+		return modelFacade;
+	}
+    
+    @Override
+	public void setModelFacade(BaseModelFacade modelFacade) {
+    	this.modelFacade = modelFacade;	
+	}
 
     public ValueParser getValueParser() {
         return this.parser;

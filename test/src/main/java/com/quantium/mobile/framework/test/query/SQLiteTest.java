@@ -7,7 +7,6 @@ import java.util.List;
 
 import android.test.ActivityInstrumentationTestCase2;
 
-import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.test.SessionFacade;
@@ -32,37 +31,32 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		super.setUp();
 		//Limpar o banco
 		{
-			DAO<Score> dao = facade.getDAOFactory().getDaoFor(Score.class);
-			List<Score> objects = dao.query().all();
+			List<Score> objects = facade.query(Score.class).all();
 			for (Score obj :objects) {
-				dao.delete(obj);
+				facade.delete(obj);
 			}
 		}
 		{
-			DAO<Customer> dao = facade.getDAOFactory().getDaoFor(Customer.class);
-			List<Customer> objects = dao.query().all();
+			List<Customer> objects = facade.query(Customer.class).all();
 			for (Customer obj :objects) {
-				dao.delete(obj);
+				facade.delete(obj);
 			}
 		}
 		{
-			DAO<Document> dao = facade.getDAOFactory().getDaoFor(Document.class);
-			List<Document> objects = dao.query().all();
+			List<Document> objects = facade.query(Document.class).all();
 			for (Document obj :objects) {
-				dao.delete(obj);
+				facade.delete(obj);
 			}
 		}
 		{
-			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-			List<Author> objects = dao.query().all();
+			List<Author> objects = facade.query(Author.class).all();
 			for (Author obj :objects) {
-				dao.delete(obj);
+				facade.delete(obj);
 			}
 		}
 	}
 
 	public void testLikeAndGlob(){
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		Author author1 = new AuthorImpl();
 		author1.setName("um nome");
 		Date now = new Date();
@@ -79,15 +73,15 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		author4.setName("com caracteres *[?.^$+-(){}]");
 		author4.setCreatedAt(now);
 		try {
-			assertTrue(dao.save(author1));
-			assertTrue(dao.save(author2));
-			assertTrue(dao.save(author3));
-			assertTrue(dao.save(author4));
+			assertTrue(facade.save(author1));
+			assertTrue(facade.save(author2));
+			assertTrue(facade.save(author3));
+			assertTrue(facade.save(author4));
 		} catch (IOException e) {
 			fail(StringUtil.getStackTrace(e));
 		}
 		// buscas com LIKE
-		Collection<Author> authors = dao.query(
+		Collection<Author> authors = facade.query(Author.class,
 				Q.like(Author.NAME,"%no_e"))
 			.all();
 		assertNotNull(authors);
@@ -95,7 +89,7 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
 		// buscas com GLOB
-		authors = dao.query(
+		authors = facade.query(Author.class,
 				Q.glob(Author.NAME,"*[nm]?[mw]e"))
 			.all();
 		assertNotNull(authors);
@@ -103,7 +97,7 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		assertTrue(authors.contains(author1));
 		assertTrue(authors.contains(author2));
 
-		authors = dao.query(Q.glob(
+		authors = facade.query(Author.class, Q.glob(
 					Author.NAME,
 					// os caracteres *, [ e ? devem estar entre chaves []
 					// o caractere ] deve estar sozinho, sem uma [ associada
@@ -118,25 +112,23 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 	public void testLimitOffset () {
 		try {
 			Date now = new Date();
-			DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-
 			Author author1 = new AuthorImpl(null, now,null,null, "author1", true, null, null);
 			Author author2 = new AuthorImpl(null, now, null,null,"author2", true, null, null);
 			Author author3 = new AuthorImpl(null, now,null,null, "author3", false, null, null);
 			Author author4 = new AuthorImpl(null, now,null,null, "author4", true, null, null);
 
-			assertTrue(dao.save(author1));
-			assertTrue(dao.save(author2));
-			assertTrue(dao.save(author3));
-			assertTrue(dao.save(author4));
+			assertTrue(facade.save(author1));
+			assertTrue(facade.save(author2));
+			assertTrue(facade.save(author3));
+			assertTrue(facade.save(author4));
 
-			List<Author> authors = dao.query().limit(1).all();
+			List<Author> authors = facade.query(Author.class).limit(1).all();
 			assertEquals(1, authors.size());
 
-			authors = dao.query().offset(2).all();
+			authors = facade.query(Author.class).offset(2).all();
 			assertEquals(2, authors.size());
 
-			authors = dao.query(Author.ACTIVE.eq(true))
+			authors = facade.query(Author.class, Author.ACTIVE.eq(true))
 					.limit(1).offset(1)
 					.orderBy(Author.NAME)
 					.all();
@@ -151,26 +143,23 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Date referenceDate = new Date();
 		Date beforeReference = new Date(referenceDate.getTime() - 2*60*1000);
 		Date afterReference = new Date(referenceDate.getTime() + 2*60*1000);
-
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-
 		Author author1 = Utils.randomAuthor();
 		author1.setCreatedAt(beforeReference);
 		Author author2 = Utils.randomAuthor();
 		author2.setCreatedAt(afterReference);
 
 		try{
-			assertTrue(dao.save(author1));
-			assertTrue(dao.save(author2));
+			assertTrue(facade.save(author1));
+			assertTrue(facade.save(author2));
 
-			List<Author> authorsCreatedBefore = dao
-					.query(Author.CREATED_AT.lt(referenceDate))
+			List<Author> authorsCreatedBefore = facade
+					.query(Author.class, Author.CREATED_AT.lt(referenceDate))
 					.all();
 			assertEquals(1, authorsCreatedBefore.size());
 			assertEquals(author1, authorsCreatedBefore.get(0));
 
-			List<Author> authorsCreatedAfter = dao
-					.query(Author.CREATED_AT.gt(referenceDate))
+			List<Author> authorsCreatedAfter = facade
+					.query(Author.class, Author.CREATED_AT.gt(referenceDate))
 					.all();
 			assertEquals(1, authorsCreatedAfter.size());
 			assertEquals(author2, authorsCreatedAfter.get(0));
@@ -180,8 +169,6 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 	}
 
 	public void testJoinQuery(){
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
-
 		Author author1 = Utils.randomAuthor();
 		Author author2 = Utils.randomAuthor();
 		Author author3 = Utils.randomAuthor();
@@ -191,14 +178,14 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		Document doc3 = Utils.randomDocument();
 
 		try {
-			assertTrue(dao.save(author1));
-			assertTrue(dao.with(author1).add(doc1));
-			assertTrue(dao.save(author2));
-			assertTrue(dao.with(author2).add(doc2));
-			assertTrue(dao.save(author3));
-			assertTrue(dao.with(author3).add(doc3));
+			assertTrue(facade.save(author1));
+			assertTrue(facade.withAdd(author1,doc1));
+			assertTrue(facade.save(author2));
+			assertTrue(facade.withAdd(author2,doc2));
+			assertTrue(facade.save(author3));
+			assertTrue(facade.withAdd(author3,doc3));
 
-			List<Author> authors = dao.query(
+			List<Author> authors = facade.query(Author.class, 
 					Author.ID.eq(Document.ID_AUTHOR)
 					.and(Document.ID.eq(doc2.getId()))
 			).all();
@@ -210,18 +197,17 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 	}
 
 	public void testImmutableQuerySet() throws Exception{
-		DAO<Author> dao = facade.getDAOFactory().getDaoFor(Author.class);
 		for (int i=0; i< 10; i++){
 			Author author1 = new AuthorImpl();
 			author1.setName("nome["+i+"]");
 			author1.setCreatedAt(new Date());
 			try {
-				dao.save(author1);
+				facade.save(author1);
 			} catch (IOException e) {
 				fail(StringUtil.getStackTrace(e));
 			}
 		}
-		final QuerySet<Author> qs1 = dao.query();
+		final QuerySet<Author> qs1 = facade.query(Author.class);
 		List<Author> list1 = qs1.all();
 		int qty = list1.size();
 		Author first = qs1.first();

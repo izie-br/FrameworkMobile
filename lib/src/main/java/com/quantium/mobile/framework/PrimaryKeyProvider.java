@@ -21,6 +21,8 @@ public abstract class PrimaryKeyProvider {
 
 	public abstract List<String> listIds(DAO<? extends BaseGenericVO> dao)
 			throws IOException;
+	
+	public abstract <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao, Object id) throws IOException;
 
 	public <T extends BaseGenericVO> boolean generatePrimaryKey(DAO<T> dao, T obj)
 			throws IOException {
@@ -30,7 +32,9 @@ public abstract class PrimaryKeyProvider {
 		return true;
 	}
 
-	public abstract boolean delete(DAO<? extends BaseGenericVO> dao, String id)
+	public abstract  <T extends BaseGenericVO>  boolean delete(DAO<T> dao, String id)
 			throws IOException;
+
+	public abstract <T extends BaseGenericVO>  void updateIdServer(DAO<T> dao,Object oldId, Object newPrimaryKey) throws IOException;
 
 }

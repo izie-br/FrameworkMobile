@@ -126,7 +126,7 @@ public class VelocityStubFactory {
 		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(
 				schema, fields, associationsMap, oneToMany, manyToMany);
 		ctx.put("constructorArgs", argsHelper.getConstructorArguments());
-		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
+//		ctx.put("constructorArgsDecl", argsHelper.getConstructorArgsDecl());
 		LoggerUtil.getLog().info("Criando " + f.getPath());
 
 		ctx.put("interface", (this.type == StubType.INTERFACE));

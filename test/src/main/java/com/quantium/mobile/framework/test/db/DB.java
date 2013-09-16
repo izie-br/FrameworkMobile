@@ -17,7 +17,7 @@ public class DB extends SQLiteOpenHelper{
 
 	public static String DB_NOME = "default.db";
 	private static int DB_VERSAO_INICIAL = 0;
-	public static int DB_VERSAO = 9;
+	public static int DB_VERSAO = 10;
 	private static String DB_VERSOES_RESOURCES_PREFIXO = "db_versao_";
 
 	public static SQLiteDatabase instancia;

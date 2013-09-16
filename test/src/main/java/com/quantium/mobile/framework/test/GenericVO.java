@@ -3,9 +3,10 @@ package com.quantium.mobile.framework.test;
 import java.util.Collection;
 import java.util.Map;
 
+import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.validation.ValidationError;
 
-public interface GenericVO {
+public interface GenericVO extends BaseGenericVO {
 
 	public abstract void toMap(Map<String, Object> map);
 

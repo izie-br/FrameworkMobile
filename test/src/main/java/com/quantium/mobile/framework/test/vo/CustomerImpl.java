@@ -20,9 +20,12 @@ public class CustomerImpl extends AbstractCustomer
     public CustomerImpl (
             String _id, Date _createdAt, Date _inactivatedAt,
             Date _lastModified, String _name, QuerySet<Document> _CustomerDocuments) {
-        super(
-            _id, _createdAt, _inactivatedAt,
-            _lastModified, _name, _CustomerDocuments);
+    	setId(_id);
+        setName(_name);
+        setCustomerDocuments(_CustomerDocuments);
+        setCreatedAt(_createdAt);
+    	setInactivatedAt(_inactivatedAt);
+    	setLastModified(_lastModified);
     }
 }
 

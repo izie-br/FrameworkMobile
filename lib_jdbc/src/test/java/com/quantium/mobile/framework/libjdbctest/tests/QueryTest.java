@@ -12,9 +12,12 @@ import org.junit.Test;
 
 import static org.junit.Assert.*;
 
+import com.quantium.mobile.framework.BaseModelFacade;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.DAOFactory;
 import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
+import com.quantium.mobile.framework.libjdbctest.JdbcPrimaryKeyProvider;
+import com.quantium.mobile.framework.libjdbctest.JdbcToSyncProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.util.Utils;
 import com.quantium.mobile.framework.libjdbctest.vo.Author;
@@ -83,6 +86,26 @@ public class QueryTest {
 		assertEquals(1, authors.size());
 		assertEquals(author4, authors.iterator().next());
 	}
+	
+	
+	public void testLazyInvocation() throws IOException {
+		BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+			
+			@Override
+			protected String getLoggedUserId() {
+				return null;
+			}
+		};
+		Author author1 = new AuthorImpl();
+		author1.setName("lazy");
+		facade.save(author1);
+		//simular uma sincronia.
+		String oldId = author1.getId();
+		assertNotNull(oldId);
+		facade.updatePrimaryKey(author1, "12345");
+		assertNotSame(oldId, author1.getId());
+	}
+
 
 	@Test
 	public void testLimitOffset () {
