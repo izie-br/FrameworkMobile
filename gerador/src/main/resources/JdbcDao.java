@@ -18,7 +18,6 @@ import java.sql.*;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.PrimaryKeyUpdater;
 import com.quantium.mobile.framework.LazyInvocationHandler;
-import com.quantium.mobile.framework.libjdbctest.gen.ScoreEditable;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
 import com.quantium.mobile.framework.query.Table;
@@ -124,34 +123,31 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
 
     protected ${Target} new${Target}(${constructorArgsDecl}){
     	${Target} obj = new${Target}();
-    	#foreach ($field in $fields)
-    	#**###
-    	#**### O metodo setter nao deve ser gerado se houver uma associacao one-to-many
-    	#**### em que ele eh a FK
-    	#**### Se for marcado como chave primaria, ou "Set" como false, deve existir na
-    	#**### implementacao e na interface editavel.
-    	#**###
-    	#**##if ( !$associationForField[$field] && (
-    	            ($field.Set && !$field.PrimaryKey)
-    	          )
-    	        )
-    	#******#obj.set${field.UpperCamel}(_${field.LowerCamel});
-    	#**##end
-    	#**##if ($field.PrimaryKey)
-    	#******#((${Target}Editable)obj).setId(_id);
-    	#**##end
-    	#end
-    	##
-    	#foreach ($association in $manyToOneAssociations)
-    	#******#((${Target}Editable)obj).set${association.KeyToA}(_${association.KeyToA});
-    	#end
-    	##
-    	#foreach ($association in $oneToManyAssociations)
-    	#******#((${Target}Editable)obj).set${association.KeyToAPluralized}(_${association.KeyToAPluralized});
-    	#end
-    	#foreach ($association in $manyToManyAssociations)
-    	#******#((${Target}Editable)obj).set${association.Pluralized}(_${association.Pluralized});
-    	#end
+#foreach ($field in $fields)
+#**###
+#**### O metodo setter nao deve ser gerado se houver uma associacao one-to-many
+#**### em que ele eh a FK
+#**### Se for marcado como chave primaria, ou "Set" como false, deve existir na
+#**### implementacao e na interface editavel.
+#**###
+#**##if ( !$associationForField[$field] && (($field.Set && !$field.PrimaryKey)))
+	    obj.set${field.UpperCamel}(_${field.LowerCamel});
+#**##end
+#**##if ($field.PrimaryKey)
+	    ((${Target}Editable)obj).setId(_id);
+#**##end
+#end
+##
+#foreach ($association in $manyToOneAssociations)
+    	((${Target}Editable)obj).set${association.KeyToA}(_${association.KeyToA});
+#end
+##
+#foreach ($association in $oneToManyAssociations)
+    	((${Target}Editable)obj).set${association.KeyToAPluralized}(_${association.KeyToAPluralized});
+#end
+#foreach ($association in $manyToManyAssociations)
+    	((${Target}Editable)obj).set${association.Pluralized}(_${association.Pluralized});
+#end
         return obj;
     }
     
