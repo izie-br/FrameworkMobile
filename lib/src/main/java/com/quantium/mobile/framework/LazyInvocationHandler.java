@@ -4,6 +4,7 @@ import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.util.List;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.QuerySet;
 
 public class LazyInvocationHandler<T> implements InvocationHandler {
@@ -42,17 +43,19 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 				//tentando procurar um serverId para este temp id;
 				Object serverId = modelFacade.getIdServerById(key, klass);
 				if(serverId == null){
-					throw new LazyLoadException(String.format(
+					LogPadrao.e(new LazyLoadException(String.format(
 							"Object's server id %s from id %s not found",
 							querySet.getTable().getName(),
-							(key == null)? "null" : key.toString() ));
+							(key == null)? "null" : key.toString() )));
+					return null;
 				}else{
 					BaseGenericVO serverObj = modelFacade.get(klass, serverId);
 					if(serverObj == null){
-						throw new LazyLoadException(String.format(
+						LogPadrao.e(new LazyLoadException(String.format(
 								"Object %s server id %s not found",
 								querySet.getTable().getName(),
-								(serverId == null)? "null" : serverId.toString() ));	
+								(serverId == null)? "null" : serverId.toString() )));
+						return null;
 					} else {
 						modelFacade.updatePrimaryKey(serverObj, key);
 						modelFacade.updatePrimaryKey(serverObj, serverId);
