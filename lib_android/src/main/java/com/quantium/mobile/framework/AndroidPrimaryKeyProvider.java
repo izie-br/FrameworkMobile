@@ -47,7 +47,7 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 			Object id) throws IOException {
 		String idServer = null;
 		Cursor c = getDb().query(SYNC_TABLE.getName(), new String[] {},
-				String.format("%s=? AND %s=?", CLASSNAME.getName()),
+				String.format("%s=? AND %s=?", CLASSNAME.getName(), ID.getName()),
 				new String[] { dao.getTable().getName(), id.toString() }, null,
 				null, null);
 		while (c.moveToNext()) {
