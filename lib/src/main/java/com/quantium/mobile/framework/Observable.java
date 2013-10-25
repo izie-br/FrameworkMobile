@@ -1,25 +1,23 @@
 package com.quantium.mobile.framework;
 
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Observable {
 
 	// Favor NAO usar referencia forte, para nao ocorrer vazamento de memoria
-	private List<WeakReference<Observer>> observers = null;
+	private CopyOnWriteArrayList<Observer> observers = null;
 	private Lock observersLock = new ReentrantLock();
 
 	public void registerObserver(Observer observer) {
 		observersLock.lock();
 		try {
 			if (this.observers == null) {
-				this.observers = new ArrayList<WeakReference<Observer>>(1);
+				this.observers = new CopyOnWriteArrayList<Observer>();
 			}
-			this.observers.add(new WeakReference<Observer>(observer));
+			this.observers.add(observer);
 		} finally {
 			observersLock.unlock();
 		}
@@ -32,11 +30,9 @@ public class Observable {
 		observersLock.lock();
 		try {
 			if (this.observers != null) {
-				Iterator<WeakReference<Observer>> refIterator = observers
-						.iterator();
+				Iterator<Observer> refIterator = observers.iterator();
 				while (refIterator.hasNext()) {
-					WeakReference<Observer> observerRef = refIterator.next();
-					Observer obj = observerRef.get();
+					Observer obj = refIterator.next();
 					if (obj == null) {
 						refIterator.remove();
 					} else if (obj == observer) {
@@ -76,11 +72,9 @@ public class Observable {
 			}
 			observersLock.lock();
 			try {
-				Iterator<WeakReference<Observer>> refIterator = observers
-						.iterator();
+				Iterator<Observer> refIterator = observers.iterator();
 				while (refIterator.hasNext()) {
-					WeakReference<Observer> observerRef = refIterator.next();
-					Observer observer = observerRef.get();
+					Observer observer = refIterator.next();
 					if (observer == null) {
 						refIterator.remove();
 					} else {
