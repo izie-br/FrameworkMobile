@@ -52,7 +52,9 @@ public class MMInputParser implements InputParser {
 					.camelToLowerAndUnderscores(clazz.getSingularName().replace(" ", "")));
 			for (Attribute attribute : clazz.getAttributeList()) {
 				Class<?> classType = attribute.getType();
-
+if(classType == null){
+	throw new GeradorException("Atributo "+attribute.getName()+" da classe "+ clazz.getPluralName()+" sem tipo.");
+}
 				if (!classType.equals(List.class)
 						&& !classType.equals(Clazz.class)) {
 					tabelaBuilder.addProperty(CamelCaseUtils
