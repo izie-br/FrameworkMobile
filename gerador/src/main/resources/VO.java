@@ -19,7 +19,7 @@ ${Imports}
 #if ($implementation)
 #**#public abstract class ${Filename} extends GenericBean implements ${EditableInterface}
 #elseif ($interface)
-#**#public interface ${Filename} extends GenericVO, MapSerializable<Object>
+#**#public interface ${Filename} extends GenericVO, MapSerializable
 #elseif ($editableInterface)
 #**#public interface ${Filename} extends ${Klass}
 #end

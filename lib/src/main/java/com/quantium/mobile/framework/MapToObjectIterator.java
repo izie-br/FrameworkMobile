@@ -5,7 +5,7 @@ import java.util.Iterator;
 
 import com.quantium.mobile.framework.utils.JSONUtils;
 
-public class MapToObjectIterator<T extends MapSerializable<T>> implements Iterator<T>{
+public class MapToObjectIterator<T extends MapSerializable> implements Iterator<T>{
 
 	private static final String ERR_PROTOTYPE_NULL = "DAO nao pode ser null";
 

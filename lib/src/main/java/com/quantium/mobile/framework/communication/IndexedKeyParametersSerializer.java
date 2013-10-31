@@ -77,7 +77,7 @@ public class IndexedKeyParametersSerializer extends ParametersSerializer{
 				serializeObj(keystr, val, out);
 			}
 		} else if (obj instanceof MapSerializable){
-			serializeObj(parentKey, ((MapSerializable<?>)obj).toMap(), out);
+			serializeObj(parentKey, ((MapSerializable)obj).toMap(), out);
 		} else if (obj instanceof Date){
 			out.add(new BasicNameValuePair(parentKey, DateUtil.timestampToString((Date) obj)));
 		} else if (obj instanceof Collection){

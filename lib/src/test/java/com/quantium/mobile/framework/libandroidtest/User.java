@@ -6,7 +6,7 @@ import java.util.Map;
 import com.quantium.mobile.framework.MapSerializable;
 import com.quantium.mobile.framework.libandroidtest.GenericBean;
 
-public class User extends GenericBean implements MapSerializable<User>{
+public class User extends GenericBean implements MapSerializable{
 
     long id = 0;
     boolean active;
