@@ -1,21 +1,21 @@
 package com.quantium.mobile.framework;
 
+import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class Observable {
 
 	// Favor NAO usar referencia forte, para nao ocorrer vazamento de memoria
-	private CopyOnWriteArrayList<Observer> observers = null;
+	private ArrayList<Observer> observers = null;
 	private Lock observersLock = new ReentrantLock();
 
 	public void registerObserver(Observer observer) {
 		observersLock.lock();
 		try {
 			if (this.observers == null) {
-				this.observers = new CopyOnWriteArrayList<Observer>();
+				this.observers = new ArrayList<Observer>();
 			}
 			this.observers.add(observer);
 		} finally {
