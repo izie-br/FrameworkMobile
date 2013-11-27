@@ -243,5 +243,9 @@ public abstract class BaseModelFacade {
 		}
 		return column;
 	}
+	
+	public DAOFactory getDaoFactory(){
+		return daoFactory;
+	}
 
 }
