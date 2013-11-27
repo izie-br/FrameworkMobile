@@ -76,7 +76,7 @@ public class Observable {
 				while (refIterator.hasNext()) {
 					Observer observer = refIterator.next();
 					if (observer == null) {
-						this.observers.remove(observer);
+						observers.remove(observer);
 					} else {
 						observer.update(target, column);
 					}
