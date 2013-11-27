@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quantium.mobile.framework</groupId>
 	<artifactId>frameworkMobile</artifactId>
-	<version>1.0.22-SNAPSHOT</version>
+	<version>1.0.22</version>
 	<packaging>pom</packaging>
 	
 	<modules>
@@ -45,7 +45,7 @@
 	</reporting -->
 
 	<scm>
-		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/trunk</developerConnection>
+		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/tags/frameworkMobile-1.0.22</developerConnection>
 	</scm>
 	
 	<build>
