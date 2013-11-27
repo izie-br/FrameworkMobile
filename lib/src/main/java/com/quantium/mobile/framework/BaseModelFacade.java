@@ -18,10 +18,6 @@ public abstract class BaseModelFacade {
 	private final ToSyncProvider toSyncProvider;
 	private boolean debugValidation = true;
 
-	public static final int FORM_CODE_DINHEIRO = 1;
-	public static final int FORM_CODE_CHEQUE = 2;
-	public static final int FORM_CODE_CARTAO = 3;
-
 	public BaseModelFacade(DAOFactory daoFactory,
 			PrimaryKeyProvider primaryKeyProvider, ToSyncProvider toSyncProvider) {
 		this.daoFactory = daoFactory;
@@ -248,4 +244,7 @@ public abstract class BaseModelFacade {
 		return column;
 	}
 
+	public DAOFactory getDaoFactory(){
+		return daoFactory;
+	}
 }
