@@ -7,7 +7,15 @@
           $field.Get && !$associationForField[$field]
         )
 #******#    public ${field.Type} ${getter[$field]} () #if($implementation){
+#******##if ($field.Type == "Date")
+#******#        if (${field.LowerCamel} == null) {
+#******#            return null;
+#******#        } else {
+#******#            return new Date(${field.LowerCamel}.getTime());
+#******#        }
+#******##else
 #******#        return ${field.LowerCamel};
+#******##end
 #******#    }#else;#end
 #******#
 #******#
@@ -25,7 +33,15 @@
           )
         )
 #******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
+#******##if ($field.Type == "Date")
+#******#        if (${field.LowerCamel} == null) {
+#******#            this.${field.LowerCamel} = null;
+#******#        } else {
+#******#            this.${field.LowerCamel} = new Date(${field.LowerCamel}.getTime());
+#******#        }
+#******##else
 #******#        this.${field.LowerCamel} = ${field.LowerCamel};
+#******##end
 #******#        triggerObserver("${field.LowerAndUnderscores}");
 #******#    }#else;#end
 #******#

@@ -4,9 +4,9 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#    ${association.Klass} _${association.KeyToA};
+#******#    private ${association.Klass} _${association.KeyToA};
 #**##else
-#******#    ${field.Type} ${field.LowerCamel};
+#******#    private ${field.Type} ${field.LowerCamel};
 #**##end
 #end
 ##
