@@ -63,7 +63,7 @@
 #******#                return false;
 #******#        }
 #**##else
-#******##if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer")) || ($field.Klass.equals("Double")))
+#******##if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer")|| $field.Klass.equals("Double"))
 #**********#        if(${field.LowerCamel} != other.${getter[$field]}())
 #**********#            return false;	
 #******##else
