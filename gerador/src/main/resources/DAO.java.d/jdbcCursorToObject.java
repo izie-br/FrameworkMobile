@@ -42,10 +42,14 @@
 #******#        ${field.type} _${field.LowerCamel};
 #******#        try{
 #******##if ($field.Klass.equals("Date") )
-#******#            Timestamp temp = cursor.getTimestamp(${columnIndex});
-#******#            _${field.LowerCamel} = (temp == null)?
-#******#                null :
-#******#                new Date(temp.getTime());
+#******#            try {
+#******#                String temp = cursor.getString(${columnIndex});
+#******#                _${field.LowerCamel} = (temp == null)?
+#******#                    null :
+#******#                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
+#******#            } catch (java.text.ParseException p) {
+#******#                throw new RuntimeException(p);
+#******#            }
 #******##else
 #******#            _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
 #******##end
