@@ -181,11 +181,11 @@
 #**********#                            target.get${association.KeyToA}().get${association.ReferenceKey.UpperCamel}());
 #******##elseif (!$field.PrimaryKey)
 #**********##if ($field.Klass.equals("Date") )
-#**********#                stm.setTimestamp(
+#**********#                stm.setString(
 #**********#                        ${argIndex},
 #**********#                        (target.${getter[$field]}() == null) ?
 #**********#                            null :
-#**********#                            new java.sql.Timestamp(target.${getter[$field]}().getTime()));
+#**********#                            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(target.${getter[$field]}()));
 #**********##else
 #**********#                stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #**********##end
