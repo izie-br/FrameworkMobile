@@ -51,7 +51,7 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
 
     @Override
     protected String getNullOrderingClause() {
-        return "NULLS FIRST";
+        return null;
     }
 
     @Override
