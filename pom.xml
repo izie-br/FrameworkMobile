@@ -20,8 +20,8 @@
 	<properties>
 		<platform.version> 2.1.2 </platform.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<url.releases>http://nexus/nexus/content/repositories/releases</url.releases>
-		<url.snapshots>http://nexus/nexus/content/repositories/snapshots</url.snapshots>
+		<url.releases>http://nexus:8081/nexus/content/repositories/releases</url.releases>
+		<url.snapshots>http://nexus:8081/nexus/content/repositories/snapshots</url.snapshots>
 	</properties>
 
 	<!-- reporting>
@@ -95,7 +95,7 @@
         <pluginRepository>
             <id>nexus</id>
             <name>nexus</name>
-            <url>http://mercurio.rcc.local/nexus/content/groups/public/</url>
+            <url>http://mercurio.rcc.local:8081/nexus/content/groups/public/</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>false</enabled>
@@ -109,7 +109,7 @@
         <repository>
             <id>nexus</id>
             <name>nexus</name>
-            <url>http://mercurio.rcc.local/nexus/content/groups/public/</url>
+            <url>http://mercurio.rcc.local:8081/nexus/content/groups/public/</url>
             <layout>default</layout>
             <snapshots>
                 <enabled>false</enabled>
