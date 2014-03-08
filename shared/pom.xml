@@ -14,18 +14,5 @@
 	
 	<dependencies>
 	</dependencies>
-	
-	<distributionManagement>
-		<repository>
-			<id>nexus</id>
-			<name>Releases</name>
-			<url>${url.releases}</url>
-		</repository>
-		<snapshotRepository>
-			<id>nexus</id>
-			<name>Snapshots</name>
-			<url>${url.snapshots}</url>
-		</snapshotRepository>
-	</distributionManagement>
-	
+
 </project>

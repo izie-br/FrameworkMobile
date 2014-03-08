@@ -20,8 +20,6 @@
 	<properties>
 		<platform.version> 2.1.2 </platform.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<url.releases>http://nexus:8081/nexus/content/repositories/releases</url.releases>
-		<url.snapshots>http://nexus:8081/nexus/content/repositories/snapshots</url.snapshots>
 	</properties>
 
 	<!-- reporting>
@@ -90,47 +88,19 @@
 			</plugin>
 		</plugins>
 	</build>
-	
-    <pluginRepositories>
-        <pluginRepository>
-            <id>nexus</id>
-            <name>nexus</name>
-            <url>http://nexus:8081/nexus/content/groups/public/</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
-        </pluginRepository>
-    </pluginRepositories>
-    <repositories>
+
+    <distributionManagement>
         <repository>
-            <id>nexus</id>
-            <name>nexus</name>
-            <url>http://nexus:8081/nexus/content/groups/public/</url>
-            <layout>default</layout>
-            <snapshots>
-                <enabled>false</enabled>
-            </snapshots>
-            <releases>
-                <updatePolicy>never</updatePolicy>
-            </releases>
+            <id>central</id>
+            <name>Releases</name>
+            <url>${url.releases}</url>
         </repository>
-    </repositories>
-	<distributionManagement>
-		<repository>
-			<id>nexus</id>
-			<name>Releases</name>
-			<url>${url.releases}</url>
-		</repository>
-		<snapshotRepository>
-			<id>nexus</id>
-			<name>Snapshots</name>
-			<url>${url.snapshots}</url>
-		</snapshotRepository>
-	</distributionManagement>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${url.snapshots}</url>
+        </snapshotRepository>
+    </distributionManagement>
 	
 
 	<profiles>
