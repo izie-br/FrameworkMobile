@@ -43,7 +43,7 @@
 	</reporting -->
 
 	<scm>
-		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/trunk</developerConnection>
+		<developerConnection>scm:svn:https://svn.grupo954.com/frameworkMobile/trunk</developerConnection>
 	</scm>
 	
 	<build>
@@ -83,7 +83,7 @@
 				<artifactId>maven-release-plugin</artifactId>
 				<version>2.4</version>
 				<configuration>
-					<tagBase>http://svn.rcc.local/frameworkMobile/tags</tagBase>
+					<tagBase>https://svn.grupo954.com/frameworkMobile/tags</tagBase>
 				</configuration>
 			</plugin>
 		</plugins>
