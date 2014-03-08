@@ -10,11 +10,6 @@
 		<artifactId>frameworkMobile</artifactId>
 		<version>1.0.32-SNAPSHOT</version>
 	</parent>
-    <properties>
-        <url.releases>http://repo.izie.com.br/artifactory/plugins-release-local</url.releases>
-        <url.snapshots>http://repo.izie.com.br/artifactory/plugins-snapshot-local</url.snapshots>
-    </properties>
-	
 	<dependencies>
 		<dependency>
 			<groupId>com.quantium.mobile.framework</groupId>
