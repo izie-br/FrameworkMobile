@@ -10,8 +10,12 @@
 		<artifactId>frameworkMobile</artifactId>
 		<version>1.0.31-SNAPSHOT</version>
 	</parent>
-	
-	<dependencies>
+    <properties>
+        <url.plugin.releases>http://repo.izie.com.br/artifactory/plugins-release-local</url.plugin.releases>
+        <url.plugin.snapshots>http://repo.izie.com.br/artifactory/plugins-snapshot-local</url.plugin.snapshots>
+    </properties>
+
+    <dependencies>
 		<dependency>
 			<groupId>com.quantium.mobile.framework</groupId>
 			<artifactId>gerador</artifactId>
@@ -29,8 +33,21 @@
 			<version>1.0.1</version>
 		</dependency>
 	</dependencies>
-	
-	<build>
+
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>Releases</name>
+            <url>${url.plugin.releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${url.plugin.snapshots}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
 		<plugins>
 			<plugin>
 				<artifactId>maven-plugin-plugin</artifactId>

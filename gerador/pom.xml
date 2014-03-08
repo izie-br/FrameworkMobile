@@ -10,11 +10,7 @@
 		<artifactId>frameworkMobile</artifactId>
 		<version>1.0.31-SNAPSHOT</version>
 	</parent>
-    <properties>
-        <url.releases>http://repo.izie.com.br/artifactory/plugins-release-local</url.releases>
-        <url.snapshots>http://repo.izie.com.br/artifactory/plugins-snapshot-local</url.snapshots>
-    </properties>
-	
+
 	<dependencies>
 		<dependency>
 			<groupId>com.quantium.mobile.framework</groupId>
@@ -78,19 +74,6 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <name>Releases</name>
-            <url>${url.releases}</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>Snapshots</name>
-            <url>${url.snapshots}</url>
-        </snapshotRepository>
-    </distributionManagement>
 
     <build>
 		<plugins>
