@@ -78,8 +78,21 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
-	
-	<build>
+
+    <distributionManagement>
+        <repository>
+            <id>central</id>
+            <name>Releases</name>
+            <url>${url.releases}</url>
+        </repository>
+        <snapshotRepository>
+            <id>snapshots</id>
+            <name>Snapshots</name>
+            <url>${url.snapshots}</url>
+        </snapshotRepository>
+    </distributionManagement>
+
+    <build>
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
