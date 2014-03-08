@@ -20,6 +20,8 @@
 	<properties>
 		<platform.version> 2.1.2 </platform.version>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <url.plugin.releases>http://repo.izie.com.br/artifactory/plugins-release-local</url.plugin.releases>
+        <url.plugin.snapshots>http://repo.izie.com.br/artifactory/plugins-snapshot-local</url.plugin.snapshots>
 	</properties>
 
 	<!-- reporting>
@@ -93,12 +95,12 @@
         <repository>
             <id>central</id>
             <name>Releases</name>
-            <url>${url.releases}</url>
+            <url>${url.plugin.releases}</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>Snapshots</name>
-            <url>${url.snapshots}</url>
+            <url>${url.plugin.snapshots}</url>
         </snapshotRepository>
     </distributionManagement>
 	
