@@ -43,7 +43,7 @@
 	</reporting -->
 
 	<scm>
-		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/trunkveloperConnection>
+		<developerConnection>scm:svn:http://svn.rcc.local/frameworkMobile/trunk</developerConnection>
 	</scm>
 	
 	<build>
