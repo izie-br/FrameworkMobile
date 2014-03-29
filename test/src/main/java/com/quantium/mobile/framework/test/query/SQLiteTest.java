@@ -4,13 +4,16 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
+import java.util.Set;
 
 import android.test.ActivityInstrumentationTestCase2;
 
+import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
+import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
 import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.document.vo.Document;
 import com.quantium.mobile.framework.test.utils.Utils;
@@ -18,6 +21,11 @@ import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.test.vo.Customer;
 import com.quantium.mobile.framework.test.vo.Score;
+import org.junit.Test;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -56,7 +64,35 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		}
 	}
 
-	public void testLikeAndGlob(){
+
+    public void testSelectDistinct() throws IOException {
+        Date now = new Date();
+        Document document1 = new DocumentImpl();
+        document1.setTitle("A name");
+        document1.setCreatedAt(now);
+        document1.setText("A Text");
+        assertTrue(facade.save(document1));
+        Document document2 = new DocumentImpl();
+        document2.setTitle("Another name");
+        document2.setCreatedAt(now);
+        document2.setText("A Text");
+        assertTrue(facade.save(document2));
+        Document document3 = new DocumentImpl();
+        document3.setTitle("A name");
+        document3.setCreatedAt(now);
+        document3.setText("A Text");
+        assertTrue(facade.save(document3));
+        QuerySet<Document> querySet = facade.query(Document.class);
+        assertEquals(3, querySet.count());
+        Set<String> titles = querySet.selectDistinct(Document.TITLE);
+        assertEquals(2, titles.size());
+        Set<String> texts = querySet.selectDistinct(Document.TEXT);
+        assertEquals(1, texts.size());
+        fail();
+    }
+
+
+    public void testLikeAndGlob(){
 		Author author1 = new AuthorImpl();
 		author1.setName("um nome");
 		Date now = new Date();

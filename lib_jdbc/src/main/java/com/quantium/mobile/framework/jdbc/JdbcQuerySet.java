@@ -4,14 +4,12 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.BaseQuerySet;
 import com.quantium.mobile.framework.query.Q;
+import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.utils.ValueParser;
 
 public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
@@ -134,4 +132,26 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		return rs;
 	}
 
+    @Override
+    public <U> Set<U> selectDistinct(Table.Column<U> column) {
+        try{
+            ResultSet resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
+            Set<U> set = new HashSet<U>(resultSet.getFetchSize());
+            while (resultSet.next()){
+                if (column.getKlass().isAssignableFrom(String.class)) {
+                    set.add((U) resultSet.getString(1));
+                } else if (column.getKlass().isAssignableFrom(Double.class)) {
+                    set.add((U) new Double(resultSet.getDouble(1)));
+                } else if (column.getKlass().isAssignableFrom(Long.class)) {
+                    set.add((U) new Long(resultSet.getLong(1)));
+                } else if (column.getKlass().isAssignableFrom(Boolean.class)) {
+                    set.add((U) new Boolean(resultSet.getBoolean(1)));
+                }
+            }
+            return set;
+        } catch (java.sql.SQLException e) {
+            LogPadrao.e(e);
+            return null;
+        }
+    }
 }

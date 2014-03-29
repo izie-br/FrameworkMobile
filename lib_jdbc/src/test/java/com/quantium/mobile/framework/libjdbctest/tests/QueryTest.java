@@ -1,16 +1,14 @@
 package com.quantium.mobile.framework.libjdbctest.tests;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.framework.libjdbctest.vo.DocumentImpl;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import com.quantium.mobile.framework.BaseModelFacade;
 import com.quantium.mobile.framework.DAO;
@@ -26,6 +24,8 @@ import com.quantium.mobile.framework.libjdbctest.vo.Document;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
+
+import javax.management.Query;
 
 public class QueryTest {
 
@@ -86,8 +86,35 @@ public class QueryTest {
 		assertEquals(1, authors.size());
 		assertEquals(author4, authors.iterator().next());
 	}
-	
-	
+
+    @Test
+    public void testSelectDistinct() throws IOException {
+        DAO<Document> dao = daoFactory.getDaoFor(Document.class);
+        Date now = new Date();
+        Document document1 = new DocumentImpl();
+        document1.setTitle("A name");
+        document1.setCreatedAt(now);
+        document1.setText("A Text");
+        assertTrue(dao.save(document1));
+        Document document2 = new DocumentImpl();
+        document2.setTitle("Another name");
+        document2.setCreatedAt(now);
+        document2.setText("A Text");
+        assertTrue(dao.save(document2));
+        Document document3 = new DocumentImpl();
+        document3.setTitle("A name");
+        document3.setCreatedAt(now);
+        document3.setText("A Text");
+        assertTrue(dao.save(document3));
+        QuerySet<Document> querySet = dao.query();
+        assertEquals(3, querySet.count());
+        Set<String> titles = querySet.selectDistinct(Document.TITLE);
+        assertEquals(2, titles.size());
+        Set<String> texts = querySet.selectDistinct(Document.TEXT);
+        assertEquals(1, texts.size());
+    }
+
+    //@Test
 	public void testLazyInvocation() throws IOException {
 		BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
 			

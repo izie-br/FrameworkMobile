@@ -1,9 +1,9 @@
 package com.quantium.mobile.framework.query;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.sql.ResultSet;
+import java.util.*;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.utils.ValueParser;
 
 import android.database.Cursor;
@@ -79,5 +79,24 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 		Cursor cursor = getDb().rawQuery(qstr, args);
 		return cursor;
 	}
+
+
+    @Override
+    public <U> Set<U> selectDistinct(Table.Column<U> column) {
+        Cursor resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
+        Set<U> set = new HashSet<U>(resultSet.getCount());
+        while (resultSet.moveToNext()){
+            if (column.getKlass().isAssignableFrom(String.class)) {
+                set.add((U) resultSet.getString(1));
+            } else if (column.getKlass().isAssignableFrom(Double.class)) {
+                set.add((U) new Double(resultSet.getDouble(1)));
+            } else if (column.getKlass().isAssignableFrom(Long.class)) {
+                set.add((U) new Long(resultSet.getLong(1)));
+            } else if (column.getKlass().isAssignableFrom(Boolean.class)) {
+                set.add((U) new Boolean(resultSet.getInt(1)==1));
+            }
+        }
+        return set;
+    }
 
 }
