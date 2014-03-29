@@ -88,7 +88,6 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
         assertEquals(2, titles.size());
         Set<String> texts = querySet.selectDistinct(Document.TEXT);
         assertEquals(1, texts.size());
-        fail();
     }
 
 

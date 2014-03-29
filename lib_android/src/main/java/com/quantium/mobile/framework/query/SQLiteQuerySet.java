@@ -87,13 +87,13 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         Set<U> set = new HashSet<U>(resultSet.getCount());
         while (resultSet.moveToNext()){
             if (column.getKlass().isAssignableFrom(String.class)) {
-                set.add((U) resultSet.getString(1));
+                set.add((U) resultSet.getString(0));
             } else if (column.getKlass().isAssignableFrom(Double.class)) {
-                set.add((U) new Double(resultSet.getDouble(1)));
+                set.add((U) new Double(resultSet.getDouble(0)));
             } else if (column.getKlass().isAssignableFrom(Long.class)) {
-                set.add((U) new Long(resultSet.getLong(1)));
+                set.add((U) new Long(resultSet.getLong(0)));
             } else if (column.getKlass().isAssignableFrom(Boolean.class)) {
-                set.add((U) new Boolean(resultSet.getInt(1)==1));
+                set.add((U) new Boolean(resultSet.getInt(0)==1));
             }
         }
         return set;
