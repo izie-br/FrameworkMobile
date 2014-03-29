@@ -83,19 +83,20 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
-        Cursor resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
-        Set<U> set = new HashSet<U>(resultSet.getCount());
-        while (resultSet.moveToNext()){
+        Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
+        Set<U> set = new HashSet<U>(cursor.getCount());
+        while (cursor.moveToNext()){
             if (column.getKlass().isAssignableFrom(String.class)) {
-                set.add((U) resultSet.getString(0));
+                set.add((U) cursor.getString(0));
             } else if (column.getKlass().isAssignableFrom(Double.class)) {
-                set.add((U) new Double(resultSet.getDouble(0)));
+                set.add((U) new Double(cursor.getDouble(0)));
             } else if (column.getKlass().isAssignableFrom(Long.class)) {
-                set.add((U) new Long(resultSet.getLong(0)));
+                set.add((U) new Long(cursor.getLong(0)));
             } else if (column.getKlass().isAssignableFrom(Boolean.class)) {
-                set.add((U) new Boolean(resultSet.getInt(0)==1));
+                set.add((U) new Boolean(cursor.getInt(0)==1));
             }
         }
+        cursor.close();
         return set;
     }
 

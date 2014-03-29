@@ -148,6 +148,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
                     set.add((U) new Boolean(resultSet.getBoolean(1)));
                 }
             }
+            resultSet.close();
             return set;
         } catch (java.sql.SQLException e) {
             LogPadrao.e(e);
