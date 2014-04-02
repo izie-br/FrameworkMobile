@@ -16,7 +16,7 @@
 #******#            throw new RuntimeException(e);
 #******#        }
 #******#        ${association.Klass} _${association.KeyToA} = null;
-#******#        if (!_${field.LowerCamel}.equals(${defaultId})) {
+#******#        if (_${field.LowerCamel} != ${defaultId})) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
 #******#                new Serializable[]{_${field.LowerCamel}});
