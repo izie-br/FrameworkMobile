@@ -13,6 +13,7 @@ import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.validation.ValidationError;
 
 public abstract class BaseModelFacade {
+    public static final Object NULL_LAZY = new Object(){};
 	private final DAOFactory daoFactory;
 	private final PrimaryKeyProvider primaryKeyProvider;
 	private final ToSyncProvider toSyncProvider;
