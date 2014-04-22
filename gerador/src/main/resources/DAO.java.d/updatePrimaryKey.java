@@ -40,9 +40,11 @@
 #foreach ($association in $oneToManyAssociations)
         for (${association.Klass} item : _${association.KeyToAPluralized}.all()) {
             item.set${association.KeyToA}(editableTarget);
-            this.factory
-                .getDaoFor(${association.Klass}.class)
-                .save(item);
+            if(!this.factory
+            .getDaoFor(${association.Klass}.class)
+            .save(item)){
+                throw new IOException("save could not be performed, check logs");
+            }
         }
 #end
 #foreach ($association in $manyToManyAssociations)

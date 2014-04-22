@@ -47,7 +47,7 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 							"Object's server id %s from id %s not found",
 							querySet.getTable().getName(),
 							(key == null)? "null" : key.toString() )));
-					return BaseModelFacade.NULL_LAZY;
+					return null;
 				}else{
 					BaseGenericVO serverObj = modelFacade.get(klass, serverId);
 					if(serverObj == null){
@@ -55,7 +55,7 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 								"Object %s server id %s not found",
 								querySet.getTable().getName(),
 								(serverId == null)? "null" : serverId.toString() )));
-                        return BaseModelFacade.NULL_LAZY;
+						return null;
 					} else {
 						modelFacade.updatePrimaryKey(serverObj, key);
 						modelFacade.updatePrimaryKey(serverObj, serverId);
