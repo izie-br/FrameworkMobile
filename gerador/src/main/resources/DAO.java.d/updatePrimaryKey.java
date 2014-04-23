@@ -40,6 +40,7 @@
 #foreach ($association in $oneToManyAssociations)
         for (${association.Klass} item : _${association.KeyToAPluralized}.all()) {
             item.set${association.KeyToA}(editableTarget);
+            item.setLastModified(new java.util.Date());
             if(!this.factory
             .getDaoFor(${association.Klass}.class)
             .save(item)){
