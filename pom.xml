@@ -93,12 +93,12 @@
         <repository>
             <id>central</id>
             <name>Releases</name>
-            <url>${url.releases}</url>
+            <url>${url.plugin.releases}</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>Snapshots</name>
-            <url>${url.snapshots}</url>
+            <url>${url.plugin.snapshots}</url>
         </snapshotRepository>
     </distributionManagement>
 	
