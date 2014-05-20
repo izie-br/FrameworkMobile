@@ -83,6 +83,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
+        q = q.and(column.isNotNull());
         Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
         Set<U> set = new HashSet<U>(cursor.getCount());
         while (cursor.moveToNext()){
