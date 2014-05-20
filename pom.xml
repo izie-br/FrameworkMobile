@@ -93,53 +93,71 @@
         <repository>
             <id>central</id>
             <name>Releases</name>
-            <url>${url.plugin.releases}</url>
+            <url>${url.releases}</url>
         </repository>
         <snapshotRepository>
             <id>snapshots</id>
             <name>Snapshots</name>
-            <url>${url.plugin.snapshots}</url>
+            <url>${url.snapshots}</url>
         </snapshotRepository>
     </distributionManagement>
 	
 
 	<profiles>
-		<profile>
-			<id>emma</id>
-			<activation>
-				<activeByDefault>false</activeByDefault>
-			</activation>
-			<dependencyManagement>
-				<dependencies>
-					<dependency>
-						<groupId>emma</groupId>
-						<artifactId>emma</artifactId>
-						<type>jar</type>
-						<scope>compile</scope>
-						<version>2.1.5320</version>
-					</dependency>
-				</dependencies>
-			</dependencyManagement>
-			<build>
-				<pluginManagement>
-					<plugins>
-						<plugin>
-							<groupId>org.codehaus.mojo</groupId>
-							<artifactId>emma-maven-plugin</artifactId>
-							<version>1.0-alpha-3</version>
-							<inherited>true</inherited>
-							<executions>
-								<execution>
-									<phase>process-classes</phase>
-									<goals>
-										<goal>instrument</goal>
-									</goals>
-								</execution>
-							</executions>
-						</plugin>
-					</plugins>
-				</pluginManagement>
-			</build>
-		</profile>
+        <profile>
+            <id>emma</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <dependencyManagement>
+                <dependencies>
+                    <dependency>
+                        <groupId>emma</groupId>
+                        <artifactId>emma</artifactId>
+                        <type>jar</type>
+                        <scope>compile</scope>
+                        <version>2.1.5320</version>
+                    </dependency>
+                </dependencies>
+            </dependencyManagement>
+            <build>
+                <pluginManagement>
+                    <plugins>
+                        <plugin>
+                            <groupId>org.codehaus.mojo</groupId>
+                            <artifactId>emma-maven-plugin</artifactId>
+                            <version>1.0-alpha-3</version>
+                            <inherited>true</inherited>
+                            <executions>
+                                <execution>
+                                    <phase>process-classes</phase>
+                                    <goals>
+                                        <goal>instrument</goal>
+                                    </goals>
+                                </execution>
+                            </executions>
+                        </plugin>
+                    </plugins>
+                </pluginManagement>
+            </build>
+        </profile>
+        <profile>
+            <id>plugin</id>
+            <activation>
+                <activeByDefault>false</activeByDefault>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>central</id>
+                    <name>Releases</name>
+                    <url>${url.plugin.releases}</url>
+                </repository>
+                <snapshotRepository>
+                    <id>snapshots</id>
+                    <name>Snapshots</name>
+                    <url>${url.plugin.snapshots}</url>
+                </snapshotRepository>
+            </distributionManagement>
+        </profile>
 	</profiles>
 </project>

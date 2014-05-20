@@ -41,18 +41,4 @@
 			</plugin>
 		</plugins>
 	</build>
-
-
-    <distributionManagement>
-        <repository>
-            <id>central</id>
-            <name>Releases</name>
-            <url>${url.plugin.releases}</url>
-        </repository>
-        <snapshotRepository>
-            <id>snapshots</id>
-            <name>Snapshots</name>
-            <url>${url.plugin.snapshots}</url>
-        </snapshotRepository>
-    </distributionManagement>
 </project>
