@@ -56,35 +56,43 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 		throw new RuntimeException();
 	}
 
-	/**
-	 * Retorna o cursor, para uso em cursor adapter, etc.
-	 * @return cursor
-	 */
-	public Cursor getCursor(List<?> selection) {
-		if (this.q == null) {
-			this.q = new Q (getTable());
-		}
-		String args [] = null;
-		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QSQLProvider(this.q, parser)
-				.limit(this.limit)
-				.offset(this.offset)
-				.orderBy(this.orderClauses)
-				.select(selection,listArg);
-		if (listArg.size() > 0) {
-			args = new String[listArg.size()];
-			for (int i=0; i < args.length; i++)
-				args[i] = listArg.get(i).toString();
-		}
-		Cursor cursor = getDb().rawQuery(qstr, args);
-		return cursor;
-	}
+    /**
+     * Retorna o cursor, para uso em cursor adapter, etc.
+     * @return cursor
+     */
+    public Cursor getCursor(List<?> selection) {
+        return getCursor(selection, this.q);
+    }
+
+
+    /**
+     * Retorna o cursor, para uso em cursor adapter, etc.
+     * @return cursor
+     */
+    public Cursor getCursor(List<?> selection, Q anotherQ) {
+        String args [] = null;
+        ArrayList<Object> listArg = new ArrayList<Object>();
+        String qstr = new QSQLProvider(anotherQ, parser)
+                .limit(this.limit)
+                .offset(this.offset)
+                .orderBy(this.orderClauses)
+                .select(selection,listArg);
+        if (listArg.size() > 0) {
+            args = new String[listArg.size()];
+            for (int i=0; i < args.length; i++)
+                args[i] = listArg.get(i).toString();
+        }
+        Cursor cursor = getDb().rawQuery(qstr, args);
+        return cursor;
+    }
 
 
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
-        q = q.and(column.isNotNull());
-        Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
+        if (q == null) {
+            q = new Q (getTable());
+        }
+        Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())), q.and(column.isNotNull()));
         Set<U> set = new HashSet<U>(cursor.getCount());
         while (cursor.moveToNext()){
             if (column.getKlass().isAssignableFrom(String.class)) {
