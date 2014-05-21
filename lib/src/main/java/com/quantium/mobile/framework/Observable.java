@@ -1,5 +1,7 @@
 package com.quantium.mobile.framework;
 
+import com.quantium.mobile.framework.logging.LogPadrao;
+
 import java.util.Iterator;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.Lock;
@@ -72,6 +74,9 @@ public class Observable {
 			}
 			observersLock.lock();
 			try {
+                if (observers == null) {
+                    return;
+                }
 				Iterator<Observer> refIterator = observers.iterator();
 				while (refIterator.hasNext()) {
 					Observer observer = refIterator.next();
@@ -81,6 +86,8 @@ public class Observable {
 						observer.update(target, column);
 					}
 				}
+            } catch (NullPointerException n) {
+                LogPadrao.e(n);
 			} finally {
 				observersLock.unlock();
 			}
