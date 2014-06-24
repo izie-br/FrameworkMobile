@@ -59,7 +59,7 @@
 #******#        } else {
 #******#            if (${otherAssoc} == null)
 #******#                return false;
-#******#            if (!_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}()))
+#******#            if (_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() != null && !_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}()))
 #******#                return false;
 #******#        }
 #**##else
