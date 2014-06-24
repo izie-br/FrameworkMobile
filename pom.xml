@@ -14,7 +14,7 @@
 		<module>shared</module>
 		<module>lib_jdbc</module>
 		<module>lib_android</module>
-		<module>test</module>
+		<!--<module>test</module>-->
 	</modules>
 
 	<properties>
