@@ -10,6 +10,7 @@ import java.util.List;
 import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.ToSyncProvider;
+import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
 
 public class JdbcToSyncProvider extends ToSyncProvider {
@@ -21,7 +22,7 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 		List<String> ids = new ArrayList<String>();
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + TO_SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=? and " + ACTION.getName()
 					+ "=? and " + ID_USER.getName() + "=?";
@@ -52,7 +53,7 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 		String tableName = dao.getTable().getName();
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "INSERT INTO " + TO_SYNC_TABLE.getName() + " ("
 					+ CLASSNAME.getName() + "," + ID.getName() + ","
 					+ ACTION.getName() + "," + ID_USER.getName()
@@ -65,15 +66,8 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 			int value = stm.executeUpdate();
 			if (value != 1)
 				throw new IOException("Insert returned " + value);
-			ResultSet rs = stm.getGeneratedKeys();
-			Long l = null;
-			if (rs.next()) {
-				l = rs.getLong(1);
-				if (l == null)
-					throw new IOException(
-							"No generated key was found in ResultSet");
-			} else {
-				throw new IOException("No generated key");
+			if(stm.getUpdateCount() <= 0){
+				throw new IOException("No sync inserted");
 			}
 			return true;
 		} catch (java.sql.SQLException e) {
@@ -93,7 +87,7 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 			String id, long action) throws IOException {
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "DELETE FROM " + TO_SYNC_TABLE.getName() + " WHERE "
 					+ ID.getName() + "=? and " + ACTION.getName() + "=? and "
 					+ ID_USER.getName() + "=?";

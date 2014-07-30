@@ -10,6 +10,7 @@ import java.util.List;
 import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.PrimaryKeyProvider;
+import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
 import com.quantium.mobile.framework.query.Table;
 
@@ -20,8 +21,8 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		String tableName = table.getName();
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
-			String sql = "INSERT INTO FMVV_SYNC ("
+			conn = DB.getConnection();
+			String sql = "INSERT INTO " + SYNC_TABLE.getName() + " ("
 					+ CLASSNAME.getName() + ") VALUES (?)";
 			PreparedStatement stm = conn.prepareStatement(sql);
 			stm.setString(1, tableName);
@@ -58,7 +59,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		List<String> ids = new ArrayList<String>();
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=?";
 			PreparedStatement stm = conn.prepareStatement(sql);
@@ -87,7 +88,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		String idServer = null;
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=? AND "+ID.getName() +" =? ";
 			PreparedStatement stm = conn.prepareStatement(sql);
@@ -115,7 +116,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 			throws IOException {
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "DELETE FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ ID.getName() + "=?";
 			PreparedStatement stm = conn.prepareStatement(sql);
@@ -139,7 +140,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 			Object oldId, Object newPrimaryKey) throws IOException {
 		Connection conn = null;
 		try {
-			conn = MyJdbcDAOFactory.createConnection();
+			conn = DB.getConnection();
 			String sql = "UPDATE " + SYNC_TABLE.getName() + "SET "+ID_SERVER.getName()+" =? WHERE "
 					+ ID.getName() + "=?";
 			PreparedStatement stm = conn.prepareStatement(sql);

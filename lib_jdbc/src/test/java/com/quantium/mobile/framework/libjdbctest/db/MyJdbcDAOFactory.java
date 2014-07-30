@@ -36,29 +36,29 @@ public class MyJdbcDAOFactory extends JdbcDAOFactory {
 	@Override
 	public Connection getConnection() {
 		if (conn == null) {
-			conn = createConnection();
+//			conn = createConnection();
 		}
 		return conn;
 	}
 
 	public static String DB_NOME = "default.db";
-	public static int DB_VERSAO = 2;
+	public static int DB_VERSAO = 5;
 
-	public static Connection createConnection() {
-		Properties props = new Properties();
-		props.put("user", "sa");
-		props.put("password", "");
-		try {
-			Driver driver = new org.h2.Driver();
-			Connection connection = driver.connect("jdbc:h2:mem:", props);
-			String script = getSqlScriptPorVersao(DB_VERSAO);
-			String statments[] = splitSql(script);
-			execMultipleSQL(connection, statments);
-			return connection;
-		} catch (SQLException e) {
-			throw new RuntimeException(e);
-		}
-	}
+//	public static Connection createConnection() {
+//		Properties props = new Properties();
+//		props.put("user", "sa");
+//		props.put("password", "");
+//		try {
+//			Driver driver = new org.h2.Driver();
+//			Connection connection = driver.connect("jdbc:h2:mem:", props);
+//			String script = getSqlScriptPorVersao(DB_VERSAO);
+//			String statments[] = splitSql(script);
+//			execMultipleSQL(connection, statments);
+//			return connection;
+//		} catch (SQLException e) {
+//			throw new RuntimeException(e);
+//		}
+//	}
 
 	private static String getSqlScriptPorVersao(int version) {
 		StringBuilder sb = new StringBuilder();
@@ -82,7 +82,9 @@ public class MyJdbcDAOFactory extends JdbcDAOFactory {
 			} catch (Exception e) {
 				throw new RuntimeException(e);
 			}
-		}
+            System.out.println("Script da versao "+i+":"+sb.toString());
+            System.out.println("migrations/db_versao_" + i + ".sql");
+        }
 		return sb.toString();
 	}
 

@@ -32,19 +32,7 @@ import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
 public class GeradorTest {
-	DAOFactory daoFactory = new MemDaoFactory(){
-        BaseModelFacade baseModelFacade = new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
-
-            @Override
-            protected String getLoggedUserId() {
-                return null;
-            }
-        };
-        @Override
-        public BaseModelFacade getFacade() {
-            return baseModelFacade;
-        }
-    };
+	DAOFactory daoFactory = new MemDaoFactory();
 
 	@Test
 	public void testInsertUpdateDelete(){
@@ -882,6 +870,7 @@ public class GeradorTest {
 			}
 
 		} catch (IOException e) {
+            e.printStackTrace();
 			fail(e.getMessage());
 		}
 	}
@@ -896,17 +885,6 @@ public class GeradorTest {
 			protected <T> java.lang.ref.Reference<T> createReference(T obj) {
 				return new WeakReference<T>(obj);
 			}
-
-            @Override
-            public BaseModelFacade getFacade() {
-                return new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
-
-                    @Override
-                    protected String getLoggedUserId() {
-                        return null;
-                    }
-                };
-            }
         };
 		return weakRefFactory;
 	}
