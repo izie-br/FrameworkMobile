@@ -28,18 +28,7 @@ import com.quantium.mobile.framework.utils.StringUtil;
 import javax.management.Query;
 
 public class QueryTest {
-	DAOFactory daoFactory = new MemDaoFactory(){
-        @Override
-        public BaseModelFacade getFacade() {
-            return new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
-
-                @Override
-                protected String getLoggedUserId() {
-                    return null;
-                }
-            };
-        }
-    };
+	DAOFactory daoFactory = new MemDaoFactory();
     BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
 
         @Override
