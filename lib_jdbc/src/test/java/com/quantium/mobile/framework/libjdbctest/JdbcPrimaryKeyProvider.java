@@ -159,4 +159,29 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		}
 	}
 
+    @Override
+    public List<String> listTables() throws IOException {
+        List<String> ids = new ArrayList<String>();
+        Connection conn = null;
+        try {
+            conn = DB.getConnection();
+            String sql = "SELECT "+ CLASSNAME.getName() +" FROM " + SYNC_TABLE.getName() ;
+            PreparedStatement stm = conn.prepareStatement(sql);
+            ResultSet rs = stm.executeQuery();
+            while (rs.next()) {
+                ids.add(rs.getString(1));
+            }
+        } catch (java.sql.SQLException e) {
+            throw new IOException(e);
+        } finally {
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (java.sql.SQLException e) {
+                throw new IOException(e);
+            }
+        }
+        return ids;
+    }
+
 }

@@ -37,4 +37,5 @@ public abstract class PrimaryKeyProvider {
 
 	public abstract <T extends BaseGenericVO>  void updateIdServer(DAO<T> dao,Object oldId, Object newPrimaryKey) throws IOException;
 
+    public abstract List<String> listTables() throws IOException;
 }

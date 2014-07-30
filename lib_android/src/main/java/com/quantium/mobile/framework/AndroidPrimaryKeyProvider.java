@@ -79,4 +79,17 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 				new String[] { oldId.toString() });
 	}
 
+
+    @Override
+    public List<String> listTables() throws IOException {
+        List<String> ids = new ArrayList<String>();
+        Cursor c = getDb().query(SYNC_TABLE.getName(), new String[] {}, null, null, null, null, null);
+        while (c.moveToNext()) {
+            ids.add(c.getString(c.getColumnIndexOrThrow(CLASSNAME.getName())));
+        }
+        c.close();
+        return ids;
+    }
+
+
 }

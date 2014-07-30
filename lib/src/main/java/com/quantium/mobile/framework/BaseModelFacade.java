@@ -34,10 +34,15 @@ public abstract class BaseModelFacade {
 				daoFactory.getDaoFor(klass), id, action);
 	}
 
-	public <T extends BaseGenericVO> List<String> listTempIds(Class<T> klass)
-			throws IOException {
-		return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
-	}
+    public <T extends BaseGenericVO> List<String> listTempIds(Class<T> klass)
+            throws IOException {
+        return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
+    }
+
+    public <T extends BaseGenericVO> List<String> listTempTables()
+            throws IOException {
+        return primaryKeyProvider.listTables();
+    }
 	
 	public <T extends BaseGenericVO> Object getIdServerById(Object tempId, Class<T> klass)
 			throws IOException {

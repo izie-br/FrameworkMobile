@@ -275,20 +275,27 @@ public class QueryTest {
 		}
 	}
 
-	@Test
-	public void testNotOp() {
-		Q q = Q.not(Author.ID.eq("1"));
-		QH2DialectProvider provider = new QH2DialectProvider(q);
-		ArrayList<Object> args = new ArrayList<Object>();
-		String str = provider.select(Arrays.asList((Object)Author.ID), args);
-		//removendo parenteses, que podem aparecer arbitrariamente
-		str = str.replaceAll("\\(", " ").replaceAll("\\)", " ");
-		Pattern pattern = Pattern.compile(
-				".*" +                     /* SELECT <colunas> FROM <table> */
-				"where\\s+not\\s+" +       /* WHERE NOT */
-				"[\\w\\._]+\\s*=\\s*\\?",  /* <tabela>.<coluna> = ? */
-				Pattern.CASE_INSENSITIVE); /* case arbitrario */
-		assertTrue(str, pattern.matcher(str).find());
-	}
+    @Test
+    public void testNotOp() {
+        Q q = Q.not(Author.ID.eq("1"));
+        QH2DialectProvider provider = new QH2DialectProvider(q);
+        ArrayList<Object> args = new ArrayList<Object>();
+        String str = provider.select(Arrays.asList((Object)Author.ID), args);
+        //removendo parenteses, que podem aparecer arbitrariamente
+        str = str.replaceAll("\\(", " ").replaceAll("\\)", " ");
+        Pattern pattern = Pattern.compile(
+                ".*" +                     /* SELECT <colunas> FROM <table> */
+                        "where\\s+not\\s+" +       /* WHERE NOT */
+                        "[\\w\\._]+\\s*=\\s*\\?",  /* <tabela>.<coluna> = ? */
+                Pattern.CASE_INSENSITIVE); /* case arbitrario */
+        assertTrue(str, pattern.matcher(str).find());
+    }
+
+
+    @Test
+    public void testListTables() throws IOException {
+        List<String> tables = facade.listTempTables();
+        assertFalse(tables.isEmpty());
+    }
 
 }
