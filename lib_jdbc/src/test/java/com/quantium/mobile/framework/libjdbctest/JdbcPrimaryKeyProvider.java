@@ -21,7 +21,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		Connection conn = null;
 		try {
 			conn = MyJdbcDAOFactory.createConnection();
-			String sql = "INSERT INTO " + SYNC_TABLE.getName() + " ("
+			String sql = "INSERT INTO FMVV_SYNC ("
 					+ CLASSNAME.getName() + ") VALUES (?)";
 			PreparedStatement stm = conn.prepareStatement(sql);
 			stm.setString(1, tableName);
