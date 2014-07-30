@@ -17,8 +17,7 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 
 	@Override
 	public List<String> listIds(String idUser,
-			DAO<? extends BaseGenericVO> dao, long action) throws IOException {
-		String tableName = dao.getTable().getName();
+                                String tableName, long action) throws IOException {
 		List<String> ids = new ArrayList<String>();
 		Connection conn = null;
 		try {
@@ -48,9 +47,8 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> boolean save(String idUser, DAO<T> dao,
+	public <T extends BaseGenericVO> boolean save(String idUser, String tableName,
 			String id, long action) throws IOException {
-		String tableName = dao.getTable().getName();
 		Connection conn = null;
 		try {
 			conn = DB.getConnection();
@@ -83,7 +81,7 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public boolean delete(String idUser, DAO<? extends BaseGenericVO> dao,
+	public boolean delete(String idUser, String tableName,
 			String id, long action) throws IOException {
 		Connection conn = null;
 		try {

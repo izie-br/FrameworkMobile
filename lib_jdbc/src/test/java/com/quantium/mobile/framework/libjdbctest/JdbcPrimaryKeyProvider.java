@@ -17,8 +17,7 @@ import com.quantium.mobile.framework.query.Table;
 public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 
 	@Override
-	public String sequenceNextFor(Table table) throws IOException {
-		String tableName = table.getName();
+	public String sequenceNextFor(String tableName) throws IOException {
 		Connection conn = null;
 		try {
 			conn = DB.getConnection();
@@ -81,9 +80,8 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao,
+	public <T extends BaseGenericVO> Object getIdServerById(String tableName,
 			Object id) throws IOException {
-		String tableName = dao.getTable().getName();
 		String idServer = null;
 		Connection conn = null;
 		try {
@@ -111,7 +109,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> boolean delete(DAO<T> dao, String id)
+	public <T extends BaseGenericVO> boolean delete(String tableName, String id)
 			throws IOException {
 		Connection conn = null;
 		try {
@@ -135,7 +133,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> void updateIdServer(DAO<T> dao,
+	public <T extends BaseGenericVO> void updateIdServer(String tableName,
 			Object oldId, Object newPrimaryKey) throws IOException {
 		Connection conn = null;
 		try {

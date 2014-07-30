@@ -19,9 +19,9 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	public abstract SQLiteDatabase getDb();
 
 	@Override
-	public String sequenceNextFor(Table table) throws IOException {
+	public String sequenceNextFor(String tableName) throws IOException {
 		ContentValues cv = new ContentValues();
-		cv.put(CLASSNAME.getName(), table.getName());
+		cv.put(CLASSNAME.getName(), tableName);
 		long id = getDb().insert(SYNC_TABLE.getName(), null, cv);
 		if (id == 0) {
 			throw new IOException("No generated key was found from sqlite");
@@ -42,12 +42,12 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao,
+	public <T extends BaseGenericVO> Object getIdServerById(String tableName,
 			Object id) throws IOException {
 		String idServer = null;
 		Cursor c = getDb().query(SYNC_TABLE.getName(), new String[] {},
 				String.format("%s=? AND %s=?", CLASSNAME.getName(), ID.getName()),
-				new String[] { dao.getTable().getName(), id.toString() }, null,
+				new String[] { tableName, id.toString() }, null,
 				null, null);
 		while (c.moveToNext()) {
 			idServer = c.getString(c.getColumnIndexOrThrow(ID.getName()));
@@ -57,9 +57,9 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> boolean delete(DAO<T> dao, String id)
+	public <T extends BaseGenericVO> boolean delete(String tableName, String id)
 			throws IOException {
-		if (listIds(dao).contains(id)) {
+		if (listIds(tableName).contains(id)) {
 			int rows = getDb().delete(SYNC_TABLE.getName(),
 					String.format("%s=?", ID.getName()),
 					new String[] { String.valueOf(id) });
@@ -69,7 +69,7 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public <T extends BaseGenericVO> void updateIdServer(DAO<T> dao,
+	public <T extends BaseGenericVO> void updateIdServer(String tableName,
 			Object oldId, Object newPrimaryKey) {
 		ContentValues values = new ContentValues();
 		values.put(ID_SERVER.getName(), newPrimaryKey.toString());

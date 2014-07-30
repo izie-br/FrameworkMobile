@@ -18,10 +18,10 @@ public abstract class AndroidToSyncProvider extends ToSyncProvider {
 	public abstract SQLiteDatabase getDb();
 	
 	@Override
-	public <T extends BaseGenericVO> boolean save(String idUser, DAO<T> dao,
+	public <T extends BaseGenericVO> boolean save(String idUser, String tableName,
 			String id, long action) throws IOException {
 		ContentValues cv = new ContentValues();
-		cv.put(CLASSNAME.getName(), dao.getTable().getName());
+		cv.put(CLASSNAME.getName(), tableName);
 		cv.put(ID.getName(), String.valueOf(id));
 		cv.put(ACTION.getName(), action);
 		cv.put(ID_USER.getName(), String.valueOf(idUser));
@@ -50,12 +50,12 @@ public abstract class AndroidToSyncProvider extends ToSyncProvider {
 
 	@Override
 	public List<String> listIds(String idUser,
-			DAO<? extends BaseGenericVO> dao, long action) {
+                                String tableName, long action) {
 		List<String> ids = new ArrayList<String>();
 		Cursor c = getDb().query(TO_SYNC_TABLE.getName(), new String[] {}, String
 				.format("%s=? AND %s=? AND %s=?", CLASSNAME.getName(),
 						ACTION.getName(), ID_USER.getName()),
-				new String[] { dao.getTable().getName(),
+				new String[] { tableName,
 						String.valueOf(action), String.valueOf(idUser) }, null,
 				null, null);
 		while (c.moveToNext()) {
@@ -66,12 +66,12 @@ public abstract class AndroidToSyncProvider extends ToSyncProvider {
 	}
 
 	@Override
-	public boolean delete(String idUser, DAO<? extends BaseGenericVO> dao,
+	public boolean delete(String idUser, String tableName,
 			String id, long action) {
 		int rows = getDb().delete(TO_SYNC_TABLE.getName(), String.format(
 				"%s=? AND %s=? AND %s=? AND %s=?", ID.getName(),
 				CLASSNAME.getName(), ACTION.getName(), ID_USER.getName()),
-				new String[] { String.valueOf(id), dao.getTable().getName(),
+				new String[] { String.valueOf(id), tableName,
 						String.valueOf(action), String.valueOf(idUser) });
 		return rows == 1;
 	}

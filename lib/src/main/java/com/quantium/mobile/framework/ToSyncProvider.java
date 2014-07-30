@@ -23,13 +23,13 @@ public abstract class ToSyncProvider {
 			Long.class, "action");
 
 	public abstract List<String> listIds(String idUser,
-			DAO<? extends BaseGenericVO> dao, long action) throws IOException;
+			String tableName, long action) throws IOException;
 
 	public abstract <T extends BaseGenericVO> boolean save(String idUser,
-			DAO<T> dao, String id, long action) throws IOException;
+                                                           String tableName, String id, long action) throws IOException;
 
 	public abstract boolean delete(String idUser,
-			DAO<? extends BaseGenericVO> dao, String id, long action)
+                                   String tableName, String id, long action)
 			throws IOException;
 
 }

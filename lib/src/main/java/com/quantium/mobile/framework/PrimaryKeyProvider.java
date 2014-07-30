@@ -17,27 +17,20 @@ public abstract class PrimaryKeyProvider {
 	public static final Table.Column<String> CLASSNAME = SYNC_TABLE.addColumn(
 			String.class, "classname");
 
-	public abstract String sequenceNextFor(Table table) throws IOException;
-
-	public final List<String> listIds(DAO<? extends BaseGenericVO> dao)
-			throws IOException {
-        return listIds(dao.getTable().getName());
-    }
+	public abstract String sequenceNextFor(String tableName) throws IOException;
 	
-	public abstract <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao, Object id) throws IOException;
+	public abstract <T extends BaseGenericVO> Object getIdServerById(String tableName, Object id) throws IOException;
 
-	public <T extends BaseGenericVO> boolean generatePrimaryKey(DAO<T> dao, T obj)
+	public <T extends BaseGenericVO> boolean generatePrimaryKey(String tableName, T obj)
 			throws IOException {
-		if (dao == null)
-			throw new IllegalArgumentException("null");
-		obj.setId(sequenceNextFor(dao.getTable()));
+		obj.setId(sequenceNextFor(tableName));
 		return true;
 	}
 
-	public abstract  <T extends BaseGenericVO>  boolean delete(DAO<T> dao, String id)
+	public abstract  <T extends BaseGenericVO>  boolean delete(String tableName, String id)
 			throws IOException;
 
-	public abstract <T extends BaseGenericVO>  void updateIdServer(DAO<T> dao,Object oldId, Object newPrimaryKey) throws IOException;
+	public abstract <T extends BaseGenericVO>  void updateIdServer(String tableName,Object oldId, Object newPrimaryKey) throws IOException;
 
     public abstract List<String> listTables() throws IOException;
 

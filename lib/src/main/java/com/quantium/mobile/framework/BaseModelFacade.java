@@ -28,15 +28,21 @@ public abstract class BaseModelFacade {
 
 	protected abstract String getLoggedUserId();
 
-	public <T extends BaseGenericVO> boolean addToSync(Class<T> klass,
-			String id, long action) throws IOException {
-		return toSyncProvider.save(getLoggedUserId(),
-				daoFactory.getDaoFor(klass), id, action);
-	}
+    public <T extends BaseGenericVO> boolean addToSync(Class<T> klass,
+                                                       String id, long action) throws IOException {
+        return toSyncProvider.save(getLoggedUserId(),
+                daoFactory.getDaoFor(klass).getTable().getName(), id, action);
+    }
+
+    public <T extends BaseGenericVO> boolean addToSync(String tableName,
+                                                       String id, long action) throws IOException {
+        return toSyncProvider.save(getLoggedUserId(),
+                tableName, id, action);
+    }
 
     public <T extends BaseGenericVO> List<String> listTempIds(Class<T> klass)
             throws IOException {
-        return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
+        return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass).getTable().getName());
     }
 
     public <T extends BaseGenericVO> List<String> listTempIds(String tableName)
@@ -51,19 +57,19 @@ public abstract class BaseModelFacade {
 	
 	public <T extends BaseGenericVO> Object getIdServerById(Object tempId, Class<T> klass)
 			throws IOException {
-		return primaryKeyProvider.getIdServerById(daoFactory.getDaoFor(klass), tempId);
+		return primaryKeyProvider.getIdServerById(daoFactory.getDaoFor(klass).getTable().getName(), tempId);
 	}
 
 	public <T extends BaseGenericVO> List<String> listToSyncIds(Class<T> klass,
 			long action) throws IOException {
 		return toSyncProvider.listIds(getLoggedUserId(),
-				daoFactory.getDaoFor(klass), action);
+				daoFactory.getDaoFor(klass).getTable().getName(), action);
 	}
 
 	public <T extends BaseGenericVO> boolean deleteToSyncId(Class<T> klass,
 			String id, long action) throws IOException {
 		return toSyncProvider.delete(getLoggedUserId(),
-				daoFactory.getDaoFor(klass), id, action);
+				daoFactory.getDaoFor(klass).getTable().getName(), id, action);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -82,7 +88,7 @@ public abstract class BaseModelFacade {
 		DAO<T> dao = daoFactory.getDaoFor((Class<T>) obj.getClass());
 		Collection<ValidationError> validate = newValidate(obj);
 		if (newObj) {
-			primaryKeyProvider.generatePrimaryKey(dao, obj);
+			primaryKeyProvider.generatePrimaryKey(dao.getTable().getName(), obj);
 		}
 		if (validate.size() == 0) {
 			if (dao.save(obj, Save.INSERT_IF_NOT_EXISTS)) {
@@ -90,7 +96,7 @@ public abstract class BaseModelFacade {
 					return true;
 				}
 				if (!newObj) {
-					return toSyncProvider.save(getLoggedUserId(), dao,
+					return toSyncProvider.save(getLoggedUserId(), dao.getTable().getName(),
 							obj.getId(), ToSyncProvider.SAVE);
 				}
 				return true;
@@ -119,7 +125,7 @@ public abstract class BaseModelFacade {
 		DAO<T> dao = daoFactory.getDaoFor((Class<T>) target
 				.getClass());
 		((PrimaryKeyUpdater<T>) dao).updatePrimaryKey(target, newPrimaryKey);
-		primaryKeyProvider.updateIdServer(dao, oldId, newPrimaryKey);
+		primaryKeyProvider.updateIdServer(dao.getTable().getName(), oldId, newPrimaryKey);
 	}
 
 	@SuppressWarnings("unchecked")
@@ -136,7 +142,7 @@ public abstract class BaseModelFacade {
 			return false;
 		}
 		DAO<T> dao = daoFactory.getDaoFor((Class<T>) obj.getClass());
-		if (primaryKeyProvider.delete(dao, obj.getId())) {
+		if (primaryKeyProvider.delete(dao.getTable().getName(), obj.getId())) {
 			if (hardDelete) {
 				return dao.delete(obj);
 			} else {
@@ -144,9 +150,9 @@ public abstract class BaseModelFacade {
 				return dao.save(obj);
 			}
 		} else {
-			toSyncProvider.delete(getLoggedUserId(), dao, obj.getId(),
+			toSyncProvider.delete(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
 					ToSyncProvider.SAVE);
-			if (toSyncProvider.save(getLoggedUserId(), dao, obj.getId(),
+			if (toSyncProvider.save(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
 					ToSyncProvider.DELETE)) {
 				if (hardDelete) {
 					return dao.delete(obj);
