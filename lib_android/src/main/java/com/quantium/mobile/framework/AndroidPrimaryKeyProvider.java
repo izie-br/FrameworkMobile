@@ -50,7 +50,7 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 				new String[] { tableName, id.toString() }, null,
 				null, null);
 		while (c.moveToNext()) {
-			idServer = c.getString(c.getColumnIndexOrThrow(ID.getName()));
+			idServer = c.getString(c.getColumnIndexOrThrow(ID_SERVER.getName()));
 		}
 		c.close();
 		return idServer;
