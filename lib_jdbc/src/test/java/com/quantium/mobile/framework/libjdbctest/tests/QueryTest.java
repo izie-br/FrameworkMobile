@@ -28,8 +28,25 @@ import com.quantium.mobile.framework.utils.StringUtil;
 import javax.management.Query;
 
 public class QueryTest {
+	DAOFactory daoFactory = new MemDaoFactory(){
+        @Override
+        public BaseModelFacade getFacade() {
+            return new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
 
-	DAOFactory daoFactory = new MemDaoFactory();
+                @Override
+                protected String getLoggedUserId() {
+                    return null;
+                }
+            };
+        }
+    };
+    BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+
+        @Override
+        protected String getLoggedUserId() {
+            return null;
+        }
+    };
 
 	@SuppressWarnings("deprecation")
 	@Test
@@ -116,13 +133,6 @@ public class QueryTest {
 
     //@Test
 	public void testLazyInvocation() throws IOException {
-		BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
-			
-			@Override
-			protected String getLoggedUserId() {
-				return null;
-			}
-		};
 		Author author1 = new AuthorImpl();
 		author1.setName("lazy");
 		facade.save(author1);

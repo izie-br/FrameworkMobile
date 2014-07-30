@@ -42,7 +42,7 @@
             item.set${association.KeyToA}(editableTarget);
             item.setLastModified(new java.util.Date());
             if(!this.factory
-            .getDaoFor(${association.Klass}.class)
+            .getModelFacade()
             .save(item)){
                 throw new IOException("save could not be performed, check logs");
             }

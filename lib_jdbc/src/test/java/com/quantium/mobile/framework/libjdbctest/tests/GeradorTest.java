@@ -11,13 +11,12 @@ import java.util.Map;
 
 import static org.junit.Assert.*;
 
+import com.quantium.mobile.framework.*;
+import com.quantium.mobile.framework.libjdbctest.JdbcPrimaryKeyProvider;
+import com.quantium.mobile.framework.libjdbctest.JdbcToSyncProvider;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 
-import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.DAOFactory;
-import com.quantium.mobile.framework.PrimaryKeyUpdater;
-import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.db.FirstLevelCache;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.util.Utils;
@@ -33,8 +32,18 @@ import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
 public class GeradorTest {
+	DAOFactory daoFactory = new MemDaoFactory(){
+        @Override
+        public BaseModelFacade getFacade() {
+            return new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
 
-	DAOFactory daoFactory = new MemDaoFactory();
+                @Override
+                protected String getLoggedUserId() {
+                    return null;
+                }
+            };
+        }
+    };
 
 	@Test
 	public void testInsertUpdateDelete(){
@@ -886,7 +895,18 @@ public class GeradorTest {
 			protected <T> java.lang.ref.Reference<T> createReference(T obj) {
 				return new WeakReference<T>(obj);
 			}
-		};
+
+            @Override
+            public BaseModelFacade getFacade() {
+                return new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+
+                    @Override
+                    protected String getLoggedUserId() {
+                        return null;
+                    }
+                };
+            }
+        };
 		return weakRefFactory;
 	}
 

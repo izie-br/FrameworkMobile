@@ -2,10 +2,11 @@ package com.quantium.mobile.framework.libjdbctest;
 
 import java.sql.Connection;
 
+import com.quantium.mobile.framework.BaseModelFacade;
 import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.gen.JdbcDAOFactory;
 
-public class MemDaoFactory extends JdbcDAOFactory {
+public abstract class MemDaoFactory extends JdbcDAOFactory {
 
 	private Connection connection;
 
@@ -16,4 +17,5 @@ public class MemDaoFactory extends JdbcDAOFactory {
 		return connection;
 	}
 
+    public abstract BaseModelFacade getFacade();
 }

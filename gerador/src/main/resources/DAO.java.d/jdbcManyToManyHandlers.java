@@ -9,7 +9,7 @@
 #******#                return false;
 #******#            }
 #******#            if (idB == ${defaultId}) {
-#******#                if(this.factory.getDaoFor(${association.Klass}.class).save(obj)) {
+#******#                if(this.factory.getModelFacade().save(obj)) {
 #******#                    idB = obj.${getter[$association.ReferenceB]}();
 #******#                } else {
 #******#                    return false;
@@ -22,7 +22,7 @@
 #******#                return false;
 #******#            }
 #******#            if (idA == ${defaultId}) {
-#******#                if(this.factory.getDaoFor(${association.Klass}.class).save(obj)) {
+#******#                if(this.factory.getModelFacade().save(obj)) {
 #******#                    idA = obj.${getter[$association.ReferenceB]}();
 #******#                } else {
 #******#                    return false;

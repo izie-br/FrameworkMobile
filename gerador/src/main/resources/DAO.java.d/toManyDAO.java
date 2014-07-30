@@ -36,7 +36,7 @@
 #******#            if (obj instanceof ${association.Klass}){
 #******#                ${association.Klass} objCast = ((${association.Klass})obj);
 #******#                objCast.set${association.KeyToA}(this.target);
-#******#                return factory.getDaoFor(${association.Klass}.class).save(objCast);
+#******#                return factory.getModelFacade().save(objCast);
 #******#            }
 #******##end
 #**##end
@@ -58,9 +58,9 @@
 #******#                ${association.Klass} objCast = ((${association.Klass})obj);
 #******##if ($association.Nullable)
 #******#                objCast.set${association.KeyToA}(null);
-#******#                return factory.getDaoFor(${association.Klass}.class).save(objCast);
+#******#                return factory.getModelFacade().save(objCast);
 #******##else
-#******#                return factory.getDaoFor(${association.Klass}.class).delete(objCast);
+#******#                return factory.getModelFacade().delete(objCast);
 #******##end
 #******#            }
 #**##end
