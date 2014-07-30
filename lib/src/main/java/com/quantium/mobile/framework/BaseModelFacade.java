@@ -42,7 +42,7 @@ public abstract class BaseModelFacade {
 
     public <T extends BaseGenericVO> List<String> listTempIds(Class<T> klass)
             throws IOException {
-        return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass).getTable().getName());
+        return listTempIds(daoFactory.getDaoFor(klass).getTable().getName());
     }
 
     public <T extends BaseGenericVO> List<String> listTempIds(String tableName)
@@ -54,11 +54,16 @@ public abstract class BaseModelFacade {
             throws IOException {
         return primaryKeyProvider.listTables();
     }
-	
-	public <T extends BaseGenericVO> Object getIdServerById(Object tempId, Class<T> klass)
-			throws IOException {
-		return primaryKeyProvider.getIdServerById(daoFactory.getDaoFor(klass).getTable().getName(), tempId);
-	}
+
+    public <T extends BaseGenericVO> Object getIdServerById(Object tempId, Class<T> klass)
+            throws IOException {
+        return getIdServerById(tempId, daoFactory.getDaoFor(klass).getTable().getName());
+    }
+
+    public <T extends BaseGenericVO> Object getIdServerById(Object tempId, String tableName)
+            throws IOException {
+        return primaryKeyProvider.getIdServerById(tableName, tempId);
+    }
 
 	public <T extends BaseGenericVO> List<String> listToSyncIds(Class<T> klass,
 			long action) throws IOException {
