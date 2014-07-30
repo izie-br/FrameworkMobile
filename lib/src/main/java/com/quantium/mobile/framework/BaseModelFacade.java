@@ -39,6 +39,11 @@ public abstract class BaseModelFacade {
         return primaryKeyProvider.listIds(daoFactory.getDaoFor(klass));
     }
 
+    public <T extends BaseGenericVO> List<String> listTempIds(String tableName)
+            throws IOException {
+        return primaryKeyProvider.listIds(tableName);
+    }
+
     public <T extends BaseGenericVO> List<String> listTempTables()
             throws IOException {
         return primaryKeyProvider.listTables();
