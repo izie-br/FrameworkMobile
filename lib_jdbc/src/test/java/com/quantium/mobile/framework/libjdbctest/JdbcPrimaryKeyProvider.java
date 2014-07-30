@@ -53,9 +53,8 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public List<String> listIds(DAO<? extends BaseGenericVO> dao)
+	public List<String> listIds(String className)
 			throws IOException {
-		String tableName = dao.getTable().getName();
 		List<String> ids = new ArrayList<String>();
 		Connection conn = null;
 		try {
@@ -63,7 +62,7 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=?";
 			PreparedStatement stm = conn.prepareStatement(sql);
-			stm.setString(1, tableName);
+			stm.setString(1, className);
 			ResultSet rs = stm.executeQuery();
 			while (rs.next()) {
 				ids.add(rs.getString(1));

@@ -19,8 +19,10 @@ public abstract class PrimaryKeyProvider {
 
 	public abstract String sequenceNextFor(Table table) throws IOException;
 
-	public abstract List<String> listIds(DAO<? extends BaseGenericVO> dao)
-			throws IOException;
+	public final List<String> listIds(DAO<? extends BaseGenericVO> dao)
+			throws IOException {
+        return listIds(dao.getTable().getName());
+    }
 	
 	public abstract <T extends BaseGenericVO> Object getIdServerById(DAO<T> dao, Object id) throws IOException;
 
@@ -38,4 +40,7 @@ public abstract class PrimaryKeyProvider {
 	public abstract <T extends BaseGenericVO>  void updateIdServer(DAO<T> dao,Object oldId, Object newPrimaryKey) throws IOException;
 
     public abstract List<String> listTables() throws IOException;
+
+    public abstract List<String> listIds(String className)
+            throws IOException;
 }

@@ -30,11 +30,10 @@ public abstract class AndroidPrimaryKeyProvider extends PrimaryKeyProvider {
 	}
 
 	@Override
-	public List<String> listIds(DAO<? extends BaseGenericVO> dao) {
+	public List<String> listIds(String className) {
 		List<String> ids = new ArrayList<String>();
 		Cursor c = getDb().query(SYNC_TABLE.getName(), new String[] {}, String
-				.format("%s=?", CLASSNAME.getName()), new String[] { dao
-				.getTable().getName() }, null, null, null);
+				.format("%s=?", CLASSNAME.getName()), new String[] { className }, null, null, null);
 		while (c.moveToNext()) {
 			ids.add(c.getString(c.getColumnIndexOrThrow(ID.getName())));
 		}
