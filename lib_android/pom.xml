@@ -33,7 +33,12 @@
 			<version>2.3</version>
 			<scope>test</scope>
 		</dependency>
-	</dependencies>
+        <dependency>
+            <groupId>com.google.android</groupId>
+            <artifactId>multidex</artifactId>
+            <version>0.2</version>
+        </dependency>
+    </dependencies>
 
 	<profiles>
 		<profile>

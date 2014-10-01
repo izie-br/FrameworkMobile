@@ -2,8 +2,10 @@ package com.quantium.mobile.framework;
 
 import android.app.Application;
 import android.content.Context;
+import android.support.multidex.MultiDex;
+import android.support.multidex.MultiDexApplication;
 
-public abstract class BaseApplication extends Application{
+public abstract class BaseApplication extends MultiDexApplication{
 
 	protected static BaseApplication instance;
 
@@ -36,5 +38,12 @@ public abstract class BaseApplication extends Application{
 	public static String getUserName(){
 		return instance.userName();
 	}
+
+
+    @Override
+    protected final void attachBaseContext(Context base) {
+        super.attachBaseContext(base);
+        MultiDex.install(this);
+    }
 
 }
