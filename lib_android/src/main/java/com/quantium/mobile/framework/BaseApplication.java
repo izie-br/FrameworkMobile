@@ -8,6 +8,7 @@ import android.support.multidex.MultiDexApplication;
 public abstract class BaseApplication extends MultiDexApplication{
 
 	protected static BaseApplication instance;
+    private boolean installed = false;
 
 	public abstract int dbVersion();
 
@@ -39,11 +40,15 @@ public abstract class BaseApplication extends MultiDexApplication{
 		return instance.userName();
 	}
 
+    public boolean isInstalled() {
+        return installed;
+    }
 
     @Override
     protected final void attachBaseContext(Context base) {
         super.attachBaseContext(base);
         MultiDex.install(this);
+        installed = true;
     }
 
 }
