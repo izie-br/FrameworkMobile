@@ -17,7 +17,6 @@ import java.sql.*;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.PrimaryKeyUpdater;
-import com.quantium.mobile.framework.LazyInvocationHandler;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.jdbc.JdbcQuerySet;
 import com.quantium.mobile.framework.query.Table;

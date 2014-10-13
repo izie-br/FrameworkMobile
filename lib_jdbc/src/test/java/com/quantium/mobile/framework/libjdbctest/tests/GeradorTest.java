@@ -431,7 +431,7 @@ public class GeradorTest {
 		}
 	}
 
-	@Test
+	/*@Test
 	public void testLazyInvocationHandler() {
 		try {
 			// Substituindo as SoftReference por WeakReference
@@ -485,7 +485,7 @@ public class GeradorTest {
 		} catch (Exception e) {
 			fail(StringUtil.getStackTrace(e));
 		}
-	}
+	}*/
 
 	@Test
 	public void testFirstLevelCacheTrim() {
