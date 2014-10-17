@@ -19,6 +19,7 @@ import android.database.SQLException;
 
 import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.PrimaryKeyUpdater;
+import com.quantium.mobile.framework.LazyInvocationHandler;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
 import com.quantium.mobile.framework.query.Table;

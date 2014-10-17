@@ -17,8 +17,18 @@
 #******#                ${association.Klass}.class,
 #******#                new Serializable[]{_${field.LowerCamel}});
 #******#            if (cacheItem == null) {
-#******#                _${association.KeyToA} = factory.getDaoFor(${association.Klass}.class).query(
-#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})).first();
+#******#                LazyInvocationHandler<${association.Klass}> handler =
+#******#                    new LazyInvocationHandler<${association.Klass}>(
+#******#                        ${association.Klass}.class,
+#******#                        factory.getModelFacade(),
+#******#                        factory.getDaoFor(${association.Klass}.class).query(
+#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
+#******#                            _${field.LowerCamel},
+#******#                            "${getter[$association.ReferenceKey]}");
+#******#                _${association.KeyToA} = (${association.Klass})Proxy.newProxyInstance(
+#******#                    this.getClass().getClassLoader(),
+#******#                    new Class[]{ ${association.Klass}Editable.class },
+#******#                    handler);
 #******#            } else if (cacheItem instanceof ${association.Klass}) {
 #******#                _${association.KeyToA} = (${association.Klass})cacheItem;
 #******#            }

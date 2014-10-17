@@ -26,10 +26,6 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 		this.modelFacade = modelFacade;
 	}
 
-    public boolean exists(){
-        return querySet.count() > 0;
-    }
-
 	@Override
 	public Object invoke(Object proxy, Method method, Object[] args)
 			throws Throwable
@@ -44,7 +40,28 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 				throw new LazyLoadException(e);
 			}
 			if (lazyInstance == null){
-				return null;
+				//tentando procurar um serverId para este temp id;
+				Object serverId = modelFacade.getIdServerById(key, klass);
+				if(serverId == null){
+					LogPadrao.e(new LazyLoadException(String.format(
+							"Object's server id %s from id %s not found",
+							querySet.getTable().getName(),
+							(key == null)? "null" : key.toString() )));
+					return null;
+				}else{
+					BaseGenericVO serverObj = modelFacade.get(klass, serverId);
+					if(serverObj == null){
+						LogPadrao.e(new LazyLoadException(String.format(
+								"Object %s server id %s not found",
+								querySet.getTable().getName(),
+								(serverId == null)? "null" : serverId.toString() )));
+						return null;
+					} else {
+						modelFacade.updatePrimaryKey(serverObj, key);
+						modelFacade.updatePrimaryKey(serverObj, serverId);
+					}
+
+				}
 			}
 		}
 		return method.invoke(lazyInstance, args);
