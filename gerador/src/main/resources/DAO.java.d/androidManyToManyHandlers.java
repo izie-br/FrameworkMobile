@@ -33,8 +33,8 @@
                     "${association.KeyToA.LowerAndUnderscores}=? AND " +
                     "${association.KeyToB.LowerAndUnderscores}=?",
                     new String[] {
-                        ((${association.KeyToA.Klass})idA).toString(),
-                        ((${association.KeyToB.Klass})idB).toString(),
+                        ((${association.KeyToA.Klass})idA),
+                        ((${association.KeyToB.Klass})idB),
                     });
             if (!cursor.moveToNext()) {
                 throw new IOException("Erro ao mover o cursor ao adicionar many-to-many");
@@ -66,8 +66,8 @@
         }
         String whereSql = "${association.KeyToA.LowerAndUnderscores} = ? AND ${association.KeyToB.LowerAndUnderscores} = ?";
         String [] args = new String[]{
-            ((${association.KeyToA.Klass})idA).toString(),
-            ((${association.KeyToB.Klass})idB).toString(),
+            ((${association.KeyToA.Klass})idA),
+            ((${association.KeyToB.Klass})idB),
         };
         SQLiteDatabase db = this.factory.getDb();
         long affected = db.delete("${association.JoinTable}", whereSql, args);

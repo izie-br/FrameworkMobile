@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
-	
+
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.quantium.mobile.framework</groupId>
 	<artifactId>frameworkMobile</artifactId>
@@ -14,7 +14,7 @@
 		<module>shared</module>
 		<module>lib_jdbc</module>
 		<module>lib_android</module>
-		<!--<module>test</module>-->
+		<module>test</module>
 	</modules>
 
 	<properties>
@@ -45,7 +45,7 @@
 	<scm>
 		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/trunk</developerConnection>
 	</scm>
-	
+
 	<build>
 		<plugins>
             <plugin>
@@ -110,7 +110,7 @@
             <url>${url.snapshots}</url>
         </snapshotRepository>
     </distributionManagement>
-	
+
 
 	<profiles>
         <profile>
@@ -177,8 +177,10 @@
                 <version>2.5.5</version>
                 <configuration>
                     <findbugsXmlOutput>true</findbugsXmlOutput>
-                    <findbugsXmlWithMessages>true</findbugsXmlWithMessages>
                     <xmlOutput>true</xmlOutput>
+                    <xmlOutputDirectory>target/site</xmlOutputDirectory>
+                    <effort>Max</effort>
+                    <threshold>Low</threshold>
                 </configuration>
             </plugin>
         </plugins>

@@ -1,5 +1,8 @@
 package com.quantium.mobile.geradores.velocity.helpers;
-
+/*
+ * Copyright (c) 2014 Izie.
+ *
+ */
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -55,12 +58,13 @@ public class ImportHelper {
 			sb.append ('.');
 			sb.append (assoc.getKlass ());
 			sb.append (";\n");
-
-			sb.append ("import ");
-			sb.append (genPackageName);
-			sb.append ('.');
-			sb.append (Utils.editableInterface(assoc.getKlass ()));
-			sb.append (";\n");
+            if (!assoc.getModule ().equals (module)){
+                sb.append ("import ");
+                sb.append (genPackageName);
+                sb.append ('.');
+                sb.append (Utils.editableInterface(assoc.getKlass ()));
+                sb.append (";\n");
+            }
 		}
 		if (daoFactory != null){
 			String packageName = Utils.getPackageName (

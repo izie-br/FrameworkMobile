@@ -40,9 +40,9 @@
 #**#                final String sqlWhereClause = "${relation.KeyToB.LowerAndUnderscores} = ?";
 #**##end
 #**##if ($association.isThisTableA)
-#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceA.Klass}) target.${getter[$relation.ReferenceA]}()).toString()};
+#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceA.Klass}) target.${getter[$relation.ReferenceA]}())};
 #**##else
-#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceB.Klass}) target.${getter[$relation.ReferenceB]}()).toString()};
+#**#                String manyToManyArgs[] = new String[] {((${relation.ReferenceB.Klass}) target.${getter[$relation.ReferenceB]}())};
 #**##end
 #**#                db.delete("${relation.JoinTable}", sqlWhereClause,manyToManyArgs);
 #**#            }

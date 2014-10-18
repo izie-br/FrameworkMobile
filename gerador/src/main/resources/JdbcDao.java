@@ -41,7 +41,7 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
     public static final List<Table.Column<?>> COLUMNS =
             Collections.unmodifiableList(Arrays.asList(
 #foreach ($field in $fields)
-                    (Table.Column<?>)${Target}.${field.UpperAndUnderscores}#if($foreach.count != $fields.size()),#end
+                    (Table.Column<?>) ${Target}.${field.UpperAndUnderscores}#if($foreach.count != $fields.size()),#end
 
 #end
             ));
@@ -150,7 +150,7 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
 #end
         return obj;
     }
-    
+
     protected final ${DaoFactory} getFactory(){
     	return factory;
     }

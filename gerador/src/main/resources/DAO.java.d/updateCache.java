@@ -20,7 +20,8 @@
 #******#                       editable.set${association.KeyToA}(null);
 #******#                   }
 #******#               } else {
-#******#                   if (_cache${association.KeyToA} == null || !(((${field.Klass})_${association.KeyToA}.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
+#******#                   if (_cache${association.KeyToA} == null ||
+#******#                            !(((${field.Klass})_${association.KeyToA}.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
 #******#                       editable.set${association.KeyToA}(this.factory.getDaoFor(${association.Klass}.class).get(_${association.KeyToA}.${getter[$association.ReferenceKey]}()));
 #******#                   }
 #******#               }
