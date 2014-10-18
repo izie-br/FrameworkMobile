@@ -80,7 +80,8 @@
 #**********#                        ${argIndex},
 #**********#                        (target.${getter[$field]}() == null) ?
 #**********#                            null :
-#**********#                            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(target.${getter[$field]}()));
+#**********#                            new java.text.SimpleDateFormat(
+#**********#                                "yyyy-MM-dd HH:mm:ss.SSS").format(target.${getter[$field]}()));
 #**********##else
 #**********#                stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #**********##end
@@ -124,7 +125,8 @@
 #******##set ($referenceKey = $association.ReferenceB)
 #**##end
 #**#                    if (editable.get${association.KeyToAPluralized}() == null) {
-#**#                        editable.set${association.KeyToAPluralized}(querySetFor${association.KeyToAPluralized}(editable.${getter[$referenceKey]}()));
+#**#                        editable.set${association.KeyToAPluralized}(
+#**#                            querySetFor${association.KeyToAPluralized}(editable.${getter[$referenceKey]}()));
 #**#                    }
 #end
 #foreach ($association in $manyToManyAssociations)
@@ -136,7 +138,8 @@
 #******##set ($referenceKey = $association.ReferenceB)
 #**##end
 #**#                    if (editable.get${association.Pluralized}() == null) {
-#**#                        editable.set${association.Pluralized}(querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
+#**#                        editable.set${association.Pluralized}(
+#**#                            querySetFor${association.Pluralized}(editable.${getter[$referenceKey]}()));
 #**#                    }
 #end
                     boolean itemFoundInCache = updateCache(target);
@@ -185,7 +188,8 @@
 #**********#                        ${argIndex},
 #**********#                        (target.${getter[$field]}() == null) ?
 #**********#                            null :
-#**********#                            new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").format(target.${getter[$field]}()));
+#**********#                            new java.text.SimpleDateFormat(
+#**********#                                "yyyy-MM-dd HH:mm:ss.SSS").format(target.${getter[$field]}()));
 #**********##else
 #**********#                stm.set${field.Klass}(${argIndex}, target.${getter[$field]}());
 #**********##end

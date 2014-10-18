@@ -3,17 +3,23 @@
             throws IOException
     {
         if (target == null)
-            throw new IllegalArgumentException("Target is NULL");
+            throw new IllegalArgumentException(
+                "Target is NULL");
         if ( !(target instanceof ${EditableInterface}) )
-            throw new IllegalArgumentException("Target is not editable");
+            throw new IllegalArgumentException(
+                "Target is not editable");
         if (newPrimaryKey == null)
-            throw new IllegalArgumentException("PrimarKey is NULL");
+            throw new IllegalArgumentException(
+                "PrimarKey is NULL");
         if ( !(newPrimaryKey instanceof ${primaryKey.Klass}) )
-            throw new IllegalArgumentException("PrimarKey is not " + newPrimaryKey.getClass().getName() );
+            throw new IllegalArgumentException(
+                "PrimarKey is not " + newPrimaryKey.getClass().getName() );
         if (target.getId() == null)
-        	throw new IllegalArgumentException("Target was not persisted");
+        	throw new IllegalArgumentException(
+                "Target was not persisted");
         if (newPrimaryKey.equals(target.getId()))
-        	throw new IllegalArgumentException("Target and new primaryKey are the same");
+        	throw new IllegalArgumentException(
+                "Target and new primaryKey are the same");
         ${EditableInterface} editableTarget = (${EditableInterface})target;
         ${primaryKey.Klass} newPk = (${primaryKey.Klass})newPrimaryKey;
         ${primaryKey.Klass} oldPk = editableTarget.${getter[$primaryKey]}();
@@ -22,10 +28,12 @@
             throw new IOException("Id already exists");
         // Armazenando os querySets antigos, antes do reINSERT, que os atualiza
 #foreach ($association in $oneToManyAssociations)
-        QuerySet<${association.Klass}> _${association.KeyToAPluralized} = editableTarget.get${association.KeyToAPluralized}();
+        QuerySet<${association.Klass}> _${association.KeyToAPluralized} =
+                editableTarget.get${association.KeyToAPluralized}();
 #end
 #foreach ($association in $manyToManyAssociations)
-        QuerySet<${association.Klass}> _${association.Pluralized} = editableTarget.get${association.Pluralized}();
+        QuerySet<${association.Klass}> _${association.Pluralized} =
+                editableTarget.get${association.Pluralized}();
 #end
         this.factory.removeFromCache(${Target}.class, new Serializable[]{oldPk});
         editableTarget.setId(newPk);
@@ -55,5 +63,6 @@
 #end
         ${Target} oldItem = get(oldPk);
         if (!delete(oldItem))
-            throw new IOException("error upon deleting old record under updateId process, check logs");
+            throw new IOException(
+                "error upon deleting old record under updateId process, check logs");
     }

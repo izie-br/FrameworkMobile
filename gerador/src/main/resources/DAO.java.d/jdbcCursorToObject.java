@@ -46,7 +46,8 @@
 #******#                String temp = cursor.getString(${columnIndex});
 #******#                _${field.LowerCamel} = (temp == null)?
 #******#                    null :
-#******#                    new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
+#******#                    new java.text.SimpleDateFormat(
+#******#                        "yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
 #******#            } catch (java.text.ParseException p) {
 #******#                throw new RuntimeException(p);
 #******#            }
