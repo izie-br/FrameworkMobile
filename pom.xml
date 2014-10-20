@@ -43,7 +43,7 @@
 	</reporting -->
 
 	<scm>
-		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/frameworkMobile-1.0.62</developerConnection>
+		<developerConnection>scm:svn:http://svn.grupo954.com/frameworkMobile/tags/frameworkMobile-1.0.63</developerConnection>
 	</scm>
 
 	<build>
