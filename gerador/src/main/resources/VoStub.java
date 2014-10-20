@@ -1,5 +1,8 @@
 package $package;
-
+/*
+ * Copyright (c) 2014 Izie.
+ *
+ */
 import java.util.Date;
 import com.quantium.mobile.framework.query.QuerySet;
 

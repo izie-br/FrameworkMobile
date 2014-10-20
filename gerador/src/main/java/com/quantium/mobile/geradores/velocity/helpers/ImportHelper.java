@@ -1,8 +1,5 @@
 package com.quantium.mobile.geradores.velocity.helpers;
-/*
- * Copyright (c) 2014 Izie.
- *
- */
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;

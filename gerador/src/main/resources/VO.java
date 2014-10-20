@@ -1,5 +1,8 @@
 package $package;
-
+/*
+ * Copyright (c) 2014 Izie.
+ *
+ */
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Date;

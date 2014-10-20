@@ -1,5 +1,8 @@
 package $package;
-
+/*
+ * Copyright (c) 2014 Izie.
+ *
+ */
 import java.io.IOException;
 import java.io.Serializable;
 import java.lang.ref.Reference;
