@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.util.*;
 import java.util.regex.Pattern;
 
+import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.libjdbctest.vo.DocumentImpl;
 import org.junit.Test;
 
@@ -33,6 +34,11 @@ public class QueryTest {
 
         @Override
         protected String getLoggedUserId() {
+            return null;
+        }
+
+        @Override
+        public <T extends BaseGenericVO> T refresh(Class<T> clazz, String id) throws Throwable {
             return null;
         }
     };
