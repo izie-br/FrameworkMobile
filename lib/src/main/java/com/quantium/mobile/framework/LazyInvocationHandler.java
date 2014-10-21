@@ -2,21 +2,23 @@ package com.quantium.mobile.framework;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.QuerySet;
 
-public class LazyInvocationHandler<T> implements InvocationHandler {
+public class LazyInvocationHandler<T extends BaseGenericVO> implements InvocationHandler {
 
 	QuerySet<T> querySet;
 	Object key;
 	String getter;
 	BaseModelFacade modelFacade;
 	T lazyInstance = null;
-	Class<? extends BaseGenericVO> klass;
+	Class<T> klass;
 
-	public LazyInvocationHandler(Class<? extends BaseGenericVO> klass, BaseModelFacade modelFacade, QuerySet<T> querySet, Object fk, String getter){
+	public LazyInvocationHandler(Class<T> klass, BaseModelFacade modelFacade, QuerySet<T> querySet, Object fk, String getter){
 		if (querySet == null)
 			throw new RuntimeException();
 		this.querySet = querySet;
@@ -40,28 +42,7 @@ public class LazyInvocationHandler<T> implements InvocationHandler {
 				throw new LazyLoadException(e);
 			}
 			if (lazyInstance == null){
-				//tentando procurar um serverId para este temp id;
-				Object serverId = modelFacade.getIdServerById(key, klass);
-				if(serverId == null){
-					LogPadrao.e(new LazyLoadException(String.format(
-							"Object's server id %s from id %s not found",
-							querySet.getTable().getName(),
-							(key == null)? "null" : key.toString() )));
-					return null;
-				}else{
-					BaseGenericVO serverObj = modelFacade.get(klass, serverId);
-					if(serverObj == null){
-						LogPadrao.e(new LazyLoadException(String.format(
-								"Object %s server id %s not found",
-								querySet.getTable().getName(),
-								(serverId == null)? "null" : serverId.toString() )));
-						return null;
-					} else {
-						modelFacade.updatePrimaryKey(serverObj, key);
-						modelFacade.updatePrimaryKey(serverObj, serverId);
-					}
-
-				}
+                lazyInstance = modelFacade.refresh(klass, (String) key);
 			}
 		}
 		return method.invoke(lazyInstance, args);

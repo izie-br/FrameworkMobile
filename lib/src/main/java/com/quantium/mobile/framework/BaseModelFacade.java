@@ -269,4 +269,5 @@ public abstract class BaseModelFacade {
 		return daoFactory;
 	}
 
+    public abstract <T extends BaseGenericVO> T refresh(Class<T> clazz, String id) throws Throwable;
 }
