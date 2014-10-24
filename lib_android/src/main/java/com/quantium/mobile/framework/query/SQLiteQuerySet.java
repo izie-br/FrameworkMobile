@@ -93,7 +93,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
             q = new Q (getTable());
         }
         Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())), q.and(column.isNotNull()));
-        Set<U> set = new HashSet<U>(cursor.getCount());
+        Set<U> set = new HashSet<U>();
         while (cursor.moveToNext()){
             if (column.getKlass().isAssignableFrom(String.class)) {
                 set.add((U) cursor.getString(0));
