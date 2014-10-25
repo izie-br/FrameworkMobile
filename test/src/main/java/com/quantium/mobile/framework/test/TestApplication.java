@@ -14,4 +14,8 @@ public class TestApplication extends BaseApplication {
 		return "test";
 	}
 
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
 }

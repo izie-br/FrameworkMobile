@@ -22,7 +22,7 @@
 #**************#                (${Target}.${field.UpperAndUnderscores}) .eq (target.${getter[$field]} ())
 #**********##end
 #******##end
-#******#            )).count ();
+#******#            ).and(${Target}.INACTIVATED_AT.isNull())).count ();
 #******#            if (qty > 0) {
 #******##if ($uniqueFields.size() == 1)
 #**********#                errors.add (new ValidationError (

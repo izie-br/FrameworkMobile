@@ -41,25 +41,25 @@ public class SQLiteTest  extends ActivityInstrumentationTestCase2<TestActivity> 
 		{
 			List<Score> objects = facade.query(Score.class).all();
 			for (Score obj :objects) {
-				facade.delete(obj);
+				facade.delete(obj, true);
 			}
 		}
 		{
 			List<Customer> objects = facade.query(Customer.class).all();
 			for (Customer obj :objects) {
-				facade.delete(obj);
+				facade.delete(obj, true);
 			}
 		}
 		{
 			List<Document> objects = facade.query(Document.class).all();
 			for (Document obj :objects) {
-				facade.delete(obj);
+				facade.delete(obj, true);
 			}
 		}
 		{
 			List<Author> objects = facade.query(Author.class).all();
 			for (Author obj :objects) {
-				facade.delete(obj);
+				facade.delete(obj, true);
 			}
 		}
 	}
