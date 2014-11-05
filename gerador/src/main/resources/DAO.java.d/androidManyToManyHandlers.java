@@ -6,7 +6,7 @@
 #******#            return false;
 #******#        }
 #******#        if (idB == ${defaultId}) {
-#******#            if(this.factory.getModelFacade().save(obj)) {
+#******#            if (this.factory.getModelFacade().save(obj)) {
 #******#                idB = obj.${getter[$association.ReferenceB]}();
 #******#            } else {
 #******#                return false;
@@ -19,7 +19,7 @@
 #******#            return false;
 #******#        }
 #******#        if (idA == ${defaultId}) {
-#******#            if(this.factory.getModelFacade().save(obj)) {
+#******#            if (this.factory.getModelFacade().save(obj)) {
 #******#                idA = obj.${getter[$association.ReferenceB]}();
 #******#            } else {
 #******#                return false;
@@ -34,7 +34,7 @@
                     "${association.KeyToB.LowerAndUnderscores}=?",
                     new String[] {
                         ((${association.KeyToA.Klass})idA),
-                        ((${association.KeyToB.Klass})idB),
+                        ((${association.KeyToB.Klass})idB)
                     });
             if (!cursor.moveToNext()) {
                 throw new IOException("Erro ao mover o cursor ao adicionar many-to-many");

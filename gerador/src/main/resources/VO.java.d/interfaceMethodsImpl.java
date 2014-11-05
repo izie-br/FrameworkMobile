@@ -24,19 +24,19 @@
 
     @Override
     public int hashCodeImpl() {
-        int _value = 1;
+        int aValue = 1;
 #foreach ($field in $fields)
 #**##if (!$associationForField[$field])
 #******##if ($field.Klass.equals("Boolean"))
-#**********#        _value += (${field.LowerCamel}) ? 1 : 0;
+#**********#        aValue += (${field.LowerCamel}) ? 1 : 0;
 #******##elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
-#**********#        _value +=(int) ${field.LowerCamel};
+#**********#        aValue += (int) ${field.LowerCamel};
 #******##else
-#**********#        _value *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
+#**********#        aValue *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
 #******##end
 #**##end
 #end
-        return _value;
+        return aValue;
     }
 
     @Override
@@ -54,21 +54,26 @@
 #******##set ($otherAssoc = "other${association.KeyToA}")
 #******#        ${association.Klass} ${otherAssoc} = other.get${association.KeyToA}();
 #******#        if (_${association.KeyToA} == null){
-#******#            if (${otherAssoc} != null)
+#******#            if (${otherAssoc} != null) {
 #******#                return false;
+#******#            }
 #******#        } else {
-#******#            if (${otherAssoc} == null)
+#******#            if (${otherAssoc} == null) {
 #******#                return false;
-#******#            if (_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() != null && !_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}()))
+#******#            }
+#******#            if (_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() != null && !_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}())) {
 #******#                return false;
+#******#            }
 #******#        }
 #**##else
 #******##if ($field.Klass.equals("Boolean") || $field.Klass.equals("Long")|| $field.Klass.equals("Integer")|| $field.Klass.equals("Double"))
-#**********#        if(${field.LowerCamel} != other.${getter[$field]}())
-#**********#            return false;	
-#******##else
-#**********#        if( ( ${field.LowerCamel}==null)? (other.${getter[$field]}() != null) :  !${field.LowerCamel}.equals(other.${getter[$field]}()) )
+#**********#        if (${field.LowerCamel} != other.${getter[$field]}()) {
 #**********#            return false;
+#**********#        }
+#******##else
+#**********#        if ((${field.LowerCamel} == null) ? (other.${getter[$field]}() != null) : !${field.LowerCamel}.equals(other.${getter[$field]}())) {
+#**********#            return false;
+#**********#        }
 #******##end
 #**##end
 #end

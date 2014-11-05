@@ -49,7 +49,7 @@
         for (${association.Klass} item : _${association.KeyToAPluralized}.all()) {
             item.set${association.KeyToA}(editableTarget);
             item.setLastModified(new java.util.Date());
-            if(!this.factory
+            if (!this.factory
             .getModelFacade()
             .save(item)){
                 throw new IOException("save could not be performed, check logs");
