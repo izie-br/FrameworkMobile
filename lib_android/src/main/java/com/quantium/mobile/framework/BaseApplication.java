@@ -2,14 +2,11 @@ package com.quantium.mobile.framework;
 
 import android.app.Application;
 import android.content.Context;
-import android.support.multidex.MultiDex;
-import android.support.multidex.MultiDexApplication;
 import com.quantium.mobile.framework.logging.LogPadrao;
 
-public abstract class BaseApplication extends MultiDexApplication {
+public abstract class BaseApplication extends Application {
 
     protected static BaseApplication instance;
-    private boolean installed = false;
 
     public abstract int dbVersion();
 
@@ -39,20 +36,6 @@ public abstract class BaseApplication extends MultiDexApplication {
 
     public static String getUserName() {
         return instance.userName();
-    }
-
-    public boolean isInstalled() {
-        return installed;
-    }
-
-    @Override
-    protected final void attachBaseContext(Context base) {
-        try {
-            super.attachBaseContext(base);
-            installed = true;
-        } catch (Throwable t) {
-            LogPadrao.e(t);
-        }
     }
 
 }
