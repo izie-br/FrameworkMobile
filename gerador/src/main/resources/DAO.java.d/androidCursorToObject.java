@@ -10,41 +10,41 @@
 #**##set ($columnIndex = $foreach.index)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        String _${field.LowerCamel} = cursor.getString(${columnIndex});
-#******#        ${association.Klass} _${association.KeyToA} = null;
-#******#        if (_${field.LowerCamel} != null) {
+#******#        String ${field.LowerCamel}_ = cursor.getString(${columnIndex});
+#******#        ${association.Klass} ${association.KeyToA}_ = null;
+#******#        if (${field.LowerCamel}_ != null) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
-#******#                new Serializable[]{_${field.LowerCamel}});
+#******#                new Serializable[]{${field.LowerCamel}_});
 #******#            if (cacheItem == null) {
 #******#                LazyInvocationHandler<${association.Klass}> handler =
 #******#                    new LazyInvocationHandler<${association.Klass}>(
 #******#                        ${association.Klass}.class,
 #******#                        factory.getModelFacade(),
 #******#                        factory.getDaoFor(${association.Klass}.class).query(
-#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
-#******#                            _${field.LowerCamel},
+#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${field.LowerCamel}_)),
+#******#                            ${field.LowerCamel}_,
 #******#                            "${getter[$association.ReferenceKey]}");
-#******#                _${association.KeyToA} = (${association.Klass})Proxy.newProxyInstance(
+#******#                ${association.KeyToA}_ = (${association.Klass})Proxy.newProxyInstance(
 #******#                    this.getClass().getClassLoader(),
 #******#                    new Class[]{ ${association.Klass}Editable.class },
 #******#                    handler);
 #******#            } else if (cacheItem instanceof ${association.Klass}) {
-#******#                _${association.KeyToA} = (${association.Klass})cacheItem;
+#******#                ${association.KeyToA}_ = (${association.Klass})cacheItem;
 #******#            }
 #******#        }
 #******#
 #**##else
 #******##if ($field.Klass.equals("Boolean") )
-#******#        ${field.Type} _${field.LowerCamel} = parser.booleanFromDatabase(cursor.getShort(${columnIndex}));
+#******#        ${field.Type} ${field.LowerCamel}_ = parser.booleanFromDatabase(cursor.getShort(${columnIndex}));
 #******##elseif ($field.Klass.equals("Date") )
-#******#        ${field.Type} _${field.LowerCamel} = parser.dateFromDatabase(cursor.getString(${columnIndex}));
+#******#        ${field.Type} ${field.LowerCamel}_ = parser.dateFromDatabase(cursor.getString(${columnIndex}));
 #******##elseif ($field.Klass.equals("Long") )
-#******#        ${field.Type} _${field.LowerCamel} = cursor.getLong(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getLong(${columnIndex});
 #******##elseif ($field.Klass.equals("Double") )
-#******#        ${field.Type} _${field.LowerCamel} = cursor.getDouble(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getDouble(${columnIndex});
 #******##elseif ($field.Klass.equals("String") )
-#******#        ${field.Type} _${field.LowerCamel} = cursor.getString(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getString(${columnIndex});
 #******##end
 #**##end
 #**##if ($field.PrimaryKey)
@@ -54,7 +54,7 @@
 #******#        Serializable pks [] = null;
 #******#        if (useCache) {
 #******#            pks = new Serializable[]{
-#******#                 _${primaryKey.LowerCamel},
+#******#                 ${primaryKey.LowerCamel}_,
 #******#            };
 #******#            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
 #******#            if (cacheItem != null &&

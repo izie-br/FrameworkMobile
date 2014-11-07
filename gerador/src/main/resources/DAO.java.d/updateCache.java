@@ -13,27 +13,27 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#               ${association.Klass} _${association.KeyToA} = target.get${association.KeyToA}();
+#******#               ${association.Klass} ${association.KeyToA}_ = target.get${association.KeyToA}();
 #******#               ${association.Klass} _cache${association.KeyToA} = editable.get${association.KeyToA}();
-#******#               if ( _${association.KeyToA} == null) {
+#******#               if (${association.KeyToA}_ == null) {
 #******#                   if (_cache${association.KeyToA} != null) {
 #******#                       editable.set${association.KeyToA}(null);
 #******#                   }
 #******#               } else {
 #******#                   if (_cache${association.KeyToA} == null ||
-#******#                            !(((${field.Klass})_${association.KeyToA}.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
+#******#                            !(((${field.Klass})${association.KeyToA}_.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
 #******#                       editable.set${association.KeyToA}(
-#******#                            this.factory.getDaoFor(${association.Klass}.class).get(_${association.KeyToA}.${getter[$association.ReferenceKey]}()));
+#******#                            this.factory.getDaoFor(${association.Klass}.class).get(${association.KeyToA}_.${getter[$association.ReferenceKey]}()));
 #******#                   }
 #******#               }
 #**##elseif (!$field.PrimaryKey)
-#******#               ${field.Klass} _${field.LowerCamel} = target.${getter[$field]}();
+#******#               ${field.Klass} ${field.LowerCamel}_ = target.${getter[$field]}();
 #******#               ${field.Klass} _cache${field.LowerCamel} = editable.${getter[$field]}();
-#******#               boolean _${field.LowerCamel}Changed = ( _${field.LowerCamel} == null)?
+#******#               boolean ${field.LowerCamel}_Changed = (${field.LowerCamel}_ == null) ?
 #******#                       (_cache${field.LowerCamel} != null) :
-#******#                       !(_${field.LowerCamel}.equals(_cache${field.LowerCamel}));
-#******#               if (_${field.LowerCamel}Changed) {
-#******#                   editable.set${field.UpperCamel}(_${field.LowerCamel});
+#******#                       !(${field.LowerCamel}_.equals(_cache${field.LowerCamel}));
+#******#               if (${field.LowerCamel}_Changed) {
+#******#                   editable.set${field.UpperCamel}(${field.LowerCamel}_);
 #******#               }
 #**##end
 #end

@@ -80,16 +80,16 @@ public class ConstructorArgsHelper {
 					sb.append(klass);
 					sb.append(' ');
 				}
-				sb.append('_');
 				sb.append(attibuteName);
-			} else {
+                sb.append('_');
+            } else {
 				if (declare) {
 					sb.append(field.getType());
 					sb.append(' ');
 				}
-				sb.append('_');
 				sb.append(field.getLowerCamel());
-			}
+                sb.append('_');
+            }
 			if (!last){
 				sb.append(',');
 				if ( i%3 == 2){
@@ -107,19 +107,19 @@ public class ConstructorArgsHelper {
 				sb.append("QuerySet<");
 				sb.append(assoc.getKlass());
 				sb.append("> ");
-				sb.append('_');
 				sb.append(assoc.getKeyToAPluralized().toString());
-			} else if (forDao){
+                sb.append('_');
+            } else if (forDao){
 				sb.append("querySetFor");
 				sb.append(assoc.getKeyToAPluralized().toString());
-				sb.append("(_");
+				sb.append("(");
 				Property property = assoc.getReferenceKey();
 				sb.append(property.getLowerCamel());
-				sb.append(')');
+				sb.append("_)");
 			} else {
-				sb.append('_');
 				sb.append(assoc.getKeyToAPluralized().toString());
-			}
+                sb.append('_');
+            }
 
 			if (!last){
 				sb.append(',');
@@ -139,23 +139,23 @@ public class ConstructorArgsHelper {
 				sb.append("QuerySet<");
 				sb.append(assoc.getKlass());
 				sb.append("> ");
-				sb.append('_');
 				sb.append(assoc.getPluralized().toString());
-			} else if (forDao) {
+                sb.append('_');
+            } else if (forDao) {
 				sb.append("querySetFor");
 				sb.append(assoc.getPluralized().toString());
-				sb.append("(_");
+				sb.append("(");
 				Property property =
 					(assoc.isThisTableA())?
 						assoc.getReferenceA() :
 					// default
 						assoc.getReferenceB();
 				sb.append(property.getLowerCamel());
-				sb.append(')');
-			} else {
-				sb.append('_');
-				sb.append(assoc.getPluralized().toString());
-			}
+				sb.append("_)");
+            } else {
+                sb.append(assoc.getPluralized().toString());
+                sb.append('_');
+            }
 
 			if (!last){
 				sb.append(',');
@@ -200,16 +200,16 @@ public class ConstructorArgsHelper {
 					sb.append(klass);
 					sb.append(' ');
 				}
-				sb.append('_');
 				sb.append(attibuteName);
-			} else {
+                sb.append('_');
+            } else {
 				if (declare) {
 					sb.append(field.getType());
 					sb.append(' ');
 				}
-				sb.append('_');
 				sb.append(field.getLowerCamel());
-			}
+                sb.append('_');
+            }
 			if (!last){
 				sb.append(',');
 				if ( i%3 == 2){
@@ -227,19 +227,19 @@ public class ConstructorArgsHelper {
 				sb.append("QuerySet<");
 				sb.append(assoc.getKlass());
 				sb.append("> ");
-				sb.append('_');
 				sb.append(assoc.getKeyToAPluralized().toString());
-			} else if (forDao){
+                sb.append('_');
+            } else if (forDao){
 				sb.append("querySetFor");
 				sb.append(assoc.getKeyToAPluralized().toString());
-				sb.append("(_");
+				sb.append("(");
 				Property property = assoc.getReferenceKey();
 				sb.append(property.getLowerCamel());
-				sb.append(')');
+				sb.append("_)");
 			} else {
-				sb.append('_');
 				sb.append(assoc.getKeyToAPluralized().toString());
-			}
+                sb.append('_');
+            }
 
 			if (!last){
 				sb.append(',');
@@ -259,23 +259,23 @@ public class ConstructorArgsHelper {
 				sb.append("QuerySet<");
 				sb.append(assoc.getKlass());
 				sb.append("> ");
-				sb.append('_');
 				sb.append(assoc.getPluralized().toString());
-			} else if (forDao) {
+                sb.append('_');
+            } else if (forDao) {
 				sb.append("querySetFor");
 				sb.append(assoc.getPluralized().toString());
-				sb.append("(_");
+				sb.append("(");
 				Property property =
 					(assoc.isThisTableA())?
 						assoc.getReferenceA() :
 					// default
 						assoc.getReferenceB();
 				sb.append(property.getLowerCamel());
-				sb.append(')');
+				sb.append("_)");
 			} else {
-				sb.append('_');
 				sb.append(assoc.getPluralized().toString());
-			}
+                sb.append('_');
+            }
 
 			if (!last){
 				sb.append(',');

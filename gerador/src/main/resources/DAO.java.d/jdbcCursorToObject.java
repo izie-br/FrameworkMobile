@@ -9,42 +9,42 @@
 #**##set ($columnIndex = $foreach.count)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        String _${field.LowerCamel};
+#******#        String ${field.LowerCamel}_;
 #******#        try{
-#******#            _${field.LowerCamel} = cursor.getString(${columnIndex});
+#******#            ${field.LowerCamel}_ = cursor.getString(${columnIndex});
 #******#        } catch (java.sql.SQLException e) {
 #******#            throw new RuntimeException(e);
 #******#        }
-#******#        ${association.Klass} _${association.KeyToA} = null;
-#******#        if (_${field.LowerCamel} != ${defaultId}) {
+#******#        ${association.Klass} ${association.KeyToA}_ = null;
+#******#        if (${field.LowerCamel}_ != ${defaultId}) {
 #******#            Object cacheItem = factory.cacheLookup(
 #******#                ${association.Klass}.class,
-#******#                new Serializable[]{_${field.LowerCamel}});
+#******#                new Serializable[]{${field.LowerCamel}_});
 #******#            if (cacheItem == null) {
 #******#                LazyInvocationHandler<${association.Klass}> handler =
 #******#                    new LazyInvocationHandler<${association.Klass}>(
 #******#                        ${association.Klass}.class,
 #******#                        factory.getModelFacade(),
 #******#                        factory.getDaoFor(${association.Klass}.class).query(
-#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(_${field.LowerCamel})),
-#******#                            _${field.LowerCamel},
+#******#                            ${association.Klass}.${association.ReferenceKey.UpperAndUnderscores}.eq(${field.LowerCamel}_)),
+#******#                            ${field.LowerCamel}_,
 #******#                            "${getter[$association.ReferenceKey]}");
-#******#                _${association.KeyToA} = (${association.Klass})Proxy.newProxyInstance(
+#******#                ${association.KeyToA}_ = (${association.Klass})Proxy.newProxyInstance(
 #******#                    this.getClass().getClassLoader(),
 #******#                    new Class[]{ ${association.Klass}Editable.class },
 #******#                    handler);
 #******#            } else if (cacheItem instanceof ${association.Klass}) {
-#******#                _${association.KeyToA} = (${association.Klass})cacheItem;
+#******#                ${association.KeyToA}_ = (${association.Klass})cacheItem;
 #******#            }
 #******#        }
 #******#
 #**##else
-#******#        ${field.type} _${field.LowerCamel};
+#******#        ${field.type} ${field.LowerCamel}_;
 #******#        try{
 #******##if ($field.Klass.equals("Date") )
 #******#            try {
 #******#                String temp = cursor.getString(${columnIndex});
-#******#                _${field.LowerCamel} = (temp == null)?
+#******#                ${field.LowerCamel}_ = (temp == null)?
 #******#                    null :
 #******#                    new java.text.SimpleDateFormat(
 #******#                        "yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
@@ -52,7 +52,7 @@
 #******#                throw new RuntimeException(p);
 #******#            }
 #******##else
-#******#            _${field.LowerCamel} = cursor.get${field.Klass}(${columnIndex});
+#******#            ${field.LowerCamel}_ = cursor.get${field.Klass}(${columnIndex});
 #******##end
 #******#        } catch (java.sql.SQLException e) {
 #******#            throw new RuntimeException(e);
@@ -67,7 +67,7 @@
 #******#        Serializable pks [] = null;
 #******#        if (useCache) {
 #******#            pks = new Serializable[]{
-#******#                 _${primaryKey.LowerCamel},
+#******#                 ${primaryKey.LowerCamel}_,
 #******#            };
 #******#            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
 #******#            if (cacheItem != null &&

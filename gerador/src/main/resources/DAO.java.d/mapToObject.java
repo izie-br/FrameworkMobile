@@ -20,12 +20,12 @@
 #**###
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        DAO<${association.Klass}> _${association.KeyToA}dao = this.factory.getDaoFor(${association.Klass}.class);
-#******#        ${association.Klass} _${association.KeyToA} = parser.extractAssociation(
-#******#                mapAnyCamelCase, _${association.KeyToA}dao, "${association.KeyToA}", "${alias}");
+#******#        DAO<${association.Klass}> ${association.KeyToA}_dao = this.factory.getDaoFor(${association.Klass}.class);
+#******#        ${association.Klass} ${association.KeyToA}_ = parser.extractAssociation(
+#******#                mapAnyCamelCase, ${association.KeyToA}_dao, "${association.KeyToA}", "${alias}");
 #**##else
 #******#        temp = mapAnyCamelCase.get("${alias}");
-#******#        ${field.Type} _${field.LowerCamel} = parser.${field.Klass}FromMap(temp);
+#******#        ${field.Type} ${field.LowerCamel}_ = parser.${field.Klass}FromMap(temp);
 #**##end
 #end
 

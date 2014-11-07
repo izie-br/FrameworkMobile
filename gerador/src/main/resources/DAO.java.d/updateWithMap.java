@@ -18,16 +18,16 @@
 #******#        if (mapAnyCamelCase.containsKey("${alias}") ||
 #******#            mapAnyCamelCase.containsKey("${association.KeyToA}"))
 #******#        {
-#******#            DAO<${association.Klass}> _${association.KeyToA}dao = this.factory.getDaoFor(${association.Klass}.class);
-#******#            ${association.Klass} _${association.KeyToA} = parser.extractAssociation(
-#******#                    mapAnyCamelCase, _${association.KeyToA}dao, "${association.KeyToA}", "${alias}");
-#******#            target.set${association.KeyToA}(_${association.KeyToA});
+#******#            DAO<${association.Klass}> ${association.KeyToA}_dao = this.factory.getDaoFor(${association.Klass}.class);
+#******#            ${association.Klass} ${association.KeyToA}_ = parser.extractAssociation(
+#******#                    mapAnyCamelCase, ${association.KeyToA}_dao, "${association.KeyToA}", "${alias}");
+#******#            target.set${association.KeyToA}(${association.KeyToA}_);
 #******#        }
 #**##elseif (!$field.PrimaryKey)
 #******#        if (mapAnyCamelCase.containsKey("${alias}")) {
 #******#            temp = mapAnyCamelCase.get("${alias}");
-#******#            ${field.Type} _${field.LowerCamel} = parser.${field.Klass}FromMap(temp);
-#******#            target.set${field.UpperCamel}(_${field.LowerCamel});
+#******#            ${field.Type} ${field.LowerCamel}_ = parser.${field.Klass}FromMap(temp);
+#******#            target.set${field.UpperCamel}(${field.LowerCamel}_);
 #******#        }
 #**##end
 #end

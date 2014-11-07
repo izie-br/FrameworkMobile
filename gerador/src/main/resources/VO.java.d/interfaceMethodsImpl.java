@@ -10,7 +10,7 @@
 #**##set ($association = false)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        $field.Type $field.LowerCamel = (_${association.KeyToA} == null)? null : _${association.KeyToA}.get${association.ReferenceKey.UpperCamel}();
+#******#        $field.Type $field.LowerCamel = (${association.KeyToA}_ == null)? null : ${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}();
 #**##end
 #**##if ($field.PrimaryKey || $association)
 #******#        if (${field.LowerCamel} != null) {
@@ -24,19 +24,19 @@
 
     @Override
     public int hashCodeImpl() {
-        int aValue = 1;
+        int value_ = 1;
 #foreach ($field in $fields)
 #**##if (!$associationForField[$field])
 #******##if ($field.Klass.equals("Boolean"))
-#**********#        aValue += (${field.LowerCamel}) ? 1 : 0;
+#**********#        value_ += (${field.LowerCamel}) ? 1 : 0;
 #******##elseif ($field.Klass.equals("Integer") || $field.Klass.equals("Long") || $field.Klass.equals("Double"))
-#**********#        aValue += (int) ${field.LowerCamel};
+#**********#        value_ += (int) ${field.LowerCamel};
 #******##else
-#**********#        aValue *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
+#**********#        value_ *= (${field.LowerCamel} == null) ? 1 : ${field.LowerCamel}.hashCode();
 #******##end
 #**##end
 #end
-        return aValue;
+        return value_;
     }
 
     @Override
@@ -53,7 +53,7 @@
 #******##set ($association = $associationForField[$field])
 #******##set ($otherAssoc = "other${association.KeyToA}")
 #******#        ${association.Klass} ${otherAssoc} = other.get${association.KeyToA}();
-#******#        if (_${association.KeyToA} == null){
+#******#        if (${association.KeyToA}_ == null){
 #******#            if (${otherAssoc} != null) {
 #******#                return false;
 #******#            }
@@ -61,7 +61,7 @@
 #******#            if (${otherAssoc} == null) {
 #******#                return false;
 #******#            }
-#******#            if (_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() != null && !_${association.KeyToA}.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}())) {
+#******#            if (${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}() != null && !${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}().equals(${otherAssoc}.get${association.ReferenceKey.UpperCamel}())) {
 #******#                return false;
 #******#            }
 #******#        }

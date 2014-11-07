@@ -5,8 +5,8 @@
 #**##if (!$field.PrimaryKey)
 #******##if ($associationForField[$field])
 #**********##set ($association = $associationForField[$field])
-#**********#        if (this._${association.KeyToA} == null ||
-#**********#            this._${association.KeyToA}.get${association.ReferenceKey.UpperCamel}() == ${defaultId})
+#**********#        if (this.${association.KeyToA}_ == null ||
+#**********#            this.${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}() == ${defaultId})
 #**********#        {
 #**********#            errors.add (new ValidationError (
 #**********#                    ${field.UpperAndUnderscores},

@@ -4,17 +4,17 @@
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#    private ${association.Klass} _${association.KeyToA};
+#******#    private ${association.Klass} ${association.KeyToA}_;
 #**##else
 #******#    private ${field.Type} ${field.LowerCamel};
 #**##end
 #end
 ##
 #foreach ($association in $oneToManyAssociations)
-#**#    QuerySet<${association.Klass}> _${association.KeyToAPluralized};
+#**#    QuerySet<${association.Klass}> ${association.KeyToAPluralized}_;
 #end
 #foreach ($association in $manyToManyAssociations)
-#**#    QuerySet<${association.Klass}> _${association.Pluralized};
+#**#    QuerySet<${association.Klass}> ${association.Pluralized}_;
 #end
 
     public ${Filename}(){}

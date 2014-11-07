@@ -17,9 +17,9 @@
 #**#            } catch (java.sql.SQLException e) {
 #**#                throw new RuntimeException(StringUtil.getStackTrace(e));
 #**#            }
-#**#            Runnable _${association.KeyToAPluralized}NullFkThread =
+#**#            Runnable ${association.KeyToAPluralized}_NullFkThread =
 #**#                    new ${association.KeyToAPluralized}NullFkThread(target);
-#**#            //_${association.Klass}NullFkThread.start();
+#**#            //${association.Klass}_NullFkThread.start();
 #**##else
 #**#            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>)factory.getDaoFor(${association.Klass}.class);
 #**#            for (${association.Klass} obj: target.get${association.KeyToAPluralized}().all()) {
@@ -61,10 +61,10 @@
             }
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (_${relation.KeyToAPluralized}NullFkThread != null) {
+#**#            if (${relation.KeyToAPluralized}_NullFkThread != null) {
 #**#                try {
-#**#                    // _${relation.Klass}NullFkThread.join();
-#**#                    _${relation.KeyToAPluralized}NullFkThread.run();
+#**#                    //${relation.Klass}_NullFkThread.join();
+#**#                    ${relation.KeyToAPluralized}_NullFkThread.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }

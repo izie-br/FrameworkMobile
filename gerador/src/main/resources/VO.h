@@ -56,7 +56,7 @@
   @private
 #end##if ($toManyAssociations.size() > 0)
 #foreach ($association in $toManyAssociations)
-    id<ComQuantiumMobileFrameworkQuerySet> _${association.Pluralized};
+    id<ComQuantiumMobileFrameworkQuerySet> ${association.Pluralized}_;
 #end##foreach ($association in $toManyAssociations)
 }
 #foreach ($field in $fields)
@@ -79,7 +79,7 @@
   id<JavaUtilMap> mapInst = NIL_CHK(map);
 
 #foreach ($field in $fields)
-  id<${MapType[$field]}> _${field.LowerCamel} =
+  id<${MapType[$field]}> ${field.LowerCamel}_ =
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
     ( [self _${association.Klass}] == nil)?
@@ -91,12 +91,12 @@
       [self ${getter[$field]}];
 #end##if ($associationForField[$field])
 #if ($field.PrimaryKey || $associationForField[$field])
-  if (! _${field.LowerCamel}.equals(${defaultId})) {
-    [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
+  if (! ${field.LowerCamel}_.equals(${defaultId})) {
+    [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}_];
   }
 
 #else##if !($field.PrimaryKey)
-  [mapInst putWithId:@"${MapKey[$field]}" withId: _${field.LowerCamel}];
+  [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}_];
 
 #end##if ($field.PrimaryKey)
 #end##foreach ($field in $fields)
@@ -125,7 +125,7 @@
 #end##foreach ($field in $fields)
 ##
 ###foreach ($association in $toManyAssociations)
-##@dynamic _${association.Pluralized};
+##@dynamic ${association.Pluralized}_;
 ###end##foreach ($association in $toManyAssociations)
 ##
 
@@ -173,7 +173,7 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
-    [[self _${association.Pluralized}] = new${association.Pluralized}];
+    [[self ${association.Pluralized}_] = new${association.Pluralized}];
 #end##foreach ($association in $toManyAssociations)
 }
 #end##if ($Interface)
@@ -229,14 +229,14 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #foreach ($association in $toManyAssociations)
 #if ($Protocol || $Interface || $Implementation)
 - (id<ComQuantiumMobileFrameworkQueryQuerySet>) get${association.Pluralized} #if ($Implementation) {
-        return [self _${association.Pluralized}];
+        return [self ${association.Pluralized}_];
 }#else;#end
 
 
 #end##if ($interface || $implementation)
 #if ($Interface || $Implementation || $EditableInterface)
 - (void) set${association.Pluralized}WithComQuantiumMobileFrameworkQueryQuerySet: (id<ComQuantiumMobileFrameworkQueryQuerySet>) querySet #if ($Implementation){
-    [[self _${association.Pluralized}] = querySet];
+    [[self ${association.Pluralized}_] = querySet];
 }#else;#end
 
 

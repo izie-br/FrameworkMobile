@@ -20,9 +20,9 @@
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
 #**#           }
-#**#           Runnable _${relation.KeyToAPluralized}NullFkThread =
+#**#           Runnable ${relation.KeyToAPluralized}NullFkThread_ =
 #**#               new ${relation.KeyToAPluralized}NullFkThread(target);
-#**#           //_${relation.Klass}NullFkThread.start();
+#**#           //${relation.Klass}_NullFkThread.start();
 #**#                        
 #**##else
 #**#            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
@@ -62,10 +62,10 @@
             db.setTransactionSuccessful();
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (_${relation.KeyToAPluralized}NullFkThread != null) {
+#**#            if (${relation.KeyToAPluralized}NullFkThread_ != null) {
 #**#                try {
-#**#                    // _${relation.Klass}NullFkThread.join();
-#**#                    _${relation.KeyToAPluralized}NullFkThread.run();
+#**#                    // ${relation.Klass}_NullFkThread.join();
+#**#                    ${relation.KeyToAPluralized}NullFkThread_.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }

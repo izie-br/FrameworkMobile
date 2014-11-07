@@ -52,12 +52,12 @@
 #foreach ($association in $manyToOneAssociations)
 #**##if ($interface || $implementation)
 #******#    public ${association.Klass} get${association.KeyToA}() #if ($implementation){
-#******#        return _${association.KeyToA};
+#******#        return ${association.KeyToA}_;
 #******#    }#else;#end
 #******#
 #******#
 #******#    public void set${association.KeyToA}(${association.Klass} obj) #if ($implementation) {
-#******#        _${association.KeyToA} = obj;
+#******#        ${association.KeyToA}_ = obj;
 #******#    }#else;#end
 #******#
 #******#
@@ -67,14 +67,14 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($interface || $implementation)
 #******#    public QuerySet<${association.Klass}> get${association.KeyToAPluralized}() #if ($implementation) {
-#******#        return _${association.KeyToAPluralized};
+#******#        return ${association.KeyToAPluralized}_;
 #******#    }#else;#end
 #******#
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
 #******#    public void set${association.KeyToAPluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-#******#        this._${association.KeyToAPluralized} = querySet;
+#******#        this.${association.KeyToAPluralized}_ = querySet;
 #******#    }#else;#end
 #******#
 #******#
@@ -83,14 +83,14 @@
 #foreach ($association in $manyToManyAssociations)
 #**##if ($interface || $implementation)
 #******#    public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
-#******#        return _${association.Pluralized};
+#******#        return ${association.Pluralized}_;
 #******#    }#else;#end
 #******#
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
 #******#    public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-#******#        this._${association.Pluralized} = querySet;
+#******#        this.${association.Pluralized}_ = querySet;
 #******#    }#else;#end
 #******#
 #******#
