@@ -33,7 +33,7 @@ public class SQLiteSchemaGenerator {
 		}else{
 			schemaSb.append(' ');
 			schemaSb.append(SQLiteGeradorUtils.getSqlTypeFromClass(pk.getKlass ()));
-			schemaSb.append(" NOT NULL ");
+            schemaSb.append(" TEXT PRIMARY KEY ");
 		}
 
 		//Outras colunas, exceto a chave primaria
