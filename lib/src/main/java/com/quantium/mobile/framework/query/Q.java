@@ -236,7 +236,7 @@ public final class Q implements Serializable {
             out.root = outRoot;
         } else if (q1.root != null){
             out.root = q1.root.clone();
-        } else{
+        } else if (q2.root != null){
             out.root = q2.root.clone();
         }
         if (out.joins == null){
