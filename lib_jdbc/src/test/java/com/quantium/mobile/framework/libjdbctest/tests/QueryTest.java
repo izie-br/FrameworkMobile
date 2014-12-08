@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 import com.quantium.mobile.framework.*;
 import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
-import com.quantium.mobile.framework.libjdbctest.vo.DocumentImpl;
+import com.quantium.mobile.framework.libjdbctest.vo.*;
 import com.quantium.mobile.framework.logging.LogPadrao;
 import org.junit.Test;
 
@@ -24,9 +24,6 @@ import com.quantium.mobile.framework.libjdbctest.JdbcPrimaryKeyProvider;
 import com.quantium.mobile.framework.libjdbctest.JdbcToSyncProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.util.Utils;
-import com.quantium.mobile.framework.libjdbctest.vo.Author;
-import com.quantium.mobile.framework.libjdbctest.vo.AuthorImpl;
-import com.quantium.mobile.framework.libjdbctest.vo.Document;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
@@ -130,6 +127,7 @@ public class QueryTest {
     @Test
     public void testSelectDistinct() throws IOException {
         DAO<Document> dao = daoFactory.getDaoFor(Document.class);
+        DAO<Author> daoAuthor = daoFactory.getDaoFor(Author.class);
         Date now = new Date();
         Document document1 = new DocumentImpl();
         document1.setTitle("A name");
@@ -145,13 +143,25 @@ public class QueryTest {
         document3.setTitle("A name");
         document3.setCreatedAt(now);
         document3.setText("A Text");
+        Author author3 = Utils.randomAuthor();
+        author3.setName("A name");
+        author3.setCreatedAt(now);
+        document3.setAuthor(author3);
         assertTrue(dao.save(document3));
+        assertTrue(daoAuthor.save(author3));
+        assertTrue(daoAuthor.with(author3).add(document3));
         QuerySet<Document> querySet = dao.query();
         assertEquals(3, querySet.count());
         Set<String> titles = querySet.selectDistinct(Document.TITLE);
         assertEquals(2, titles.size());
         Set<String> texts = querySet.selectDistinct(Document.TEXT);
         assertEquals(1, texts.size());
+        Set<String> ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Document.ID_AUTHOR);
+        assertEquals(1, ids.size());
+        assertEquals(ids.iterator().next(), author3.getId());
+        ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Author.ID);
+        assertEquals(1, ids.size());
+        assertEquals(ids.iterator().next(), author3.getId());
     }
 
     //@Test
@@ -236,6 +246,7 @@ public class QueryTest {
     @Test
     public void testJoinQuery() {
         DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+        DAO<Score> daoScore = daoFactory.getDaoFor(Score.class);
 
         Author author1 = Utils.randomAuthor();
         Author author2 = Utils.randomAuthor();
@@ -244,6 +255,17 @@ public class QueryTest {
         Document doc1 = Utils.randomDocument();
         Document doc2 = Utils.randomDocument();
         Document doc3 = Utils.randomDocument();
+
+        Score score1 = Utils.randomScore();
+        Score score2 = Utils.randomScore();
+        Score score3 = Utils.randomScore();
+
+        score1.setAuthor(author1);
+        score1.setDocument(doc1);
+        score2.setAuthor(author2);
+        score2.setDocument(doc2);
+        score3.setAuthor(author3);
+        score3.setDocument(doc3);
         try {
             assertTrue(dao.save(author1));
             assertTrue(dao.with(author1).add(doc1));
@@ -251,6 +273,9 @@ public class QueryTest {
             assertTrue(dao.with(author2).add(doc2));
             assertTrue(dao.save(author3));
             assertTrue(dao.with(author3).add(doc3));
+            assertTrue(daoScore.save(score1));
+            assertTrue(daoScore.save(score2));
+            assertTrue(daoScore.save(score3));
 
             List<Author> authors = dao.query(
                     Author.ID.eq(Document.ID_AUTHOR)
@@ -258,6 +283,21 @@ public class QueryTest {
             ).all();
             assertEquals(1, authors.size());
             assertEquals(author2, authors.get(0));
+            QuerySet<Score> scoreQuery = daoScore.query(
+                    Score.ID_DOCUMENT.eq(Document.ID)
+                            .and(Score.ID_AUTHOR.eq(Author.ID))
+            );
+            List<Score> scores = scoreQuery.all();
+            assertEquals(3, scores.size());
+            assertEquals(score1, scores.get(0));
+            assertEquals(score2, scores.get(1));
+            assertEquals(score3, scores.get(2));
+            scores = author1.getAuthorScores().filter(
+                    Score.ID_DOCUMENT.eq(Document.ID)
+                            .and(Score.ID_AUTHOR.eq(Author.ID)).and(Author.ID.eq(author1.getId()))
+            ).all();
+            assertEquals(1, scores.size());
+            assertEquals(score1, scores.get(0));
         } catch (IOException e) {
             fail(StringUtil.getStackTrace(e));
         }

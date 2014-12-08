@@ -135,7 +135,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
         try{
-            ResultSet resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getName())));
+            ResultSet resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getTable().getName().concat(".").concat(column.getName()))));
             Set<U> set = new HashSet<U>(resultSet.getFetchSize());
             while (resultSet.next()){
                 if (column.getKlass().isAssignableFrom(String.class)) {
@@ -152,7 +152,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
             return set;
         } catch (java.sql.SQLException e) {
             LogPadrao.e(e);
-            return null;
+            throw new RuntimeException(e);
         }
     }
 }
