@@ -156,10 +156,10 @@ public class QueryTest {
         assertEquals(2, titles.size());
         Set<String> texts = querySet.selectDistinct(Document.TEXT);
         assertEquals(1, texts.size());
-        Set<String> ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Document.ID_AUTHOR);
+        Set<String> ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID).and(Author.ID.isNotNull())).selectDistinct(Document.ID_AUTHOR);
         assertEquals(1, ids.size());
         assertEquals(ids.iterator().next(), author3.getId());
-        ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Author.ID);
+        ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID).and(Author.ID.isNotNull())).selectDistinct(Author.ID);
         assertEquals(1, ids.size());
         assertEquals(ids.iterator().next(), author3.getId());
     }
