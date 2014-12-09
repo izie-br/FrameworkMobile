@@ -2,10 +2,7 @@ package com.quantium.mobile.geradores.util;
 
 import java.io.File;
 import java.math.BigInteger;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,7 +64,8 @@ public class SQLiteGeradorUtils {
 			for (String stm : stms) {
 				if (stm.matches("[\\s\\n]*"))
 					break;
-				connection.createStatement().executeUpdate(stm + ";");
+                PreparedStatement stmt = connection.prepareStatement(stm + ";");
+                stmt.executeUpdate();
 			}
 			ResultSet rs = connection.createStatement().executeQuery(
 					"select sql from sqlite_master;");

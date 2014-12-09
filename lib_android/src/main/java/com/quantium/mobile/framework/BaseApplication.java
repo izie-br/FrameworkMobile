@@ -6,16 +6,19 @@ import com.quantium.mobile.framework.logging.LogPadrao;
 
 public abstract class BaseApplication extends Application {
 
-    protected static BaseApplication instance;
+    private static BaseApplication instance;
 
     public abstract int dbVersion();
 
     public abstract String userName();
 
+    public BaseApplication() {
+        BaseApplication.instance = this;
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
-        BaseApplication.instance = this;
     }
 
     public static Context getContext() {

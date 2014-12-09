@@ -10,7 +10,7 @@ import com.quantium.mobile.framework.utils.StringUtil;
 /**
  * Classe geradora de querystrings.
  */
-public final class Q implements Serializable {
+public final class Q {
 
     /**
 	 * 

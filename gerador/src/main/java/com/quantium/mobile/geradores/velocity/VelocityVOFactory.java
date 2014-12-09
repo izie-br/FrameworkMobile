@@ -131,8 +131,8 @@ public class VelocityVOFactory {
 		Map<Property, OneToManyAssociationHelper> associationsFromFK = getAssociationsForFK(
 				fields, manyToOne);
 
-		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(schema,
-				fields, associationsFromFK, oneToMany, manyToMany);
+//		ConstructorArgsHelper argsHelper = new ConstructorArgsHelper(schema,
+//				fields, associationsFromFK, oneToMany, manyToMany);
 
 		ImportHelper importHelper = new ImportHelper(basePackage, genPackage,
 				voPackage, null);

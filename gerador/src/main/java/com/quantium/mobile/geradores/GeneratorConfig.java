@@ -175,7 +175,7 @@ public class GeneratorConfig {
 		}
 		Scanner scan;
 		try {
-			scan = new Scanner(dbFile);
+			scan = new Scanner(dbFile, "UTF-8");
 		} catch (FileNotFoundException e) {
 			throw new GeradorException(e);
 		}
@@ -201,7 +201,7 @@ public class GeneratorConfig {
 			Pattern pat = Pattern.compile(
 					".*<manifest[^>]*package=\"([^\"]*)\"[^>]*>.*",
 					Pattern.MULTILINE);
-			String manifestStr = new Scanner(androidManifest)
+			String manifestStr = new Scanner(androidManifest, "UTF-8")
 					.findWithinHorizon(pat, 0);
 			Matcher mobj = pat.matcher(manifestStr);
 			if (mobj.find())

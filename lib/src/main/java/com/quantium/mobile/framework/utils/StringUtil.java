@@ -1,10 +1,6 @@
 package com.quantium.mobile.framework.utils;
 
-import java.io.IOException;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.io.Writer;
+import java.io.*;
 import java.math.BigInteger;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -150,8 +146,13 @@ public class StringUtil {
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
 		}
-		BigInteger hash = new BigInteger(1, md.digest(dado.getBytes()));
-		sen = hash.toString(16);
+        BigInteger hash = null;
+        try {
+            hash = new BigInteger(1, md.digest(dado.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+        sen = hash.toString(16);
 		return lpad(sen, 32, '0');
 	}
 

@@ -16,6 +16,8 @@
 
 package com.quantium.mobile.framework.utils;
 
+import java.io.UnsupportedEncodingException;
+
 /**
  * A Base64 encoder/decoder.
  * 
@@ -67,8 +69,12 @@ public class Base64Coder {
 	 * @return A String containing the Base64 encoded data.
 	 */
 	public static String encodeString(String s) {
-		return new String(encode(s.getBytes()));
-	}
+        try {
+            return new String(encode(s.getBytes("UTF-8")));
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	/**
 	 * Encodes a byte array into Base 64 format and breaks the output into lines
@@ -192,8 +198,12 @@ public class Base64Coder {
 	 *             If the input is not valid Base64 encoded data.
 	 */
 	public static String decodeString(String s) {
-		return new String(decode(s));
-	}
+        try {
+            return new String(decode(s), "UTF-8");
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	/**
 	 * Decodes a byte array from Base64 format and ignores line separators, tabs
