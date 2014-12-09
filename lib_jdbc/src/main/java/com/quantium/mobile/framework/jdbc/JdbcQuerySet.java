@@ -51,8 +51,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 			if(cursor.next())
 				return cursorToObject(cursor);
 		} catch (java.sql.SQLException e) {
-			LogPadrao.e(e);
-			return null;
+			throw new RuntimeException(e);
 		} 
 		finally{
 			try {
@@ -87,50 +86,114 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 		throw new RuntimeException();
 	}
 
-	/**
-	 * Retorna o cursor, para uso em cursor adapter, etc.
-	 * @return cursor
-	 */
-	public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
-		if (this.q == null) {
-			this.q = new Q (getTable());
-		}
+    /**
+     * Retorna o cursor, para uso em cursor adapter, etc.
+     * @return cursor
+     */
+    public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
+        if (this.q == null) {
+            this.q = new Q (getTable());
+        }
 
-		ArrayList<Object> listArg = new ArrayList<Object>();
-		String qstr = new QH2DialectProvider(q, parser)
-				.limit(this.limit)
-				.offset(this.offset)
-				.orderBy(this.orderClauses)
-				.select(selection, listArg);
+        ArrayList<Object> listArg = new ArrayList<Object>();
+        String qstr = new QH2DialectProvider(q, parser)
+                .limit(this.limit)
+                .offset(this.offset)
+                .orderBy(this.orderClauses)
+                .select(selection, listArg);
 
-		Connection conn = getConnection();
-		PreparedStatement stm = conn.prepareStatement(qstr);
-		for (int i = 0; i< listArg.size(); i++){
-			Object arg = listArg.get(i);
-			int index = i+1;
+        Connection conn = getConnection();
+        PreparedStatement stm = conn.prepareStatement(qstr);
+        for (int i = 0; i< listArg.size(); i++){
+            Object arg = listArg.get(i);
+            int index = i+1;
 
-			if (arg instanceof Long || arg instanceof Integer ||
-			    arg instanceof Short)
-			{
-				stm.setLong(index, ((Number)arg).longValue());
-			} else if (arg instanceof String ){
-				stm.setString(index, arg.toString());
-			} else if (arg instanceof Date) {
-				stm.setTimestamp(index,
-						new java.sql.Timestamp(((Date)arg).getTime()) );
-			} else if (arg instanceof Boolean) {
-				stm.setBoolean(index, (Boolean)arg );
-			} else if (arg instanceof Double || arg instanceof Float){
-				stm.setDouble(index, ((Number)arg).doubleValue() );
-			} else {
-				throw new RuntimeException(
-						"classe " + arg.getClass().getSimpleName() +
-						" nao mapeada");
-			}
-		}
-		ResultSet rs = stm.executeQuery();
-		return rs;
-	}
+            if (arg instanceof Long || arg instanceof Integer ||
+                    arg instanceof Short)
+            {
+                stm.setLong(index, ((Number)arg).longValue());
+            } else if (arg instanceof String ){
+                stm.setString(index, arg.toString());
+            } else if (arg instanceof Date) {
+                stm.setTimestamp(index,
+                        new java.sql.Timestamp(((Date)arg).getTime()) );
+            } else if (arg instanceof Boolean) {
+                stm.setBoolean(index, (Boolean)arg );
+            } else if (arg instanceof Double || arg instanceof Float){
+                stm.setDouble(index, ((Number)arg).doubleValue() );
+            } else {
+                throw new RuntimeException(
+                        "classe " + arg.getClass().getSimpleName() +
+                                " nao mapeada");
+            }
+        }
+        ResultSet rs = stm.executeQuery();
+        return rs;
+    }
+
+    @Override
+    public List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?>... selection) {
+        List<T> all = new ArrayList<T>();
+        ResultSet cursor = null;
+        try{
+            cursor = getCursor(Arrays.asList(selection), groupByClause);
+            while(cursor.next())
+                all.add(cursorToObject(cursor));
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (cursor != null)
+                    cursor.close();
+            } catch (SQLException e) {
+                LogPadrao.e(e);
+            }
+        }
+        return all;
+    }
+
+    private ResultSet getCursor(List<Table.Column<?>> selection, Q.GroupByClause groupByClause) throws java.sql.SQLException {
+        if (this.q == null) {
+            this.q = new Q (getTable());
+        }
+        List<Object>  list = new ArrayList<Object>();
+        list.addAll(selection);
+        list.add(groupByClause.getFunction().getName().concat("(").concat(groupByClause.getColumn().getName()).concat(")").concat(" as ").concat(groupByClause.getColumn().getName()));
+        ArrayList<Object> listArg = new ArrayList<Object>();
+        String qstr = new QH2DialectProvider(q, parser)
+                .limit(this.limit)
+                .offset(this.offset)
+                .orderBy(this.orderClauses)
+                .groupBy(selection)
+                .select(list, listArg);
+        Connection conn = getConnection();
+        PreparedStatement stm = conn.prepareStatement(qstr);
+        for (int i = 0; i< listArg.size(); i++){
+            Object arg = listArg.get(i);
+            int index = i+1;
+
+            if (arg instanceof Long || arg instanceof Integer ||
+                    arg instanceof Short)
+            {
+                stm.setLong(index, ((Number)arg).longValue());
+            } else if (arg instanceof String ){
+                stm.setString(index, arg.toString());
+            } else if (arg instanceof Date) {
+                stm.setTimestamp(index,
+                        new java.sql.Timestamp(((Date)arg).getTime()) );
+            } else if (arg instanceof Boolean) {
+                stm.setBoolean(index, (Boolean)arg );
+            } else if (arg instanceof Double || arg instanceof Float){
+                stm.setDouble(index, ((Number)arg).doubleValue() );
+            } else {
+                throw new RuntimeException(
+                        "classe " + arg.getClass().getSimpleName() +
+                                " nao mapeada");
+            }
+        }
+        ResultSet rs = stm.executeQuery();
+        return rs;
+    }
 
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {

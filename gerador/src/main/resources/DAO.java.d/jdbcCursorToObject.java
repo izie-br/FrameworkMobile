@@ -9,9 +9,11 @@
 #**##set ($columnIndex = $foreach.count)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        String ${field.LowerCamel}_;
+#******#        String ${field.LowerCamel}_ = null;
 #******#        try{
-#******#            ${field.LowerCamel}_ = cursor.getString(${columnIndex});
+#******#            if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
+#******#                ${field.LowerCamel}_ = cursor.getString(${Target}.${field.UpperAndUnderscores}.getName());
+#******#            }
 #******#        } catch (java.sql.SQLException e) {
 #******#            throw new RuntimeException(e);
 #******#        }
@@ -39,20 +41,32 @@
 #******#        }
 #******#
 #**##else
-#******#        ${field.type} ${field.LowerCamel}_;
-#******#        try{
 #******##if ($field.Klass.equals("Date") )
+#******#        ${field.type} ${field.LowerCamel}_ = null;
+#******#        try{
 #******#            try {
-#******#                String temp = cursor.getString(${columnIndex});
-#******#                ${field.LowerCamel}_ = (temp == null)?
-#******#                    null :
-#******#                    new java.text.SimpleDateFormat(
-#******#                        "yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
+#******#                if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
+#******#                    String temp = cursor.getString(${Target}.${field.UpperAndUnderscores}.getName());
+#******#                    ${field.LowerCamel}_ = (temp == null)?
+#******#                        null :
+#******#                        new java.text.SimpleDateFormat(
+#******#                            "yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
+#******#                }
 #******#            } catch (java.text.ParseException p) {
 #******#                throw new RuntimeException(p);
 #******#            }
 #******##else
-#******#            ${field.LowerCamel}_ = cursor.get${field.Klass}(${columnIndex});
+#******##if ($field.Klass.equals("Long") )
+#******#        ${field.type} ${field.LowerCamel}_ = 0;
+#******##elseif ($field.Klass.equals("Boolean") )
+#******#        ${field.type} ${field.LowerCamel}_ = false;
+#******##else
+#******#        ${field.type} ${field.LowerCamel}_ = null;
+#******##end
+#******#        try{
+#******#            if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
+#******#                ${field.LowerCamel}_ = cursor.get${field.Klass}(${Target}.${field.UpperAndUnderscores}.getName());
+#******#            }
 #******##end
 #******#        } catch (java.sql.SQLException e) {
 #******#            throw new RuntimeException(e);
@@ -65,7 +79,7 @@
 #**###
 #**##if ($primaryKeyIndex.equals(1))
 #******#        Serializable pks [] = null;
-#******#        if (useCache) {
+#******#        if (useCache && id_ != null) {
 #******#            pks = new Serializable[]{
 #******#                 ${primaryKey.LowerCamel}_,
 #******#            };

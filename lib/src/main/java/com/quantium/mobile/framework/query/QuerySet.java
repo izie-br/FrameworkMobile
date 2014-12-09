@@ -2,6 +2,7 @@ package com.quantium.mobile.framework.query;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 public interface QuerySet<T> extends Serializable {
@@ -28,4 +29,6 @@ public interface QuerySet<T> extends Serializable {
 	long count ();
 
     <U> Set<U> selectDistinct(Table.Column<U> column);
+
+    List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?> ... selection);
 }

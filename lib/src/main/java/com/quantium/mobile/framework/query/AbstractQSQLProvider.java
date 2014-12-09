@@ -54,7 +54,8 @@ public abstract class AbstractQSQLProvider {
     private Q q;
     private long limit;
     private long offset;
-    private List<Q.OrderByClause> orderby;
+    private List<Q.OrderByClause> orderBy;
+    private List<Table.Column<?>> groupBy;
 
     public AbstractQSQLProvider limit(long limit) {
         this.limit = limit;
@@ -66,8 +67,8 @@ public abstract class AbstractQSQLProvider {
         return this;
     }
 
-    public AbstractQSQLProvider orderBy(List<Q.OrderByClause> orderby) {
-        this.orderby = orderby;
+    public AbstractQSQLProvider orderBy(List<Q.OrderByClause> orderBy) {
+        this.orderBy = orderBy;
         return this;
     }
 
@@ -146,9 +147,29 @@ public abstract class AbstractQSQLProvider {
             out.append(" WHERE ");
             out.append(qstring);
         }
-        orderByOut(orderby, out);
+        groupByOut(groupBy, out);
+        orderByOut(orderBy, out);
         limitOffsetOut(limit, offset, out);
         return out.toString();
+    }
+
+    protected void groupByOut(List<Table.Column<?>> orderby, StringBuilder out) {
+        if (orderby == null || orderby.size() == 0)
+            return;
+        else
+            out.append(" GROUP BY ");
+        Iterator<Table.Column<?>> orderByIterator = orderby.iterator();
+        for (;;) {
+            Table.Column<?> item = orderByIterator.next();
+            out.append(item.getTable().getName());
+            out.append(".");
+            out.append(item.getName());
+            if (orderByIterator.hasNext()) {
+                out.append(", ");
+            } else {
+                break;
+            }
+        }
     }
 
     private void genQstringAndArgs (StringBuilder sb, List<Object> args) {
@@ -288,4 +309,8 @@ public abstract class AbstractQSQLProvider {
         this.outputQNode1X1(node1x1, table, sb, args);
     }
 
+    public AbstractQSQLProvider groupBy(List<Table.Column<?>> groupBy) {
+        this.groupBy = groupBy;
+        return this;
+    }
 }

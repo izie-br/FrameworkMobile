@@ -87,6 +87,45 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
     }
 
 
+    /**
+     * Retorna o cursor, para uso em cursor adapter, etc.
+     * @return cursor
+     */
+    public Cursor getCursor(List<Table.Column<?>> selection, Q.GroupByClause groupByClause) {
+        String args [] = null;
+        List<Object>  list = new ArrayList<Object>();
+        list.addAll(selection);
+        list.add(groupByClause.getFunction().getName().concat("(").concat(groupByClause.getColumn().getName()).concat(")").concat(" as ").concat(groupByClause.getColumn().getName()));
+        ArrayList<Object> listArg = new ArrayList<Object>();
+        String qstr = new QSQLProvider(this.q, parser)
+                .limit(this.limit)
+                .offset(this.offset)
+                .orderBy(this.orderClauses)
+                .groupBy(selection)
+                .select(list,listArg);
+        System.out.println(qstr);
+        if (listArg.size() > 0) {
+            args = new String[listArg.size()];
+            for (int i=0; i < args.length; i++)
+                args[i] = listArg.get(i).toString();
+        }
+        Cursor cursor = getDb().rawQuery(qstr, args);
+        return cursor;
+    }
+
+    @Override
+    public List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?>... selection) {
+        List<T> all = new ArrayList<T>();
+        Cursor cursor = getCursor(Arrays.asList(selection), groupByClause);
+        try{
+            while(cursor.moveToNext())
+                all.add(cursorToObject(cursor));
+        } finally {
+            cursor.close();
+        }
+        return all;
+    }
+
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
         if (q == null) {

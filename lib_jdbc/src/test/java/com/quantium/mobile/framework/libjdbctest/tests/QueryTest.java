@@ -164,6 +164,55 @@ public class QueryTest {
         assertEquals(ids.iterator().next(), author3.getId());
     }
 
+
+    @Test
+    public void testGroupBy() throws IOException {
+        DAO<Score> dao = daoFactory.getDaoFor(Score.class);
+        DAO<Author> authorDAO = daoFactory.getDaoFor(Author.class);
+        DAO<Document> documentDAO = daoFactory.getDaoFor(Document.class);
+        Score score1 = Utils.randomScore();
+        score1.setScore(42);
+        Score score2 = Utils.randomScore();
+        score2.setScore(32);
+        Score score3 = Utils.randomScore();
+        score3.setScore(22);
+        Author author1 = Utils.randomAuthor();
+        assertTrue(authorDAO.save(author1));
+        Document document1 = Utils.randomDocument();
+        assertTrue(documentDAO.save(document1));
+        Document document2 = Utils.randomDocument();
+        assertTrue(documentDAO.save(document2));
+        score1.setAuthor(author1);
+        score2.setAuthor(author1);
+        score3.setAuthor(author1);
+        score1.setDocument(document1);
+        score2.setDocument(document2);
+        score3.setDocument(document1);
+        assertTrue(dao.save(score1));
+        assertTrue(dao.save(score2));
+        assertTrue(dao.save(score3));
+        assertEquals(3, dao.query().count());
+        assertEquals(1, dao.query().groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).size());
+        assertEquals(96, dao.query().groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).get(0).getScore());
+        assertEquals(3, dao.query().groupBy(Score.SCORE.count(), Score.SCORE).size());
+        List<Score> scoresCount = dao.query().groupBy(Score.SCORE.count(), Score.ID_DOCUMENT);
+        assertEquals(2, scoresCount.get(0).getScore());
+        assertEquals(1, scoresCount.get(1).getScore());
+        List<Score> scoreSum = dao.query().groupBy(Score.SCORE.sum(), Score.ID_DOCUMENT);
+        assertEquals(64, scoreSum.get(0).getScore());
+        assertEquals(32, scoreSum.get(1).getScore());
+        List<Score> scoreAvg = dao.query().groupBy(Score.SCORE.avg(), Score.ID_DOCUMENT);
+        assertEquals(32, scoreAvg.get(0).getScore());
+        assertEquals(32, scoreAvg.get(1).getScore());
+        List<Score> scoreMin = dao.query().groupBy(Score.SCORE.min(), Score.ID_DOCUMENT);
+        assertEquals(22, scoreMin.get(0).getScore());
+        assertEquals(32, scoreMin.get(1).getScore());
+        List<Score> scoreMax = dao.query().groupBy(Score.SCORE.max(), Score.ID_DOCUMENT);
+        assertEquals(42, scoreMax.get(0).getScore());
+        assertEquals(32, scoreMax.get(1).getScore());
+        assertEquals(2, dao.query().orderBy(Score.ID_DOCUMENT.asc()).groupBy(Score.SCORE.count(), Score.ID_DOCUMENT, Score.ID_AUTHOR).size());
+    }
+
     //@Test
     public void testLazyInvocation() throws IOException {
         Author author1 = new AuthorImpl();

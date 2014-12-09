@@ -10,7 +10,7 @@
 #**##set ($columnIndex = $foreach.index)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        String ${field.LowerCamel}_ = cursor.getString(${columnIndex});
+#******#        String ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getString(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : null;
 #******#        ${association.Klass} ${association.KeyToA}_ = null;
 #******#        if (${field.LowerCamel}_ != null) {
 #******#            Object cacheItem = factory.cacheLookup(
@@ -36,15 +36,15 @@
 #******#
 #**##else
 #******##if ($field.Klass.equals("Boolean") )
-#******#        ${field.Type} ${field.LowerCamel}_ = parser.booleanFromDatabase(cursor.getShort(${columnIndex}));
+#******#        ${field.Type} ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? parser.booleanFromDatabase(cursor.getShort(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName()))) : false;
 #******##elseif ($field.Klass.equals("Date") )
-#******#        ${field.Type} ${field.LowerCamel}_ = parser.dateFromDatabase(cursor.getString(${columnIndex}));
+#******#        ${field.Type} ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? parser.dateFromDatabase(cursor.getString(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName()))) : null;
 #******##elseif ($field.Klass.equals("Long") )
-#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getLong(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getLong(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : 0l;
 #******##elseif ($field.Klass.equals("Double") )
-#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getDouble(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getDouble(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : 0.0d;
 #******##elseif ($field.Klass.equals("String") )
-#******#        ${field.Type} ${field.LowerCamel}_ = cursor.getString(${columnIndex});
+#******#        ${field.Type} ${field.LowerCamel}_ = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getString(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : null;
 #******##end
 #**##end
 #**##if ($field.PrimaryKey)
@@ -52,7 +52,7 @@
 #**##end
 #**##if ($primaryKeyIndex.equals(1))
 #******#        Serializable pks [] = null;
-#******#        if (useCache) {
+#******#        if (useCache && ${primaryKey.LowerCamel}_ != null) {
 #******#            pks = new Serializable[]{
 #******#                 ${primaryKey.LowerCamel}_,
 #******#            };
@@ -75,3 +75,7 @@
         return target;
     }
 
+
+    public boolean hasColumn(Cursor cursor, String columnName) throws SQLException {
+        return cursor.getColumnIndex(columnName) > -1;
+    }

@@ -236,6 +236,26 @@ public final class Table {
             return new Q.OrderByClause(this, Q.DESC);
         }
 
+        public Q.GroupByClause sum() {
+            return new Q.GroupByClause(this, Q.SUM);
+        }
+
+        public Q.GroupByClause min() {
+            return new Q.GroupByClause(this, Q.MIN);
+        }
+
+        public Q.GroupByClause max() {
+            return new Q.GroupByClause(this, Q.MAX);
+        }
+
+        public Q.GroupByClause avg() {
+            return new Q.GroupByClause(this, Q.AVG);
+        }
+
+        public Q.GroupByClause count() {
+            return new Q.GroupByClause(this, Q.COUNT);
+        }
+
         @Override
         public int hashCode() {
             return Table.this.getName().hashCode() * this.getName().hashCode();

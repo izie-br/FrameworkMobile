@@ -18,6 +18,11 @@ public final class Q implements Serializable {
 	private static final long serialVersionUID = 2405204956251092532L;
 	public static final OrderByAsc ASC = OrderByAsc.ASC;
     public static final OrderByAsc DESC = OrderByAsc.DESC;
+    public static final GroupByFunction SUM = GroupByFunction.SUM;
+    public static final GroupByFunction AVG = GroupByFunction.AVG;
+    public static final GroupByFunction MIN = GroupByFunction.MIN;
+    public static final GroupByFunction MAX = GroupByFunction.MAX;
+    public static final GroupByFunction COUNT = GroupByFunction.COUNT;
 
     private Table table;
     // pode ser NULL
@@ -459,12 +464,25 @@ public final class Q implements Serializable {
         ASC, DESC
     }
 
+    public static enum GroupByFunction {
+        SUM("sum"), MAX("max"), MIN("min"), AVG("avg"), COUNT("count");
+        private final String name;
+
+        GroupByFunction(String name){
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+    }
+
     public static class OrderByClause implements Serializable {
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = -5730910638653922653L;
-		private final Table.Column<?> column;
+         *
+         */
+        private static final long serialVersionUID = -5730910638653922653L;
+        private final Table.Column<?> column;
         private final OrderByAsc type;
 
         public OrderByClause(Table.Column<?> column, OrderByAsc type) {
@@ -478,6 +496,29 @@ public final class Q implements Serializable {
 
         public OrderByAsc getType() {
             return type;
+        }
+    }
+
+
+    public static class GroupByClause implements Serializable {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -5730910638653952653L;
+        private final Table.Column<?> column;
+        private final GroupByFunction groupByFunction;
+
+        public GroupByClause(Table.Column<?> column, GroupByFunction type) {
+            this.column = column;
+            this.groupByFunction = type;
+        }
+
+        public Table.Column<?> getColumn() {
+            return column;
+        }
+
+        public GroupByFunction getFunction() {
+            return groupByFunction;
         }
     }
 }

@@ -158,5 +158,16 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
     	return factory;
     }
 
+    public boolean hasColumn(ResultSet rs, String columnName) throws SQLException {
+        ResultSetMetaData rsmd = rs.getMetaData();
+        int columns = rsmd.getColumnCount();
+        for (int x = 1; x <= columns; x++) {
+            if (columnName.equalsIgnoreCase(rsmd.getColumnName(x))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
 
