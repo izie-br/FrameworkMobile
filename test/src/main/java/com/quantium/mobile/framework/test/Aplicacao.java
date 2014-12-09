@@ -12,10 +12,13 @@ public class Aplicacao extends BaseApplication {
 
 	public static SessionFacade facade;
 
+    public Aplicacao(){
+        facade = new SessionFacade();
+    }
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
-		facade = new SessionFacade();
 	}
 
 	@Override
