@@ -132,7 +132,7 @@ public abstract class AbstractQSQLProvider {
         if (joins != null ){
             for(Q.InnerJoin j: joins) {
                 String foreignKeyTableName = j.getForeignKey().getTable().getName();
-                out.append(" JOIN ");
+                out.append(" LEFT JOIN ");
                 out.append(foreignKeyTableName);
                 out.append(" AS ");
                 out.append(foreignKeyTableName);

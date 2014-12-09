@@ -116,7 +116,7 @@ public class QueryTest {
 			"\\s+" + insensitiveRegex("as") + "\\s+" +
 			colTab1Id.getTable().getName() + "\\s+" +
 			// JOIN though_table AS though_table
-			insensitiveRegex("join") + "\\s+" +
+			insensitiveRegex("left join") + "\\s+" +
 			colTab2Id.getTable().getName() + "\\s+" +
 			insensitiveRegex("as") + "\\s+" +
 			colTab2Id.getTable().getName() + "\\s+" +
