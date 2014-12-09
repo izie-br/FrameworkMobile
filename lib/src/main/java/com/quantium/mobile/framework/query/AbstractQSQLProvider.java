@@ -22,6 +22,8 @@ public abstract class AbstractQSQLProvider {
 
     protected abstract String getColumn(String tableAs, Table.Column<?> column);
 
+    protected abstract String getColumnForWhere(String tableAs, Table.Column<?> column);
+
     protected final Object parseArgument(Object arg){
     	if(arg instanceof Boolean)
     		return parser.booleanToDatabase((Boolean) arg);
@@ -231,7 +233,7 @@ public abstract class AbstractQSQLProvider {
             }
         }
 
-        sb.append( getColumn(
+        sb.append( getColumnForWhere(
                 column.getTable().getName(),
                 column)
         );
@@ -267,7 +269,7 @@ public abstract class AbstractQSQLProvider {
         Q.Op1xN op = node.op();
         Collection<?> arg = node.getArgs();
 
-        sb.append( getColumn(
+        sb.append( getColumnForWhere(
                 column.getTable().getName(),
                 column)
         );

@@ -9,9 +9,13 @@ public class SQLiteUtils {
 	private static final String ERRO_CLASSE_SEM_STRING_FORMAT =
 			"Classe \"%s\" sem um metodo parse de sring correspodente.";
 
-	public static final String dateTimeForColumn (String columnName) {
-		return "datetime("+columnName+")";
-	}
+    public static final String dateTimeForColumnForSelect (String columnName) {
+        return "datetime("+columnName+") as "+columnName.substring(columnName.indexOf(".")+1);
+    }
+
+    public static final String dateTimeForColumnForWhere (String columnName) {
+        return "datetime("+columnName+")";
+    }
 
 	public static int booleanToInteger(boolean b){
 		return b ? 1 : 0;

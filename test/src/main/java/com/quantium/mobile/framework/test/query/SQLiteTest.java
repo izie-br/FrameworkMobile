@@ -31,9 +31,7 @@ import com.quantium.mobile.framework.test.vo.Customer;
 import com.quantium.mobile.framework.test.vo.Score;
 import org.junit.Test;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.Assert.*;
 
 public class SQLiteTest extends ActivityInstrumentationTestCase2<TestActivity> {
 
@@ -83,6 +81,26 @@ public class SQLiteTest extends ActivityInstrumentationTestCase2<TestActivity> {
         document1.setText("A primary key");
         assertTrue(facade.save(document1));
         assertEquals(1, facade.query(Document.class, Document.ID.eq(id)).count());
+        document1 = new DocumentImpl();
+        document1.setId(id);
+        document1.setTitle("A primary key");
+        document1.setCreatedAt(now);
+        document1.setText("A primary key");
+        assertTrue(facade.save(document1));
+        assertEquals(1, facade.query(Document.class, Document.ID.eq(id)).count());
+    }
+
+    public void testDateColumn() throws IOException {
+        Date now = new Date();
+        String id = "123456";
+        Document document1 = new DocumentImpl();
+        document1.setId(id);
+        document1.setTitle("A primary key");
+        document1.setCreatedAt(now);
+        document1.setText("A primary key");
+        assertTrue(facade.save(document1));
+        assertEquals(1, facade.query(Document.class, Document.ID.eq(id)).count());
+        assertNotNull(facade.query(Document.class).first().getCreatedAt());
         document1 = new DocumentImpl();
         document1.setId(id);
         document1.setTitle("A primary key");

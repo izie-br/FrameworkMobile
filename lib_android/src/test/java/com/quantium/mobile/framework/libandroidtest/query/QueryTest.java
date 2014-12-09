@@ -41,7 +41,7 @@ public class QueryTest {
 			// parentese de abertura, opcional neste caso
 			"\\s*\\(?\\s*" +
 				// "datetime(caldate) <= ?"
-				escapeRegex(SQLiteUtils.dateTimeForColumn(
+				escapeRegex(SQLiteUtils.dateTimeForColumnForWhere(
 						colDate.getTable().getName() + "." + colDate.getName()
 				)) + "\\s*\\<=\\s*\\?\\s*" +
 				insensitiveRegex("AND") +
@@ -63,7 +63,7 @@ public class QueryTest {
 
 		String selectRegex =
 			"\\s*" + insensitiveRegex("select") + "\\s+" +
-				escapeRegex(SQLiteUtils.dateTimeForColumn(
+				escapeRegex(SQLiteUtils.dateTimeForColumnForSelect(
 						colDate.getTable().getName() + "." + colDate.getName()
 				)) + "\\s*,\\s*" +
 				colStr.getTable().getName() + "\\." +colStr.getName() +
@@ -96,7 +96,7 @@ public class QueryTest {
 		String qstringRegex =
 			// datetime(though_table.date)<=?
 			"\\s*" +
-			escapeRegex(SQLiteUtils.dateTimeForColumn(
+			escapeRegex(SQLiteUtils.dateTimeForColumnForWhere(
 					colTab2Date.getTable().getName() + "." +
 					colTab2Date.getName()
 			)) + "\\s*\\<=\\s*\\?\\s*";

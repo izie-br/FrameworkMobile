@@ -34,6 +34,12 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
     }
 
     @Override
+    protected String getColumnForWhere(String tableAs, Column<?> column) {
+        String columnNameWithTable = tableAs + '.' + column.getName();
+        return columnNameWithTable;
+    }
+
+    @Override
     protected void limitOffsetOut(long limit, long offset,
                                   StringBuilder selectStatement)
     {
@@ -63,7 +69,7 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
             Object arg = node.getArg();
             if (arg instanceof String){
                 Column<?> column = node.column();
-                sb.append(getColumn(column.getTable().getName(), column));
+                sb.append(getColumnForWhere(column.getTable().getName(), column));
                 sb.append(" REGEXP ?");
                 String pattern = globPatternToRegex((String)arg);
                 args.add(pattern);
