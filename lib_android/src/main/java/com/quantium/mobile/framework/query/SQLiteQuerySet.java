@@ -19,17 +19,29 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
 	protected abstract SQLiteDatabase getDb();
 
-	public List<T> all(){
-		List<T> all = new ArrayList<T>();
-		Cursor cursor = getCursor(getColumns ());
-		try{
-			while(cursor.moveToNext())
-				all.add(cursorToObject(cursor));
-		} finally {
-			cursor.close();
-		}
-		return all;
-	}
+    public List<T> all(){
+        List<T> all = new ArrayList<T>();
+        Cursor cursor = getCursor(getColumns ());
+        try{
+            while(cursor.moveToNext())
+                all.add(cursorToObject(cursor));
+        } finally {
+            cursor.close();
+        }
+        return all;
+    }
+
+    public Set<T> allUnique(){
+        Set<T> all = new HashSet<T>();
+        Cursor cursor = getCursor(getColumns ());
+        try{
+            while(cursor.moveToNext())
+                all.add(cursorToObject(cursor));
+        } finally {
+            cursor.close();
+        }
+        return all;
+    }
 
 	public T first(){
 		Cursor cursor = getCursor(getColumns ());

@@ -22,26 +22,47 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 
 	protected abstract Connection getConnection();
 
-	@Override
-	public List<T> all(){
-		List<T> all = new ArrayList<T>();
-		ResultSet cursor = null;
-		try{
-			cursor = getCursor(getColumns ());
-			while(cursor.next())
-				all.add(cursorToObject(cursor));
-		} catch (java.sql.SQLException e) {
-			throw new RuntimeException(e);
-		} finally {
-			try {
-				if (cursor != null)
-					cursor.close();
-			} catch (SQLException e) {
-				LogPadrao.e(e);
-			}
-		}
-		return all;
-	}
+    @Override
+    public List<T> all(){
+        List<T> all = new ArrayList<T>();
+        ResultSet cursor = null;
+        try{
+            cursor = getCursor(getColumns ());
+            while(cursor.next())
+                all.add(cursorToObject(cursor));
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (cursor != null)
+                    cursor.close();
+            } catch (SQLException e) {
+                LogPadrao.e(e);
+            }
+        }
+        return all;
+    }
+
+    @Override
+    public Set<T> allUnique(){
+        Set<T> all = new HashSet<T>();
+        ResultSet cursor = null;
+        try{
+            cursor = getCursor(getColumns ());
+            while(cursor.next())
+                all.add(cursorToObject(cursor));
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        } finally {
+            try {
+                if (cursor != null)
+                    cursor.close();
+            } catch (SQLException e) {
+                LogPadrao.e(e);
+            }
+        }
+        return all;
+    }
 
 	@Override
 	public T first(){
