@@ -15,17 +15,22 @@ import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
 
 public class JdbcToSyncProvider extends ToSyncProvider {
 
-	@Override
+    private final Connection connection;
+
+    public JdbcToSyncProvider(Connection connection) {
+        this.connection = connection;
+    }
+
+    @Override
 	public List<String> listIds(String idUser,
                                 String tableName, long action) throws IOException {
 		List<String> ids = new ArrayList<String>();
-		Connection conn = null;
+		
 		try {
-			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + TO_SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=? and " + ACTION.getName()
 					+ "=? and " + ID_USER.getName() + "=?";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, tableName);
 			stm.setLong(2, action);
 			stm.setString(3, idUser);
@@ -36,12 +41,6 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 		return ids;
 	}
@@ -49,14 +48,12 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 	@Override
 	public <T extends BaseGenericVO> boolean save(String idUser, String tableName,
 			String id, long action) throws IOException {
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "INSERT INTO " + TO_SYNC_TABLE.getName() + " ("
 					+ CLASSNAME.getName() + "," + ID.getName() + ","
 					+ ACTION.getName() + "," + ID_USER.getName()
 					+ ") VALUES (?, ?, ?, ?)";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, tableName);
 			stm.setString(2, id);
 			stm.setLong(3, action);
@@ -71,25 +68,17 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 	}
 
 	@Override
 	public boolean delete(String idUser, String tableName,
 			String id, long action) throws IOException {
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "DELETE FROM " + TO_SYNC_TABLE.getName() + " WHERE "
 					+ ID.getName() + "=? and " + ACTION.getName() + "=? and "
 					+ ID_USER.getName() + "=?";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, id);
 			stm.setLong(2, action);
 			stm.setString(3, idUser);
@@ -97,12 +86,6 @@ public class JdbcToSyncProvider extends ToSyncProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 		return true;
 	}

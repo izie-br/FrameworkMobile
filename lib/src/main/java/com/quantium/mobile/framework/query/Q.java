@@ -26,7 +26,7 @@ public final class Q {
 
     private Table table;
     // pode ser NULL
-    private ArrayList<InnerJoin> joins;
+    private ArrayList<Join> joins;
     // pode ser NULL
     private QNode root;
 
@@ -86,7 +86,12 @@ public final class Q {
         if ( otherColumn.getTable().equals(this.table) ) {
             init1x1(column, op, otherColumn);
         } else {
-            InnerJoin join = new InnerJoin();
+            Join join = null;
+            if(op.equals(Op1x1.EQ)){
+                join = new InnerJoin();
+            }else{
+                join = new LeftJoin();
+            }
             join.column = column;
             join.op = op;
             join.foreignColumn = otherColumn;
@@ -115,7 +120,7 @@ public final class Q {
     public Q (Q q){
         this.table = q.table;
         if (q.joins != null)
-            this.joins = new ArrayList<InnerJoin>(q.joins);
+            this.joins = new ArrayList<Join>(q.joins);
         if (q.root != null) {
             QNodeGroup group = new QNodeGroup();
             group.node = q.root;
@@ -212,21 +217,21 @@ public final class Q {
         return this.table;
     }
 
-    public Collection<Q.InnerJoin> getInnerJoins(){
+    public Collection<Q.Join> getInnerJoins(){
         return this.joins;
     }
 
 
-    private ArrayList<InnerJoin> getJoins () {
+    private ArrayList<Join> getJoins () {
         if (joins == null)
-            joins = new ArrayList<InnerJoin>(1);
+            joins = new ArrayList<Join>(1);
        return joins;
     }
 
     private static Q mergeQs (Q q1, ChainOp op, Q q2) {
         Q out = new Q(q1.table);
         if (q1.joins != null)
-            out.joins = new ArrayList<Q.InnerJoin>(q1.joins);
+            out.joins = new ArrayList<Q.Join>(q1.joins);
 
         if (q1.root != null && q2.root != null) {
             QNodeGroup outRoot = new QNodeGroup();
@@ -381,9 +386,9 @@ public final class Q {
         }
     }
 
-    public class InnerJoin implements Serializable {
+    public class Join implements Serializable {
         /**
-		 * 
+		 *
 		 */
 		private static final long serialVersionUID = -2103736536036069040L;
 		private Table.Column<?> foreignColumn;
@@ -401,6 +406,15 @@ public final class Q {
         public Table.Column<?> getColumn(){
             return column;
         }
+    }
+
+    public class InnerJoin extends Join {
+
+    }
+
+
+    public class LeftJoin extends Join {
+
     }
 
     /**
@@ -423,7 +437,7 @@ public final class Q {
      */
     public static enum Op1x1 {
 
-        NE, EQ, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
+        NE, EQ, EQLF, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
 
         public String toString() throws QueryParseException {
             return
@@ -435,6 +449,7 @@ public final class Q {
                 this == GE     ?  ">="     :
                 this == LIKE   ?  " LIKE " :
                 this == GLOB   ?  " GLOB " :
+                this == EQLF     ?  "="      :
              /* this == REGEXP ? " REGEXP "; */
                 null;
         }

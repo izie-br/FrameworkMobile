@@ -14,6 +14,7 @@ import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
 import com.quantium.mobile.framework.libjdbctest.vo.*;
 import com.quantium.mobile.framework.logging.LogPadrao;
+import junit.framework.TestCase;
 import org.junit.Test;
 
 import static org.junit.Assert.*;
@@ -28,20 +29,26 @@ import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
 
-public class QueryTest {
+public class QueryTest extends TestCase {
     DAOFactory daoFactory = new MemDaoFactory();
-    BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+//    BaseModelFacade facade = new BaseModelFacade(daoFactory, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+//
+//        @Override
+//        protected String getLoggedUserId() {
+//            return null;
+//        }
+//
+//        @Override
+//        public <T extends BaseGenericVO> T refresh(Class<T> clazz, String id) throws Throwable {
+//            return null;
+//        }
+//    };
 
-        @Override
-        protected String getLoggedUserId() {
-            return null;
-        }
-
-        @Override
-        public <T extends BaseGenericVO> T refresh(Class<T> clazz, String id) throws Throwable {
-            return null;
-        }
-    };
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        MemDaoFactory.connection = null;
+    }
 
     @SuppressWarnings("deprecation")
     @Test
@@ -156,10 +163,10 @@ public class QueryTest {
         assertEquals(2, titles.size());
         Set<String> texts = querySet.selectDistinct(Document.TEXT);
         assertEquals(1, texts.size());
-        Set<String> ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID).and(Author.ID.isNotNull())).selectDistinct(Document.ID_AUTHOR);
+        Set<String> ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Document.ID_AUTHOR);
         assertEquals(1, ids.size());
         assertEquals(ids.iterator().next(), author3.getId());
-        ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID).and(Author.ID.isNotNull())).selectDistinct(Author.ID);
+        ids = querySet.filter(Document.ID_AUTHOR.eq(Author.ID)).selectDistinct(Author.ID);
         assertEquals(1, ids.size());
         assertEquals(ids.iterator().next(), author3.getId());
     }
@@ -214,16 +221,16 @@ public class QueryTest {
     }
 
     //@Test
-    public void testLazyInvocation() throws IOException {
-        Author author1 = new AuthorImpl();
-        author1.setName("lazy");
-        facade.save(author1);
-        //simular uma sincronia.
-        String oldId = author1.getId();
-        assertNotNull(oldId);
-        facade.updatePrimaryKey(author1, "12345");
-        assertNotSame(oldId, author1.getId());
-    }
+//    public void testLazyInvocation() throws IOException {
+//        Author author1 = new AuthorImpl();
+//        author1.setName("lazy");
+//        facade.save(author1);
+//        simular uma sincronia.
+//        String oldId = author1.getId();
+//        assertNotNull(oldId);
+//        facade.updatePrimaryKey(author1, "12345");
+//        assertNotSame(oldId, author1.getId());
+//    }
 
 
     @Test
@@ -326,12 +333,17 @@ public class QueryTest {
             assertTrue(daoScore.save(score2));
             assertTrue(daoScore.save(score3));
 
-            List<Author> authors = dao.query(
+            QuerySet<Author> authors = dao.query(
+                    Author.ID.eq(Document.ID_AUTHOR)
+            );
+            assertEquals(3, authors.count());
+            assertEquals(doc1.getAuthor(), authors.first());
+            List<Author> authors1 = dao.query(
                     Author.ID.eq(Document.ID_AUTHOR)
                             .and(Document.ID.eq(doc2.getId()))
             ).all();
-            assertEquals(1, authors.size());
-            assertEquals(author2, authors.get(0));
+            assertEquals(1, authors1.size());
+            assertEquals(doc2.getAuthor(), authors1.get(0));
             QuerySet<Score> scoreQuery = daoScore.query(
                     Score.ID_DOCUMENT.eq(Document.ID)
                             .and(Score.ID_AUTHOR.eq(Author.ID))
@@ -344,6 +356,82 @@ public class QueryTest {
             scores = author1.getAuthorScores().filter(
                     Score.ID_DOCUMENT.eq(Document.ID)
                             .and(Score.ID_AUTHOR.eq(Author.ID)).and(Author.ID.eq(author1.getId()))
+            ).all();
+            assertEquals(1, scores.size());
+            assertEquals(score1, scores.get(0));
+        } catch (IOException e) {
+            fail(StringUtil.getStackTrace(e));
+        }
+    }
+
+
+
+    @Test
+    public void testLeftJoinQuery() {
+        DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+        DAO<Score> daoScore = daoFactory.getDaoFor(Score.class);
+        DAO<Document> daoDocument = daoFactory.getDaoFor(Document.class);
+
+        Author author1 = Utils.randomAuthor();
+        Author author2 = Utils.randomAuthor();
+        Author author3 = Utils.randomAuthor();
+
+        Document doc1 = Utils.randomDocument();
+        Document doc2 = Utils.randomDocument();
+        Document doc3 = Utils.randomDocument();
+        Document doc4 = Utils.randomDocument();
+
+        Score score1 = Utils.randomScore();
+        Score score2 = Utils.randomScore();
+        Score score3 = Utils.randomScore();
+
+        score1.setAuthor(author1);
+        score1.setDocument(doc1);
+        score2.setAuthor(author2);
+        score2.setDocument(doc2);
+        score3.setAuthor(author3);
+        score3.setDocument(doc3);
+        try {
+            assertTrue(dao.save(author1));
+            assertTrue(dao.with(author1).add(doc1));
+            assertTrue(dao.save(author2));
+            assertTrue(dao.with(author2).add(doc2));
+            assertTrue(dao.save(author3));
+            assertTrue(dao.with(author3).add(doc3));
+            assertTrue(daoScore.save(score1));
+            assertTrue(daoScore.save(score2));
+            assertTrue(daoScore.save(score3));
+            assertTrue(daoDocument.save(doc1));
+            assertTrue(daoDocument.save(doc2));
+            assertTrue(daoDocument.save(doc3));
+            assertTrue(daoDocument.save(doc4));
+
+            List<Document> documentsAll = daoDocument.query().all();
+            assertEquals(4, documentsAll.size());
+            List<Document> documentsLeftJoin = daoDocument.query(Document.ID_AUTHOR.eqlj(Author.ID)).all();
+            assertEquals(4, documentsLeftJoin.size());
+            List<Document> documentsInnerJoin = daoDocument.query(Document.ID_AUTHOR.eq(Author.ID)).all();
+            assertEquals(3, documentsInnerJoin.size());
+            List<Document> documentsLeftJoinNotNull = daoDocument.query(Document.ID_AUTHOR.eqlj(Author.ID).and(Author.ID.isNotNull())).all();
+            assertEquals(3, documentsLeftJoinNotNull.size());
+            List<Author> authors = dao.query(
+                    Author.ID.eqlj(Document.ID_AUTHOR)
+                            .and(Document.ID.eq(doc2.getId()))
+            ).all();
+            assertEquals(1, authors.size());
+            assertEquals(author2, authors.get(0));
+            QuerySet<Score> scoreQuery = daoScore.query(
+                    Score.ID_DOCUMENT.eqlj(Document.ID)
+                            .and(Score.ID_AUTHOR.eqlj(Author.ID))
+            );
+            List<Score> scores = scoreQuery.all();
+            assertEquals(3, scores.size());
+            assertEquals(score1, scores.get(0));
+            assertEquals(score2, scores.get(1));
+            assertEquals(score3, scores.get(2));
+            scores = author1.getAuthorScores().filter(
+                    Score.ID_DOCUMENT.eqlj(Document.ID)
+                            .and(Score.ID_AUTHOR.eqlj(Author.ID)).and(Author.ID.eq(author1.getId()))
             ).all();
             assertEquals(1, scores.size());
             assertEquals(score1, scores.get(0));
@@ -414,11 +502,11 @@ public class QueryTest {
         assertTrue(str, pattern.matcher(str).find());
     }
 
-
-    @Test
-    public void testListTables() throws IOException {
-        List<String> tables = facade.listTempTables();
-        assertFalse(tables.isEmpty());
-    }
+//
+//    @Test
+//    public void testListTables() throws IOException {
+//        List<String> tables = facade.listTempTables();
+//        assertFalse(tables.isEmpty());
+//    }
 
 }

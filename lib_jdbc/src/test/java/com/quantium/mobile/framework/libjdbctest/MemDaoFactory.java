@@ -9,11 +9,11 @@ import com.quantium.mobile.framework.libjdbctest.gen.JdbcDAOFactory;
 
 public class MemDaoFactory extends JdbcDAOFactory {
 
-	private Connection connection;
+	public static Connection connection;
     private BaseModelFacade baseModelFacade;
 
     public MemDaoFactory(){
-        baseModelFacade = new BaseModelFacade(this, new JdbcPrimaryKeyProvider(), new JdbcToSyncProvider()) {
+        baseModelFacade = new BaseModelFacade(this, new JdbcPrimaryKeyProvider(getConnection()), new JdbcToSyncProvider(getConnection())) {
 
             @Override
             protected String getLoggedUserId() {

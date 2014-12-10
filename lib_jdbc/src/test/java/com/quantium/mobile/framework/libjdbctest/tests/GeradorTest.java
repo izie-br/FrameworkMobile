@@ -14,6 +14,7 @@ import static org.junit.Assert.*;
 import com.quantium.mobile.framework.*;
 import com.quantium.mobile.framework.libjdbctest.JdbcPrimaryKeyProvider;
 import com.quantium.mobile.framework.libjdbctest.JdbcToSyncProvider;
+import junit.framework.TestCase;
 import org.apache.commons.lang.RandomStringUtils;
 import org.junit.Test;
 
@@ -31,7 +32,7 @@ import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.validation.Constraint;
 import com.quantium.mobile.framework.validation.ValidationError;
 
-public class GeradorTest {
+public class GeradorTest extends TestCase {
 	DAOFactory daoFactory = new MemDaoFactory();
 
 	@Test
@@ -54,7 +55,13 @@ public class GeradorTest {
 		}
 	}
 
-	/**
+    @Override
+    protected void tearDown() throws Exception {
+        super.tearDown();
+        MemDaoFactory.connection = null;
+    }
+
+    /**
 	 * testa buscas com metodos objects . filter . (all | first).
 	 * Este teste tambem pode falhar por erro no metodo equals!
 	 */

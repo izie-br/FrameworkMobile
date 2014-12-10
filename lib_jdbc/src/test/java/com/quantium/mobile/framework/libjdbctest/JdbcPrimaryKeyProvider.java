@@ -8,22 +8,22 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.quantium.mobile.framework.BaseGenericVO;
-import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.PrimaryKeyProvider;
-import com.quantium.mobile.framework.libjdbctest.db.DB;
-import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
-import com.quantium.mobile.framework.query.Table;
 
 public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 
-	@Override
+    private final Connection connection;
+
+    public JdbcPrimaryKeyProvider(Connection connection) {
+        this.connection = connection;
+    }
+
+    @Override
 	public String sequenceNextFor(String tableName) throws IOException {
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "INSERT INTO " + SYNC_TABLE.getName() + " ("
 					+ CLASSNAME.getName() + ") VALUES (?)";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, tableName);
 			int value = stm.executeUpdate();
 			if (value != 1)
@@ -42,12 +42,6 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 	}
 
@@ -55,12 +49,10 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	public List<String> listIds(String className)
 			throws IOException {
 		List<String> ids = new ArrayList<String>();
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=?";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, className);
 			ResultSet rs = stm.executeQuery();
 			while (rs.next()) {
@@ -69,12 +61,6 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 		return ids;
 	}
@@ -83,12 +69,10 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	public <T extends BaseGenericVO> Object getIdServerById(String tableName,
 			Object id) throws IOException {
 		String idServer = null;
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "SELECT * FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ CLASSNAME.getName() + "=? AND "+ID.getName() +" =? ";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, tableName);
 			stm.setObject(2, id);
 			ResultSet rs = stm.executeQuery();
@@ -98,12 +82,6 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 		return idServer;
 	}
@@ -111,23 +89,15 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	@Override
 	public <T extends BaseGenericVO> boolean delete(String tableName, String id)
 			throws IOException {
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "DELETE FROM " + SYNC_TABLE.getName() + " WHERE "
 					+ ID.getName() + "=?";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, id);
 			stm.execute();
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 		return true;
 	}
@@ -135,35 +105,25 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
 	@Override
 	public <T extends BaseGenericVO> void updateIdServer(String tableName,
 			Object oldId, Object newPrimaryKey) throws IOException {
-		Connection conn = null;
 		try {
-			conn = DB.getConnection();
 			String sql = "UPDATE " + SYNC_TABLE.getName() + "SET "+ID_SERVER.getName()+" =? WHERE "
 					+ ID.getName() + "=?";
-			PreparedStatement stm = conn.prepareStatement(sql);
+			PreparedStatement stm = connection.prepareStatement(sql);
 			stm.setString(1, newPrimaryKey.toString());
 			stm.setString(2, oldId.toString());
 			stm.execute();
 		} catch (java.sql.SQLException e) {
 			throw new IOException(e);
 		} finally {
-			try {
-				if (conn != null)
-					conn.close();
-			} catch (java.sql.SQLException e) {
-				throw new IOException(e);
-			}
 		}
 	}
 
     @Override
     public List<String> listTables() throws IOException {
         List<String> ids = new ArrayList<String>();
-        Connection conn = null;
         try {
-            conn = DB.getConnection();
             String sql = "SELECT "+ CLASSNAME.getName() +" FROM " + SYNC_TABLE.getName() ;
-            PreparedStatement stm = conn.prepareStatement(sql);
+            PreparedStatement stm = connection.prepareStatement(sql);
             ResultSet rs = stm.executeQuery();
             while (rs.next()) {
                 ids.add(rs.getString(1));
@@ -171,12 +131,6 @@ public class JdbcPrimaryKeyProvider extends PrimaryKeyProvider {
         } catch (java.sql.SQLException e) {
             throw new IOException(e);
         } finally {
-            try {
-                if (conn != null)
-                    conn.close();
-            } catch (java.sql.SQLException e) {
-                throw new IOException(e);
-            }
         }
         return ids;
     }

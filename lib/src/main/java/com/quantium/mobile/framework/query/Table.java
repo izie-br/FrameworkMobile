@@ -158,6 +158,10 @@ public final class Table {
             return new Q(this, Q.Op1x1.EQ, arg);
         }
 
+        public Q eqlj(Table.Column<?> arg){
+            return new Q(this, Q.Op1x1.EQLF, arg);
+        }
+
         public Q ne(T arg){
             return new Q(this, Q.Op1x1.NE, arg);
         }

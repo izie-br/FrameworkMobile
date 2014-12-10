@@ -13,7 +13,7 @@ import com.quantium.mobile.framework.utils.ValueParser;
 public abstract class AbstractQSQLProvider {
 
 	private ValueParser parser;
-	
+
 	private static final String ERRO_CLASSE_SEM_STRING_FORMAT =
 			"Classe \"%s\" sem um metodo parse de sring correspodente.";
 
@@ -104,7 +104,7 @@ public abstract class AbstractQSQLProvider {
 
     public String select(List<?> selection, List<Object> args){
         Table table = q.getTable();
-        Collection<Q.InnerJoin> joins = q.getInnerJoins();
+        Collection<Q.Join> joins = q.getInnerJoins();
 
         StringBuilder out = new StringBuilder("SELECT ");
         Iterator<?> it = selection.iterator ();
@@ -130,9 +130,13 @@ public abstract class AbstractQSQLProvider {
         out.append(" AS ");
         out.append(tableName);
         if (joins != null ){
-            for(Q.InnerJoin j: joins) {
+            for(Q.Join j: joins) {
                 String foreignKeyTableName = j.getForeignKey().getTable().getName();
-                out.append(" LEFT JOIN ");
+                if (j instanceof Q.InnerJoin) {
+                    out.append(" JOIN ");
+                } else {
+                    out.append(" LEFT JOIN ");
+                }
                 out.append(foreignKeyTableName);
                 out.append(" AS ");
                 out.append(foreignKeyTableName);
