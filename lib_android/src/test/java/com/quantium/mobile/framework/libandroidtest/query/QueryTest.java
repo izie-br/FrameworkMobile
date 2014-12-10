@@ -77,69 +77,133 @@ public class QueryTest {
 		));
 	}
 
-	@Test
-	public void testJoinQstring () {
+    @Test
+    public void testJoinQstring () {
 
-		Table table1 = new Table ("tab_1");
-		Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
+        Table table1 = new Table ("tab_1");
+        Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
 
-		Table table2 = new Table ("though_table");
-		Table.Column<Long> colTab2Id = table2.addColumn(Long.class, "id");
-		Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
+        Table table2 = new Table ("though_table");
+        Table.Column<Long> colTab2Id = table2.addColumn(Long.class, "id");
+        Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
 
-		Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
-		String select = new QSQLProvider(q).select(
-				Arrays.asList(new Table.Column<?> []{colTab1Id, colTab2Id}),
-				new ArrayList<Object>()
-		);
+        Q q = colTab1Id.eq(colTab2Id).and(colTab2Date.le(new Date()));
+        String select = new QSQLProvider(q).select(
+                Arrays.asList(new Table.Column<?> []{colTab1Id, colTab2Id}),
+                new ArrayList<Object>()
+        );
 
-		String qstringRegex =
-			// datetime(though_table.date)<=?
-			"\\s*" +
-			escapeRegex(SQLiteUtils.dateTimeForColumnForWhere(
-					colTab2Date.getTable().getName() + "." +
-					colTab2Date.getName()
-			)) + "\\s*\\<=\\s*\\?\\s*";
+        String qstringRegex =
+                // datetime(though_table.date)<=?
+                "\\s*" +
+                        escapeRegex(SQLiteUtils.dateTimeForColumnForWhere(
+                                colTab2Date.getTable().getName() + "." +
+                                        colTab2Date.getName()
+                        )) + "\\s*\\<=\\s*\\?\\s*";
 
-		String selectRegex =
-			// SELECT
-			"\\s*" + insensitiveRegex("select") + "\\s+" +
-			// id,though_table.id
-			//    NOTA: DEVEM estar na mesma ordem
-			colTab1Id.getTable().getName() + "\\." +
-				colTab1Id.getName() + "\\s*,\\s*" +
-			colTab2Id.getTable().getName()+ "\\." +
-				colTab2Id.getName() +
-			// from tab_1 AS tab_1
-			"\\s+" + insensitiveRegex("from") + "\\s+" +
-			colTab1Id.getTable().getName() +
-			"\\s+" + insensitiveRegex("as") + "\\s+" +
-			colTab1Id.getTable().getName() + "\\s+" +
-			// JOIN though_table AS though_table
-			insensitiveRegex("left join") + "\\s+" +
-			colTab2Id.getTable().getName() + "\\s+" +
-			insensitiveRegex("as") + "\\s+" +
-			colTab2Id.getTable().getName() + "\\s+" +
-			// ON (id=though_table.id|though_table.id=id)
-			insensitiveRegex("on") + "\\s+(" +
-				colTab1Id.getTable().getName() + "\\." +
-				colTab1Id.getName() + "\\s*=\\s*" +
-				colTab2Id.getTable().getName()+ "\\." +
-				colTab2Id.getName() +
-			"|" +
-				colTab2Id.getTable().getName()+ "\\." +
-				colTab2Id.getName() + "\\s*=\\s*" +
-				colTab1Id.getTable().getName() + "\\." +
-				colTab1Id.getName() +
-			"\\s*)\\s*" +
-			// WHERE
-			"\\s+" + insensitiveRegex("where") + "\\s+" +
-			qstringRegex;
+        String selectRegex =
+                // SELECT
+                "\\s*" + insensitiveRegex("select") + "\\s+" +
+                        // id,though_table.id
+                        //    NOTA: DEVEM estar na mesma ordem
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() + "\\s*,\\s*" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() +
+                        // from tab_1 AS tab_1
+                        "\\s+" + insensitiveRegex("from") + "\\s+" +
+                        colTab1Id.getTable().getName() +
+                        "\\s+" + insensitiveRegex("as") + "\\s+" +
+                        colTab1Id.getTable().getName() + "\\s+" +
+                        // JOIN though_table AS though_table
+                        insensitiveRegex("join") + "\\s+" +
+                        colTab2Id.getTable().getName() + "\\s+" +
+                        insensitiveRegex("as") + "\\s+" +
+                        colTab2Id.getTable().getName() + "\\s+" +
+                        // ON (id=though_table.id|though_table.id=id)
+                        insensitiveRegex("on") + "\\s+(" +
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() + "\\s*=\\s*" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() +
+                        "|" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() + "\\s*=\\s*" +
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() +
+                        "\\s*)\\s*" +
+                        // WHERE
+                        "\\s+" + insensitiveRegex("where") + "\\s+" +
+                        qstringRegex;
 
-		assertTrue(select.matches(selectRegex));
-	}
+        assertTrue(select.matches(selectRegex));
+    }
 
-	@Test
+
+    @Test
+    public void testLeftJoinQstring () {
+
+        Table table1 = new Table ("tab_1");
+        Table.Column<Long> colTab1Id = table1.addColumn(Long.class, "id");
+
+        Table table2 = new Table ("though_table");
+        Table.Column<Long> colTab2Id = table2.addColumn(Long.class, "id");
+        Table.Column<Date> colTab2Date = table2.addColumn(Date.class, "date");
+
+        Q q = colTab1Id.eqlj(colTab2Id).and(colTab2Date.le(new Date()));
+        String select = new QSQLProvider(q).select(
+                Arrays.asList(new Table.Column<?> []{colTab1Id, colTab2Id}),
+                new ArrayList<Object>()
+        );
+
+        String qstringRegex =
+                // datetime(though_table.date)<=?
+                "\\s*" +
+                        escapeRegex(SQLiteUtils.dateTimeForColumnForWhere(
+                                colTab2Date.getTable().getName() + "." +
+                                        colTab2Date.getName()
+                        )) + "\\s*\\<=\\s*\\?\\s*";
+
+        String selectRegex =
+                // SELECT
+                "\\s*" + insensitiveRegex("select") + "\\s+" +
+                        // id,though_table.id
+                        //    NOTA: DEVEM estar na mesma ordem
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() + "\\s*,\\s*" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() +
+                        // from tab_1 AS tab_1
+                        "\\s+" + insensitiveRegex("from") + "\\s+" +
+                        colTab1Id.getTable().getName() +
+                        "\\s+" + insensitiveRegex("as") + "\\s+" +
+                        colTab1Id.getTable().getName() + "\\s+" +
+                        // JOIN though_table AS though_table
+                        insensitiveRegex("left join") + "\\s+" +
+                        colTab2Id.getTable().getName() + "\\s+" +
+                        insensitiveRegex("as") + "\\s+" +
+                        colTab2Id.getTable().getName() + "\\s+" +
+                        // ON (id=though_table.id|though_table.id=id)
+                        insensitiveRegex("on") + "\\s+(" +
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() + "\\s*=\\s*" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() +
+                        "|" +
+                        colTab2Id.getTable().getName()+ "\\." +
+                        colTab2Id.getName() + "\\s*=\\s*" +
+                        colTab1Id.getTable().getName() + "\\." +
+                        colTab1Id.getName() +
+                        "\\s*)\\s*" +
+                        // WHERE
+                        "\\s+" + insensitiveRegex("where") + "\\s+" +
+                        qstringRegex;
+
+        assertTrue(select.matches(selectRegex));
+    }
+
+
+    @Test
 	public void testNullArg () {
 		Table t = new Table ("tab");
 		Table.Column<Integer> colInt = t.addColumn(Integer.class, "col_int");

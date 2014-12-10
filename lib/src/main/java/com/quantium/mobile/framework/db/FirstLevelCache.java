@@ -128,13 +128,11 @@ public class FirstLevelCache {
 	 * @param q {Q} de busca
 	 * @return Items do cache. NULL se o cache nao tem a resposta completa para o {Q}
 	 */
-	public <T> List<T> loadQFromCache(Class<T> klass, Q q) {
+	public <T> List<T> loadQFromCache(Class<T> klass, Q q){
 		// Para impedir  uso do cache, comente o corpo do metodo
 		// e substitua por "return null;"
 		if (q == null)
 			return null;
-        if(q.getInnerJoins() != null && !q.getInnerJoins().isEmpty())
-            return null;
 		if (!(q.getRooNode() instanceof Q.QNode1X1))
 			return null;
 		Q.QNode1X1 node = (QNode1X1) q.getRooNode();
@@ -144,7 +142,7 @@ public class FirstLevelCache {
 		if (id == null || !(id instanceof Serializable))
 			return null;
 		@SuppressWarnings("unchecked")
-		T obj = (T) cacheLookup(klass, new Serializable[]{(Serializable)id});
+		T obj = (T) cacheLookup(node.column().getKlass(), new Serializable[]{(Serializable)id});
 		if (obj == null)
 			return null;
 		ArrayList<T> list = new ArrayList<T>(1);
