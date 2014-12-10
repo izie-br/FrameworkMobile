@@ -8,10 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.quantium.mobile.framework.BaseGenericVO;
-import com.quantium.mobile.framework.DAO;
 import com.quantium.mobile.framework.ToSyncProvider;
-import com.quantium.mobile.framework.libjdbctest.db.DB;
-import com.quantium.mobile.framework.libjdbctest.db.MyJdbcDAOFactory;
 
 public class JdbcToSyncProvider extends ToSyncProvider {
 

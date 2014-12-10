@@ -1,6 +1,7 @@
 package com.quantium.mobile.framework.libjdbctest;
 
 import java.sql.Connection;
+import java.sql.SQLException;
 
 import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.BaseModelFacade;
@@ -13,6 +14,14 @@ public class MemDaoFactory extends JdbcDAOFactory {
     private BaseModelFacade baseModelFacade;
 
     public MemDaoFactory(){
+        if(connection != null){
+            try {
+                connection.close();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            }
+        }
+        connection = null;
         baseModelFacade = new BaseModelFacade(this, new JdbcPrimaryKeyProvider(getConnection()), new JdbcToSyncProvider(getConnection())) {
 
             @Override

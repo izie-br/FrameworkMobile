@@ -133,6 +133,8 @@ public class FirstLevelCache {
 		// e substitua por "return null;"
 		if (q == null)
 			return null;
+        if(q.getInnerJoins() != null && !q.getInnerJoins().isEmpty())
+            return null;
 		if (!(q.getRooNode() instanceof Q.QNode1X1))
 			return null;
 		Q.QNode1X1 node = (QNode1X1) q.getRooNode();
