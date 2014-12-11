@@ -19,7 +19,8 @@ public interface QuerySet<T> extends Serializable {
 	QuerySet<T> orderBy(Q.OrderByClause clause);
 	QuerySet<T> limit (int limit);
 	QuerySet<T> offset (int offset);
-	QuerySet<T> filter(Q q);
+    QuerySet<T> filter(Q q);
+    QuerySet<T> filter(String rawQuery, Table table);
 	List<T> all();
 	T first();
 	long count ();

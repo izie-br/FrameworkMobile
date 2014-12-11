@@ -23,7 +23,6 @@ public final class Q {
     public static final GroupByFunction MIN = GroupByFunction.MIN;
     public static final GroupByFunction MAX = GroupByFunction.MAX;
     public static final GroupByFunction COUNT = GroupByFunction.COUNT;
-
     private Table table;
     // pode ser NULL
     private ArrayList<Join> joins;
@@ -59,6 +58,12 @@ public final class Q {
         node.column = column;
         node.op = op;
         node.args = args;
+        this.root = node;
+    }
+
+    public Q(String rawQuery, Table table) {
+        this.table = table;
+        QNodeRaw node = new QNodeRaw(rawQuery);
         this.root = node;
     }
 
@@ -202,6 +207,10 @@ public final class Q {
         return mergeQs (this, ChainOp.AND, q);
     }
 
+    public Q and(String rawQuery, Table table) {
+        return mergeQs (this, ChainOp.AND, new Q(rawQuery, table));
+    }
+
     /**
      * Combina dois fragmentos de querystring usando o operador OR.
      */
@@ -317,12 +326,29 @@ public final class Q {
 
     }
 
+    public static class QNodeRaw extends QNode implements Cloneable, Serializable{
+        /**
+         *
+         */
+        private static final long serialVersionUID = -6281843350325328879L;
+        private String rawQuery;
+
+        public QNodeRaw(String rawQuery) {
+            super();
+            this.rawQuery = rawQuery;
+        }
+
+        public String getRawQuery() {
+            return rawQuery;
+        }
+    }
+
     public static class QNode1X1 extends QNode implements Cloneable, Serializable{
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = -6281843350325328879L;
-		private Table.Column<?> column;
+         *
+         */
+        private static final long serialVersionUID = -6281843350325328879L;
+        private Table.Column<?> column;
         private Op1x1 op;
         private Object arg;
 

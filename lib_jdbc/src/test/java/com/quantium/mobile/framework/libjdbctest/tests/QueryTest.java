@@ -287,6 +287,78 @@ public class QueryTest {
     }
 
     @Test
+    public void testRawQuery(){
+        DAOFactory daoFactory = new MemDaoFactory();
+        DAO<Author> dao = daoFactory.getDaoFor(Author.class);
+        DAO<Score> daoScore = daoFactory.getDaoFor(Score.class);
+        Author author1 = Utils.randomAuthor();
+        Author author2 = Utils.randomAuthor();
+        Document doc1 = Utils.randomDocument();
+        Document doc2 = Utils.randomDocument();
+        Score score1 = Utils.randomScore();
+        Score score2 = Utils.randomScore();
+        Score score3 = Utils.randomScore();
+        Score score4 = Utils.randomScore();
+        Score score5 = Utils.randomScore();
+        Score score6 = Utils.randomScore();
+        score1.setAuthor(author1);
+        score1.setDocument(doc1);
+        score1.setScore(10);
+        score2.setAuthor(author2);
+        score2.setDocument(doc2);
+        score2.setScore(20);
+        score3.setAuthor(author1);
+        score3.setDocument(doc1);
+        score3.setScore(30);
+        score4.setAuthor(author2);
+        score4.setDocument(doc2);
+        score4.setScore(40);
+        score5.setAuthor(author1);
+        score5.setDocument(doc1);
+        score5.setScore(50);
+        score6.setAuthor(author2);
+        score6.setDocument(doc2);
+        score6.setScore(60);
+        try {
+            assertTrue(dao.save(author1));
+            assertTrue(dao.with(author1).add(doc1));
+            assertTrue(dao.save(author2));
+            assertTrue(dao.with(author2).add(doc2));
+            assertTrue(daoScore.save(score1));
+            assertTrue(daoScore.save(score2));
+            assertTrue(daoScore.save(score3));
+            assertTrue(daoScore.save(score4));
+            assertTrue(daoScore.save(score5));
+            assertTrue(daoScore.save(score6));
+//            daoScore.query(Score.ID_AUTHOR)
+//            daoScore.query(Score.ID.isNotNull().and(quer))
+            for(Score score : daoScore.query().orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all()){
+                System.out.println("score:"+score.toMap());
+            }
+            List<Score> scores = daoScore.query().filter(
+                    "(" +
+                    " SELECT COUNT(*) " +
+                    " FROM "+ Score._TABLE.getName() + " f " +
+                    " WHERE f."+ Score.ID_AUTHOR.getName() + " = "+ Score._TABLE.getName() + "."+ Score.ID_AUTHOR.getName() + " AND " +
+                    " f."+ Score.SCORE.getName() + " >= "+ Score._TABLE.getName() + "."+ Score.SCORE.getName() +
+                    " ) <= 2 ", Score._TABLE).orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all();
+            assertEquals(4, scores.size());
+            assertEquals(scores.get(0).getAuthor(), author2);
+            assertEquals(scores.get(1).getAuthor(), author2);
+            assertEquals(scores.get(2).getAuthor(), author1);
+            assertEquals(scores.get(3).getAuthor(), author1);
+            List<Score> scoresAuthor2 = author2.getAuthorScores().orderBy(Score.SCORE.desc()).all();
+            assertEquals(scores.get(0).getScore(), scoresAuthor2.get(0).getScore());
+            assertEquals(scores.get(1).getScore(), scoresAuthor2.get(1).getScore());
+            List<Score> scoresAuthor1 = author1.getAuthorScores().orderBy(Score.SCORE.desc()).all();
+            assertEquals(scores.get(2).getScore(), scoresAuthor1.get(0).getScore());
+            assertEquals(scores.get(3).getScore(), scoresAuthor1.get(1).getScore());
+        } catch (IOException e) {
+            fail(StringUtil.getStackTrace(e));
+        }
+    }
+
+    @Test
     public void testJoinQuery() {
         DAOFactory daoFactory = new MemDaoFactory();
         DAO<Author> dao = daoFactory.getDaoFor(Author.class);

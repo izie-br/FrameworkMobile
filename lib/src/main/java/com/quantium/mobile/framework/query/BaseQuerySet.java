@@ -59,18 +59,30 @@ public abstract class BaseQuerySet<T> implements QuerySet<T>, Cloneable{
 		return obj;
 	}
 
-	public QuerySet<T> filter(Q q){
-		if (q==null)
-			return this;
-		BaseQuerySet<T> obj = this.clone();
-		if (this.q==null)
-			obj.q = q;
-		else
-			obj.q = this.q.and (q);
-		return obj;
-	}
+    public QuerySet<T> filter(Q q){
+        if (q==null)
+            return this;
+        BaseQuerySet<T> obj = this.clone();
+        if (this.q==null)
+            obj.q = q;
+        else
+            obj.q = this.q.and (q);
+        return obj;
+    }
 
-	@Override
+    public QuerySet<T> filter(String rawQuery, Table table){
+        if (rawQuery==null)
+            return this;
+        BaseQuerySet<T> obj = this.clone();
+        if (this.q==null)
+            obj.q = new Q(rawQuery, table);
+        else
+            obj.q = this.q.and (new Q(rawQuery, table));
+        return obj;
+    }
+
+
+    @Override
 	protected BaseQuerySet<T> clone() {
 		try {
 			@SuppressWarnings("unchecked")

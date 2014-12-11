@@ -196,9 +196,15 @@ public abstract class AbstractQSQLProvider {
             outputQNode1XN((Q.QNode1xN)node, table, sb, args);
         } else if (node instanceof Q.QNodeUnary) {
             outputQNodeUnary((Q.QNodeUnary)node, table, sb, args);
+        } else if (node instanceof Q.QNodeRaw) {
+            outputQNodeRaw((Q.QNodeRaw) node, table, sb, args);
         } else {
             throw new RuntimeException();
         }
+    }
+
+    private void outputQNodeRaw(Q.QNodeRaw node, Table table, StringBuilder sb, List<Object> args) {
+        sb.append(node.getRawQuery());
     }
 
     protected void outputQNodeGroup(Q.QNodeGroup node, Table table, StringBuilder sb, List<Object> args) {
