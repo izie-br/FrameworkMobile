@@ -28,6 +28,9 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
     public List<T> all(){
         List<T> all = new ArrayList<T>();
+        if (debug) {
+            LogPadrao.d("Iniciando all:"+new Date());
+        }
         Cursor cursor = getCursor(getColumns ());
         try{
             while(cursor.moveToNext())
@@ -35,10 +38,16 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         } finally {
             cursor.close();
         }
+        if (debug) {
+            LogPadrao.d("Finalizando all:"+new Date());
+        }
         return all;
     }
 
     public Set<T> allUnique(){
+        if (debug) {
+            LogPadrao.d("Iniciando allUnique:"+new Date());
+        }
         Set<T> all = new HashSet<T>();
         Cursor cursor = getCursor(getColumns ());
         try{
@@ -46,6 +55,9 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
                 all.add(cursorToObject(cursor));
         } finally {
             cursor.close();
+        }
+        if (debug) {
+            LogPadrao.d("Finalizando allUnique:"+new Date());
         }
         return all;
     }
