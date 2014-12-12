@@ -11,7 +11,13 @@ import android.database.sqlite.SQLiteDatabase;
 
 public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
 
-	public SQLiteQuerySet(ValueParser parser) {
+    private static boolean debug = false;
+
+    public static void setDebug(boolean debug) {
+        SQLiteQuerySet.debug = debug;
+    }
+
+    public SQLiteQuerySet(ValueParser parser) {
 		super(parser);
 	}
 
@@ -91,8 +97,12 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
                 .select(selection,listArg);
         if (listArg.size() > 0) {
             args = new String[listArg.size()];
-            for (int i=0; i < args.length; i++)
+            for (int i=0; i < args.length; i++){
                 args[i] = listArg.get(i).toString();
+            }
+        }
+        if (debug) {
+            LogPadrao.d("qstr:"+qstr+"/args:"+args);
         }
         Cursor cursor = getDb().rawQuery(qstr, args);
         return cursor;
