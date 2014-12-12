@@ -192,4 +192,22 @@ public class StringUtil {
 	}
 
 
+    public static String join(String[] args, String separator) {
+        if(args == null){
+            return null;
+        }
+        if(args.length == 0){
+            return "";
+        }
+        StringBuilder stringBuilder = new StringBuilder();
+        int i = 0;
+        for(String arg : args){
+            if(i > 0){
+                stringBuilder.append(separator);
+            }
+            stringBuilder.append(arg);
+            i++;
+        }
+        return stringBuilder.toString();
+    }
 }

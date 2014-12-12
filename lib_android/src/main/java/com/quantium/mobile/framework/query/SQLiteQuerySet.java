@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.util.*;
 
 import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.utils.ValueParser;
 
 import android.database.Cursor;
@@ -102,7 +103,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
             }
         }
         if (debug) {
-            LogPadrao.d("qstr:"+qstr+"/args:"+args);
+            LogPadrao.d("qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
         }
         Cursor cursor = getDb().rawQuery(qstr, args);
         return cursor;
@@ -125,7 +126,9 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
                 .orderBy(this.orderClauses)
                 .groupBy(selection)
                 .select(list,listArg);
-        System.out.println(qstr);
+        if (debug) {
+            LogPadrao.d("qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
+        }
         if (listArg.size() > 0) {
             args = new String[listArg.size()];
             for (int i=0; i < args.length; i++)
