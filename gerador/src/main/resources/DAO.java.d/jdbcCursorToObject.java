@@ -56,7 +56,7 @@
 #******#                throw new RuntimeException(p);
 #******#            }
 #******##else
-#******##if ($field.Klass.equals("Long") )
+#******##if ($field.Klass.equals("Long") || $field.Klass.equals("Double") )
 #******#        ${field.type} ${field.LowerCamel}_ = 0;
 #******##elseif ($field.Klass.equals("Boolean") )
 #******#        ${field.type} ${field.LowerCamel}_ = false;
