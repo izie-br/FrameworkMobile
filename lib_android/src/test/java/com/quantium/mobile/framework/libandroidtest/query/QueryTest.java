@@ -62,7 +62,7 @@ public class QueryTest {
 				"\\s*\\>=\\s*\\?\\s*";
 
 		String selectRegex =
-			"\\s*" + insensitiveRegex("select") + "\\s+" +
+			"\\s*" + insensitiveRegex("select distinct") + "\\s+" +
 				escapeRegex(SQLiteUtils.dateTimeForColumnForSelect(
 						colDate.getTable().getName() + "." + colDate.getName()
 				)) + "\\s*,\\s*" +
@@ -103,7 +103,7 @@ public class QueryTest {
 
         String selectRegex =
                 // SELECT
-                "\\s*" + insensitiveRegex("select") + "\\s+" +
+                "\\s*" + insensitiveRegex("select distinct") + "\\s+" +
                         // id,though_table.id
                         //    NOTA: DEVEM estar na mesma ordem
                         colTab1Id.getTable().getName() + "\\." +
@@ -166,7 +166,7 @@ public class QueryTest {
 
         String selectRegex =
                 // SELECT
-                "\\s*" + insensitiveRegex("select") + "\\s+" +
+                "\\s*" + insensitiveRegex("select distinct") + "\\s+" +
                         // id,though_table.id
                         //    NOTA: DEVEM estar na mesma ordem
                         colTab1Id.getTable().getName() + "\\." +

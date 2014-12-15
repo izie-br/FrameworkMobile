@@ -103,10 +103,14 @@ public abstract class AbstractQSQLProvider {
     }
 
     public String select(List<?> selection, List<Object> args){
+        return select(selection, args, true);
+    }
+
+    public String select(List<?> selection, List<Object> args, boolean distinct){
         Table table = q.getTable();
         Collection<Q.Join> joins = q.getInnerJoins();
 
-        StringBuilder out = new StringBuilder("SELECT ");
+        StringBuilder out = new StringBuilder("SELECT " + (distinct ? "DISTINCT " : ""));
         Iterator<?> it = selection.iterator ();
         while (it.hasNext ()){
             Object obj = it.next ();

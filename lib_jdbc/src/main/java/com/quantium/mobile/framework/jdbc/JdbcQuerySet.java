@@ -27,7 +27,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
         List<T> all = new ArrayList<T>();
         ResultSet cursor = null;
         try{
-            cursor = getCursor(getColumns ());
+            cursor = getCursor(getColumns (), false);
             while(cursor.next())
                 all.add(cursorToObject(cursor));
         } catch (java.sql.SQLException e) {
@@ -48,7 +48,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
         Set<T> all = new HashSet<T>();
         ResultSet cursor = null;
         try{
-            cursor = getCursor(getColumns ());
+            cursor = getCursor(getColumns (), true);
             while(cursor.next())
                 all.add(cursorToObject(cursor));
         } catch (java.sql.SQLException e) {
@@ -68,7 +68,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	public T first(){
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor(getColumns ());
+			cursor = getCursor(getColumns (), true);
 			if(cursor.next())
 				return cursorToObject(cursor);
 		} catch (java.sql.SQLException e) {
@@ -89,7 +89,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
 	public long count() {
 		ResultSet cursor = null;
 		try{
-			cursor = getCursor(Arrays.asList ("count(*)"));
+			cursor = getCursor(Arrays.asList ("count(*)"), false);
 			if(cursor.next())
 				return cursor.getLong (1);
 		} catch (java.sql.SQLException e) {
@@ -111,7 +111,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
      * Retorna o cursor, para uso em cursor adapter, etc.
      * @return cursor
      */
-    public ResultSet getCursor(List<?> selection) throws java.sql.SQLException {
+    public ResultSet getCursor(List<?> selection, boolean distinct) throws java.sql.SQLException {
         if (this.q == null) {
             this.q = new Q (getTable());
         }
@@ -121,7 +121,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
                 .limit(this.limit)
                 .offset(this.offset)
                 .orderBy(this.orderClauses)
-                .select(selection, listArg);
+                .select(selection, listArg, distinct);
 
         Connection conn = getConnection();
         PreparedStatement stm = conn.prepareStatement(qstr);
@@ -186,7 +186,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
                 .offset(this.offset)
                 .orderBy(this.orderClauses)
                 .groupBy(selection)
-                .select(list, listArg);
+                .select(list, listArg, false);
         Connection conn = getConnection();
         PreparedStatement stm = conn.prepareStatement(qstr);
         for (int i = 0; i< listArg.size(); i++){
@@ -219,7 +219,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
     @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
         try{
-            ResultSet resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getTable().getName().concat(".").concat(column.getName()))));
+            ResultSet resultSet = getCursor(Arrays.asList(String.format("distinct(%s)", column.getTable().getName().concat(".").concat(column.getName()))), false);
             Set<U> set = new HashSet<U>(resultSet.getFetchSize());
             while (resultSet.next()){
                 if (column.getKlass().isAssignableFrom(String.class)) {

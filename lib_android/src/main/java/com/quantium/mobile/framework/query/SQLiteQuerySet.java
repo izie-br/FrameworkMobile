@@ -95,19 +95,21 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         return getCursor(selection, this.q);
     }
 
-
+    public Cursor getCursor(List<?> selection, Q anotherQ) {
+        return getCursor(selection, anotherQ, true);
+    }
     /**
      * Retorna o cursor, para uso em cursor adapter, etc.
      * @return cursor
      */
-    public Cursor getCursor(List<?> selection, Q anotherQ) {
+    public Cursor getCursor(List<?> selection, Q anotherQ, boolean distinct) {
         String args [] = null;
         ArrayList<Object> listArg = new ArrayList<Object>();
         String qstr = new QSQLProvider(anotherQ, parser)
                 .limit(this.limit)
                 .offset(this.offset)
                 .orderBy(this.orderClauses)
-                .select(selection,listArg);
+                .select(selection,listArg, distinct);
         if (listArg.size() > 0) {
             args = new String[listArg.size()];
             for (int i=0; i < args.length; i++){
@@ -168,7 +170,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         if (q == null) {
             q = new Q (getTable());
         }
-        Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getTable().getName().concat(".").concat(column.getName()))), q.and(column.isNotNull()));
+        Cursor cursor = getCursor(Arrays.asList(String.format("distinct(%s)", column.getTable().getName().concat(".").concat(column.getName()))), q.and(column.isNotNull()), false);
         Set<U> set = new HashSet<U>();
         while (cursor.moveToNext()){
             if (column.getKlass().isAssignableFrom(String.class)) {

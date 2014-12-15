@@ -516,7 +516,7 @@ public class QueryTest {
                 fail(StringUtil.getStackTrace(e));
             }
         }
-        final QuerySet<Author> qs1 = dao.query();
+        final QuerySet<Author> qs1 = dao.query().orderBy(Author.ID.asc());
         List<Author> list1 = qs1.all();
         int qty = list1.size();
         Author first = qs1.first();
@@ -545,7 +545,7 @@ public class QueryTest {
             assertFalse(qs1 == qs3);
             List<Author> list3 = qs3.all();
             assertEquals(first, list1.get(0));
-            assertFalse(first.equals(list3.get(0)));
+            assertTrue(first.equals(list3.get(0)));
         }
     }
 
