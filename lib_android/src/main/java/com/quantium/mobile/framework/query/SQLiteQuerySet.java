@@ -29,7 +29,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
     public List<T> all(){
         List<T> all = new ArrayList<T>();
         if (debug) {
-            LogPadrao.d("Iniciando all:"+new Date());
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - Iniciando all:"+new Date());
         }
         Cursor cursor = getCursor(getColumns ());
         try{
@@ -39,14 +39,14 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
             cursor.close();
         }
         if (debug) {
-            LogPadrao.d("Finalizando all:"+new Date());
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - Finalizando all:"+new Date());
         }
         return all;
     }
 
     public Set<T> allUnique(){
         if (debug) {
-            LogPadrao.d("Iniciando allUnique:"+new Date());
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - Iniciando allUnique:"+new Date());
         }
         Set<T> all = new HashSet<T>();
         Cursor cursor = getCursor(getColumns ());
@@ -57,7 +57,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
             cursor.close();
         }
         if (debug) {
-            LogPadrao.d("Finalizando allUnique:"+new Date());
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - Finalizando allUnique:"+new Date());
         }
         return all;
     }
@@ -117,7 +117,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
             }
         }
         if (debug) {
-            LogPadrao.d("qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
         }
         Cursor cursor = getDb().rawQuery(qstr, args);
         return cursor;
@@ -141,7 +141,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
                 .groupBy(selection)
                 .select(list,listArg);
         if (debug) {
-            LogPadrao.d("qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
+            LogPadrao.d((this.q == null ? 0 : this.q.hashCode())+" - qstr:"+qstr+"/args:"+ StringUtil.join(args, ","));
         }
         if (listArg.size() > 0) {
             args = new String[listArg.size()];
