@@ -159,6 +159,7 @@ public class SQLiteTest extends ActivityInstrumentationTestCase2<TestActivity> {
         assertTrue(facade.save(score3));
         assertEquals(3, facade.query(Score.class).count());
         assertEquals(1, facade.query(Score.class).groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).size());
+        assertEquals(96, facade.query(Score.class).groupBy(Score.SCORE.sum()).getScore());
         assertEquals(96, facade.query(Score.class).groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).get(0).getScore());
         assertEquals(3, facade.query(Score.class).groupBy(Score.SCORE.count(), Score.SCORE).size());
         List<Score> scoresCount = facade.query(Score.class).groupBy(Score.SCORE.count(), Score.ID_DOCUMENT);

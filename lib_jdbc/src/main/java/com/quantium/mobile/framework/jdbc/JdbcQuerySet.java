@@ -173,6 +173,27 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
         return all;
     }
 
+    @Override
+    public T groupBy(Q.GroupByClause groupByClause) {
+        ResultSet cursor = null;
+        try{
+            cursor = getCursor(new ArrayList<Table.Column<?>>(), groupByClause);
+            if(cursor.next())
+                return cursorToObject(cursor);
+        } catch (java.sql.SQLException e) {
+            throw new RuntimeException(e);
+        }
+        finally{
+            try {
+                if (cursor != null)
+                    cursor.close();
+            } catch (SQLException e) {
+                LogPadrao.e(e);
+            }
+        }
+        return null;
+    }
+
     private ResultSet getCursor(List<Table.Column<?>> selection, Q.GroupByClause groupByClause) throws java.sql.SQLException {
         if (this.q == null) {
             this.q = new Q (getTable());

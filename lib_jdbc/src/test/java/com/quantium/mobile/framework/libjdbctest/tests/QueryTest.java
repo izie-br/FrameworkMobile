@@ -186,6 +186,7 @@ public class QueryTest {
         assertEquals(3, dao.query().count());
         assertEquals(1, dao.query().groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).size());
         assertEquals(96, dao.query().groupBy(Score.SCORE.sum(), Score.ID_AUTHOR).get(0).getScore());
+        assertEquals(96, dao.query().groupBy(Score.SCORE.sum()).getScore());
         assertEquals(3, dao.query().groupBy(Score.SCORE.count(), Score.SCORE).size());
         List<Score> scoresCount = dao.query().groupBy(Score.SCORE.count(), Score.ID_DOCUMENT);
         assertEquals(2, scoresCount.get(0).getScore());

@@ -166,6 +166,19 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
     }
 
     @Override
+    public T groupBy(Q.GroupByClause groupByClause) {
+        Cursor cursor = getCursor(new ArrayList<Table.Column<?>>(), groupByClause);
+        try{
+            if(cursor.moveToNext())
+                return cursorToObject(cursor);
+        }
+        finally{
+            cursor.close();
+        }
+        return null;
+    }
+
+    @Override
     public <U> Set<U> selectDistinct(Table.Column<U> column) {
         if (q == null) {
             q = new Q (getTable());
