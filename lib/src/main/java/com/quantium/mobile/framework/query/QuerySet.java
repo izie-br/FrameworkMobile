@@ -25,7 +25,7 @@ public interface QuerySet<T> extends Serializable {
 	T first();
 	long count ();
     <U> Set<U> selectDistinct(Table.Column<U> column);
-    List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?> ... selection);
+    List<T> groupBy(Q.GroupByClause groupByClause, Object ... selection);
     T groupBy(Q.GroupByClause groupByClause);
     Set<T> allUnique();
 }

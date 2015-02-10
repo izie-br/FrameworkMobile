@@ -153,7 +153,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
     }
 
     @Override
-    public List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?>... selection) {
+    public List<T> groupBy(Q.GroupByClause groupByClause, Object... selection) {
         List<T> all = new ArrayList<T>();
         Cursor cursor = getCursor(Arrays.asList(selection), groupByClause);
         try{

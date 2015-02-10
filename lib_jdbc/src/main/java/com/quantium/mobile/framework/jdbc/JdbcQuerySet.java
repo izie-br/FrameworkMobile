@@ -153,7 +153,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
     }
 
     @Override
-    public List<T> groupBy(Q.GroupByClause groupByClause, Table.Column<?>... selection) {
+    public List<T> groupBy(Q.GroupByClause groupByClause, Object... selection) {
         List<T> all = new ArrayList<T>();
         ResultSet cursor = null;
         try{
@@ -194,7 +194,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
         return null;
     }
 
-    private ResultSet getCursor(List<Table.Column<?>> selection, Q.GroupByClause groupByClause) throws java.sql.SQLException {
+    private ResultSet getCursor(List<?> selection, Q.GroupByClause groupByClause) throws java.sql.SQLException {
         if (this.q == null) {
             this.q = new Q (getTable());
         }
