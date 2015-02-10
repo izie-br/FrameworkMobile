@@ -260,6 +260,10 @@ public final class Table {
             return new Q.GroupByClause(this, Q.COUNT);
         }
 
+        public Q.GroupByClause groupByCustom(String custom) {
+            return new Q.GroupByClause(this, Q.CUSTOM, custom);
+        }
+
         @Override
         public int hashCode() {
             return Table.this.getName().hashCode() * this.getName().hashCode();

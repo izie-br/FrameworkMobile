@@ -23,6 +23,7 @@ public final class Q {
     public static final GroupByFunction MIN = GroupByFunction.MIN;
     public static final GroupByFunction MAX = GroupByFunction.MAX;
     public static final GroupByFunction COUNT = GroupByFunction.COUNT;
+    public static final GroupByFunction CUSTOM = GroupByFunction.CUSTOM;
     private Table table;
     // pode ser NULL
     private ArrayList<Join> joins;
@@ -506,8 +507,8 @@ public final class Q {
     }
 
     public static enum GroupByFunction {
-        SUM("sum"), MAX("max"), MIN("min"), AVG("avg"), COUNT("count");
-        private final String name;
+        SUM("sum(%s)"), MAX("max(%s)"), MIN("min(%s)"), AVG("avg(%s)"), COUNT("count(%s)"), CUSTOM("custom");
+        private String name;
 
         GroupByFunction(String name){
             this.name = name;
@@ -515,6 +516,10 @@ public final class Q {
 
         public String getName() {
             return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
         }
     }
 
@@ -548,10 +553,16 @@ public final class Q {
         private static final long serialVersionUID = -5730910638653952653L;
         private final Table.Column<?> column;
         private final GroupByFunction groupByFunction;
+        private String custom;
 
         public GroupByClause(Table.Column<?> column, GroupByFunction type) {
             this.column = column;
             this.groupByFunction = type;
+        }
+
+        public GroupByClause(Column column, GroupByFunction type, String custom) {
+            this(column, type);
+            this.custom = custom;
         }
 
         public Table.Column<?> getColumn() {
@@ -559,6 +570,9 @@ public final class Q {
         }
 
         public GroupByFunction getFunction() {
+            if(groupByFunction.equals(CUSTOM)){
+                groupByFunction.setName(custom);
+            }
             return groupByFunction;
         }
     }
