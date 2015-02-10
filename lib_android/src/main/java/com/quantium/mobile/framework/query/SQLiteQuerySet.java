@@ -128,7 +128,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
      * Retorna o cursor, para uso em cursor adapter, etc.
      * @return cursor
      */
-    public Cursor getCursor(List<Table.Column<?>> selection, Q.GroupByClause groupByClause) {
+    public Cursor getCursor(List<?> selection, Q.GroupByClause groupByClause) {
         String args [] = null;
         List<Object>  list = new ArrayList<Object>();
         list.addAll(selection);

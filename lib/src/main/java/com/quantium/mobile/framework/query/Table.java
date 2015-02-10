@@ -260,7 +260,7 @@ public final class Table {
             return new Q.GroupByClause(this, Q.COUNT);
         }
 
-        public Q.GroupByClause groupByCustom(String custom) {
+        public Q.GroupByClause custom(String custom) {
             return new Q.GroupByClause(this, Q.CUSTOM, custom);
         }
 
