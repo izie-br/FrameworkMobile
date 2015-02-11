@@ -260,4 +260,9 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public void extractQ(StringBuilder where, List<Object> args) {
+        new QH2DialectProvider(this.q, parser).genQstringAndArgs(where, args);
+    }
 }

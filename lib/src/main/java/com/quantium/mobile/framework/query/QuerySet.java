@@ -28,4 +28,5 @@ public interface QuerySet<T> extends Serializable {
     List<T> groupBy(Q.GroupByClause groupByClause, Object ... selection);
     T groupBy(Q.GroupByClause groupByClause);
     Set<T> allUnique();
+    void extractQ(StringBuilder where, List<Object> args);
 }

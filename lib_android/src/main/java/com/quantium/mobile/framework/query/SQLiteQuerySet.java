@@ -200,4 +200,8 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         return set;
     }
 
+    @Override
+    public void extractQ(StringBuilder where, List<Object> args) {
+        new QSQLProvider(this.q, parser).genQstringAndArgs(where, args);
+    }
 }

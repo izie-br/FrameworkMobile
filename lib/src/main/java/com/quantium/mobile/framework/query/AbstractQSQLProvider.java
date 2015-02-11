@@ -186,7 +186,7 @@ public abstract class AbstractQSQLProvider {
         }
     }
 
-    private void genQstringAndArgs (StringBuilder sb, List<Object> args) {
+    public void genQstringAndArgs (StringBuilder sb, List<Object> args) {
         Q.QNode node = q.getRooNode();
         if (node == null )
             return;
