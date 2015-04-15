@@ -200,7 +200,7 @@ public abstract class JdbcQuerySet<T> extends BaseQuerySet<T> {
         }
         List<Object>  list = new ArrayList<Object>();
         list.addAll(selection);
-        list.add(String.format(groupByClause.getFunction().getName(), groupByClause.getColumn().getName()).concat(" as ").concat(groupByClause.getColumn().getName()));
+        list.add(String.format(groupByClause.getFunction().getName(), groupByClause.getColumn().getTable().getName(), groupByClause.getColumn().getName()).concat(" as ").concat(groupByClause.getColumn().getName()));
         ArrayList<Object> listArg = new ArrayList<Object>();
         String qstr = new QH2DialectProvider(q, parser)
                 .limit(this.limit)
