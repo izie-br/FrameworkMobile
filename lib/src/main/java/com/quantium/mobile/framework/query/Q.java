@@ -507,7 +507,7 @@ public final class Q {
     }
 
     public static enum GroupByFunction {
-        SUM("sum(%s)"), MAX("max(%s)"), MIN("min(%s)"), AVG("avg(%s)"), COUNT("count(%s)"), CUSTOM("custom");
+        SUM("sum(%s.%s)"), MAX("max(%s.%s)"), MIN("min(%s.%s)"), AVG("avg(%s.%s)"), COUNT("count(%s.%s)"), CUSTOM("custom");
         private String name;
 
         GroupByFunction(String name){

@@ -132,7 +132,7 @@ public abstract class SQLiteQuerySet<T> extends BaseQuerySet<T> {
         String args [] = null;
         List<Object>  list = new ArrayList<Object>();
         list.addAll(selection);
-        list.add(String.format(groupByClause.getFunction().getName(), groupByClause.getColumn().getName()).concat(" as ").concat(groupByClause.getColumn().getName()));
+        list.add(String.format(groupByClause.getFunction().getName(), groupByClause.getColumn().getTable().getName(), groupByClause.getColumn().getName()).concat(" as ").concat(groupByClause.getColumn().getName()));
         ArrayList<Object> listArg = new ArrayList<Object>();
         String qstr = new QSQLProvider(this.q, parser)
                 .limit(this.limit)
