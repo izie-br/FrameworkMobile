@@ -1,5 +1,5 @@
     @Override
-    public ${Target} get(Object id) {
+    public ${Target} get(Object id) throws IOException {
         if (id instanceof ${primaryKey.Klass}) {
             return query (${Target}.${primaryKey.UpperAndUnderscores}.eq ((${primaryKey.Klass})id)).first ();
         }

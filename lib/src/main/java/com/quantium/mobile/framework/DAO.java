@@ -17,9 +17,9 @@ public interface DAO<T> extends Serializable {
 	boolean save(T obj, int flags) throws IOException;
 	boolean delete(T obj) throws IOException;
 	ToManyDAO with(T obj);
-	T mapToObject(Map<String, Object> map);
-	void updateWithMap(T target, Map<String, Object> map);
-	Collection<ValidationError> validate (T obj);
-	T get(Object id);
+	T mapToObject(Map<String, Object> map) throws IOException;
+	void updateWithMap(T target, Map<String, Object> map) throws IOException;
+	Collection<ValidationError> validate (T obj) throws IOException;
+	T get(Object id) throws IOException;
 	Table getTable();
 }

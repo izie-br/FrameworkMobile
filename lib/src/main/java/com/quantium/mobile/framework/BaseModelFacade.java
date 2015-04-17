@@ -175,17 +175,17 @@ public abstract class BaseModelFacade {
 		return delete(obj, false);
 	}
 
-	public <T extends BaseGenericVO> T get(Class<T> clazz, Object id) {
+	public <T extends BaseGenericVO> T get(Class<T> clazz, Object id) throws IOException {
 		return daoFactory.getDaoFor(clazz).get(id);
 	}
 
 	@SuppressWarnings("unchecked")
-	public <T extends BaseGenericVO> T get(T prototype, Object id) {
+	public <T extends BaseGenericVO> T get(T prototype, Object id) throws IOException {
 		return (T) daoFactory.getDaoFor(prototype.getClass()).get(id);
 	}
 
 	public <T extends BaseGenericVO> T mapToObject(Class<T> clazz,
-			Map<String, Object> map) {
+			Map<String, Object> map) throws IOException {
 		return daoFactory.getDaoFor(clazz).mapToObject(map);
 	}
 

@@ -3,7 +3,7 @@
 ##
     @Override
     public $Target mapToObject(Map<String, Object> map)
-        throws ClassCastException
+        throws ClassCastException, IOException
     {
         ValueParser parser = this.factory.getValueParser();
         CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =

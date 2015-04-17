@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.utils;
 
+import java.io.IOException;
 import java.util.Date;
 import java.util.Map;
 
@@ -14,7 +15,7 @@ public class ValueParser {
 	}
 
 	public <T> T extractAssociation(Map<?, ?> allFieldsMap,
-			DAO<T> associationDao, String submapKey, String foreignKey) {
+			DAO<T> associationDao, String submapKey, String foreignKey) throws IOException {
 		Object temp = allFieldsMap.get(submapKey);
 		if (temp != null && temp instanceof Map) {
 			@SuppressWarnings("unchecked")

@@ -59,7 +59,7 @@ public class QueryTest {
 
     @SuppressWarnings("deprecation")
     @Test
-    public void testLikeAndGlob() {
+    public void testLikeAndGlob() throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
         DAO<Author> dao = daoFactory.getDaoFor(Author.class);
         Author author1 = new AuthorImpl();

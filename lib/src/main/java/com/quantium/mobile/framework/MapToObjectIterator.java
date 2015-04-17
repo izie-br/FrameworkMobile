@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework;
 
+import java.io.IOException;
 import java.io.Reader;
 import java.util.Iterator;
 
@@ -27,9 +28,13 @@ public class MapToObjectIterator<T extends MapSerializable> implements Iterator<
 
 	@Override
 	public T next() {
-		return dao.mapToObject(
-				JSONUtils.desserializeJsonObject(jsonIterator.next()));
-	}
+        try {
+            return dao.mapToObject(
+                    JSONUtils.desserializeJsonObject(jsonIterator.next()));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
 	@Override
 	public void remove() {

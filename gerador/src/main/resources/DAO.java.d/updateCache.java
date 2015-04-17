@@ -1,4 +1,4 @@
-    public boolean updateCache($Target target) {
+    public boolean updateCache($Target target) throws IOException {
         Serializable pks [] = new Serializable[]{
             target.${getter[$primaryKey]}()
         };

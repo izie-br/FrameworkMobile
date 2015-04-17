@@ -1,5 +1,5 @@
     @Override
-    public void updateWithMap(${Target} target, Map<String,Object> map) {
+    public void updateWithMap(${Target} target, Map<String,Object> map) throws IOException {
         ValueParser parser = this.factory.getValueParser();
         CamelCaseUtils.AnyCamelMap<Object> mapAnyCamelCase =
             new CamelCaseUtils.AnyCamelMap<Object>();

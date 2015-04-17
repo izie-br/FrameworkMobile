@@ -60,7 +60,7 @@ public class GeradorTest {
 	 * Este teste tambem pode falhar por erro no metodo equals!
 	 */
 	@Test
-	public void testQuery(){
+	public void testQuery() throws IOException {
 		int count = 5;
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
@@ -115,7 +115,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testGetById () {
+	public void testGetById () throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
 
@@ -139,7 +139,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testMapSerialization(){
+	public void testMapSerialization() throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor(Author.class);
 		DAO<Document> documentDao = daoFactory.getDaoFor(Document.class);
@@ -274,7 +274,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testSaveInsertIfNotExists () {
+	public void testSaveInsertIfNotExists () throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
 
@@ -666,7 +666,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testValidateThroughDAO () {
+	public void testValidateThroughDAO () throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
 		Author author1= Utils.randomAuthor ();
@@ -695,7 +695,7 @@ public class GeradorTest {
 	}
 
 	@Test
-	public void testQuerySetCount () {
+	public void testQuerySetCount () throws IOException {
         DAOFactory daoFactory = new MemDaoFactory();
 		DAO<Author> dao = daoFactory.getDaoFor (Author.class);
 

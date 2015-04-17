@@ -1,5 +1,6 @@
 package com.quantium.mobile.framework.query;
 
+import java.io.IOException;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -21,12 +22,12 @@ public interface QuerySet<T> extends Serializable {
 	QuerySet<T> offset (int offset);
     QuerySet<T> filter(Q q);
     QuerySet<T> filter(String rawQuery, Table table);
-	List<T> all();
-	T first();
-	long count ();
-    <U> Set<U> selectDistinct(Table.Column<U> column);
-    List<T> groupBy(Q.GroupByClause groupByClause, Object ... selection);
-    T groupBy(Q.GroupByClause groupByClause);
-    Set<T> allUnique();
+	List<T> all() throws IOException;
+	T first() throws IOException;
+	long count() throws IOException;
+    <U> Set<U> selectDistinct(Table.Column<U> column) throws IOException;
+    List<T> groupBy(Q.GroupByClause groupByClause, Object ... selection) throws IOException;
+    T groupBy(Q.GroupByClause groupByClause) throws IOException;
+    Set<T> allUnique() throws IOException;
     void extractQ(StringBuilder where, List<Object> args);
 }

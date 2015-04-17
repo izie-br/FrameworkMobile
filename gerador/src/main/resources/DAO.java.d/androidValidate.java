@@ -1,5 +1,5 @@
     @Override
-    public Collection<ValidationError> validate (${Target} target) {
+    public Collection<ValidationError> validate (${Target} target) throws IOException {
         Collection<ValidationError> errors = new ArrayList<ValidationError>();
         errors.addAll(target.validate ());
 ##TODO teste de unique
