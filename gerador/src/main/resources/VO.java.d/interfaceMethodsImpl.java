@@ -10,7 +10,7 @@
 #**##set ($association = false)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
-#******#        $field.Type $field.LowerCamel = (${association.KeyToA}_ == null)? null : ${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}();
+#******#        $field.Type $field.LowerCamel = (${association.KeyToA}_ == null) ? null : ${association.KeyToA}_.get${association.ReferenceKey.UpperCamel}();
 #**##end
 #**##if ($field.PrimaryKey || $association)
 #******#        if (${field.LowerCamel} != null) {
@@ -71,7 +71,9 @@
 #**********#            return false;
 #**********#        }
 #******##else
-#**********#        if ((${field.LowerCamel} == null) ? (other.${getter[$field]}() != null) : !${field.LowerCamel}.equals(other.${getter[$field]}())) {
+#**********#        if ((${field.LowerCamel} == null) ?
+#**********#                (other.${getter[$field]}() != null) :
+#**********#                !${field.LowerCamel}.equals(other.${getter[$field]}())) {
 #**********#            return false;
 #**********#        }
 #******##end

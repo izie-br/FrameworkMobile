@@ -2,7 +2,7 @@
         Serializable pks [] = new Serializable[]{
             target.${getter[$primaryKey]}()
         };
-        $Target cacheItem = (${Target})factory.cacheLookup(${Target}.class, pks);
+        $Target cacheItem = (${Target}) factory.cacheLookup(${Target}.class, pks);
         if (cacheItem == null)
             return false;
         if (cacheItem == target) {

@@ -25,7 +25,7 @@
 #**#           //${relation.Klass}_NullFkThread.start();
 #**#                        
 #**##else
-#**#            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>)factory.getDaoFor(${relation.Klass}.class);
+#**#            DAO<${relation.Klass}> daoFor${relation.Klass} = (DAO<${relation.Klass}>) factory.getDaoFor(${relation.Klass}.class);
 #**#            for (${relation.Klass} obj: target.get${relation.KeyToAPluralized}().all()) {
 #**#                daoFor${relation.Klass}.delete(obj);
 #**#            }

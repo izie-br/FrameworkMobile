@@ -21,7 +21,7 @@
 #**#                    new ${association.KeyToAPluralized}NullFkThread(target);
 #**#            //${association.Klass}_NullFkThread.start();
 #**##else
-#**#            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>)factory.getDaoFor(${association.Klass}.class);
+#**#            DAO<${association.Klass}> daoFor${association.Klass} = (DAO<${association.Klass}>) factory.getDaoFor(${association.Klass}.class);
 #**#            for (${association.Klass} obj: target.get${association.KeyToAPluralized}().all()) {
 #**#                daoFor${association.Klass}.delete(obj);
 #**#            }
