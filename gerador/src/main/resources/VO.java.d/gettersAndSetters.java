@@ -32,7 +32,7 @@
             ($field.PrimaryKey && $editableInterface)
           )
         )
-#******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel}) #if ($implementation){
+#******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel})#if ($implementation) {
 #******##if ($field.Type == "Date")
 #******#        if (${field.LowerCamel} == null) {
 #******#            this.${field.LowerCamel} = null;
