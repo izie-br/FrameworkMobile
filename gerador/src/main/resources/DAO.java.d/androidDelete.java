@@ -20,7 +20,7 @@
 #**#                "${relation.ForeignKey.LowerAndUnderscores} = ?",
 #**#                new String[] {((${relation.ForeignKey.Klass}) target.${getter[$relation.ReferenceKey]}()).toString()});
 #**#           }
-#**#           Runnable ${relation.KeyToAPluralized}NullFkThread_ =
+#**#           Runnable ${relation.KeyToAPluralized}NullFkThreadAG =
 #**#               new ${relation.KeyToAPluralized}NullFkThread(target);
 #**#           //${relation.Klass}_NullFkThread.start();
 #**#                        
@@ -62,10 +62,10 @@
             db.setTransactionSuccessful();
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (${relation.KeyToAPluralized}NullFkThread_ != null) {
+#**#            if (${relation.KeyToAPluralized}NullFkThreadAG != null) {
 #**#                try {
 #**#                    // ${relation.Klass}_NullFkThread.join();
-#**#                    ${relation.KeyToAPluralized}NullFkThread_.run();
+#**#                    ${relation.KeyToAPluralized}NullFkThreadAG.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }

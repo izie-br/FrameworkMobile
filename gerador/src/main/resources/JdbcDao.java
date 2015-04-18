@@ -134,22 +134,22 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
 #**### implementacao e na interface editavel.
 #**###
 #**##if ( !$associationForField[$field] && (($field.Set && !$field.PrimaryKey)))
-	    obj.set${field.UpperCamel}(${field.LowerCamel}_);
+	    obj.set${field.UpperCamel}(${field.LowerCamel}AG);
 #**##end
 #**##if ($field.PrimaryKey)
-	    ((${Target}Editable)obj).setId(id_);
+	    ((${Target}Editable)obj).setId(idAG);
 #**##end
 #end
 ##
 #foreach ($association in $manyToOneAssociations)
-    	((${Target}Editable)obj).set${association.KeyToA}(${association.KeyToA}_);
+    	((${Target}Editable)obj).set${association.KeyToA}(${association.KeyToA}AG);
 #end
 ##
 #foreach ($association in $oneToManyAssociations)
-    	((${Target}Editable)obj).set${association.KeyToAPluralized}(${association.KeyToAPluralized}_);
+    	((${Target}Editable)obj).set${association.KeyToAPluralized}(${association.KeyToAPluralized}AG);
 #end
 #foreach ($association in $manyToManyAssociations)
-    	((${Target}Editable)obj).set${association.Pluralized}(${association.Pluralized}_);
+    	((${Target}Editable)obj).set${association.Pluralized}(${association.Pluralized}AG);
 #end
         return obj;
     }

@@ -52,12 +52,12 @@
 #foreach ($association in $manyToOneAssociations)
 #**##if ($interface || $implementation)
 #******#    public ${association.Klass} get${association.KeyToA}() #if ($implementation){
-#******#        return ${association.KeyToA}_;
+#******#        return ${association.KeyToA}AG;
 #******#    }#else;#end
 #******#
 #******#
 #******#    public void set${association.KeyToA}(${association.Klass} obj) #if ($implementation) {
-#******#        ${association.KeyToA}_ = obj;
+#******#        ${association.KeyToA}AG = obj;
 #******#    }#else;#end
 #******#
 #******#
@@ -67,14 +67,14 @@
 #foreach ($association in $oneToManyAssociations)
 #**##if ($interface || $implementation)
 #******#    public QuerySet<${association.Klass}> get${association.KeyToAPluralized}() #if ($implementation) {
-#******#        return ${association.KeyToAPluralized}_;
+#******#        return ${association.KeyToAPluralized}AG;
 #******#    }#else;#end
 #******#
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
 #******#    public void set${association.KeyToAPluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-#******#        this.${association.KeyToAPluralized}_ = querySet;
+#******#        this.${association.KeyToAPluralized}AG = querySet;
 #******#    }#else;#end
 #******#
 #******#
@@ -83,14 +83,14 @@
 #foreach ($association in $manyToManyAssociations)
 #**##if ($interface || $implementation)
 #******#    public QuerySet<${association.Klass}> get${association.Pluralized}() #if ($implementation) {
-#******#        return ${association.Pluralized}_;
+#******#        return ${association.Pluralized}AG;
 #******#    }#else;#end
 #******#
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
 #******#    public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
-#******#        this.${association.Pluralized}_ = querySet;
+#******#        this.${association.Pluralized}AG = querySet;
 #******#    }#else;#end
 #******#
 #******#

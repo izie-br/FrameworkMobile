@@ -46,9 +46,9 @@
 ##    id<${package}${association.Klass}> _${association.Klass}_;
 ###else##if !($associationForField[$field])
 ###if ( $field.Type.equals("String") || $field.Type.equals("Date") )
-##    ${Type[$field]} *${field.LowerCamel}_;
+##    ${Type[$field]} *${field.LowerCamel}AG;
 ###else##if !( $field.Type.equals("String") || $field.Type.equals("Date") )
-##    ${Type[$field]} ${field.LowerCamel}_;
+##    ${Type[$field]} ${field.LowerCamel}AG;
 ###end##if ( $field.Type.equals("String") || $field.Type.equals("Date") )
 ###end##if ($associationForField[$field])
 ###end##foreach ($field in $fields)
@@ -56,7 +56,7 @@
   @private
 #end##if ($toManyAssociations.size() > 0)
 #foreach ($association in $toManyAssociations)
-    id<ComQuantiumMobileFrameworkQuerySet> ${association.Pluralized}_;
+    id<ComQuantiumMobileFrameworkQuerySet> ${association.Pluralized}AG;
 #end##foreach ($association in $toManyAssociations)
 }
 #foreach ($field in $fields)
@@ -79,7 +79,7 @@
   id<JavaUtilMap> mapInst = NIL_CHK(map);
 
 #foreach ($field in $fields)
-  id<${MapType[$field]}> ${field.LowerCamel}_ =
+  id<${MapType[$field]}> ${field.LowerCamel}AG =
 #if ($associationForField[$field])
 #set ($association = $associationForField[$field])
     ( [self _${association.Klass}] == nil)?
@@ -91,12 +91,12 @@
       [self ${getter[$field]}];
 #end##if ($associationForField[$field])
 #if ($field.PrimaryKey || $associationForField[$field])
-  if (! ${field.LowerCamel}_.equals(${defaultId})) {
-    [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}_];
+  if (! ${field.LowerCamel}AG.equals(${defaultId})) {
+    [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}AG];
   }
 
 #else##if !($field.PrimaryKey)
-  [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}_];
+  [mapInst putWithId:@"${MapKey[$field]}" withId: ${field.LowerCamel}AG];
 
 #end##if ($field.PrimaryKey)
 #end##foreach ($field in $fields)
@@ -125,7 +125,7 @@
 #end##foreach ($field in $fields)
 ##
 ###foreach ($association in $toManyAssociations)
-##@dynamic ${association.Pluralized}_;
+##@dynamic ${association.Pluralized}AG;
 ###end##foreach ($association in $toManyAssociations)
 ##
 
@@ -173,7 +173,7 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #end##if ($associationForField[$field])
 #end##foreach ($field in $fields)
 #foreach ($association in $toManyAssociations)
-    [[self ${association.Pluralized}_] = new${association.Pluralized}];
+    [[self ${association.Pluralized}AG] = new${association.Pluralized}];
 #end##foreach ($association in $toManyAssociations)
 }
 #end##if ($Interface)
@@ -229,14 +229,14 @@ ComQuantiumMobileFrameworkQuerySet: (id<ComQuantiumMobileFrameworkQuerySet>) new
 #foreach ($association in $toManyAssociations)
 #if ($Protocol || $Interface || $Implementation)
 - (id<ComQuantiumMobileFrameworkQueryQuerySet>) get${association.Pluralized} #if ($Implementation) {
-        return [self ${association.Pluralized}_];
+        return [self ${association.Pluralized}AG];
 }#else;#end
 
 
 #end##if ($interface || $implementation)
 #if ($Interface || $Implementation || $EditableInterface)
 - (void) set${association.Pluralized}WithComQuantiumMobileFrameworkQueryQuerySet: (id<ComQuantiumMobileFrameworkQueryQuerySet>) querySet #if ($Implementation){
-    [[self ${association.Pluralized}_] = querySet];
+    [[self ${association.Pluralized}AG] = querySet];
 }#else;#end
 
 

@@ -81,14 +81,14 @@ public class ConstructorArgsHelper {
 					sb.append(' ');
 				}
 				sb.append(attibuteName);
-                sb.append('_');
+                sb.append("AG");
             } else {
 				if (declare) {
 					sb.append(field.getType());
 					sb.append(' ');
 				}
 				sb.append(field.getLowerCamel());
-                sb.append('_');
+                sb.append("AG");
             }
 			if (!last){
 				sb.append(',');
@@ -108,17 +108,17 @@ public class ConstructorArgsHelper {
 				sb.append(assoc.getKlass());
 				sb.append("> ");
 				sb.append(assoc.getKeyToAPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             } else if (forDao){
 				sb.append("querySetFor");
 				sb.append(assoc.getKeyToAPluralized().toString());
 				sb.append("(");
 				Property property = assoc.getReferenceKey();
 				sb.append(property.getLowerCamel());
-				sb.append("_)");
+				sb.append("AG)");
 			} else {
 				sb.append(assoc.getKeyToAPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             }
 
 			if (!last){
@@ -140,7 +140,7 @@ public class ConstructorArgsHelper {
 				sb.append(assoc.getKlass());
 				sb.append("> ");
 				sb.append(assoc.getPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             } else if (forDao) {
 				sb.append("querySetFor");
 				sb.append(assoc.getPluralized().toString());
@@ -151,10 +151,10 @@ public class ConstructorArgsHelper {
 					// default
 						assoc.getReferenceB();
 				sb.append(property.getLowerCamel());
-				sb.append("_)");
+				sb.append("AG)");
             } else {
                 sb.append(assoc.getPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             }
 
 			if (!last){
@@ -201,14 +201,14 @@ public class ConstructorArgsHelper {
 					sb.append(' ');
 				}
 				sb.append(attibuteName);
-                sb.append('_');
+                sb.append("AG");
             } else {
 				if (declare) {
 					sb.append(field.getType());
 					sb.append(' ');
 				}
 				sb.append(field.getLowerCamel());
-                sb.append('_');
+                sb.append("AG");
             }
 			if (!last){
 				sb.append(',');
@@ -228,17 +228,17 @@ public class ConstructorArgsHelper {
 				sb.append(assoc.getKlass());
 				sb.append("> ");
 				sb.append(assoc.getKeyToAPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             } else if (forDao){
 				sb.append("querySetFor");
 				sb.append(assoc.getKeyToAPluralized().toString());
 				sb.append("(");
 				Property property = assoc.getReferenceKey();
 				sb.append(property.getLowerCamel());
-				sb.append("_)");
+				sb.append("AG)");
 			} else {
 				sb.append(assoc.getKeyToAPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             }
 
 			if (!last){
@@ -260,7 +260,7 @@ public class ConstructorArgsHelper {
 				sb.append(assoc.getKlass());
 				sb.append("> ");
 				sb.append(assoc.getPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             } else if (forDao) {
 				sb.append("querySetFor");
 				sb.append(assoc.getPluralized().toString());
@@ -271,10 +271,10 @@ public class ConstructorArgsHelper {
 					// default
 						assoc.getReferenceB();
 				sb.append(property.getLowerCamel());
-				sb.append("_)");
+				sb.append("AG)");
 			} else {
 				sb.append(assoc.getPluralized().toString());
-                sb.append('_');
+                sb.append("AG");
             }
 
 			if (!last){

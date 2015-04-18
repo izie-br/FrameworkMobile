@@ -28,11 +28,11 @@
             throw new IOException("Id already exists");
         // Armazenando os querySets antigos, antes do reINSERT, que os atualiza
 #foreach ($association in $oneToManyAssociations)
-        QuerySet<${association.Klass}> ${association.KeyToAPluralized}_ =
+        QuerySet<${association.Klass}> ${association.KeyToAPluralized}AG =
                 editableTarget.get${association.KeyToAPluralized}();
 #end
 #foreach ($association in $manyToManyAssociations)
-        QuerySet<${association.Klass}> ${association.Pluralized}_ =
+        QuerySet<${association.Klass}> ${association.Pluralized}AG =
                 editableTarget.get${association.Pluralized}();
 #end
         this.factory.removeFromCache(${Target}.class, new Serializable[]{oldPk});
@@ -46,7 +46,7 @@
         if (!save(editableTarget, Save.INSERT_IF_NOT_EXISTS))
             throw new IOException("save could not be performed, check logs");
 #foreach ($association in $oneToManyAssociations)
-        for (${association.Klass} item : ${association.KeyToAPluralized}_.all()) {
+        for (${association.Klass} item : ${association.KeyToAPluralized}AG.all()) {
             item.set${association.KeyToA}(editableTarget);
             item.setLastModified(new java.util.Date());
             if (!this.factory
@@ -57,7 +57,7 @@
         }
 #end
 #foreach ($association in $manyToManyAssociations)
-        for (${association.Klass} item : ${association.Pluralized}_.all()) {
+        for (${association.Klass} item : ${association.Pluralized}AG.all()) {
             with(editableTarget).add(item);
         }
 #end

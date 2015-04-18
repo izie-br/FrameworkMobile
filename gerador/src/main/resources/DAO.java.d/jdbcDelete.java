@@ -17,7 +17,7 @@
 #**#            } catch (java.sql.SQLException e) {
 #**#                throw new RuntimeException(StringUtil.getStackTrace(e));
 #**#            }
-#**#            Runnable ${association.KeyToAPluralized}_NullFkThread =
+#**#            Runnable ${association.KeyToAPluralized}AGNullFkThread =
 #**#                    new ${association.KeyToAPluralized}NullFkThread(target);
 #**#            //${association.Klass}_NullFkThread.start();
 #**##else
@@ -61,10 +61,10 @@
             }
 #foreach ($relation in $oneToManyAssociations)
 #**##if ($relation.Nullable)
-#**#            if (${relation.KeyToAPluralized}_NullFkThread != null) {
+#**#            if (${relation.KeyToAPluralized}AGNullFkThread != null) {
 #**#                try {
 #**#                    //${relation.Klass}_NullFkThread.join();
-#**#                    ${relation.KeyToAPluralized}_NullFkThread.run();
+#**#                    ${relation.KeyToAPluralized}AGNullFkThread.run();
 #**#                } catch (Exception e) {
 #**#                    LogPadrao.e(e);
 #**#                }
