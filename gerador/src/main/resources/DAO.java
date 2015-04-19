@@ -41,7 +41,9 @@ import com.quantium.mobile.framework.validation.ValidationError;
 ${Imports}
 
 @SuppressWarnings("unused")
-public class ${Klass} implements DAOSQLite<${Target}>, PrimaryKeyUpdater<${Target}> {
+public class ${Klass}
+       implements DAOSQLite<${Target}>,
+                  PrimaryKeyUpdater<${Target}> {
 
     @SuppressWarnings("unchecked")
     public static final List<Table.Column<?>> COLUMNS =

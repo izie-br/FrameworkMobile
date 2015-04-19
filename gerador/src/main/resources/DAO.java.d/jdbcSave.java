@@ -5,7 +5,7 @@
 
     @Override
     public boolean save($Target target, int flags) throws IOException {
-        boolean insertIfNotExists = ((flags&Save.INSERT_IF_NOT_EXISTS) != 0);
+        boolean insertIfNotExists = ((flags & Save.INSERT_IF_NOT_EXISTS) != 0);
         boolean insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists){
             try {
@@ -28,7 +28,7 @@
         if (insert) {
             String value;
             int qty;
-            try{
+            try {
                 PreparedStatement stm;
                 if (insertIfNotExists) {
                     stm = getStatement(

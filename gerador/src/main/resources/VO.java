@@ -20,11 +20,15 @@ ${Imports}
 
 @SuppressWarnings("unused")
 #if ($implementation)
-#**#public abstract class ${Filename} extends GenericBean implements ${EditableInterface}
+#**#public abstract class ${Filename}
+#**#    extends GenericBean
+#**#    implements ${EditableInterface}
 #elseif ($interface)
-#**#public interface ${Filename} extends GenericVO, MapSerializable
+#**#public interface ${Filename}
+#**#    extends GenericVO, MapSerializable
 #elseif ($editableInterface)
-#**#public interface ${Filename} extends ${Klass}
+#**#public interface ${Filename}
+#**#    extends ${Klass}
 #end
 {
 

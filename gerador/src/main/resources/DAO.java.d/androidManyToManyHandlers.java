@@ -27,7 +27,7 @@
 #******#        }
 #**##end
         SQLiteDatabase db = this.factory.getDb();
-        try{
+        try {
             Cursor cursor = db.rawQuery(
                 "SELECT count(*) FROM ${association.JoinTable} WHERE " +
                     "${association.KeyToA.LowerAndUnderscores}=? AND " +

@@ -28,7 +28,7 @@
         String primaryKeysArgs [] = new String[]{
             target.${getter[$primaryKey]}()
         };
-        boolean insertIfNotExists = ((flags&Save.INSERT_IF_NOT_EXISTS) != 0);
+        boolean insertIfNotExists = ((flags & Save.INSERT_IF_NOT_EXISTS) != 0);
         insert = target.${getter[$primaryKey]}() == ${defaultId};
         if (insertIfNotExists)
         {
@@ -51,7 +51,7 @@
             }
             String value;
             long qty;
-            try{
+            try {
             	qty = db.insertOrThrow("${table}", null, contentValues);
             	value = String.valueOf(qty);
             } catch (SQLException e){

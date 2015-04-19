@@ -38,7 +38,9 @@ import com.quantium.mobile.framework.validation.ValidationError;
 ${Imports}
 
 @SuppressWarnings("unused")
-public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}> {
+public class ${Klass}
+       implements JdbcDao<${Target}>,
+                  PrimaryKeyUpdater<${Target}> {
 
     @SuppressWarnings("unchecked")
     public static final List<Table.Column<?>> COLUMNS =
@@ -71,7 +73,7 @@ public class ${Klass} implements JdbcDao<${Target}>, PrimaryKeyUpdater<${Target}
         StatementCacheStruct entry =
             stmCache.get(statement);
         Connection connection = factory.getConnection();
-        try{
+        try {
             if (entry == null || entry.connection.isClosed() || entry.lock ){
                 PreparedStatement stm =
                     connection.prepareStatement(statement);

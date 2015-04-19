@@ -10,9 +10,11 @@ ${Imports}
 
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 #if ($interface)
-#**#public interface ${Filename}  extends ${GenInterface}
+#**#public interface ${Filename}
+           extends ${GenInterface}
 #else
-#**#public class ${Filename} extends ${GenImpl}
+#**#public class ${Filename}
+           extends ${GenImpl}
 #end
 {
 #if ($implementation)

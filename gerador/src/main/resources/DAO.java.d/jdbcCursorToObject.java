@@ -10,7 +10,7 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#        String ${field.LowerCamel}AG = null;
-#******#        try{
+#******#        try {
 #******#            if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
 #******#                ${field.LowerCamel}AG = cursor.getString(${Target}.${field.UpperAndUnderscores}.getName());
 #******#            }
@@ -43,11 +43,11 @@
 #**##else
 #******##if ($field.Klass.equals("Date") )
 #******#        ${field.type} ${field.LowerCamel}AG = null;
-#******#        try{
+#******#        try {
 #******#            try {
 #******#                if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
 #******#                    String temp = cursor.getString(${Target}.${field.UpperAndUnderscores}.getName());
-#******#                    ${field.LowerCamel}AG = (temp == null)?
+#******#                    ${field.LowerCamel}AG = (temp == null) ?
 #******#                        null :
 #******#                        new java.text.SimpleDateFormat(
 #******#                            "yyyy-MM-dd HH:mm:ss.SSS").parse(temp);
@@ -63,7 +63,7 @@
 #******##else
 #******#        ${field.type} ${field.LowerCamel}AG = null;
 #******##end
-#******#        try{
+#******#        try {
 #******#            if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
 #******#                ${field.LowerCamel}AG = cursor.get${field.Klass}(${Target}.${field.UpperAndUnderscores}.getName());
 #******#            }
