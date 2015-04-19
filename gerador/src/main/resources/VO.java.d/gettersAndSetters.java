@@ -32,7 +32,8 @@
             ($field.PrimaryKey && $editableInterface)
           )
         )
-#******#    public void set${field.UpperCamel}(${field.Type} ${field.LowerCamel})#if ($implementation) {
+#******#    public void set${field.UpperCamel}(
+#******#        ${field.Type} ${field.LowerCamel})#if ($implementation) {
 #******##if ($field.Type == "Date")
 #******#        if (${field.LowerCamel} == null) {
 #******#            this.${field.LowerCamel} = null;
@@ -73,7 +74,8 @@
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
-#******#    public void set${association.KeyToAPluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
+#******#    public void set${association.KeyToAPluralized}(
+#******#        QuerySet<${association.Klass}> querySet) #if ($implementation) {
 #******#        this.${association.KeyToAPluralized}AG = querySet;
 #******#    }#else;#end
 #******#
@@ -89,7 +91,8 @@
 #******#
 #**##end
 #**##if ($implementation || $editableInterface)
-#******#    public void set${association.Pluralized}(QuerySet<${association.Klass}> querySet) #if ($implementation) {
+#******#    public void set${association.Pluralized}(
+#******#        QuerySet<${association.Klass}> querySet) #if ($implementation) {
 #******#        this.${association.Pluralized}AG = querySet;
 #******#    }#else;#end
 #******#

@@ -65,7 +65,9 @@
 #******##end
 #******#        try {
 #******#            if (hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName())) {
-#******#                ${field.LowerCamel}AG = cursor.get${field.Klass}(${Target}.${field.UpperAndUnderscores}.getName());
+#******#                ${field.LowerCamel}AG = cursor
+#******#                    .get${field.Klass}(${Target}
+#******#                        .${field.UpperAndUnderscores}.getName());
 #******#            }
 #******##end
 #******#        } catch (java.sql.SQLException e) {

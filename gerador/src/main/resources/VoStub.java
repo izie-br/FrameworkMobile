@@ -11,12 +11,11 @@ ${Imports}
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
 #if ($interface)
 #**#public interface ${Filename}
-           extends ${GenInterface}
+           extends ${GenInterface} {
 #else
 #**#public class ${Filename}
-           extends ${GenImpl}
+           extends ${GenImpl} {
 #end
-{
 #if ($implementation)
 
     public static final long serialVersionUID = ${GenImpl}.publicSerialVersionUID;

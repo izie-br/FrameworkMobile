@@ -30,21 +30,56 @@
 #******#                    new Class[]{ ${association.Klass}Editable.class },
 #******#                    handler);
 #******#            } else if (cacheItem instanceof ${association.Klass}) {
-#******#                ${association.KeyToA}AG = (${association.Klass})cacheItem;
+#******#                ${association.KeyToA}AG = (${association.Klass}) cacheItem;
 #******#            }
 #******#        }
 #******#
 #**##else
 #******##if ($field.Klass.equals("Boolean") )
-#******#        ${field.Type} ${field.LowerCamel}AG = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? parser.booleanFromDatabase(cursor.getShort(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName()))) : false;
+#******#        ${field.Type} ${field.LowerCamel}AG =
+#******#            hasColumn(
+#******#                cursor,
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()) ?
+#******#                parser.booleanFromDatabase(
+#******#                cursor.getShort(
+#******#                cursor.getColumnIndex(
+#******#                ${Target}.${field.UpperAndUnderscores}.getName())))
+#******#                : false;
 #******##elseif ($field.Klass.equals("Date") )
-#******#        ${field.Type} ${field.LowerCamel}AG = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? parser.dateFromDatabase(cursor.getString(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName()))) : null;
+#******#        ${field.Type} ${field.LowerCamel}AG =
+#******#            hasColumn(
+#******#                cursor,
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()) ?
+#******#                parser.dateFromDatabase(
+#******#                cursor.getString(
+#******#                cursor.getColumnIndex(
+#******#                ${Target}.${field.UpperAndUnderscores}.getName())))
+#******#                : null;
 #******##elseif ($field.Klass.equals("Long") )
-#******#        ${field.Type} ${field.LowerCamel}AG = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getLong(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : 0l;
+#******#        ${field.Type} ${field.LowerCamel}AG =
+#******#            hasColumn(
+#******#                cursor,
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()) ?
+#******#                cursor.getLong(
+#******#                cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName()))
+#******#                : 0l;
 #******##elseif ($field.Klass.equals("Double") )
-#******#        ${field.Type} ${field.LowerCamel}AG = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getDouble(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : 0.0d;
+#******#        ${field.Type} ${field.LowerCamel}AG =
+#******#            hasColumn(
+#******#                cursor,
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()) ?
+#******#                cursor.getDouble(
+#******#                cursor.getColumnIndex(
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()))
+#******#                : 0.0d;
 #******##elseif ($field.Klass.equals("String") )
-#******#        ${field.Type} ${field.LowerCamel}AG = hasColumn(cursor, ${Target}.${field.UpperAndUnderscores}.getName()) ? cursor.getString(cursor.getColumnIndex(${Target}.${field.UpperAndUnderscores}.getName())) : null;
+#******#        ${field.Type} ${field.LowerCamel}AG =
+#******#            hasColumn(cursor,
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()) ?
+#******#                cursor.getString(
+#******#                cursor.getColumnIndex(
+#******#                ${Target}.${field.UpperAndUnderscores}.getName()))
+#******#                : null;
 #******##end
 #**##end
 #**##if ($field.PrimaryKey)
@@ -58,9 +93,8 @@
 #******#            };
 #******#            Object cacheItem = factory.cacheLookup(${Target}.class, pks);
 #******#            if (cacheItem != null &&
-#******#                (cacheItem instanceof ${Target}))
-#******#            {
-#******#                return (${Target})cacheItem;
+#******#                (cacheItem instanceof ${Target})) {
+#******#                return (${Target}) cacheItem;
 #******#            }
 #******#        }
 #******##set ($primaryKeyIndex = 0)

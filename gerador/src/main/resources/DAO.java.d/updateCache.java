@@ -2,7 +2,9 @@
         Serializable pks [] = new Serializable[]{
             target.${getter[$primaryKey]}()
         };
-        $Target cacheItem = (${Target}) factory.cacheLookup(${Target}.class, pks);
+        $Target cacheItem =
+            (${Target}) 
+                factory.cacheLookup(${Target}.class, pks);
         if (cacheItem == null)
             return false;
         if (cacheItem == target) {
@@ -14,14 +16,17 @@
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])
 #******#               ${association.Klass} ${association.KeyToA}AG = target.get${association.KeyToA}();
-#******#               ${association.Klass} _cache${association.KeyToA} = editable.get${association.KeyToA}();
+#******#               ${association.Klass} cache${association.KeyToA}AG = editable.get${association.KeyToA}();
 #******#               if (${association.KeyToA}AG == null) {
-#******#                   if (_cache${association.KeyToA} != null) {
+#******#                   if (cache${association.KeyToA}AG != null) {
 #******#                       editable.set${association.KeyToA}(null);
 #******#                   }
 #******#               } else {
-#******#                   if (_cache${association.KeyToA} == null ||
-#******#                            !(((${field.Klass})${association.KeyToA}AG.${getter[$association.ReferenceKey]}()).equals(((${field.Klass})_cache${association.KeyToA}.${getter[$association.ReferenceKey]}())))) {
+#******#                   if (cache${association.KeyToA}AG == null ||
+#******#                            !(((${field.Klass}) ${association.KeyToA}AG
+#******#                                    .${getter[$association.ReferenceKey]}())
+#******#                                    .equals(((${field.Klass}) cache${association.KeyToA}AG
+#******#                                    .${getter[$association.ReferenceKey]}())))) {
 #******#                       editable.set${association.KeyToA}(
 #******#                            this.factory.getDaoFor(${association.Klass}.class).get(${association.KeyToA}AG.${getter[$association.ReferenceKey]}()));
 #******#                   }

@@ -22,15 +22,14 @@ ${Imports}
 #if ($implementation)
 #**#public abstract class ${Filename}
 #**#    extends GenericBean
-#**#    implements ${EditableInterface}
+#**#    implements ${EditableInterface} {
 #elseif ($interface)
 #**#public interface ${Filename}
-#**#    extends GenericVO, MapSerializable
+#**#    extends GenericVO, MapSerializable {
 #elseif ($editableInterface)
 #**#public interface ${Filename}
-#**#    extends ${Klass}
+#**#    extends ${Klass} {
 #end
-{
 
 #if ($interface)
 #**##parse("VO.java.d/tableAndColumns.java")
