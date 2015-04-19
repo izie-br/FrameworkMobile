@@ -1,20 +1,20 @@
 package com.quantium.mobile.framework.libjdbctest;
 
-import java.sql.Connection;
-import java.sql.SQLException;
-
 import com.quantium.mobile.framework.BaseGenericVO;
 import com.quantium.mobile.framework.BaseModelFacade;
 import com.quantium.mobile.framework.libjdbctest.db.DB;
 import com.quantium.mobile.framework.libjdbctest.gen.JdbcDAOFactory;
 
+import java.sql.Connection;
+import java.sql.SQLException;
+
 public class MemDaoFactory extends JdbcDAOFactory {
 
-	public static Connection connection;
+    public static Connection connection;
     private BaseModelFacade baseModelFacade;
 
-    public MemDaoFactory(){
-        if(connection != null){
+    public MemDaoFactory() {
+        if (connection != null) {
             try {
                 connection.close();
             } catch (SQLException e) {
@@ -43,9 +43,9 @@ public class MemDaoFactory extends JdbcDAOFactory {
     }
 
     @Override
-	public Connection getConnection() {
-		if (connection == null)
-			connection = DB.getConnection();
-		return connection;
-	}
+    public Connection getConnection() {
+        if (connection == null)
+            connection = DB.getConnection();
+        return connection;
+    }
 }

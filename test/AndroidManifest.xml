@@ -1,24 +1,25 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-  package="com.quantium.mobile.framework.test" android:versionCode="1" android:versionName="0.2-alpha">
+          package="com.quantium.mobile.framework.test" android:versionCode="1" android:versionName="0.2-alpha">
 
-  <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7" />
+    <uses-sdk android:minSdkVersion="7" android:targetSdkVersion="7"/>
 
-  <uses-permission android:name="android.permission.INTERNET" />
-  
+    <uses-permission android:name="android.permission.INTERNET"/>
 
-  <application android:icon="@drawable/icon" android:label="@string/app_name" android:name=".TestApplication" android:debuggable="true">
-    <uses-library android:name="android.test.runner" />
-    <activity android:name=".TestActivity">
-      <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
-      </intent-filter>
-    </activity>
-  </application>
 
-  <instrumentation android:targetPackage="com.quantium.mobile.framework.test"
-    android:name="android.test.InstrumentationTestRunner" />
+    <application android:icon="@drawable/icon" android:label="@string/app_name" android:name=".TestApplication"
+                 android:debuggable="true">
+        <uses-library android:name="android.test.runner"/>
+        <activity android:name=".TestActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN"/>
+                <category android:name="android.intent.category.LAUNCHER"/>
+            </intent-filter>
+        </activity>
+    </application>
+
+    <instrumentation android:targetPackage="com.quantium.mobile.framework.test"
+                     android:name="android.test.InstrumentationTestRunner"/>
 
 </manifest>
 

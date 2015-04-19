@@ -1,5 +1,15 @@
 package com.quantium.mobile.framework.communication;
 
+import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.FrameworkJSONTokener;
+import com.quantium.mobile.framework.MapToObjectIterator;
+import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.JSONUtils;
+import com.quantium.mobile.framework.utils.StringUtil;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
@@ -7,117 +17,106 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+public class JsonCommunicationResponse implements SerializedCommunicationResponse {
 
-import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.FrameworkJSONTokener;
-import com.quantium.mobile.framework.MapToObjectIterator;
-import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.framework.utils.JSONUtils;
-import com.quantium.mobile.framework.utils.StringUtil;
+    private Reader reader;
 
-public class JsonCommunicationResponse implements SerializedCommunicationResponse{
+    private Object json;
 
-	private Reader reader;
+    public JsonCommunicationResponse(Reader reader) {
+        this.reader = reader;
+    }
 
-	private Object json;
+    @Override
+    public Reader getReader() {
+        return reader;
+    }
 
-	public JsonCommunicationResponse(Reader reader){
-		this.reader = reader;
-	}
+    private void checkOutput() {
+        if (json == null) {
+            try {
+                FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
+                char c = tokener.nextClean();
+                tokener.back();
+                json =
+                        (c == '{') ?
+                                tokener.nextJSONObject() :
+                                (c == '[') ?
+                                        tokener.nextJSONArray() :
+                                        // default
+                                        null;
+                if (json == null) {
+                    try {
+                        throw new IllegalArgumentException("Invalid response:" + StringUtil.readerToString(reader));
+                    } catch (IOException e) {
+                        LogPadrao.e(e);
+                        throw new RuntimeException(e);
+                    }
+                }
+            } catch (JSONException e) {
+                LogPadrao.e(e);
+                throw new RuntimeException(e);
+            }
+        }
+    }
 
-	@Override
-	public Reader getReader() {
-		return reader;
-	}
-
-	private void checkOutput() {
-		if (json == null ) {
-			try {
-				FrameworkJSONTokener tokener = new FrameworkJSONTokener(reader);
-				char c = tokener.nextClean();
-				tokener.back();
-				json =
-					(c == '{') ?
-						tokener.nextJSONObject() :
-					(c == '[') ?
-						tokener.nextJSONArray()  :
-					// default
-						null;
-				if (json == null) {
-					try {
-						throw new IllegalArgumentException("Invalid response:"+StringUtil.readerToString(reader));
-					} catch (IOException e) {
-						LogPadrao.e(e);
-						throw new RuntimeException(e);
-					}
-				}
-			} catch (JSONException e) {
-				LogPadrao.e(e);
-				throw new RuntimeException(e);
-			}
-		}
-	}
-
-	@Override
-	public Map<String, Object> getResponseMap() {
-		checkOutput();
-		if (json instanceof JSONObject)
-			return JSONUtils.desserializeJsonObject((JSONObject) json);
-		if (json instanceof JSONArray){
-			Object list = JSONUtils.desserializeJsonArray((JSONArray) json);
-			Map<String, Object> map = new HashMap<String, Object>();
-			map.put(null, list);
-			return map;
-		}
-		return null;
-	}
+    @Override
+    public Map<String, Object> getResponseMap() {
+        checkOutput();
+        if (json instanceof JSONObject)
+            return JSONUtils.desserializeJsonObject((JSONObject) json);
+        if (json instanceof JSONArray) {
+            Object list = JSONUtils.desserializeJsonArray((JSONArray) json);
+            Map<String, Object> map = new HashMap<String, Object>();
+            map.put(null, list);
+            return map;
+        }
+        return null;
+    }
 
 //	public JSONObject getJson(){
 //		return json;
 //	}
 
-	@Override
-	@SuppressWarnings({ "unchecked", "rawtypes" })
-	public <T> Iterator<T> getIterator(DAO<T> dao, String... keysToObjectList) {
-		if (dao == null)
-			return null;
-		checkOutput();
-		try {
-			if(keysToObjectList != null && keysToObjectList.length >0) {
-				int l = keysToObjectList.length;
-				Object current = json;
-				JSONObject last = (JSONObject) json;
-				String key = null;
-				for (int i = 0; i < l; i++) {
-					key = keysToObjectList[i];
-					last = (JSONObject)current;
-					current = last.get(key);
-				}
-				
-				if (key != null)
-					last.remove(key);
-				return new MapToObjectIterator(
-						new StringReader(current.toString()),
-						dao
-				);
-			} else if (json instanceof JSONArray) {
-				return new MapToObjectIterator(
-						new StringReader(json.toString()),
-						dao
-				);
-			}
-		}catch (Exception e){
-			LogPadrao.e(e);
-		}
-		return null;
-	}
+    @Override
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    public <T> Iterator<T> getIterator(DAO<T> dao, String... keysToObjectList) {
+        if (dao == null)
+            return null;
+        checkOutput();
+        try {
+            if (keysToObjectList != null && keysToObjectList.length > 0) {
+                int l = keysToObjectList.length;
+                Object current = json;
+                JSONObject last = (JSONObject) json;
+                String key = null;
+                for (int i = 0; i < l; i++) {
+                    key = keysToObjectList[i];
+                    last = (JSONObject) current;
+                    current = last.get(key);
+                }
+
+                if (key != null)
+                    last.remove(key);
+                return new MapToObjectIterator(
+                        new StringReader(current.toString()),
+                        dao
+                );
+            } else if (json instanceof JSONArray) {
+                return new MapToObjectIterator(
+                        new StringReader(json.toString()),
+                        dao
+                );
+            }
+        } catch (Exception e) {
+            LogPadrao.e(e);
+        }
+        return null;
+    }
 
 
-	@Override
-	public Iterator<Object> getIterator(String... keysToObjectList) {
+    @Override
+    public Iterator<Object> getIterator(String... keysToObjectList) {
 //		if ( !( prototype instanceof JsonSerializable) )
 //			return null;
 //		checkOutput();
@@ -136,11 +135,11 @@ public class JsonCommunicationResponse implements SerializedCommunicationRespons
 //		}catch (Exception e){
 //			LogPadrao.e(e);
 //		}
-		return null;
-	}
+        return null;
+    }
 
 /*	private JSONArray getJsonAray(String... keysToObjectList){
-		checkOutput();
+        checkOutput();
 		try {
 			if(keysToObjectList != null && keysToObjectList.length >0) {
 				Object current = json;

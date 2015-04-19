@@ -1,34 +1,34 @@
 package com.quantium.mobile.framework.test;
 
-import com.quantium.mobile.framework.test.db.DB;
 import com.quantium.mobile.framework.BaseApplication;
+import com.quantium.mobile.framework.test.db.DB;
 
 public class Aplicacao extends BaseApplication {
 
-	@Override
-	public int dbVersion() {
-		return DB.DB_VERSAO;
-	}
+    public static SessionFacade facade;
 
-	public static SessionFacade facade;
-
-    public Aplicacao(){
+    public Aplicacao() {
         facade = new SessionFacade();
     }
 
-	@Override
-	public void onCreate() {
-		super.onCreate();
-	}
+    public static SessionFacade getFacade() {
+        return facade;
+    }
 
-	@Override
-	public String userName() {
-		// TODO Auto-generated method stub
-		return "";
-	}
+    @Override
+    public int dbVersion() {
+        return DB.DB_VERSAO;
+    }
 
-	public static SessionFacade getFacade() {
-		return facade;
-	}
+    @Override
+    public void onCreate() {
+        super.onCreate();
+    }
+
+    @Override
+    public String userName() {
+        // TODO Auto-generated method stub
+        return "";
+    }
 
 }

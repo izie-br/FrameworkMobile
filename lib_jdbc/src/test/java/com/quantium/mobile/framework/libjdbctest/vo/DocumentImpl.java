@@ -1,27 +1,20 @@
 package com.quantium.mobile.framework.libjdbctest.vo;
 
-import java.util.Date;
+import com.quantium.mobile.framework.libjdbctest.gen.AbstractDocument;
 import com.quantium.mobile.framework.query.QuerySet;
 
-import com.quantium.mobile.framework.libjdbctest.vo.Score;
-import com.quantium.mobile.framework.libjdbctest.gen.ScoreEditable;
-import com.quantium.mobile.framework.libjdbctest.vo.Customer;
-import com.quantium.mobile.framework.libjdbctest.gen.CustomerEditable;
-import com.quantium.mobile.framework.libjdbctest.vo.Author;
-import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
-import com.quantium.mobile.framework.libjdbctest.gen.AbstractDocument;
+import java.util.Date;
 
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
-public class DocumentImpl extends AbstractDocument
-{
+public class DocumentImpl extends AbstractDocument {
 
     public static final long serialVersionUID = AbstractDocument.publicSerialVersionUID;
 
-    public DocumentImpl () {
+    public DocumentImpl() {
         super();
     }
 
-    public DocumentImpl (
+    public DocumentImpl(
             String _id, Date _createdAt, String _text,
             String _title, Author _Author, QuerySet<Score> _DocumentScores,
             QuerySet<Customer> _DocumentCustomers) {

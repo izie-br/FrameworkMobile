@@ -1,35 +1,28 @@
 package com.quantium.mobile.framework.test.query;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.*;
-import java.util.zip.ZipInputStream;
-
 import android.content.ContentValues;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.SQLException;
-import android.database.sqlite.SQLiteDatabase;
 import android.test.ActivityInstrumentationTestCase2;
-
-import com.quantium.mobile.framework.DAO;
-import com.quantium.mobile.framework.logging.LogPadrao;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.query.SQLiteQuerySet;
-import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.test.SessionFacade;
 import com.quantium.mobile.framework.test.TestActivity;
 import com.quantium.mobile.framework.test.db.DB;
-import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
-import com.quantium.mobile.framework.utils.StringUtil;
 import com.quantium.mobile.framework.test.document.vo.Document;
+import com.quantium.mobile.framework.test.document.vo.DocumentImpl;
 import com.quantium.mobile.framework.test.utils.Utils;
 import com.quantium.mobile.framework.test.vo.Author;
 import com.quantium.mobile.framework.test.vo.AuthorImpl;
 import com.quantium.mobile.framework.test.vo.Customer;
 import com.quantium.mobile.framework.test.vo.Score;
+import com.quantium.mobile.framework.utils.StringUtil;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.util.*;
 
 import static org.junit.Assert.*;
 
@@ -203,7 +196,7 @@ public class SQLiteTest extends ActivityInstrumentationTestCase2<TestActivity> {
         document3.setAuthor(author3);
         assertTrue(facade.save(document3));
         assertTrue(facade.save(author3));
-        assertTrue(facade.withAdd(author3,document3));
+        assertTrue(facade.withAdd(author3, document3));
         QuerySet<Document> querySet = facade.query(Document.class);
         assertEquals(3, querySet.count());
         Set<String> titles = querySet.selectDistinct(Document.TITLE);
@@ -261,12 +254,12 @@ public class SQLiteTest extends ActivityInstrumentationTestCase2<TestActivity> {
         assertTrue(authors.contains(author2));
 
         authors = facade.query(Author.class, Q.glob(
-                Author.NAME,
-                // os caracteres *, [ e ? devem estar entre chaves []
-                // o caractere ] deve estar sozinho, sem uma [ associada
-                // nenhum desses outros caracteres deve ser tratado
-                // de forma especial
-                "*[*[?].^$+-(){}]")
+                        Author.NAME,
+                        // os caracteres *, [ e ? devem estar entre chaves []
+                        // o caractere ] deve estar sozinho, sem uma [ associada
+                        // nenhum desses outros caracteres deve ser tratado
+                        // de forma especial
+                        "*[*[?].^$+-(){}]")
         ).all();
         assertEquals(1, authors.size());
         assertEquals(author4, authors.iterator().next());

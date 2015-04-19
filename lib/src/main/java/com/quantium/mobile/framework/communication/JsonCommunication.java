@@ -1,51 +1,44 @@
 package com.quantium.mobile.framework.communication;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UnsupportedEncodingException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.zip.GZIPInputStream;
-
+import com.quantium.mobile.framework.logging.LogPadrao;
+import com.quantium.mobile.framework.utils.StringUtil;
 import org.apache.http.Header;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 
-import com.quantium.mobile.framework.logging.LogPadrao;
-import com.quantium.mobile.framework.utils.StringUtil;
+import java.io.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.zip.GZIPInputStream;
 
-public class JsonCommunication extends GenericCommunication
-{
-	private static final String ACCEPT_HEADER ="application/json";
+public class JsonCommunication extends GenericCommunication {
+    private static final String ACCEPT_HEADER = "application/json";
 
-	private static final String NETWORK_COMMUNICATION_ERROR =
-			"NETWORK_COMMUNICATION_ERROR";
+    private static final String NETWORK_COMMUNICATION_ERROR =
+            "NETWORK_COMMUNICATION_ERROR";
 
-	private String url;
-	private Map<String,Object> parameters;
-//	private CommunicationObjectList lists [];
-	private String charset = StringUtil.DEFAULT_ENCODING;
+    private String url;
+    private Map<String, Object> parameters;
+    //	private CommunicationObjectList lists [];
+    private String charset = StringUtil.DEFAULT_ENCODING;
 
-	public void setCharset (String charset) {
-		this.charset = charset;
-	}
+    public void setCharset(String charset) {
+        this.charset = charset;
+    }
 
 //	public void setParameters (Map<String,Object> parameters) {
 //		this.parameters = parameters;
 //	}
 
-	public Map<String,Object> getParameters(){
-		if (this.parameters == null)
-			this.parameters = new HashMap<String,Object>(2);
-		return this.parameters;
-	}
+    public Map<String, Object> getParameters() {
+        if (this.parameters == null)
+            this.parameters = new HashMap<String, Object>(2);
+        return this.parameters;
+    }
 
-	public void setParameter (String key, Object value) {
-		this.getParameters().put(key, value);
-	}
+    public void setParameter(String key, Object value) {
+        this.getParameters().put(key, value);
+    }
 
 //	public void setSerializedBodyData (Map<String,Object> bodyParameters) {
 //		this.bodyParameters = bodyParameters;
@@ -62,9 +55,9 @@ public class JsonCommunication extends GenericCommunication
 //		this.body = body;
 //	}
 
-	public void setURL (String url) {
-		this.url = url;
-	}
+    public void setURL(String url) {
+        this.url = url;
+    }
 
 //	public void setIterator(Iterator<?> iterator, String...keysToObjectList) {
 //		if (iterator == null /*|| ! iterator.hasNext()*/)
@@ -107,93 +100,91 @@ public class JsonCommunication extends GenericCommunication
 //
 //	}
 
-	
 
-	public SerializedCommunicationResponse post()throws RuntimeException{
-		return execute(POST);
-	}
+    public SerializedCommunicationResponse post() throws RuntimeException {
+        return execute(POST);
+    }
 
-	public SerializedCommunicationResponse get()throws RuntimeException{
-		return execute(GET);
-	}
+    public SerializedCommunicationResponse get() throws RuntimeException {
+        return execute(GET);
+    }
 
-	private SerializedCommunicationResponse execute (byte method)
-			throws RuntimeException{
-		try{
-			HttpResponse response = null;
-			String exceptions [] = new String[CONNECTION_RETRY_COUNT+1];
-			Map<String, Object> rawparams = getParameters();
+    private SerializedCommunicationResponse execute(byte method)
+            throws RuntimeException {
+        try {
+            HttpResponse response = null;
+            String exceptions[] = new String[CONNECTION_RETRY_COUNT + 1];
+            Map<String, Object> rawparams = getParameters();
 
 //			if (body != null){
 //				params.put(body, jsonRequestString());
 //			}
-			int connectionTries = 0;
-			for(;;){
-				try{
-					switch(method){
-					case GET:
-						response = get(url, rawparams);
-						break;
-					case POST:
-						response = post(url, rawparams);
-						break;
-					case PUT:
-						response = put(url, rawparams);
-						break;
-					case DELETE:
-						response = delete(url, rawparams);
-						break;
-					default:
-						LogPadrao.e("metodo http incorreto");
-					}
-				} catch (RuntimeException e){
-					exceptions[connectionTries] = StringUtil.getStackTrace(e);
-					connectionTries++;
-				}
-				if(response!=null)
-					break;
-				if(connectionTries>CONNECTION_RETRY_COUNT){
-					for (int j = 0; j < connectionTries; j++){
-						System.out.println(exceptions[j]);
-						LogPadrao.e(exceptions[j]);
-					}
-					throw new RuntimeException(NETWORK_COMMUNICATION_ERROR);
-				}
-			}
-			return new JsonCommunicationResponse(
-					getReader(response)
-			);
+            int connectionTries = 0;
+            for (; ; ) {
+                try {
+                    switch (method) {
+                        case GET:
+                            response = get(url, rawparams);
+                            break;
+                        case POST:
+                            response = post(url, rawparams);
+                            break;
+                        case PUT:
+                            response = put(url, rawparams);
+                            break;
+                        case DELETE:
+                            response = delete(url, rawparams);
+                            break;
+                        default:
+                            LogPadrao.e("metodo http incorreto");
+                    }
+                } catch (RuntimeException e) {
+                    exceptions[connectionTries] = StringUtil.getStackTrace(e);
+                    connectionTries++;
+                }
+                if (response != null)
+                    break;
+                if (connectionTries > CONNECTION_RETRY_COUNT) {
+                    for (int j = 0; j < connectionTries; j++) {
+                        System.out.println(exceptions[j]);
+                        LogPadrao.e(exceptions[j]);
+                    }
+                    throw new RuntimeException(NETWORK_COMMUNICATION_ERROR);
+                }
+            }
+            return new JsonCommunicationResponse(
+                    getReader(response)
+            );
 //		} catch (JSONException e) {
 //			LogPadrao.e(e);
 //			throw new FrameworkException(ErrorCode.UNKNOWN_EXCEPTION, e);
-		} catch (IOException e) {
-			LogPadrao.e(e);
-			throw new RuntimeException(e);
-		}
-	}
+        } catch (IOException e) {
+            LogPadrao.e(e);
+            throw new RuntimeException(e);
+        }
+    }
 
-	protected Reader getReader ( HttpResponse response)
-			throws IOException
-	{
-		HttpEntity entity = response.getEntity();
-		if (entity != null) {
-			InputStream instream = entity.getContent();
-			Header contentEncoding = response.getFirstHeader("Content-Encoding");
-			if (contentEncoding != null && contentEncoding.getValue().toLowerCase().contains("gzip")) {
-				instream = new GZIPInputStream(instream);
-			}
-			try {
-				Reader reader = new BufferedReader(
-						new InputStreamReader(instream, charset));
-				return reader;
-			} catch (UnsupportedEncodingException e) {
-				LogPadrao.e (e);
-				throw new RuntimeException(e);
-			}
-		} else {
-			return null;
-		}
-	}
+    protected Reader getReader(HttpResponse response)
+            throws IOException {
+        HttpEntity entity = response.getEntity();
+        if (entity != null) {
+            InputStream instream = entity.getContent();
+            Header contentEncoding = response.getFirstHeader("Content-Encoding");
+            if (contentEncoding != null && contentEncoding.getValue().toLowerCase().contains("gzip")) {
+                instream = new GZIPInputStream(instream);
+            }
+            try {
+                Reader reader = new BufferedReader(
+                        new InputStreamReader(instream, charset));
+                return reader;
+            } catch (UnsupportedEncodingException e) {
+                LogPadrao.e(e);
+                throw new RuntimeException(e);
+            }
+        } else {
+            return null;
+        }
+    }
 
 //	public String jsonRequestString() throws JSONException{
 //			JSONObject obj = new JSONObject();
@@ -252,16 +243,16 @@ public class JsonCommunication extends GenericCommunication
 //		}
 
 
-	public String getAcceptHeader() {
-		return ACCEPT_HEADER;
-	}
+    public String getAcceptHeader() {
+        return ACCEPT_HEADER;
+    }
 
-	public SerializedCommunicationResponse put() throws RuntimeException{
-		return execute(PUT);
-	}
+    public SerializedCommunicationResponse put() throws RuntimeException {
+        return execute(PUT);
+    }
 
-	public SerializedCommunicationResponse delete() throws RuntimeException{
-		return execute(DELETE);
-	}
+    public SerializedCommunicationResponse delete() throws RuntimeException {
+        return execute(DELETE);
+    }
 
 }

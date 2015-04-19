@@ -1,33 +1,22 @@
 package com.quantium.mobile.framework.libjdbctest.tests;
 
-import java.beans.Statement;
-import java.io.IOException;
-import java.io.Serializable;
-import java.sql.Connection;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.util.*;
-import java.util.regex.Pattern;
-
-import com.quantium.mobile.framework.*;
-import com.quantium.mobile.framework.libjdbctest.db.DB;
-import com.quantium.mobile.framework.libjdbctest.gen.AuthorEditable;
-import com.quantium.mobile.framework.libjdbctest.vo.*;
-import com.quantium.mobile.framework.logging.LogPadrao;
-import junit.framework.TestCase;
-import org.junit.Test;
-
-import static org.junit.Assert.*;
-import static org.junit.Assert.assertEquals;
-
+import com.quantium.mobile.framework.DAO;
+import com.quantium.mobile.framework.DAOFactory;
+import com.quantium.mobile.framework.Save;
 import com.quantium.mobile.framework.jdbc.QH2DialectProvider;
-import com.quantium.mobile.framework.libjdbctest.JdbcPrimaryKeyProvider;
-import com.quantium.mobile.framework.libjdbctest.JdbcToSyncProvider;
 import com.quantium.mobile.framework.libjdbctest.MemDaoFactory;
 import com.quantium.mobile.framework.libjdbctest.util.Utils;
+import com.quantium.mobile.framework.libjdbctest.vo.*;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.QuerySet;
 import com.quantium.mobile.framework.utils.StringUtil;
+import org.junit.Test;
+
+import java.io.IOException;
+import java.util.*;
+import java.util.regex.Pattern;
+
+import static org.junit.Assert.*;
 
 public class QueryTest {
 
@@ -103,12 +92,12 @@ public class QueryTest {
         assertTrue(authors.contains(author2));
 
         authors = dao.query(Q.glob(
-                Author.NAME,
-                // os caracteres *, [ e ? devem estar entre chaves []
-                // o caractere ] deve estar sozinho, sem uma [ associada
-                // nenhum desses outros caracteres deve ser tratado
-                // de forma especial
-                "*[*[?].^$+-(){}]")
+                        Author.NAME,
+                        // os caracteres *, [ e ? devem estar entre chaves []
+                        // o caractere ] deve estar sozinho, sem uma [ associada
+                        // nenhum desses outros caracteres deve ser tratado
+                        // de forma especial
+                        "*[*[?].^$+-(){}]")
         ).all();
         assertEquals(1, authors.size());
         assertEquals(author4, authors.iterator().next());
@@ -288,7 +277,7 @@ public class QueryTest {
     }
 
     @Test
-    public void testRawQuery(){
+    public void testRawQuery() {
         DAOFactory daoFactory = new MemDaoFactory();
         DAO<Author> dao = daoFactory.getDaoFor(Author.class);
         DAO<Score> daoScore = daoFactory.getDaoFor(Score.class);
@@ -333,16 +322,16 @@ public class QueryTest {
             assertTrue(daoScore.save(score6));
 //            daoScore.query(Score.ID_AUTHOR)
 //            daoScore.query(Score.ID.isNotNull().and(quer))
-            for(Score score : daoScore.query().orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all()){
-                System.out.println("score:"+score.toMap());
+            for (Score score : daoScore.query().orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all()) {
+                System.out.println("score:" + score.toMap());
             }
             List<Score> scores = daoScore.query().filter(
                     "(" +
-                    " SELECT COUNT(*) " +
-                    " FROM "+ Score._TABLE.getName() + " f " +
-                    " WHERE f."+ Score.ID_AUTHOR.getName() + " = "+ Score._TABLE.getName() + "."+ Score.ID_AUTHOR.getName() + " AND " +
-                    " f."+ Score.SCORE.getName() + " >= "+ Score._TABLE.getName() + "."+ Score.SCORE.getName() +
-                    " ) <= 2 ", Score._TABLE).orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all();
+                            " SELECT COUNT(*) " +
+                            " FROM " + Score._TABLE.getName() + " f " +
+                            " WHERE f." + Score.ID_AUTHOR.getName() + " = " + Score._TABLE.getName() + "." + Score.ID_AUTHOR.getName() + " AND " +
+                            " f." + Score.SCORE.getName() + " >= " + Score._TABLE.getName() + "." + Score.SCORE.getName() +
+                            " ) <= 2 ", Score._TABLE).orderBy(Score.ID_AUTHOR.desc()).orderBy(Score.SCORE.desc()).all();
             assertEquals(4, scores.size());
             assertEquals(scores.get(0).getAuthor(), author2);
             assertEquals(scores.get(1).getAuthor(), author2);
@@ -425,7 +414,6 @@ public class QueryTest {
             fail(StringUtil.getStackTrace(e));
         }
     }
-
 
 
     @Test

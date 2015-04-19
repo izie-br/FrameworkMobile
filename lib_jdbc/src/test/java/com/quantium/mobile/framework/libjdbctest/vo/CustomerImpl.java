@@ -1,23 +1,18 @@
 package com.quantium.mobile.framework.libjdbctest.vo;
 
-import java.util.Date;
+import com.quantium.mobile.framework.libjdbctest.gen.AbstractCustomer;
 import com.quantium.mobile.framework.query.QuerySet;
 
-import com.quantium.mobile.framework.libjdbctest.vo.Document;
-import com.quantium.mobile.framework.libjdbctest.gen.DocumentEditable;
-import com.quantium.mobile.framework.libjdbctest.gen.AbstractCustomer;
-
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
-public class CustomerImpl extends AbstractCustomer
-{
+public class CustomerImpl extends AbstractCustomer {
 
     public static final long serialVersionUID = AbstractCustomer.publicSerialVersionUID;
 
-    public CustomerImpl () {
+    public CustomerImpl() {
         super();
     }
 
-    public CustomerImpl (
+    public CustomerImpl(
             String _id, String _name, QuerySet<Document> _DocumentDocuments) {
         setId(_id);
         setName(_name);

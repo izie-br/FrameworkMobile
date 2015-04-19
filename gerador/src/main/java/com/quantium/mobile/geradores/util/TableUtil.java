@@ -6,14 +6,14 @@ import com.quantium.mobile.geradores.javabean.Property;
 
 public class TableUtil {
 
-	public static Table tableForModelSchema (ModelSchema modelSchema) {
-		Table newtable = new Table (modelSchema.getName ());
-		for (Property prop : modelSchema.getProperties ()) {
-			newtable.addColumn (
-					prop.getPropertyClass (), prop.getNome (),
-					prop.getConstraints ());
-		}
-		return newtable;
-	}
+    public static Table tableForModelSchema(ModelSchema modelSchema) {
+        Table newtable = new Table(modelSchema.getName());
+        for (Property prop : modelSchema.getProperties()) {
+            newtable.addColumn(
+                    prop.getPropertyClass(), prop.getNome(),
+                    prop.getConstraints());
+        }
+        return newtable;
+    }
 
 }

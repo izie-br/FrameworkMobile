@@ -1,12 +1,11 @@
 package com.quantium.mobile.framework.libtests;
 
-import static org.junit.Assert.*;
+import com.quantium.mobile.framework.utils.DateUtil;
+import org.junit.Test;
 
 import java.util.Date;
 
-import org.junit.Test;
-
-import com.quantium.mobile.framework.utils.DateUtil;
+import static org.junit.Assert.assertEquals;
 
 public class DateUtilsTest {
 

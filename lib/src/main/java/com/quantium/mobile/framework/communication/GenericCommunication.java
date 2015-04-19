@@ -1,252 +1,242 @@
 package com.quantium.mobile.framework.communication;
 
 
-import java.io.IOException;
-import java.net.URI;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.codec.EncoderException;
 import org.apache.commons.codec.net.URLCodec;
 import org.apache.http.HttpEntityEnclosingRequest;
 import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpDelete;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.client.methods.HttpPut;
-import org.apache.http.client.methods.HttpRequestBase;
+import org.apache.http.client.methods.*;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.HttpConnectionParams;
 import org.apache.http.params.HttpParams;
 
-import com.quantium.mobile.framework.logging.LogPadrao;
+import java.io.IOException;
+import java.net.URI;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 
 
 public abstract class GenericCommunication implements Communication {
 
-	protected static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
-//	private static final int DEFAULT_BUFFER = 1024;
-	protected static final int CONNECTION_RETRY_COUNT = 5;
-	private static final int SO_TIMEOUT = 90000;
-	private static final int CONNECTION_TIMEOUT = 15000;
-	protected static final String USER_AGENT = "quantium_mobile";
-
-	public static final byte GET = 0;
-	public static final byte POST = 1;
-	public static final byte PUT = 2;
-	public static final byte DELETE = 3;
+    public static final byte GET = 0;
+    public static final byte POST = 1;
+    public static final byte PUT = 2;
+    public static final byte DELETE = 3;
+    protected static final String DEFAULT_CONTENT_TYPE = "application/x-www-form-urlencoded";
+    //	private static final int DEFAULT_BUFFER = 1024;
+    protected static final int CONNECTION_RETRY_COUNT = 5;
+    protected static final String USER_AGENT = "quantium_mobile";
+    private static final int SO_TIMEOUT = 90000;
+    private static final int CONNECTION_TIMEOUT = 15000;
 //	private static final String UNABLE_TO_CREATE_EXISTING_FILE =
 //			"UNABLE_TO_CREATE_EXISTING_FILE";
+    private static boolean connected = true;
+    private static ConnectionStatusChangeListener connectionListeners[];
+    private ParametersSerializer serializer =
+            new IndexedKeyParametersSerializer("%1$s[%2$s]");
+    private String contentType = DEFAULT_CONTENT_TYPE;
 
-	private static boolean connected = true;
-	private static ConnectionStatusChangeListener connectionListeners[];
-	private ParametersSerializer serializer =
-			new IndexedKeyParametersSerializer("%1$s[%2$s]");
-	private String contentType = DEFAULT_CONTENT_TYPE;
+    /**
+     * Retorna o estado da conexao
+     *
+     * @return
+     */
+    public static boolean isConnected() {
+        return connected;
+    }
 
-	/**
-	 * Retorna o estado da conexao
-	 * 
-	 * @return
-	 */
-	public static boolean isConnected() {
-		return connected;
-	}
+    /**
+     * Setter de estado da conexao. Executa os listeners de alteracao de estado
+     * de conexao
+     */
+    public static void setConnected(boolean connected) {
+        // se nao ha mudanca: return
+        if (connected == GenericCommunication.connected)
+            return;
+        GenericCommunication.connected = connected;
+        // se nao ha listeners, retorna
+        if (connectionListeners == null)
+            return;
+        // execucao dos listeners
+        for (ConnectionStatusChangeListener listener : connectionListeners) {
+            if (connected)
+                listener.onConnected();
+            else
+                listener.onDisconnected();
+        }
+    }
 
-	/**
-	 * Setter de estado da conexao. Executa os listeners de alteracao de estado
-	 * de conexao
-	 */
-	public static void setConnected(boolean connected) {
-		// se nao ha mudanca: return
-		if (connected == GenericCommunication.connected)
-			return;
-		GenericCommunication.connected = connected;
-		// se nao ha listeners, retorna
-		if (connectionListeners == null)
-			return;
-		// execucao dos listeners
-		for (ConnectionStatusChangeListener listener : connectionListeners) {
-			if (connected)
-				listener.onConnected();
-			else
-				listener.onDisconnected();
-		}
-	}
-
-	public static void addConnectionStatusChangeListener(ConnectionStatusChangeListener listener) {
-		int oldSize = connectionListeners == null ? 0 : connectionListeners.length;
-		ConnectionStatusChangeListener old[] = connectionListeners;
-		connectionListeners = new ConnectionStatusChangeListener[ oldSize+1 ];
+    public static void addConnectionStatusChangeListener(ConnectionStatusChangeListener listener) {
+        int oldSize = connectionListeners == null ? 0 : connectionListeners.length;
+        ConnectionStatusChangeListener old[] = connectionListeners;
+        connectionListeners = new ConnectionStatusChangeListener[oldSize + 1];
 //		for(int i=0;i<size;i++)
 //			mecListeners[i] = old[i];
-		System.arraycopy(old, 0, connectionListeners, 0, oldSize);
-		connectionListeners[oldSize] = listener;
-	}
+        System.arraycopy(old, 0, connectionListeners, 0, oldSize);
+        connectionListeners[oldSize] = listener;
+    }
 
-	public abstract String getAcceptHeader();
-	public abstract Map<String, Object> getParameters();
-	public abstract void setParameter(String key, Object value);
+    private static HttpRequestBase requestForMethod(byte method) {
+        if (method == GET)
+            return new HttpGet();
+        if (method == PUT)
+            return new HttpPut();
+        if (method == POST)
+            return new HttpPost();
+        if (method == DELETE)
+            return new HttpDelete();
+        throw new RuntimeException();
+    }
 
-	public String getUserAgent(){
-		return USER_AGENT;
-	}
+    public abstract String getAcceptHeader();
 
-	public int getConnectionTimeout() {
-		return CONNECTION_TIMEOUT;
-	}
+    public abstract Map<String, Object> getParameters();
 
-	public int getSoTimeout() {
-		return SO_TIMEOUT;
-	}
+    public abstract void setParameter(String key, Object value);
 
-	public String getContentType() {
-		return contentType;
-	}
+    public String getUserAgent() {
+        return USER_AGENT;
+    }
 
-	public void setContentType(String contentType) {
-		this.contentType = contentType;
-	}
+    public int getConnectionTimeout() {
+        return CONNECTION_TIMEOUT;
+    }
 
-	public ParametersSerializer getParameterSerializer(){
-		return serializer;
-	}
+    public int getSoTimeout() {
+        return SO_TIMEOUT;
+    }
 
-	public void setParameterSerializer(ParametersSerializer s){
-		this.serializer = s;
-	}
+    public String getContentType() {
+        return contentType;
+    }
 
-	protected HttpResponse get(String url, Map<String, Object> parametros)
-			throws IOException
-	{
-		HttpResponse response = execute(GET, url, parametros);
-		return response;
-	}
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
 
-	protected HttpResponse post(String url, Map<String, Object> parametros)
-	throws IOException
-	{
-		HttpResponse response = execute(POST, url, parametros);
-		return response;
-	}
+    public ParametersSerializer getParameterSerializer() {
+        return serializer;
+    }
 
-	protected HttpResponse put(String url, Map<String, Object> parametros)
-	throws IOException
-	{
-		HttpResponse response = execute(PUT, url, parametros);
-		return response;
-	}
-	
-	protected HttpResponse delete(String url, Map<String, Object> parametros)
-	throws IOException
-	{
-		HttpResponse response = execute(DELETE, url, parametros);
-		return response;
-	}	
-	protected HttpResponse execute(byte method, String url,
-			Map<String, Object> parametros)
-			throws IOException
-	{
-		if(url == null){
-			throw new IllegalArgumentException("URL cannot be null");
-		}
-		HttpResponse response = null;
+    public void setParameterSerializer(ParametersSerializer s) {
+        this.serializer = s;
+    }
 
-		try {
-			HttpParams httpParameters = new BasicHttpParams();
-			HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
-			HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
-			HttpClient httpclient = getHttpClient(httpParameters);
-			String contentType = getContentType();
+    protected HttpResponse get(String url, Map<String, Object> parametros)
+            throws IOException {
+        HttpResponse response = execute(GET, url, parametros);
+        return response;
+    }
 
-			HttpRequestBase httpRequest = requestForMethod(method);
-			httpRequest.setURI(URI.create(url));
-			httpRequest.setHeader("User-Agent", getUserAgent());
-			httpRequest.setHeader("Accept", getAcceptHeader());
-			ParametersSerializer serializer = getParameterSerializer();
-			setRequestParameters(method, httpRequest, parametros, contentType, serializer);
+    protected HttpResponse post(String url, Map<String, Object> parametros)
+            throws IOException {
+        HttpResponse response = execute(POST, url, parametros);
+        return response;
+    }
 
-			response = httpclient.execute(httpRequest);
-		} catch (IOException e) {
-			GenericCommunication.setConnected(false);
-			throw e;
-		} catch (Exception e){
-			throw new RuntimeException(e);
-		}
-		GenericCommunication.setConnected(true);
-		return response;
-	}
+    protected HttpResponse put(String url, Map<String, Object> parametros)
+            throws IOException {
+        HttpResponse response = execute(PUT, url, parametros);
+        return response;
+    }
 
-	public HttpClient getHttpClient(HttpParams httpParameters) {
-		HttpClient httpclient = new DefaultHttpClient(httpParameters);
-		return httpclient;
-	}
+    protected HttpResponse delete(String url, Map<String, Object> parametros)
+            throws IOException {
+        HttpResponse response = execute(DELETE, url, parametros);
+        return response;
+    }
 
-	protected void setRequestParameters(
-			byte method, HttpRequestBase httpRequest,
-			Map<String, Object> parametros, String contentType,
-			ParametersSerializer serializer)
-			throws Exception {
-		switch(method){
-		case GET:
-		case PUT:
-		case DELETE:
-			HttpRequestBase httpGet = (HttpRequestBase)httpRequest;
-			URI uri = httpGet.getURI();
-			String url = String.format(
-					"%s://%s%s",
-					uri.getScheme(), uri.getAuthority(), uri.getPath());
-			StringBuilder urlAndQstr = new StringBuilder(url);
-			boolean first = true;
-			URLCodec codec = new URLCodec();
-			if (parametros != null) {
-				List<NameValuePair> paramlist = serializer.serialize(parametros);
-				Iterator<NameValuePair> iterator = paramlist.iterator();
-				while (iterator.hasNext()) {
-					NameValuePair pair = iterator.next();
-					String chave = pair.getName();
-					String valor = pair.getValue();
-					if (chave == null || valor == null)
-						continue;
-					//
-					urlAndQstr.append( (first)? '?' : '&');
-					first = false;
-					//
-					try {
-						urlAndQstr.append(codec.encode(chave));
-						urlAndQstr.append('=');
-						urlAndQstr.append(codec.encode(valor));
-					} catch (EncoderException e) {
-						throw new RuntimeException(e);
-					}
-				}
-			}
-			httpGet.setURI(URI.create(urlAndQstr.toString()));
-			break;
-		default:
-			HttpEntityEnclosingRequest httpPost = (HttpEntityEnclosingRequest)httpRequest;
-			httpPost.setHeader("Content-Type", contentType);
-			if (parametros != null) {
-				httpPost.setEntity(serializer.getEntity(parametros));
-			}
-		}
-	}
+    protected HttpResponse execute(byte method, String url,
+                                   Map<String, Object> parametros)
+            throws IOException {
+        if (url == null) {
+            throw new IllegalArgumentException("URL cannot be null");
+        }
+        HttpResponse response = null;
 
-	private static HttpRequestBase requestForMethod(byte method){
-		if (method == GET)
-			return new HttpGet();
-		if (method == PUT)
-			return new HttpPut();
-		if (method == POST )
-			return new HttpPost();
-		if (method == DELETE)
-			return new HttpDelete();
-		throw new RuntimeException();
-	}
+        try {
+            HttpParams httpParameters = new BasicHttpParams();
+            HttpConnectionParams.setConnectionTimeout(httpParameters, getConnectionTimeout());
+            HttpConnectionParams.setSoTimeout(httpParameters, getSoTimeout());
+            HttpClient httpclient = getHttpClient(httpParameters);
+            String contentType = getContentType();
+
+            HttpRequestBase httpRequest = requestForMethod(method);
+            httpRequest.setURI(URI.create(url));
+            httpRequest.setHeader("User-Agent", getUserAgent());
+            httpRequest.setHeader("Accept", getAcceptHeader());
+            ParametersSerializer serializer = getParameterSerializer();
+            setRequestParameters(method, httpRequest, parametros, contentType, serializer);
+
+            response = httpclient.execute(httpRequest);
+        } catch (IOException e) {
+            GenericCommunication.setConnected(false);
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        GenericCommunication.setConnected(true);
+        return response;
+    }
+
+    public HttpClient getHttpClient(HttpParams httpParameters) {
+        HttpClient httpclient = new DefaultHttpClient(httpParameters);
+        return httpclient;
+    }
+
+    protected void setRequestParameters(
+            byte method, HttpRequestBase httpRequest,
+            Map<String, Object> parametros, String contentType,
+            ParametersSerializer serializer)
+            throws Exception {
+        switch (method) {
+            case GET:
+            case PUT:
+            case DELETE:
+                HttpRequestBase httpGet = (HttpRequestBase) httpRequest;
+                URI uri = httpGet.getURI();
+                String url = String.format(
+                        "%s://%s%s",
+                        uri.getScheme(), uri.getAuthority(), uri.getPath());
+                StringBuilder urlAndQstr = new StringBuilder(url);
+                boolean first = true;
+                URLCodec codec = new URLCodec();
+                if (parametros != null) {
+                    List<NameValuePair> paramlist = serializer.serialize(parametros);
+                    Iterator<NameValuePair> iterator = paramlist.iterator();
+                    while (iterator.hasNext()) {
+                        NameValuePair pair = iterator.next();
+                        String chave = pair.getName();
+                        String valor = pair.getValue();
+                        if (chave == null || valor == null)
+                            continue;
+                        //
+                        urlAndQstr.append((first) ? '?' : '&');
+                        first = false;
+                        //
+                        try {
+                            urlAndQstr.append(codec.encode(chave));
+                            urlAndQstr.append('=');
+                            urlAndQstr.append(codec.encode(valor));
+                        } catch (EncoderException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                }
+                httpGet.setURI(URI.create(urlAndQstr.toString()));
+                break;
+            default:
+                HttpEntityEnclosingRequest httpPost = (HttpEntityEnclosingRequest) httpRequest;
+                httpPost.setHeader("Content-Type", contentType);
+                if (parametros != null) {
+                    httpPost.setEntity(serializer.getEntity(parametros));
+                }
+        }
+    }
 
 //	public static boolean downloadFile(
 //			String urlString, String path, String arquivo,

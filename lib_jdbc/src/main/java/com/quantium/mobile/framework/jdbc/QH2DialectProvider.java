@@ -1,20 +1,20 @@
 package com.quantium.mobile.framework.jdbc;
 
-import java.util.List;
-
 import com.quantium.mobile.framework.query.AbstractQSQLProvider;
 import com.quantium.mobile.framework.query.Q;
 import com.quantium.mobile.framework.query.Table;
 import com.quantium.mobile.framework.query.Table.Column;
 import com.quantium.mobile.framework.utils.ValueParser;
 
+import java.util.List;
+
 public class QH2DialectProvider extends AbstractQSQLProvider {
 
-	public QH2DialectProvider(Q q) {
+    public QH2DialectProvider(Q q) {
         super(q, new ValueParser());
     }
-	
-	public QH2DialectProvider(Q q, ValueParser parser) {
+
+    public QH2DialectProvider(Q q, ValueParser parser) {
         super(q, parser);
     }
 
@@ -29,8 +29,8 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
 //                         // se nao ha alias
 //                        ""
 //                ) + column.getName();
-      String columnNameWithTable = tableAs + '.' + column.getName();
-            return columnNameWithTable;
+        String columnNameWithTable = tableAs + '.' + column.getName();
+        return columnNameWithTable;
     }
 
     @Override
@@ -41,17 +41,16 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
 
     @Override
     protected void limitOffsetOut(long limit, long offset,
-                                  StringBuilder selectStatement)
-    {
+                                  StringBuilder selectStatement) {
         if (limit <= 0)
             limit = -1;
         String limitStr =
                 (offset > 0) ?
                         String.format(" LIMIT %d OFFSET %d", limit, offset) :
-                (limit > 0) ?
-                        String.format(" LIMIT %d", limit):
-                //(limit == 0 && offset == 0) ?
-                        "";
+                        (limit > 0) ?
+                                String.format(" LIMIT %d", limit) :
+                                //(limit == 0 && offset == 0) ?
+                                "";
         selectStatement.append(limitStr);
     }
 
@@ -63,15 +62,14 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
     @Override
     protected void outputQNode1X1(
             Q.QNode1X1 node, Table table, StringBuilder sb,
-            List<Object> args)
-    {
-        if (node.op().equals(Q.Op1x1.GLOB)){
+            List<Object> args) {
+        if (node.op().equals(Q.Op1x1.GLOB)) {
             Object arg = node.getArg();
-            if (arg instanceof String){
+            if (arg instanceof String) {
                 Column<?> column = node.column();
                 sb.append(getColumnForWhere(column.getTable().getName(), column));
                 sb.append(" REGEXP ?");
-                String pattern = globPatternToRegex((String)arg);
+                String pattern = globPatternToRegex((String) arg);
                 args.add(pattern);
             }
         } else {
@@ -79,57 +77,57 @@ public class QH2DialectProvider extends AbstractQSQLProvider {
         }
     }
 
-    private String globPatternToRegex(String glob){
-        StringBuilder sb = new StringBuilder(2*glob.length());
+    private String globPatternToRegex(String glob) {
+        StringBuilder sb = new StringBuilder(2 * glob.length());
 
         // Escape torna-se true ao encontrar um '\'
         boolean escapeNext = false;
 
-        for (int i = 0; i < glob.length(); i++){
+        for (int i = 0; i < glob.length(); i++) {
             char c = glob.charAt(i);
-            switch (c){
-            case '[':
-                if (escapeNext) {
-                    sb.append("\\[");
-                } else {
-                    sb.append('[');
-                    escapeNext = true;
-                }
-                break;
-            case ']':
-                if (escapeNext) {
-                    escapeNext = false;
-                    sb.append(']');
-                } else {
-                    sb.append("\\]");
-                }
-                break;
-            case '*':
-                if (escapeNext)
-                    sb.append("\\*");
-                else
-                    sb.append(".*");
-                break;
-            case '?':
-                if (escapeNext)
-                    sb.append("\\?");
-                else
-                    sb.append(".");
-                break;
-            // Escapar estes .^$+-(){}
-            case '.':
-            case '^':
-            case '$':
-            case '+':
-            case '-':
-            case '(':
-            case ')':
-            case '{':
-            case '}':
-                sb.append("\\");
+            switch (c) {
+                case '[':
+                    if (escapeNext) {
+                        sb.append("\\[");
+                    } else {
+                        sb.append('[');
+                        escapeNext = true;
+                    }
+                    break;
+                case ']':
+                    if (escapeNext) {
+                        escapeNext = false;
+                        sb.append(']');
+                    } else {
+                        sb.append("\\]");
+                    }
+                    break;
+                case '*':
+                    if (escapeNext)
+                        sb.append("\\*");
+                    else
+                        sb.append(".*");
+                    break;
+                case '?':
+                    if (escapeNext)
+                        sb.append("\\?");
+                    else
+                        sb.append(".");
+                    break;
+                // Escapar estes .^$+-(){}
+                case '.':
+                case '^':
+                case '$':
+                case '+':
+                case '-':
+                case '(':
+                case ')':
+                case '{':
+                case '}':
+                    sb.append("\\");
                 /* fall through */
-            default:
-                sb.append(c);
+                default:
+                    sb.append(c);
             }
         }
         return sb.toString();

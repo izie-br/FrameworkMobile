@@ -2,14 +2,14 @@ package com.quantium.mobile.framework.libandroidtest.server;
 
 import javax.servlet.annotation.WebServlet;
 
-@WebServlet(urlPatterns={"/array"})
+@WebServlet(urlPatterns = {"/array"})
 public class ArrayServlet extends ServerBeanServlet {
 
-	private static final long serialVersionUID = 5653223812303538298L;
+    private static final long serialVersionUID = 5653223812303538298L;
 
-	@Override
-	public BaseServerBean getServerBean() {
-		return new Array();
-	}
+    @Override
+    public BaseServerBean getServerBean() {
+        return new Array();
+    }
 
 }

@@ -1,27 +1,26 @@
 package com.quantium.mobile.framework.libandroidtest;
 
+import com.quantium.mobile.framework.MapSerializable;
+
 import java.util.Date;
 import java.util.Map;
 
-import com.quantium.mobile.framework.MapSerializable;
-import com.quantium.mobile.framework.libandroidtest.GenericBean;
+public class User extends GenericBean implements MapSerializable {
 
-public class User extends GenericBean implements MapSerializable{
-
+    private final static long serialVersionUID = 7870516583328777653L;
     long id = 0;
     boolean active;
     String name;
     Date createdAt;
 
-    private final static long serialVersionUID = 7870516583328777653L;
-
-    public User(){}
+    public User() {
+    }
 
     public User(
-        long id,
-        boolean active,
-        String name,
-        Date createdAt
+            long id,
+            boolean active,
+            String name,
+            Date createdAt
     ) {
         this.id = id;
         this.active = active;
@@ -29,7 +28,7 @@ public class User extends GenericBean implements MapSerializable{
         this.createdAt = createdAt;
     }
 
-    public long getId () {
+    public long getId() {
         return id;
     }
 
@@ -38,7 +37,7 @@ public class User extends GenericBean implements MapSerializable{
         triggerObserver("id");
     }
 
-    public boolean isActive () {
+    public boolean isActive() {
         return active;
     }
 
@@ -47,7 +46,7 @@ public class User extends GenericBean implements MapSerializable{
         triggerObserver("active");
     }
 
-    public String getName () {
+    public String getName() {
         return name;
     }
 
@@ -56,7 +55,7 @@ public class User extends GenericBean implements MapSerializable{
         triggerObserver("name");
     }
 
-    public Date getCreatedAt () {
+    public Date getCreatedAt() {
         return createdAt;
     }
 
@@ -78,7 +77,7 @@ public class User extends GenericBean implements MapSerializable{
     @Override
     public int hashCodeImpl() {
         int value = 1;
-        value +=(int) id;
+        value += (int) id;
         value += (active) ? 1 : 0;
         value *= (name == null) ? 1 : name.hashCode();
         value *= (createdAt == null) ? 1 : createdAt.hashCode();
@@ -90,17 +89,17 @@ public class User extends GenericBean implements MapSerializable{
         if (obj == null) {
             return false;
         }
-        if ( !(obj instanceof User) ) {
+        if (!(obj instanceof User)) {
             return false;
         }
         User other = ((User) obj);
-        if(id != other.getId())
+        if (id != other.getId())
             return false;
-        if(active != other.isActive())
+        if (active != other.isActive())
             return false;
-        if( ( name==null)? (other.getName() != null) :  !name.equals(other.getName()) )
+        if ((name == null) ? (other.getName() != null) : !name.equals(other.getName()))
             return false;
-        if( ( createdAt==null)? (other.getCreatedAt() != null) :  !createdAt.equals(other.getCreatedAt()) )
+        if ((createdAt == null) ? (other.getCreatedAt() != null) : !createdAt.equals(other.getCreatedAt()))
             return false;
         return true;
     }

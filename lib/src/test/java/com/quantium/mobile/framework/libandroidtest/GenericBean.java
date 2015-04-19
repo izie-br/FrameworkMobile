@@ -9,16 +9,16 @@ import java.util.Map;
 public abstract class GenericBean implements Serializable, GenericVO {
 
     /* (non-Javadoc)
-	 * @see com.quantium.mobile.framework.test.GenericVO#toMap(java.util.Map)
+     * @see com.quantium.mobile.framework.test.GenericVO#toMap(java.util.Map)
 	 */
     @Override
-	public abstract void toMap(Map<String,Object> map);
+    public abstract void toMap(Map<String, Object> map);
 
     /* (non-Javadoc)
 	 * @see com.quantium.mobile.framework.test.GenericVO#toMap()
 	 */
     @Override
-	public Map<String,Object> toMap(){
+    public Map<String, Object> toMap() {
         HashMap<String, Object> map = new HashMap<String, Object>();
         toMap(map);
         return map;
@@ -28,18 +28,20 @@ public abstract class GenericBean implements Serializable, GenericVO {
 	 * @see com.quantium.mobile.framework.test.GenericVO#triggerObserver(java.lang.String)
 	 */
     @Override
-	public void triggerObserver(String column){}
+    public void triggerObserver(String column) {
+    }
 
     /* (non-Javadoc)
 	 * @see com.quantium.mobile.framework.test.GenericVO#hashCodeImpl()
 	 */
     @Override
-	public abstract int hashCodeImpl();
+    public abstract int hashCodeImpl();
+
     /* (non-Javadoc)
 	 * @see com.quantium.mobile.framework.test.GenericVO#equalsImpl(java.lang.Object)
 	 */
     @Override
-	public abstract boolean equalsImpl(Object obj);
+    public abstract boolean equalsImpl(Object obj);
 
     @Override
     public int hashCode() {

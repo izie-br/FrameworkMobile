@@ -4,6 +4,6 @@ import java.io.IOException;
 
 public interface PrimaryKeyUpdater<T> {
 
-	public void updatePrimaryKey(T target, Object newPrimaryKey) throws IOException;
+    public void updatePrimaryKey(T target, Object newPrimaryKey) throws IOException;
 
 }

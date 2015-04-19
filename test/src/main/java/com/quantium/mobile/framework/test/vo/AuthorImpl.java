@@ -1,36 +1,33 @@
 package com.quantium.mobile.framework.test.vo;
 
-import java.util.Date;
 import com.quantium.mobile.framework.query.QuerySet;
-
-import com.quantium.mobile.framework.test.vo.Score;
-import com.quantium.mobile.framework.test.gen.ScoreEditable;
 import com.quantium.mobile.framework.test.document.vo.Document;
-import com.quantium.mobile.framework.test.document.gen.DocumentEditable;
 import com.quantium.mobile.framework.test.gen.AbstractAuthor;
+import com.quantium.mobile.framework.test.vo.Score;
+
+import java.util.Date;
 
 @SuppressWarnings("unused") /* remova este SuppressWarnings ao editar este arquivo */
-public class AuthorImpl extends AbstractAuthor
-{
+public class AuthorImpl extends AbstractAuthor {
 
     public static final long serialVersionUID = AbstractAuthor.publicSerialVersionUID;
 
-    public AuthorImpl () {
+    public AuthorImpl() {
         super();
     }
 
-    public AuthorImpl (
+    public AuthorImpl(
             String _id, Date _createdAt, Date _inactivatedAt,
             Date _lastModified, String _name, boolean _active,
             QuerySet<Document> _AuthorDocuments, QuerySet<Score> _AuthorScores) {
-    	setId(_id);
+        setId(_id);
         setName(_name);
         setActive(_active);
         setAuthorDocuments(_AuthorDocuments);
         setAuthorScores(_AuthorScores);
         setCreatedAt(_createdAt);
-    	setInactivatedAt(_inactivatedAt);
-    	setLastModified(_lastModified);
+        setInactivatedAt(_inactivatedAt);
+        setLastModified(_lastModified);
     }
 }
 

@@ -1,22 +1,18 @@
 package com.quantium.mobile.framework.query;
 
+import com.quantium.mobile.framework.query.Table.Column;
+import com.quantium.mobile.framework.utils.StringUtil;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
-
-import com.quantium.mobile.framework.query.Table.Column;
-import com.quantium.mobile.framework.utils.StringUtil;
 
 /**
  * Classe geradora de querystrings.
  */
 public final class Q {
 
-    /**
-	 * 
-	 */
-	private static final long serialVersionUID = 2405204956251092532L;
-	public static final OrderByAsc ASC = OrderByAsc.ASC;
+    public static final OrderByAsc ASC = OrderByAsc.ASC;
     public static final OrderByAsc DESC = OrderByAsc.DESC;
     public static final GroupByFunction SUM = GroupByFunction.SUM;
     public static final GroupByFunction AVG = GroupByFunction.AVG;
@@ -24,6 +20,10 @@ public final class Q {
     public static final GroupByFunction MAX = GroupByFunction.MAX;
     public static final GroupByFunction COUNT = GroupByFunction.COUNT;
     public static final GroupByFunction CUSTOM = GroupByFunction.CUSTOM;
+    /**
+     *
+     */
+    private static final long serialVersionUID = 2405204956251092532L;
     private Table table;
     // pode ser NULL
     private ArrayList<Join> joins;
@@ -33,9 +33,10 @@ public final class Q {
 
     /**
      * Busca simples por tabela sem filtros.
+     *
      * @param table tabela
      */
-    public Q (Table table) {
+    public Q(Table table) {
         this.table = table;
     }
 
@@ -45,15 +46,15 @@ public final class Q {
      * <p>Exemplo: &quot;id = ?&quot;, com argumento long &quot;1&quot;</p>
      *
      * @param colum coluna
-     * @param op operador Op1x1
-     * @param arg argumento
+     * @param op    operador Op1x1
+     * @param arg   argumento
      */
-    public <T> Q (Table.Column<T> column, Op1x1 op, T arg){
+    public <T> Q(Table.Column<T> column, Op1x1 op, T arg) {
         this.table = column.getTable();
         init1x1(column, op, arg);
     }
 
-    public <T> Q (Table.Column<T> column, Op1xN op, Collection<T> args){
+    public <T> Q(Table.Column<T> column, Op1xN op, Collection<T> args) {
         this.table = column.getTable();
         QNode1xN node = new QNode1xN();
         node.column = column;
@@ -68,34 +69,29 @@ public final class Q {
         this.root = node;
     }
 
-    private <T> void init1x1(Table.Column<T> column, Op1x1 op, Object arg) {
-        QNode1X1 node = new QNode1X1(column, op, arg);
-        this.root = node;
-    }
-
     /**
      * <p>
-     *   Gera uma queryString &quot;column1 op coluna2&quot; ou então um
-     *   &quot;inner join table2 on table1.column1 op table2.coluna2&quot;.
+     * Gera uma queryString &quot;column1 op coluna2&quot; ou então um
+     * &quot;inner join table2 on table1.column1 op table2.coluna2&quot;.
      * </p>
      *
-     * @param colum coluna
-     * @param op operador Op1x1
+     * @param colum       coluna
+     * @param op          operador Op1x1
      * @param otherColumn outra coluna
      */
-    public <T> Q (
-        Table.Column<T> column,
-        Op1x1 op,
-        Table.Column<?> otherColumn
-    ){
+    public <T> Q(
+            Table.Column<T> column,
+            Op1x1 op,
+            Table.Column<?> otherColumn
+    ) {
         this.table = column.getTable();
-        if ( otherColumn.getTable().equals(this.table) ) {
+        if (otherColumn.getTable().equals(this.table)) {
             init1x1(column, op, otherColumn);
         } else {
             Join join = null;
-            if(op.equals(Op1x1.EQ)){
+            if (op.equals(Op1x1.EQ)) {
                 join = new InnerJoin();
-            }else{
+            } else {
                 join = new LeftJoin();
             }
             join.column = column;
@@ -109,11 +105,11 @@ public final class Q {
      * <p>Gera uma queryString &quot;column op&quot;</p>
      *
      * @param colum coluna
-     * @param op operador OpUnary
+     * @param op    operador OpUnary
      */
-    public Q (Table.Column<?> column, OpUnary op) {
+    public Q(Table.Column<?> column, OpUnary op) {
         this.table = column.getTable();
-        QNodeUnary node = new QNodeUnary ();
+        QNodeUnary node = new QNodeUnary();
         node.column = column;
         node.op = op;
         this.root = node;
@@ -123,7 +119,7 @@ public final class Q {
      * Força agrupamento em um fragmento querystring, envolvendo-o com
      * perênteses.
      */
-    public Q (Q q){
+    public Q(Q q) {
         this.table = q.table;
         if (q.joins != null)
             this.joins = new ArrayList<Join>(q.joins);
@@ -138,11 +134,11 @@ public final class Q {
      * Usa o operador NOT em um fragmento querystring, envolvendo-o com
      * perênteses.
      */
-    public static Q not (Q q){
+    public static Q not(Q q) {
         Q out = new Q(q);
         // alterar se o o construtor "Q (Q)" for alterado
         if (q.root != null)
-            ((QNodeGroup)out.root).notOp = true;
+            ((QNodeGroup) out.root).notOp = true;
         return out;
     }
 
@@ -150,12 +146,12 @@ public final class Q {
      * <p>Faz a busca por texto com operador LIKE.</p>
      * <p>Exemplo: &quot;colunm LIKE ?&quot;</p>
      *
-     * @param colum coluna
+     * @param colum   coluna
      * @param pattern expressao
      */
     @SuppressWarnings("unchecked")
-	public static Q like ( Table.Column<?> column, String pattern) {
-        return new Q((Table.Column<Object>)column, Op1x1.LIKE, pattern);
+    public static Q like(Table.Column<?> column, String pattern) {
+        return new Q((Table.Column<Object>) column, Op1x1.LIKE, pattern);
     }
 
     /**
@@ -182,11 +178,41 @@ public final class Q {
      *
      *         abc[*]xyz        Matches "abc*xyz" only
      * </pre>
-     * @param colum coluna
+     *
+     * @param colum   coluna
      * @param pattern expressao
      */
-    public static Q glob ( Table.Column<String> column, String pattern) {
+    public static Q glob(Table.Column<String> column, String pattern) {
         return new Q(column, Op1x1.GLOB, pattern);
+    }
+
+    private static Q mergeQs(Q q1, ChainOp op, Q q2) {
+        Q out = new Q(q1.table);
+        if (q1.joins != null)
+            out.joins = new ArrayList<Q.Join>(q1.joins);
+
+        if (q1.root != null && q2.root != null) {
+            QNodeGroup outRoot = new QNodeGroup();
+            outRoot.node = q1.root.clone();
+            if (q1.root instanceof QNodeGroup && ((QNodeGroup) q1.root).next != null) {
+                QNodeGroup group = new QNodeGroup();
+                group.node = out.root;
+                out.root = group;
+            }
+            outRoot.nextOp = op;
+            outRoot.next = q2.root.clone();
+            out.root = outRoot;
+        } else if (q1.root != null) {
+            out.root = q1.root.clone();
+        } else if (q2.root != null) {
+            out.root = q2.root.clone();
+        }
+        if (out.joins == null) {
+            out.joins = q2.joins;
+        } else if (q2.joins != null) {
+            out.joins.addAll(q2.joins);
+        }
+        return out;
     }
 
     /*
@@ -201,82 +227,138 @@ public final class Q {
     }
      */
 
+    private <T> void init1x1(Table.Column<T> column, Op1x1 op, Object arg) {
+        QNode1X1 node = new QNode1X1(column, op, arg);
+        this.root = node;
+    }
+
     /**
      * Combina dois fragmentos de querystring usando o operador AND.
      */
-    public Q and (Q q) {
-        return mergeQs (this, ChainOp.AND, q);
+    public Q and(Q q) {
+        return mergeQs(this, ChainOp.AND, q);
     }
 
     public Q and(String rawQuery, Table table) {
-        return mergeQs (this, ChainOp.AND, new Q(rawQuery, table));
+        return mergeQs(this, ChainOp.AND, new Q(rawQuery, table));
     }
 
     /**
      * Combina dois fragmentos de querystring usando o operador OR.
      */
-    public Q or (Q q) {
-        return mergeQs (this, ChainOp.OR, q);
+    public Q or(Q q) {
+        return mergeQs(this, ChainOp.OR, q);
     }
 
-    public Q.QNode getRooNode(){
+    public Q.QNode getRooNode() {
         return this.root;
     }
 
-    public Table getTable(){
+    public Table getTable() {
         return this.table;
     }
 
-    public Collection<Q.Join> getInnerJoins(){
+    public Collection<Q.Join> getInnerJoins() {
         return this.joins;
     }
 
-
-    private ArrayList<Join> getJoins () {
+    private ArrayList<Join> getJoins() {
         if (joins == null)
             joins = new ArrayList<Join>(1);
-       return joins;
-    }
-
-    private static Q mergeQs (Q q1, ChainOp op, Q q2) {
-        Q out = new Q(q1.table);
-        if (q1.joins != null)
-            out.joins = new ArrayList<Q.Join>(q1.joins);
-
-        if (q1.root != null && q2.root != null) {
-            QNodeGroup outRoot = new QNodeGroup();
-            outRoot.node = q1.root.clone();
-            if (q1.root instanceof QNodeGroup && ((QNodeGroup)q1.root).next != null) {
-                QNodeGroup group = new QNodeGroup();
-                group.node = out.root;
-                out.root = group;
-            }
-            outRoot.nextOp = op;
-            outRoot.next = q2.root.clone();
-            out.root = outRoot;
-        } else if (q1.root != null){
-            out.root = q1.root.clone();
-        } else if (q2.root != null){
-            out.root = q2.root.clone();
-        }
-        if (out.joins == null){
-            out.joins = q2.joins;
-        } else if (q2.joins != null) {
-            out.joins.addAll(q2.joins);
-        }
-        return out;
+        return joins;
     }
 
     //Classes NODE
 
-    public static class QNode implements Serializable, Cloneable{
-        /**
-		 * 
-		 */
-		private static final long serialVersionUID = 120576936302851248L;
+    /**
+     * Operadores unarios. Operam uma coluna.
+     */
+    public static enum OpUnary {
+        ISNULL, NOTNULL;
 
-		@Override
-        protected QNode clone(){
+        public String toString() {
+            return
+                    this == ISNULL ? " IS NULL" :
+                            this == NOTNULL ? " IS NOT NULL" :
+                                    null;
+        }
+    }
+
+    /**
+     * Operadores 1x1. Operam uma coluna com outra coluna, ou coluna com
+     * uma argumento.
+     */
+    public static enum Op1x1 {
+
+        NE, EQ, EQLF, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
+
+        public String toString() throws QueryParseException {
+            return
+                    this == NE ? "<>" :
+                            this == EQ ? "=" :
+                                    this == LT ? "<" :
+                                            this == GT ? ">" :
+                                                    this == LE ? "<=" :
+                                                            this == GE ? ">=" :
+                                                                    this == LIKE ? " LIKE " :
+                                                                            this == GLOB ? " GLOB " :
+                                                                                    this == EQLF ? "=" :
+             /* this == REGEXP ? " REGEXP "; */
+                                                                                            null;
+        }
+    }
+
+    public static enum Op1xN {
+        IN, NOT_IN;
+
+        public String toString() throws QueryParseException {
+            return
+                    this == IN ? " IN " :
+                            this == NOT_IN ? " NOT IN " :
+                                    null;
+        }
+    }
+
+    public static enum ChainOp {
+        AND, OR;
+
+        public String toString() throws QueryParseException {
+            return
+                    this == AND ? " AND " :
+                            this == OR ? " OR " :
+                                    null;
+        }
+    }
+
+    public static enum OrderByAsc {
+        ASC, DESC
+    }
+
+    public static enum GroupByFunction {
+        SUM("sum(%s.%s)"), MAX("max(%s.%s)"), MIN("min(%s.%s)"), AVG("avg(%s.%s)"), COUNT("count(%s.%s)"), CUSTOM("custom");
+        private String name;
+
+        GroupByFunction(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+    }
+
+    public static class QNode implements Serializable, Cloneable {
+        /**
+         *
+         */
+        private static final long serialVersionUID = 120576936302851248L;
+
+        @Override
+        protected QNode clone() {
             QNode cloned;
             try {
                 cloned = (QNode) super.clone();
@@ -287,36 +369,36 @@ public final class Q {
         }
     }
 
-    static class QNodeGroup extends QNode implements Cloneable, Serializable{
+    static class QNodeGroup extends QNode implements Cloneable, Serializable {
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = -8180841190456747196L;
-		private QNode next;
+         *
+         */
+        private static final long serialVersionUID = -8180841190456747196L;
+        private QNode next;
         private ChainOp nextOp;
         private boolean notOp;
         private QNode node;
 
-        public QNode next(){
+        public QNode next() {
             return next;
         }
 
-        public String nextOp(){
+        public String nextOp() {
             if (next == null)
-               return null;
+                return null;
             return nextOp.toString();
         }
 
-        public boolean isNot(){
+        public boolean isNot() {
             return notOp;
         }
 
-        public QNode child(){
+        public QNode child() {
             return node;
         }
 
         @Override
-        public QNodeGroup clone(){
+        public QNodeGroup clone() {
             QNodeGroup cloned = (QNodeGroup) super.clone();
             if (node != null)
                 cloned.node = node.clone();
@@ -327,7 +409,7 @@ public final class Q {
 
     }
 
-    public static class QNodeRaw extends QNode implements Cloneable, Serializable{
+    public static class QNodeRaw extends QNode implements Cloneable, Serializable {
         /**
          *
          */
@@ -344,7 +426,7 @@ public final class Q {
         }
     }
 
-    public static class QNode1X1 extends QNode implements Cloneable, Serializable{
+    public static class QNode1X1 extends QNode implements Cloneable, Serializable {
         /**
          *
          */
@@ -360,166 +442,56 @@ public final class Q {
             this.arg = arg;
         }
 
-        public Table.Column<?> column(){
+        public Table.Column<?> column() {
             return column;
         }
 
-        public Op1x1 op(){
+        public Op1x1 op() {
             return op;
         }
 
-        public Object getArg(){
+        public Object getArg() {
             return arg;
         }
 
     }
 
-    public static class QNode1xN extends QNode implements Cloneable, Serializable{
+    public static class QNode1xN extends QNode implements Cloneable, Serializable {
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = -4799267465650790716L;
-		private Table.Column<?> column;
+         *
+         */
+        private static final long serialVersionUID = -4799267465650790716L;
+        private Table.Column<?> column;
         private Op1xN op;
         private Collection<?> args;
 
-        public Table.Column<?> column(){
+        public Table.Column<?> column() {
             return column;
         }
 
-        public Op1xN op(){
+        public Op1xN op() {
             return op;
         }
 
-        public Collection<?> getArgs(){
+        public Collection<?> getArgs() {
             return args;
         }
     }
 
     public static class QNodeUnary extends QNode implements Serializable {
         /**
-		 * 
-		 */
-		private static final long serialVersionUID = 4084040232716835337L;
-		private Table.Column<?> column;
+         *
+         */
+        private static final long serialVersionUID = 4084040232716835337L;
+        private Table.Column<?> column;
         private OpUnary op;
 
-        public Table.Column<?> column(){
+        public Table.Column<?> column() {
             return column;
         }
 
-        public OpUnary op(){
+        public OpUnary op() {
             return op;
-        }
-    }
-
-    public class Join implements Serializable {
-        /**
-		 *
-		 */
-		private static final long serialVersionUID = -2103736536036069040L;
-		private Table.Column<?> foreignColumn;
-        private Op1x1 op;
-        private Table.Column<?> column;
-
-        public Table.Column<?> getForeignKey(){
-            return foreignColumn;
-        }
-
-        public Op1x1 op(){
-            return op;
-        }
-
-        public Table.Column<?> getColumn(){
-            return column;
-        }
-    }
-
-    public class InnerJoin extends Join {
-
-    }
-
-
-    public class LeftJoin extends Join {
-
-    }
-
-    /**
-     * Operadores unarios. Operam uma coluna.
-     */
-    public static enum OpUnary {
-        ISNULL, NOTNULL;
-
-        public String toString () {
-            return
-                this == ISNULL   ?  " IS NULL"  :
-                this == NOTNULL  ?  " IS NOT NULL" :
-                null;
-        }
-    }
-
-    /**
-     * Operadores 1x1. Operam uma coluna com outra coluna, ou coluna com
-     * uma argumento.
-     */
-    public static enum Op1x1 {
-
-        NE, EQ, EQLF, LT, GT, LE, GE, LIKE, GLOB; // REGEXP;
-
-        public String toString() throws QueryParseException {
-            return
-                this == NE     ?  "<>"     :
-                this == EQ     ?  "="      :
-                this == LT     ?  "<"      :
-                this == GT     ?  ">"      :
-                this == LE     ?  "<="     :
-                this == GE     ?  ">="     :
-                this == LIKE   ?  " LIKE " :
-                this == GLOB   ?  " GLOB " :
-                this == EQLF     ?  "="      :
-             /* this == REGEXP ? " REGEXP "; */
-                null;
-        }
-    }
-
-    public static enum Op1xN {
-        IN, NOT_IN;
-        public String toString() throws QueryParseException {
-            return
-            		this == IN   ?  " IN " :
-        			this == NOT_IN   ?  " NOT IN " :
-                null;
-        }
-    }
-
-    public static enum ChainOp {
-        AND, OR;
-        public String toString() throws QueryParseException {
-            return
-                this == AND  ?  " AND " :
-                this == OR   ?  " OR "  :
-                null;
-        }
-    }
-
-    public static enum OrderByAsc {
-        ASC, DESC
-    }
-
-    public static enum GroupByFunction {
-        SUM("sum(%s.%s)"), MAX("max(%s.%s)"), MIN("min(%s.%s)"), AVG("avg(%s.%s)"), COUNT("count(%s.%s)"), CUSTOM("custom");
-        private String name;
-
-        GroupByFunction(String name){
-            this.name = name;
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public void setName(String name) {
-            this.name = name;
         }
     }
 
@@ -545,7 +517,6 @@ public final class Q {
         }
     }
 
-
     public static class GroupByClause implements Serializable {
         /**
          *
@@ -570,10 +541,40 @@ public final class Q {
         }
 
         public GroupByFunction getFunction() {
-            if(groupByFunction.equals(CUSTOM)){
+            if (groupByFunction.equals(CUSTOM)) {
                 groupByFunction.setName(custom);
             }
             return groupByFunction;
         }
+    }
+
+    public class Join implements Serializable {
+        /**
+         *
+         */
+        private static final long serialVersionUID = -2103736536036069040L;
+        private Table.Column<?> foreignColumn;
+        private Op1x1 op;
+        private Table.Column<?> column;
+
+        public Table.Column<?> getForeignKey() {
+            return foreignColumn;
+        }
+
+        public Op1x1 op() {
+            return op;
+        }
+
+        public Table.Column<?> getColumn() {
+            return column;
+        }
+    }
+
+    public class InnerJoin extends Join {
+
+    }
+
+    public class LeftJoin extends Join {
+
     }
 }

@@ -93,7 +93,6 @@
             }
           ]
         },
-        
         {
           "id": "23",
           "name": "Score",
@@ -123,7 +122,8 @@
               "isEntityIdentifier": "0",
               "isStateMachineAttribute": "0",
               "databaseColumn": ""
-            },{
+            },
+            {
               "id": "210",
               "name": "author",
               "type": "21",
@@ -138,7 +138,8 @@
               "isEntityIdentifier": "0",
               "isStateMachineAttribute": "0",
               "databaseColumn": ""
-            },{
+            },
+            {
               "id": "210",
               "name": "document",
               "type": "22",
@@ -171,7 +172,7 @@
           ]
         },
         {
-          "id":"24",
+          "id": "24",
           "name": "Customer",
           "isAbstractt": "0",
           "label": "",
@@ -278,7 +279,8 @@
               "isEntityIdentifier": "0",
               "isStateMachineAttribute": "0",
               "databaseColumn": ""
-            },{
+            },
+            {
               "id": "210",
               "name": "author",
               "type": "21",
