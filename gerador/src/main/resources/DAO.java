@@ -108,19 +108,25 @@ public class ${Klass}
 	    obj.set${field.UpperCamel}(${field.LowerCamel}AG);
 #**##end
 #**##if ($field.PrimaryKey)
-	    ((${Target}Editable)obj).setId(idAG);
+	    ((${Target}Editable) obj).setId(idAG);
 #**##end
 #end
 ##
 #foreach ($association in $manyToOneAssociations)
-    	((${Target}Editable)obj).set${association.KeyToA}(${association.KeyToA}AG);
+    	((${Target}Editable) obj)
+            .set${association.KeyToA}(
+                ${association.KeyToA}AG);
 #end
 ##
 #foreach ($association in $oneToManyAssociations)
-    	((${Target}Editable)obj).set${association.KeyToAPluralized}(${association.KeyToAPluralized}AG);
+    	((${Target}Editable) obj)
+            .set${association.KeyToAPluralized}(
+                ${association.KeyToAPluralized}AG);
 #end
 #foreach ($association in $manyToManyAssociations)
-    	((${Target}Editable)obj).set${association.Pluralized}(${association.Pluralized}AG);
+    	((${Target}Editable) obj)
+            .set${association.Pluralized}(
+                ${association.Pluralized}AG);
 #end
         return obj;
     }

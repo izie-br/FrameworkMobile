@@ -11,7 +11,7 @@
             return true;
         } else {
             if (cacheItem instanceof ${EditableInterface}) {
-                $EditableInterface editable = (${EditableInterface})cacheItem;
+                $EditableInterface editable = (${EditableInterface}) cacheItem;
 #foreach ($field in $fields)
 #**##if ($associationForField[$field])
 #******##set ($association = $associationForField[$field])

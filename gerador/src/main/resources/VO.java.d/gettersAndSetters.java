@@ -6,7 +6,7 @@
 #**##if ( ($interface || $implementation) &&
           $field.Get && !$associationForField[$field]
         )
-#******#    public ${field.Type} ${getter[$field]} () #if($implementation){
+#******#    public ${field.Type} ${getter[$field]} ()#if($implementation){
 #******##if ($field.Type == "Date")
 #******#        if (${field.LowerCamel} == null) {
 #******#            return null;
