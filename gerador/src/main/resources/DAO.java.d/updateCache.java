@@ -33,10 +33,10 @@
 #******#               }
 #**##elseif (!$field.PrimaryKey)
 #******#               ${field.Klass} ${field.LowerCamel}AG = target.${getter[$field]}();
-#******#               ${field.Klass} _cache${field.LowerCamel} = editable.${getter[$field]}();
+#******#               ${field.Klass} cache${field.LowerCamel}AG = editable.${getter[$field]}();
 #******#               boolean ${field.LowerCamel}AGChanged = (${field.LowerCamel}AG == null) ?
-#******#                       (_cache${field.LowerCamel} != null) :
-#******#                       !(${field.LowerCamel}AG.equals(_cache${field.LowerCamel}));
+#******#                       (cache${field.LowerCamel}AG != null) :
+#******#                       !(${field.LowerCamel}AG.equals(cache${field.LowerCamel}AG));
 #******#               if (${field.LowerCamel}AGChanged) {
 #******#                   editable.set${field.UpperCamel}(${field.LowerCamel}AG);
 #******#               }

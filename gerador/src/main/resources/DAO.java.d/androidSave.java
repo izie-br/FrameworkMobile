@@ -59,7 +59,7 @@
             }
             if (qty > 0){
                 if (target instanceof ${EditableInterface}) {
-                    $EditableInterface editable = (${EditableInterface})target;
+                    $EditableInterface editable = (${EditableInterface}) target;
                     if (!insertIfNotExists) {
                         editable.set${primaryKey.UpperCamel}(value);
                     }

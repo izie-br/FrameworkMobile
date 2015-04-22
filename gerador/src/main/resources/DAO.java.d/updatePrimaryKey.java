@@ -20,7 +20,7 @@
         if (newPrimaryKey.equals(target.getId()))
         	throw new IllegalArgumentException(
                 "Target and new primaryKey are the same");
-        ${EditableInterface} editableTarget = (${EditableInterface})target;
+        ${EditableInterface} editableTarget = (${EditableInterface}) target;
         ${primaryKey.Klass} newPk = (${primaryKey.Klass})newPrimaryKey;
         ${primaryKey.Klass} oldPk = editableTarget.${getter[$primaryKey]}();
         long newIdCount = query(${Target}.${primaryKey.UpperAndUnderscores}.eq(newPk)).count();
