@@ -12,20 +12,23 @@ public class PluralizacaoUtils {
         {
             //add(new Regra("(.*)ao$", "$1oes"));
             //add(new Regra("(.*[r])$", "$1es"));
-            add(new Regra("(.*[y])$", "$1ies"));
-            add(new Regra("(.*[sz])$", "$1es"));
-            add(new Regra("(.*)$", "$1s"));
+            add(new Regra("(.*[aeiou][y])$", "$1s", "(.*[aeiou][y])$"));
+            add(new Regra("y(.*)", "$1ies", "(.*[y])$"));
+//            add(new Regra("(.*[y])$", "$1ies"));
+//            add(new Regra("(.*[sz])$", "$1es"));
+            add(new Regra("s(.*)", "$1s", "(.*[s])$"));
+            add(new Regra("(.*)$", "$1s", "(.*)$"));
         }
     };
 
     public static String pluralizar(String singular) {
         for (Regra regra : regras) {
-            if (singular.matches(regra.singular)) {
-                Pattern pattern = Pattern.compile(regra.singular);
+            if (singular.matches(regra.matches)) {
+                Pattern pattern = Pattern.compile(regra.replaceGroup);
                 Matcher mobj = pattern.matcher(singular);
                 StringBuffer sb = new StringBuffer();
                 mobj.find();
-                mobj.appendReplacement(sb, regra.substituicao);
+                mobj.appendReplacement(sb, regra.substitution);
                 return sb.toString();
             }
         }
@@ -34,13 +37,15 @@ public class PluralizacaoUtils {
 
     public static class Regra {
 
-        private String singular;
-        private String substituicao;
+        private String replaceGroup;
+        private String substitution;
+        private String matches;
 
-        public Regra(String singular, String substituicao) {
+        public Regra(String replaceGroup, String substitution, String matches) {
             super();
-            this.singular = singular;
-            this.substituicao = substituicao;
+            this.replaceGroup = replaceGroup;
+            this.substitution = substitution;
+            this.matches = matches;
         }
 
     }

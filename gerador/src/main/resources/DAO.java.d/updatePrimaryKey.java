@@ -2,30 +2,37 @@
     public void updatePrimaryKey($Target target, Object newPrimaryKey)
             throws IOException
     {
-        if (target == null)
+        if (target == null) {
             throw new IllegalArgumentException(
                 "Target is NULL");
-        if (!(target instanceof ${EditableInterface}) )
+        }
+        if (!(target instanceof ${EditableInterface})) {
             throw new IllegalArgumentException(
                 "Target is not editable");
-        if (newPrimaryKey == null)
+        }
+        if (newPrimaryKey == null){
             throw new IllegalArgumentException(
-                "PrimarKey is NULL");
-        if (!(newPrimaryKey instanceof ${primaryKey.Klass}) )
+            "PrimarKey is NULL");
+        }
+        if (!(newPrimaryKey instanceof ${primaryKey.Klass})) {
             throw new IllegalArgumentException(
-                "PrimarKey is not " + newPrimaryKey.getClass().getName() );
-        if (target.getId() == null)
-        	throw new IllegalArgumentException(
-                "Target was not persisted");
-        if (newPrimaryKey.equals(target.getId()))
-        	throw new IllegalArgumentException(
-                "Target and new primaryKey are the same");
+            "PrimarKey is not "+newPrimaryKey.getClass().getName());
+        }
+        if (target.getId() == null) {
+            throw new IllegalArgumentException(
+            "Target was not persisted");
+        }
+        if (newPrimaryKey.equals(target.getId())) {
+            throw new IllegalArgumentException(
+            "Target and new primaryKey are the same");
+        }
         ${EditableInterface} editableTarget = (${EditableInterface}) target;
         ${primaryKey.Klass} newPk = (${primaryKey.Klass})newPrimaryKey;
         ${primaryKey.Klass} oldPk = editableTarget.${getter[$primaryKey]}();
         long newIdCount = query(${Target}.${primaryKey.UpperAndUnderscores}.eq(newPk)).count();
-        if (newIdCount > 0)
+        if (newIdCount > 0) {
             throw new IOException("Id already exists");
+        }
         // Armazenando os querySets antigos, antes do reINSERT, que os atualiza
 #foreach ($association in $oneToManyAssociations)
         QuerySet<${association.Klass}> ${association.KeyToAPluralized}AG =
@@ -43,15 +50,16 @@
 #foreach ($association in $manyToManyAssociations)
         editableTarget.set${association.Pluralized}(null);
 #end
-        if (!save(editableTarget, Save.INSERT_IF_NOT_EXISTS))
+        if (!save(editableTarget, Save.INSERT_IF_NOT_EXISTS)){
             throw new IOException("save could not be performed, check logs");
+        }
 #foreach ($association in $oneToManyAssociations)
         for (${association.Klass} item : ${association.KeyToAPluralized}AG.all()) {
             item.set${association.KeyToA}(editableTarget);
             item.setLastModified(new java.util.Date());
             if (!this.factory
             .getModelFacade()
-            .save(item)){
+            .save(item)) {
                 throw new IOException("save could not be performed, check logs");
             }
         }
@@ -62,7 +70,8 @@
         }
 #end
         ${Target} oldItem = get(oldPk);
-        if (!delete(oldItem))
+        if (!delete(oldItem)){
             throw new IOException(
-                "error upon deleting old record under updateId process, check logs");
+            "error upon deleting old record under updateId process, check logs");
+        }
     }

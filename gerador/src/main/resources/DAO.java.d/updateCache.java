@@ -5,8 +5,9 @@
         $Target cacheItem =
             (${Target}) 
                 factory.cacheLookup(${Target}.class, pks);
-        if (cacheItem == null)
+        if (cacheItem == null){
             return false;
+        }
         if (cacheItem == target) {
             return true;
         } else {
