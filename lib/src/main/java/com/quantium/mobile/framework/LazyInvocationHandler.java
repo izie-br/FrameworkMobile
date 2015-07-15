@@ -24,6 +24,22 @@ public class LazyInvocationHandler<T extends BaseGenericVO> implements Invocatio
         this.modelFacade = modelFacade;
     }
 
+    public Class<T> getInvokedClass() {
+        return klass;
+    }
+
+    public T getLazyInstance() {
+        return lazyInstance;
+    }
+
+    public Object getKey() {
+        return key;
+    }
+
+    public QuerySet<T> getQuerySet() {
+        return querySet;
+    }
+
     @Override
     public Object invoke(Object proxy, Method method, Object[] args)
             throws Throwable {
