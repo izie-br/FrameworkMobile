@@ -53,7 +53,7 @@
             long qty;
             try {
             	qty = db.insertOrThrow("${table}", null, contentValues);
-            	value = String.valueOf(qty);
+                value = target.getId() == null ? String.valueOf(qty) : target.getId();
             } catch (SQLException e){
                 throw new IOException(StringUtil.getStackTrace(e));
             }
