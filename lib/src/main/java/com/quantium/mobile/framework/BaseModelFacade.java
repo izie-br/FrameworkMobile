@@ -152,7 +152,7 @@ public abstract class BaseModelFacade {
                 return dao.delete(obj);
             } else {
                 obj.setInactivatedAt(new Date());
-                return dao.save(obj);
+                return save(obj);
             }
         } else {
             toSyncProvider.delete(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
