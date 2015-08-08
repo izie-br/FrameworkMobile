@@ -155,16 +155,16 @@ public abstract class BaseModelFacade {
                 return save(obj);
             }
         } else {
-            toSyncProvider.delete(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
-                    ToSyncProvider.SAVE);
-            if (toSyncProvider.save(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
-                    ToSyncProvider.DELETE)) {
-                if (hardDelete) {
+            if (hardDelete) {
+                toSyncProvider.delete(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
+                        ToSyncProvider.SAVE);
+                if (toSyncProvider.save(getLoggedUserId(), dao.getTable().getName(), obj.getId(),
+                        ToSyncProvider.DELETE)) {
                     return dao.delete(obj);
-                } else {
-                    obj.setInactivatedAt(new Date());
-                    return dao.save(obj);
                 }
+            } else {
+                obj.setInactivatedAt(new Date());
+                return save(obj);
             }
         }
         return false;
