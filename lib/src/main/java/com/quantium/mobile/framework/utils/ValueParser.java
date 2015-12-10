@@ -4,6 +4,7 @@ import com.quantium.mobile.framework.DAO;
 
 import java.io.IOException;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 public class ValueParser {
@@ -24,8 +25,16 @@ public class ValueParser {
         } else {
             temp = allFieldsMap.get(foreignKey);
             String associationId = StringFromMap(temp);
-            return (associationId == null) ? null : associationDao
-                    .get(associationId);
+            if (associationId != null) {
+                T t = associationDao.get(associationId);
+                if (t == null) {
+                    Map<String, Object> associationMap = new HashMap<String, Object>();
+                    associationMap.put("id", associationId);
+                    return associationDao.mapToObject(associationMap);
+                }
+                return t;
+            }
+            return null;
         }
     }
 
